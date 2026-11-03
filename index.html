@@ -404,6 +404,9 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
   .bookpage{padding:8px}.pcell{min-height:40px;padding:3px 6px}.pmath .pbody{font-size:1.15rem}.pbody{font-size:.98rem}.bh{margin-bottom:0}
   .split .board{font-size:clamp(1rem,3.6vh,1.6rem)}.split .pad button,.split.hasScratch .pad button{min-height:38px}
 }
+.biscuit>.mascot{cursor:pointer}.mbody{animation:mbreathe 4s ease-in-out infinite;transform-origin:50px 126px}.mtail{animation:mtail 4s ease-in-out infinite;transform-origin:20px 76px}
+.mlid{transform-origin:80px 31px}.mhat{transform-origin:76px 22px}.mascot.tip .mhat{animation:mhattip .75s ease-in-out}
+@keyframes mbreathe{50%{transform:scaleY(1.012)}}@keyframes mhattip{40%,65%{transform:translateY(-5px) rotate(-14deg)}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -937,26 +940,29 @@ function visual(v) {
 /* ---------- screens ---------- */
 const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="leaveRide">Map</button><button class="btn dark small" data-act="goBack">&#9664; Back</button></span>${extra}
   ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-const MASCOT = `<svg class="mascot" viewBox="0 0 110 130" aria-hidden="true"><g class="mbody">
-  <path class="mtail" d="M20 76c-13 2-17 16-13 32 6-5 11-13 15-24z" fill="#4a2b14"/>
-  <rect x="24" y="92" width="10" height="31" rx="4" fill="#9c6029"/><rect x="58" y="92" width="10" height="31" rx="4" fill="#9c6029"/>
-  <rect x="36" y="92" width="10" height="33" rx="4" fill="#b9773a"/><rect x="70" y="92" width="10" height="33" rx="4" fill="#b9773a"/>
-  <path d="M24 118h10v7H24zM58 118h10v7H58zM36 120h10v7H36zM70 120h10v7H70z" fill="#2c1a0e"/>
-  <ellipse cx="51" cy="86" rx="33" ry="20" fill="#b9773a"/><ellipse cx="51" cy="93" rx="22" ry="10" fill="#d09a5c"/>
-  <path d="M60 80 66 42 88 50 82 88z" fill="#b9773a"/>
-  <path d="M63 38c-7 8-8 16-9 24 3-1 4-2 6-3-2 6-2 11-2 17l8-12z" fill="#4a2b14"/>
-  <path d="M62 69l24 3-10 15z" fill="#c8202c"/><path d="M60 67l27 3-1 5-27-3z" fill="#e23b45"/>
-  <path class="mear" d="M66 24l3-13 8 12z" fill="#9c6029"/>
-  <ellipse cx="78" cy="38" rx="19" ry="17" fill="#b9773a"/>
-  <path d="M71 23c-3 3-5 8-4 13 3-2 7-3 9-6z" fill="#4a2b14"/>
-  <ellipse cx="91" cy="47" rx="14" ry="11" fill="#e6c08f"/>
-  <ellipse cx="96" cy="43" rx="2" ry="2.6" fill="#4a2b14"/>
-  <path class="msmile" d="M83 52c4 4 11 4 16-1" fill="none" stroke="#4a2b14" stroke-width="2.4" stroke-linecap="round"/>
-  <ellipse class="mopen" cx="91" cy="53" rx="7" ry="5" fill="#7b1f24"/>
-  <circle cx="79" cy="34" r="7.5" fill="#fff"/><circle cx="81" cy="35" r="4" fill="#20140a"/><circle cx="82.4" cy="33.4" r="1.4" fill="#fff"/>
-  <ellipse class="mlid" cx="79" cy="34" rx="8" ry="8" fill="#9c6029"/>
-  <path d="M70 25c-1-12 2-20 11-20 8 0 11 8 11 18z" fill="#6b3f1b"/><path d="M70 22c7 2 15 2 22-1v4c-7 3-15 3-22 1z" fill="#c8202c"/>
-  <ellipse cx="81" cy="26" rx="27" ry="5.5" fill="#7d4c22"/><path d="M54 26c6 4 42 4 54 0-4 6-48 7-54 0z" fill="#5a3517"/>
+const MASCOT = `<svg class="mascot" viewBox="0 0 112 130" data-act="biscuitTap" role="button" aria-label="Biscuit"><g class="mbody">
+  <path class="mtail" d="M14 74C2 82 0 102 5 120c4-2 7-6 9-11 1 5 3 7 5 8 0-14 2-26 8-36z" fill="#14100b"/>
+  <path d="M20 94h12l-2 22 2 8H20zM58 96h12l-1 20 2 8H58z" fill="#3f2715"/>
+  <path d="M34 94h13l-2 24 2 8H34zM72 94h13l-3 24 2 8H72z" fill="#573720"/>
+  <path d="M20 120h12v6H20zM58 120h13v6H58zM34 122h13v6H34zM72 122h13v6H72z" fill="#0e0b08"/>
+  <ellipse cx="50" cy="84" rx="38" ry="23" fill="#573720"/><path d="M14 92c14 14 58 16 74-2-6 20-66 20-74 2z" fill="#3f2715"/>
+  <path d="M50 80 62 32 84 48 90 92z" fill="#573720"/>
+  <path d="M60 28C50 40 46 56 42 70l12-5 3-11 6 2 5-12z" fill="#14100b"/>
+  <path d="M18 66h44l-3 22H22z" fill="#7a2418"/><path d="M18 66h44v3H18zM21 84h38v3H21z" fill="#c9a15f"/>
+  <path d="M22 64c10-9 28-9 37 0l-2 13c-10 4-23 4-33 0z" fill="#21160c"/><path d="M50 62c4-5 9-6 12-4l-3 8z" fill="#21160c"/>
+  <circle cx="36" cy="92" r="9" fill="none" stroke="#b08a4e" stroke-width="3"/><circle cx="36" cy="92" r="5" fill="none" stroke="#8a6a38" stroke-width="2"/>
+  <path d="M62 62 92 58 78 84z" fill="#7a2418"/><path d="M61 58l32-4 1 6-32 5z" fill="#94301f"/>
+  <path d="M63 28 60 12 72 23z" fill="#3f2715"/>
+  <path d="M63 30C69 17 85 15 91 24l15 20c5 7 2 15-6 16l-14 1C78 60 71 56 67 49 63 43 61 37 63 30z" fill="#573720"/>
+  <path d="M91 39l15 5c5 7 2 15-6 16l-13 1c-2-8-1-16 4-22z" fill="#2c1c10"/>
+  <ellipse cx="102" cy="47" rx="1.8" ry="2.6" fill="#0e0b08"/>
+  <g class="msmile"><path d="M89 54c5 2 11 1 16-3" fill="none" stroke="#0e0b08" stroke-width="2.2" stroke-linecap="round"/><path d="M96 54c5 0 10 3 14 8" fill="none" stroke="#e0b94f" stroke-width="1.3" stroke-linecap="round"/><path d="M108 59l5 1M109 61l4 3M107 57l4-1" stroke="#e0b94f" stroke-width="1.3" stroke-linecap="round"/></g>
+  <ellipse class="mopen" cx="97" cy="55" rx="6" ry="3.6" fill="#4d120f"/>
+  <ellipse cx="80" cy="35" rx="5" ry="3.8" fill="#c98a2c"/><circle cx="81" cy="35" r="2.2" fill="#0e0b08"/>
+  <path d="M73 32l15-1-1 3H75z" fill="#3f2715"/><path d="M71 29l18 3-1 3-17-3z" fill="#21160c"/>
+  <ellipse class="mlid" cx="80" cy="35" rx="6" ry="5" fill="#573720"/>
+  <path d="M75 25l8 19" stroke="#8d6a4a" stroke-width="1.6" stroke-linecap="round"/>
+  <g class="mhat"><path d="M61 21C60 7 67 1 76 4c7-3 16 2 15 15z" fill="#1a1510"/><path d="M61 16c10 3 21 3 30 0l1 5c-11 3-21 3-31 1z" fill="#7a5a30"/><circle cx="80" cy="20" r="2" fill="#d8d3c4"/><path d="M45 24c15-9 47-9 65-3-13 9-50 11-65 3z" fill="#0f0c09"/></g>
 </g></svg>`;
 const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } const ask = U.view === "ride" && U.qid && U.mode !== "solved" && SR; const explain = U.view === "ride" && U.qid && U.mode === "try" && !U.coachDone && curQ()?.coach && !curQ().match; return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns">${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}${ask ? `<button class="micbtn ${U.listening ? "on" : ""}" data-act="askMic" aria-label="Ask Biscuit out loud">${MIC_ICON}</button>` : ""}<span class="smallbtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></span></div></div>`; };
@@ -1872,6 +1878,12 @@ const acts = {
   next() { nextItem(); },
   openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
   closeq() { backToPage(); },
+  biscuitTap() {
+    const t = pick(["Stay sharp.", "Slow is smooth. Smooth is fast.", "Don't rush the draw.", "Keep your head down and work it.", "Numbers don't scare you.", "I've seen tougher. You'll handle it.", "Good hands. Now use your head."]), box = document.querySelector(".biscuit .saytext"), m = document.querySelector(".biscuit .mascot");
+    if (box) { box.dataset.say = t; box.innerHTML = wordsHtml(t); }
+    if (m) { m.classList.remove("tip"); void m.getBoundingClientRect(); m.classList.add("tip"); }
+    lastSaid = ""; beep(BLIP); speak(t);
+  },
   workedNext() {
     const q = curQ(), p = PP(LP(U.lesson), q.id);
     if (!q.proof || p.done) return finishProblem(false, false);
