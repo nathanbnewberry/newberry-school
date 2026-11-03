@@ -418,6 +418,7 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .mbody{animation:mbreathe 3.6s ease-in-out infinite;transform-origin:70px 188px}.mtail{animation:mtail 3.6s ease-in-out infinite;transform-origin:54px 112px}.mmane{animation:mwind 2.8s ease-in-out infinite;transform-origin:126px 30px}.mlid{transform-origin:145px 19px}.mopen{transform-origin:165px 52px}
 .mascot.tip .mbody{animation:mrear .95s ease-in-out}@keyframes mrear{35%,60%{transform:rotate(-9deg) translateY(-3px)}}@keyframes mtail{50%{transform:rotate(5deg)}}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.biscuit>.mascot{width:70px;height:70px;margin:-4px 0}}
+.helprow{padding-bottom:10px}.helprow .btn,.helprow .micbtn{margin-bottom:0}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -863,8 +864,7 @@ function buildItems(l, r) {
   const left = (items, key) => { const f = items.filter((x) => !doneKeys.includes(x[key])); return f.length ? f : items; };
   if (r.kind === "warmup") return left(l.warmup.map((w, i) => ({ type: "fact", w, i })), "i");
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
-  const seen = (lp.demoSeen = lp.demoSeen || {});
-  return [...(r.teach || []).filter((t) => !seen[t.title]).map((t) => ({ ...t, teachKey: t.title })), ...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
+  return [{ type: "page" }];
 }
 function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false }); }
 function pageGap(l, r) {
@@ -1176,7 +1176,8 @@ function pageView(l, r) {
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
       ${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
-  const demoLink = r.demos?.length || r.teach?.length ? `<button class="btn go wide" data-act="replayDemo" style="font-family:var(--body)">Watch Silver explain it</button>` : "";
+  const nextUp = r.problems.map((id) => qOf(l, id)).find((q) => q.coach && !PP(LP(l.id), q.id).done);
+  const demoLink = nextUp ? `<button class="btn go wide" data-act="explainNext" data-id="${esc(nextUp.id)}" style="font-family:var(--body)">Silver explains problem ${esc(nextUp.id)}</button>` : "";
   return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
     `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
     <button class="btn dark wide" data-act="leaveRide">Back to the map</button>`;
@@ -1851,7 +1852,6 @@ function askAnswer(text) {
   if (term) return after(term[1]);
   if (/word|mean/.test(t)) return after("Which word? Say it to me, like: what does perimeter mean?");
   if (/\b(example|show me)\b/.test(t)) {
-    const rd = rideOf(curLesson(), U.ride); if (rd.demos?.length || rd.teach?.length) { closeTimer(); U.qid = null; return acts.replayDemo(); }
     if (!coach && !proofing && !U.coachDone && q.coach) return startCoach();
     return after(proofing ? q.proof.nudge : s ? s.nudge : "Look back at the steps you just did.");
   }
@@ -1944,7 +1944,7 @@ const acts = {
     U.demoStep++; beep(BLIP); render();
   },
   demoDone() { const lp = LP(U.lesson); lp.demoSeen = lp.demoSeen || {}; lp.demoSeen[curItem().demo.title] = true; save(); nextItem(); },
-  replayDemo() { const l = curLesson(), r = rideOf(l, U.ride); U.items = [...(r.teach || []).map((t) => ({ ...t, teachKey: t.title })), ...(r.demos || []).map((demo) => ({ type: "demo", demo })), { type: "page" }]; U.i = 0; resetItem(); render(); window.scrollTo(0, 0); },
+  explainNext(d) { acts.openq({ id: d.id }); if (curQ()?.coach) startCoach(); },
   pzSlide(d) { const pz = U.pz, x = pz.x + +d.dx, y = pz.y + +d.dy; if (x < 3 || x > 6 || y < 3 || y > 4) { W.shake = 3; beep(NOPE); return; } pz.x = x; pz.y = y; pzMoved(); },
   pzTurn() { U.pz.rel = U.pz.rel.map(([x, y]) => [-y, x]); pzMoved(); },
   pzFlip() { U.pz.rel = U.pz.rel.map(([x, y]) => [-x, y]); pzMoved(); },
