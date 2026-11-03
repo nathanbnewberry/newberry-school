@@ -178,12 +178,15 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   body{padding-block:6px 6px}
   #shell{max-width:1320px;gap:8px}
   #app{gap:8px}
-  body[data-view="ride"] #shell{grid-template-columns:minmax(0,300px) minmax(0,1fr);align-items:start}
+  body[data-view="ride"] #shell{grid-template-columns:minmax(0,1fr) minmax(0,280px);align-items:start}
+  body[data-view="ride"] #topbar{grid-column:1;grid-row:1}
+  body[data-view="ride"] #world{grid-column:2;grid-row:1}
   body[data-view="ride"] #app{grid-column:1/-1}
   body[data-view="ride"] #world{width:100%}
   .biscuit{min-height:0;padding:6px 10px;grid-template-columns:40px minmax(0,1fr) auto;font-size:.95rem}.biscuit svg{width:36px;height:36px}
   .bubtns{grid-auto-flow:column;gap:6px;align-items:center}
   .hud .btn.small{min-height:38px;padding:4px 12px}
+  .hud .btn.small.mapbtn{min-height:50px;padding:6px 26px;font-size:1.15rem}
   .askbar{grid-auto-flow:column;grid-auto-columns:max-content;align-items:center;overflow-x:auto}.mic-btn{min-height:40px;padding:0 12px;font-size:.9rem}.askchips{flex-wrap:nowrap}.askchips button{min-height:38px;padding:4px 10px;white-space:nowrap;font-size:.84rem}.heard{display:none}
   .split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(320px,1fr);gap:18px;align-items:start;padding:12px}
   .split>.left,.split>.right{display:grid;gap:8px;min-width:0}
@@ -191,7 +194,8 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   .split .btn{min-height:50px}
   .pmathbig{padding:4px 0}
   .bookpage{padding:12px}
-  #spad{height:clamp(120px,22vh,260px)}
+  .split #spad{height:clamp(120px,24vh,280px)}
+  .split .pmathbig{font-size:clamp(1.8rem,5.5vh,2.6rem)}
   .split .vis svg{max-height:26vh;width:auto}
   .pgrid:not(.cols){grid-template-columns:repeat(2,minmax(0,1fr))}
   .pgrid.cols{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -248,6 +252,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .boardbox{gap:10px}
 .centered{max-width:760px;width:100%;margin:0 auto}
 .row-btns{display:inline-flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hud .btn.small.mapbtn{min-height:56px;padding:8px 26px;font-size:1.2rem;background:var(--gold);color:var(--ink);box-shadow:0 5px 0 var(--gold-deep)}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -716,7 +721,7 @@ function visual(v) {
 }
 
 /* ---------- screens ---------- */
-const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small" data-act="goBack">&#9664; Back</button><button class="btn dark small" data-act="leaveRide">Map</button></span>${extra}
+const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="leaveRide">Map</button><button class="btn dark small" data-act="goBack">&#9664; Back</button></span>${extra}
   ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
 const bubble = (t, extra = "") => { speak(t); U.lastBubble = t; return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><div class="bubtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div></div>`; };
 function titleView() {
@@ -829,7 +834,7 @@ function homeView() {
 }
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
-  return `<div class="hud"><span class="row-btns"><button class="btn dark small" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then go to school. Then the whole map opens.")}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
