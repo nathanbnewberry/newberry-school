@@ -516,6 +516,18 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .lcol,.split:not(.hasScratch)>.left{container-type:inline-size}.pmathbig{max-width:100%}.pmathbig .inl{overflow-wrap:anywhere}
 @media (orientation:landscape) and (min-width:800px){.lcol .pmathbig .inl{font-size:min(1em,9cqw)}}
 .map .rivermain{filter:drop-shadow(0 0 3px rgba(70,85,50,.75))}.map .stop>g{filter:drop-shadow(2px 4px 3px rgba(40,25,10,.45))}.map .stop:focus>g,.map .stop:hover>g{filter:drop-shadow(2px 4px 3px rgba(40,25,10,.45)) brightness(1.1)}
+.checkit{background:#e3f4e8;border-left-color:#1f9a4f}.checkit b{color:#17663a}
+.chartbtn{width:52px;height:52px;flex:none;border-radius:50%;background:#1c5a8f;color:#fff;display:grid;place-items:center;box-shadow:0 3px 0 #123c60}.chartbtn svg{width:26px;height:26px}
+.chartbox{position:fixed;inset:0;z-index:80;background:rgba(10,12,28,.72);display:grid;place-items:center;padding:8px;font-family:var(--body)}
+.chartpanel{background:#fbf3df;color:#1c1712;border-radius:14px;padding:10px 14px;display:grid;gap:6px;width:min(100%,1100px);max-height:100%}
+.charthead{display:flex;align-items:center;gap:14px}.charthead h2{margin:0;font:400 clamp(1.1rem,3.4vh,1.6rem) var(--display)}.charthead p{margin:0;flex:1;text-align:center;font-weight:800;font-size:clamp(1rem,3vh,1.5rem);color:#1c5a8f}.charthead .btn{min-height:44px;padding:4px 16px;width:auto;flex:none}
+.chartgrid{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));grid-auto-rows:clamp(30px,calc((100dvh - 118px) / 13),60px);gap:2px}
+.chd,.cc2{display:grid;place-items:center;font-weight:700;font-size:clamp(.9rem,3vh,1.35rem);border-radius:5px;padding:0;min-height:0;font-family:var(--body)}
+.chd{background:#1c5a8f;color:#fff;font-weight:800;cursor:pointer}.chd.cx{background:#123c60;cursor:default}.cc2{background:#fff;color:#1c1712;border:1px solid #d9cfb5}.cc2.diag{background:#f6dc8e}
+.chd.lit{background:#e8a317;color:#1c1712}.cc2.lit{background:#ffe9a8}.cc2.hit{background:#e8541e;color:#fff;font-weight:800}
+.recap li{border-radius:8px;padding:3px 6px;transition:background .2s}.recap li.speaking,.remember.speaking{background:#ffe07a;box-shadow:0 0 0 3px #e8a317}
+.workednext{min-height:64px;font-size:1.25rem}
+@media (orientation:landscape) and (min-width:800px){.workedpage{overflow:hidden}.workedgrid{height:100%;grid-template-rows:minmax(0,1fr)}.workedgrid>.workedside{min-height:0;overflow:auto;align-content:start}.workedgrid>.workedside:first-child .board{font-size:clamp(.95rem,3.2vh,1.5rem)}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -531,7 +543,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=0050366809"></script>
+<script src="lessons.js?v=979938ae43"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -1283,9 +1295,30 @@ function pageView(l, r) {
     `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>Lesson ${esc(l.bookLesson)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div><div class="pgprog"><span>${done} of ${total} done</span><div class="pgdots">${dots}</div></div>${explain}</div><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function openChart() {
+  document.getElementById("chartbox")?.remove();
+  const nums = Array.from({ length: 12 }, (_, i) => i + 1);
+  const box = document.createElement("div"); box.id = "chartbox"; box.className = "chartbox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Multiplication chart");
+  box.innerHTML = `<div class="chartpanel"><div class="charthead"><h2>Multiplication Chart</h2><p id="chartsay">Tap a square to light up its row and column.</p><button class="btn dark" id="chartclose">&#10005; Close</button></div><div class="chartgrid"><span class="chd cx">×</span>${nums.map((c) => `<span class="chd" data-c="${c}">${c}</span>`).join("")}${nums.map((r) => `<span class="chd" data-r="${r}">${r}</span>${nums.map((c) => `<button class="cc2 ${r === c ? "diag" : ""}" data-r="${r}" data-c="${c}">${r * c}</button>`).join("")}`).join("")}</div></div>`;
+  document.body.appendChild(box);
+  const say = box.querySelector("#chartsay");
+  box.querySelector("#chartclose").onclick = () => box.remove();
+  box.addEventListener("click", (e) => {
+    if (e.target === box) return box.remove();
+    const t = e.target.closest("[data-r],[data-c]"); if (!t) return;
+    const prev = box.dataset.pick ? box.dataset.pick.split(",") : ["", ""];
+    const r = t.dataset.r || prev[0], c = t.dataset.c || prev[1];
+    box.dataset.pick = `${r},${c}`;
+    box.querySelectorAll("[data-r],[data-c]").forEach((el) => {
+      const inR = r && el.dataset.r === r, inC = c && el.dataset.c === c;
+      el.classList.toggle("lit", !!(inR || inC)); el.classList.toggle("hit", !!(r && c && el.dataset.r === r && el.dataset.c === c));
+    });
+    if (r && c) say.textContent = `${r} × ${c} = ${r * c}`;
+  });
+}
 function helpRow(q) {
   const explain = U.mode === "try" && !U.coachDone && q.coach;
-  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}<button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
+  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
 }
 function spadPrompt() {
   const q = curQ(), it = curItem();
@@ -1378,48 +1411,81 @@ function focusDots(q) {
 }
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
-  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}${q.note ? `<p class="pnote">${esc(q.note)}</p>` : ""}`;
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}${q.note ? `<p class="pnote">${esc(q.note)}</p>` : q.extra?.includes("R") ? `<p class="pnote">Some left over? Use the R button.</p>` : ""}`;
 }
-const REMEMBER = {
-  "Finding information": "Find the numbers the question asks about. Ignore the rest.",
-  "Equal groups word problems": "The same amount in every group means multiply.",
-  "Units: feet and inches": "Change to the same unit before you do the math.",
-  "Dividing by one digit": "Splitting into equal groups means divide.",
-  "Elapsed time": "Add the hours, then add the minutes.",
-  "Fractions of a group": "The bottom number tells you how many equal groups to make.",
-  "Perimeter": "Perimeter is the fence all the way around. Add every side.",
-  "Area": "Area is the grass inside. Multiply the rows by the columns.",
-  "Metric units": "10 millimeters make 1 centimeter.",
-  "Reading a calendar": "Find the date, then read straight up to its day.",
-  "Percent": "The whole thing is always 100 percent.",
-  "Perimeter and units": "Change the units first, then add every side.",
-  "Multiples": "Multiples are just skip counting.",
-  "Adding money": "Line up the dots, then add from the right.",
-  "Adding decimals": "Line up the dots, then add from the right.",
-  "Order of operations with money": "Parentheses always go first.",
-  "Multiplying three numbers": "You can multiply in any order. Pick the easy pair first.",
-  "Multiplying by tens": "Drop the zero down first, then multiply.",
-  "Division with remainders": "Divide, multiply, subtract, bring down. What's left over is the remainder.",
-  "Dividing with zeros": "Keep doing the four moves, even when a zero shows up.",
-  "Fraction bar means divide": "A number over a number means divide.",
-  "Square roots": "A square root is the number that times itself makes the big number.",
-  "Finding a missing number": "Do the opposite move to find the hidden number.",
-  "Angles": "Obtuse means wider than a square corner.",
-  "Congruent shapes": "Congruent means the same shape and the same size.",
-  "Transformation names": "Slide, turn, flip. Those are the three moves.",
-  "Identifying transformations": "A flip makes a mirror image.",
-  "Subtracting money": "Line up the dots, and borrow when the top is too small.",
-  "Half of a group": "Half means 2 equal groups.",
-  "Liquid measure": "4 quarts make 1 gallon.",
-  "Subtracting big numbers": "Start on the right, and borrow when the top is too small.",
-  "Number lines": "Halfway means half the distance, added to the start.",
-  "Subtracting decimals": "Line up the dots, and borrow when the top is too small.",
-  "Multiplying money": "Multiply first, then put the dot back 2 places from the right.",
-  "Square roots and missing numbers": "Do the square root first, then undo the times.",
-};
 function nextProblemId() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id), at = r.problems.indexOf(U.qid);
   return [...r.problems.slice(at + 1), ...r.problems.slice(0, at)].find((id) => !PP(lp, id).done) || null;
+}
+// After a division problem, shows him how to check it by multiplying back.
+function divisionCheck(q, ans) {
+  const b = q.book, d = b?.type === "div" ? [+b.divisor, +b.dividend] : b?.type === "frac" ? [+b.bottom, +b.top] : null;
+  const m = String(ans).match(/^(\d+)(?:R(\d+))?$/);
+  if (!d || !m || !d[0]) return "";
+  const whole = +m[1], rem = +(m[2] || 0);
+  return `<p class="remember checkit"><b>Check it</b> ${whole} × ${d[0]} = ${whole * d[0]}${rem ? `, plus ${rem} left over makes ${whole * d[0] + rem}` : ""}. That's the number you started with!</p>`;
+}
+const WHY = {
+  "Finding information": "It worked because a story can have extra numbers in it. You used only the numbers the question asked about.",
+  "Equal groups word problems": "It worked because every group had the same amount, and multiplying is a fast way to add equal groups.",
+  "Units: feet and inches": "It worked because you can only compare things measured the same way, so you changed them to the same unit first.",
+  "Dividing by one digit": "It worked because dividing means splitting into equal groups, and small groups of ten are easier to share.",
+  "Elapsed time": "It worked because hours and minutes are counted separately, so you added each one to its own part of the clock.",
+  "Fractions of a group": "It worked because a fraction means equal parts. You split the whole into those parts and counted one.",
+  "Perimeter": "It worked because perimeter is the distance around the outside, so every side has to be counted.",
+  "Area": "It worked because area counts the squares inside, and rows of squares are equal groups, so you can multiply.",
+  "Metric units": "It worked because every 10 millimeters make one centimeter, so you counted how many tens were in it.",
+  "Reading a calendar": "It worked because every date sits under its day of the week, and the days always go in the same order.",
+  "Percent": "It worked because all the chances together always make 100 percent, so taking one part away leaves the rest.",
+  "Perimeter and units": "It worked because you changed the side to the right unit first, then counted every side around the shape.",
+  "Multiples": "It worked because multiples are what you land on when you skip count from that number.",
+  "Adding money": "It worked because lining up the dots keeps dollars with dollars and cents with cents.",
+  "Adding decimals": "It worked because lining up the dots keeps tens with tens, ones with ones, and tenths with tenths.",
+  "Order of operations with money": "It worked because parentheses tell you which part happens first, so you found that total before taking it away.",
+  "Multiplying three numbers": "It worked because you can multiply in any order and still get the same answer, so you picked the easy pair first.",
+  "Multiplying by tens": "It worked because times 10 is the same as adding a zero, so you dropped the zero and multiplied the rest.",
+  "Division with remainders": "It worked because dividing means sharing into equal groups. You shared all you could, and what was too small to share became the remainder.",
+  "Dividing with zeros": "It worked because the zero holds the place. It shows that a spot had nothing left to share.",
+  "Fraction bar means divide": "It worked because the bar in a fraction means the same thing as the divide sign.",
+  "Square roots": "It worked because you did the square root first, which gave you a plain number to divide by.",
+  "Finding a missing number": "It worked because the opposite move undoes the problem. That gets the hidden number all by itself.",
+  "Angles": "It worked because you compared each corner to a square corner, and obtuse is the one that opens wider.",
+  "Congruent shapes": "It worked because turning a shape doesn't change it. It only has to match in shape and in size.",
+  "Transformation names": "It worked because each math word goes with one move: slide, turn or flip.",
+  "Identifying transformations": "It worked because a flip makes a mirror image, and that's exactly how those two shapes face each other.",
+  "Subtracting money": "It worked because lining up the dots keeps dollars with dollars, and borrowing gives you enough to take away.",
+  "Half of a group": "It worked because half means 2 equal groups, so the part not painted matches the part that was.",
+  "Liquid measure": "It worked because 4 quarts always fill one gallon, just like 4 quarters make a dollar.",
+  "Subtracting big numbers": "It worked because you took away one place at a time, and borrowing gave you enough whenever the top was too small.",
+  "Number lines": "It worked because halfway is half the distance between two numbers, starting from the smaller one.",
+  "Subtracting decimals": "It worked because lining up the dots makes sure you take tenths from tenths and ones from ones.",
+  "Multiplying money": "It worked because you multiplied like whole numbers, then put the dot back where the cents go.",
+  "Square roots and missing numbers": "It worked because you turned the square root into a plain number, then divided to undo the times.",
+};
+// Silver reads the finished problem back out loud, lighting up each step as he says it.
+let narrateId = 0, narrateTimer = 0;
+const spokenMath = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)R(\d)/g, "$1 remainder $2");
+function stopNarration() { narrateId++; clearTimeout(narrateTimer); document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking")); try { speechSynthesis.cancel(); } catch (e) {} }
+function narrateWorked() {
+  const q = curQ(); if (!q || U.mode !== "worked") return;
+  stopNarration();
+  const id = narrateId, log = U.stepLog || [], items = [...document.querySelectorAll(".recap li")], p = PP(LP(U.lesson), q.id);
+  const lines = [{ t: "Here's how you worked it out." }];
+  q.coach.steps.forEach((st, i) => { if (st.label === "Answer") return; const ask = String(st.ask || "").replace(/\s*=\s*\?$/, ""); lines.push({ t: `${st.say ? `${st.say} ` : ""}${ask}${/=\s*\?$/.test(String(st.ask)) ? " is" : ""} ${log[i] || ""}.`, el: items[i] }); });
+  lines.push({ t: `So the answer is ${p.ans}.` });
+  if (WHY[q.skill]) lines.push({ t: WHY[q.skill], el: document.querySelector(".whybox") });
+  const chk = document.querySelector(".checkit"); if (chk) lines.push({ t: chk.textContent.replace(/^Check it\s*/, "To check it: "), el: chk });
+  let n = 0;
+  const next = () => {
+    if (id !== narrateId || !document.querySelector(".workedpage")) return;
+    document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking"));
+    if (n >= lines.length) return;
+    const line = lines[n++]; line.el?.classList.add("speaking"); line.el?.scrollIntoView?.({ block: "nearest" });
+    let moved = false; const go = () => { if (moved) return; moved = true; clearTimeout(narrateTimer); next(); };
+    narrateTimer = setTimeout(go, 1800 + line.t.length * 85);
+    try { const u = new SpeechSynthesisUtterance(spokenMath(line.t)); u.rate = 1; u.pitch = 1.1; u.onend = go; speechSynthesis.speak(u); } catch (e) {}
+  };
+  next();
 }
 function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
@@ -1430,8 +1496,8 @@ function solveView(l, q) {
   if (U.mode === "worked") {
     const log = U.stepLog || [];
     const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
-    return hudRide(`<span class="chip">Worked out</span>`) + bubble(REMEMBER[q.skill] ? `You did every step with me. Remember this: ${REMEMBER[q.skill]}` : "You did every step with me, so the work is done.") +
-      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside">${REMEMBER[q.skill] ? `<p class="remember"><b>Remember</b> ${esc(REMEMBER[q.skill])}</p>` : ""}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button></div></div></div>`;
+    return hudRide(`<span class="chip">Worked out</span>`) + bubble("You did every step with me. Listen, and I'll show you how it worked.", "", true) +
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}<button class="btn go wide workednext" data-act="workedNext">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button></div><div class="workedside">${WHY[q.skill] ? `<p class="remember whybox"><b>Why it worked</b> ${esc(WHY[q.skill])}</p>` : ""}${divisionCheck(q, p.ans)}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol></div></div></div>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
@@ -1967,8 +2033,8 @@ function applyStepRight(val) {
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
   if (U.step >= c.steps.length) {
     U.step = c.steps.length - 1; U.cells = []; U.cellAt = 0; U.wrongNow = 0;
-    if (c.reveal) { U.mode = "worked"; p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); }
-    else { U.mode = "try"; U.coachDone = true; }
+    if (c.reveal) { U.mode = "worked"; p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
+    U.mode = "try"; U.coachDone = true;
   }
   save(); render();
 }
@@ -2247,7 +2313,7 @@ function driftNudge() {
   document.querySelector(".explainbtn")?.classList.add("attn");
 }
 function driftTick() {
-  if (document.hidden || U.view !== "ride" || document.getElementById("askpanel") || document.getElementById("breakbox")) return;
+  if (document.hidden || U.view !== "ride" || document.getElementById("askpanel") || document.getElementById("breakbox") || document.getElementById("chartbox")) return;
   const it = curItem();
   if (!(U.qid ? ["try", "coach", "proof"].includes(U.mode) : it?.type === "page")) return;
   const idle = Date.now() - lastActive;
@@ -2355,7 +2421,7 @@ const acts = {
     S.atRide = { ...S.atRide, [l.id]: r.id }; save();
     trot(`town:${l.id}`, l.rides.indexOf(r), TOWN_PTS, () => startRide(l, r));
   },
-  leaveRide() { closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
+  leaveRide() { stopNarration(); closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
   openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
   closeq() { backToPage(); },
@@ -2372,7 +2438,7 @@ const acts = {
     if (m) { m.classList.remove("tip"); void m.getBoundingClientRect(); m.classList.add("tip"); }
     beep(BLIP); sayNow(t);
   },
-  workedNext() { finishProblem(false, false); acts.nextProblem(); },
+  workedNext() { stopNarration(); finishProblem(false, false); acts.nextProblem(); },
   sort(d) {
     const it = curItem();
     if ((d.c === "1") === it.clue) { earn(2); celebrate(2, false); correctFx(it.clue ? "NEED IT!" : "TOSS IT!"); nextItem(); }
@@ -2416,8 +2482,10 @@ const acts = {
     render();
   },
   askMic() { openAskPanel(); },
+  chartOpen() { beep(BLIP); openChart(); },
   share: shareReport,
   again(d, el) {
+    if (U.qid && U.mode === "worked") return narrateWorked();
     speak(U.lastBubble, true);
     const b = el.closest(".biscuit"); if (b) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
   },
@@ -2448,6 +2516,7 @@ const acts = {
   moveYes() { S = { ...blank(), ...U.moveData, updatedAt: Date.now() }; U.moveData = null; U.moveMsg = "Done. All his work is on this iPad now."; save(); render(); },
   moveNo() { U.moveData = null; render(); },
   goBack() {
+    stopNarration();
     if (U.qid) return backToPage();
     if (U.i > 0) { U.i--; const l = curLesson(), r = rideOf(l, U.ride); W.targetGap = pageGap(l, r); resetItem(); render(); window.scrollTo(0, 0); return; }
     acts.leaveRide();
