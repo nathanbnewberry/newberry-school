@@ -107,6 +107,59 @@ table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:t
 textarea{width:100%;min-height:130px;background:var(--night);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:10px;font:400 .85rem/1.4 ui-monospace,Menlo,monospace}
 ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .mini{padding:6px 10px;min-height:38px;font-size:.84rem;font-weight:700;background:var(--paper);color:var(--ink)}
+.map{display:block;width:100%;height:auto;border-radius:10px;background:var(--night)}
+.map .stop{cursor:pointer}.map .stop:focus{outline:none}.map .stop:focus>g,.map .stop:hover>g{filter:brightness(1.12)}.map .stop.locked{cursor:not-allowed;opacity:.62}
+.map .pulse{animation:pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes pulse{50%{transform:scale(1.14);opacity:.35}}
+.map .flow{animation:flow 2.4s linear infinite}@keyframes flow{to{stroke-dashoffset:-56}}
+.map .wave{animation:wave 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes wave{50%{transform:scale(1.3);opacity:.3}}
+.map .needle{animation:needle 5s ease-in-out infinite}@keyframes needle{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+.map .herd{animation:herd 34s linear infinite alternate}@keyframes herd{from{transform:translate(110px,430px)}to{transform:translate(310px,520px)}}
+.map .herd.slow{animation:herdt 42s linear infinite alternate}@keyframes herdt{from{transform:translate(90px,330px)}to{transform:translate(280px,420px)}}
+.map .train{animation:train 18s linear infinite}@keyframes train{from{transform:translate(-60px,93px)}to{transform:translate(780px,93px)}}
+.map .cloud{animation:cloud 44s linear infinite}@keyframes cloud{from{transform:translate(-80px,240px)}to{transform:translate(800px,170px)}}
+.map .flag{animation:flagw 1.3s ease-in-out infinite;transform-box:fill-box;transform-origin:left center}@keyframes flagw{50%{transform:scaleX(.72)}}
+.map .bob{animation:bob .5s ease-in-out infinite alternate}@keyframes bob{to{transform:translateY(-3px)}}
+
+.bookpage{background:#fbf8ef;color:#1c1712;border-radius:6px;padding:16px;display:grid;gap:12px;min-width:0;font-family:Georgia,"Times New Roman",serif;box-shadow:0 2px 0 #d8d2c0,0 4px 0 #efeadb,0 8px 22px rgba(0,0,0,.4)}
+.bookpage .bh{display:flex;justify-content:space-between;gap:10px;font-style:italic;color:#47413a;font-size:.95rem;border-bottom:1px solid #c8c2b2;padding-bottom:4px}
+.bookpage .bh i{font-size:.82rem;color:#6f685d}
+.bookpage .sect{font-family:var(--body);font-weight:800;font-size:1.15rem;letter-spacing:.03em;text-transform:uppercase;color:#1c5a8f;border-bottom:3px solid #1c5a8f;padding-bottom:3px}
+.bookpage .prompt{font-family:Georgia,"Times New Roman",serif;font-weight:400;text-align:left;font-size:clamp(1.1rem,3.8vw,1.35rem);line-height:1.45}
+.bookpage .answer{background:#fff;color:#1c5a8f;border-color:#1c1712}
+.bookpage .answer .empty{color:#8b8474}
+.bookpage .pad button{background:#30352f;color:#fff;font-family:var(--body);box-shadow:0 4px 0 #101310}
+.bookpage .actions .btn,.bookpage>.btn,.bookpage .helper .btn{font-family:var(--body)}
+.bookpage .btn.dark{background:#30352f;color:#fff;box-shadow:0 4px 0 #101310}
+.bookpage .choices button{background:#fff;color:#1c1712;border:2px solid #1c1712;box-shadow:0 3px 0 #1c1712;font-family:var(--body)}
+.bookpage .choices button[disabled]{opacity:.3;text-decoration:line-through;cursor:not-allowed}
+.console .choices button[disabled]{opacity:.3;text-decoration:line-through;cursor:not-allowed}
+.link.dk{color:#47413a;font-family:var(--body);font-size:.95rem}
+.tag.dk{color:#6f685d;font-family:var(--body)}
+.pgrid{display:grid;gap:4px}
+.pgrid.cols{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.pcell{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;text-align:left;padding:10px 8px;color:inherit;border-radius:6px;font:inherit;align-items:start;min-height:64px;border:2px solid transparent;background:transparent}
+.pcell:hover,.pcell:focus-visible{background:#fff0c4;border-color:#d9a441}
+.pcell.pdone{background:#e8f4e4}
+.pcell.pflag{background:#fde4d9}
+.pnum{display:grid;justify-items:end;line-height:1.1;font-size:1.05rem}.pnum i{font-size:.72rem;color:#6f685d}
+.pbody{font-size:1.08rem;line-height:1.4;min-width:0}
+.pmath .pbody{font-size:1.35rem;font-variant-numeric:lining-nums tabular-nums}
+.pans{display:block;font-style:normal;font-weight:700;color:#17663a}
+.stamp{position:absolute;right:6px;bottom:6px;font-family:var(--display);font-size:.72rem;color:#17663a;border:2px solid #17663a;border-radius:4px;padding:0 5px;transform:rotate(8deg);background:#fbf8ef}
+.pmathbig{text-align:center;font-size:clamp(2rem,8vw,3rem);padding:8px 0 4px;font-variant-numeric:lining-nums tabular-nums;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.25em}
+.dv{display:inline-grid;justify-items:end}.dvq{min-height:1.15em;font-weight:700;color:#1c5a8f;padding-right:.05em}
+.dvl{display:inline-flex;align-items:flex-start}.dvl>span:first-child{padding-right:.1em}
+.dvb{border-top:.09em solid currentColor;border-left:.09em solid currentColor;border-top-left-radius:.5em 1em;padding:0 .08em 0 .28em}
+.fr{display:inline-grid;justify-items:center;line-height:1.1}.frb{height:.08em;background:currentColor;width:100%;margin:.08em 0}
+.eq{color:#47413a}
+.slot{display:inline-block;min-width:1.2em;font-weight:700;color:#1c5a8f;text-align:center}.slot.open{color:#a9a294;border-bottom:.06em dashed #a9a294}
+.move{font-family:var(--display);font-size:1.3rem;text-align:center;color:#b4411a}
+.ctx.lt{background:#f1ead7;color:#1c1712;font-family:var(--body)}
+.helper{display:grid;gap:10px;font-family:var(--body);background:#fff4d8;border-radius:8px;padding:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:38px;align-items:center}.chips b{background:#1c5a8f;color:#fff;border-radius:6px;padding:4px 10px;font-size:1.15rem;font-variant-numeric:tabular-nums}.chips b.over{background:var(--red);text-decoration:line-through}
+.fingers{display:flex;flex-wrap:wrap;gap:4px}.fingers i{width:14px;height:24px;border-radius:7px 7px 3px 3px;background:#e0ab7b;display:block}
+.bookpage .boardwrap{background:#fff;border:1px solid #c8c2b2}.bookpage .vis{background:#fff;border:1px solid #c8c2b2;font-family:var(--body)}
+.gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -417,37 +470,49 @@ function finishRun() {
 }
 
 /* ---------- screen state ---------- */
-const U = { view: "title", lesson: null, ride: null, items: [], i: 0, draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, solved: false, earned: 0, combo: 0, solvedRun: 0, mow: 0, deal: 0, drawT: 0, drawMs: 0, gameEnd: null, parentOk: false, pin: "", pinMsg: "", confirmReset: false, copied: false, game: null };
+const U = { view: "title", lesson: null, ride: null, items: [], i: 0, qid: null, draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, combo: 0, solvedRun: 0, mow: 0, deal: 0, drawT: 0, drawMs: 0, gameEnd: null, parentOk: false, pin: "", pinMsg: "", confirmReset: false, copied: false, game: null, off: [], helpN: 0, helped: false, demoStep: 0, lastTok: {}, solvedNote: "" };
 const curLesson = () => LESSONS.find((l) => l.id === U.lesson);
 const rideOf = (l, id) => l.rides.find((r) => r.id === id);
 const qOf = (l, id) => l.problems.find((p) => p.id === id);
-function rideDone(l, r) { const lp = LP(l.id); return !!lp.rides[r.id]; }
-function nextRide(l) { return l.rides.find((r) => !rideDone(l, r)); }
+function rideDone(l, r) { return !!LP(l.id).rides[r.id]; }
+function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
+function lessonFinished(l) { return l.rides.every((r) => rideDone(l, r)); }
 function buildItems(l, r) {
-  if (r.kind === "warmup") return [...(l.paperFirst ? [{ type: "note", text: l.paperFirst }] : []), ...l.warmup.map((w, i) => ({ type: "fact", w, i }))];
-  if (r.kind === "learn") return l.learn;
-  const lp = LP(l.id), left = r.problems.filter((id) => !PP(lp, id).done);
-  return (left.length ? left : r.problems).map((id) => ({ type: "problem", id }));
+  if (r.kind === "warmup") return [...(l.paperFirst ? [{ type: "paperFirst", text: l.paperFirst }] : []), ...l.warmup.map((w, i) => ({ type: "fact", w, i }))];
+  if (r.kind === "learn") return l.learn.map((c, i) => ({ ...c, idx: i }));
+  const lp = LP(l.id), seen = (lp.demoSeen = lp.demoSeen || {});
+  return [...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, solved: false, earned: 0, mow: 0, deal: 0 }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "" }); }
+function pageGap(l, r) {
+  const lp = LP(l.id);
+  if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
+  const done = r.problems.filter((id) => PP(lp, id).done).length;
+  return Math.max(.02, .9 * (1 - done / r.problems.length));
+}
 function startRide(l, r) {
-  U.lesson = l.id; U.ride = r.id; U.items = buildItems(l, r); U.i = 0; U.solvedRun = 0; U.drawT = 0;
-  W.theme = r.theme || "west"; W.gap = .9; W.targetGap = .9; resetItem(); U.view = "ride"; render(); window.scrollTo(0, 0);
+  U.lesson = l.id; U.ride = r.id; U.items = buildItems(l, r); U.i = 0; U.qid = null; U.solvedRun = 0; U.drawT = 0;
+  W.theme = r.theme || "west"; W.gap = pageGap(l, r); W.targetGap = W.gap; resetItem(); U.view = "ride"; render(); window.scrollTo(0, 0);
 }
 function nextItem() {
-  U.i++;
-  W.targetGap = Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
+  const l = curLesson(), r = rideOf(l, U.ride);
+  U.i++; W.targetGap = pageGap(l, r);
   if (U.i >= U.items.length) return endRide();
   resetItem(); render(); window.scrollTo(0, 0);
+}
+function backToPage() {
+  const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
+  U.qid = null; resetItem(); W.targetGap = pageGap(l, r);
+  if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) return endRide();
+  render(); window.scrollTo(0, 0);
 }
 function endRide() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
   if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
-  const finished = r.problems ? r.problems.every((id) => PP(lp, id).done) : true;
-  if (finished) lp.rides[r.id] = true;
-  earn(20); save(); U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; render(); window.scrollTo(0, 0);
+  if (!lp.rides[r.id]) earn(20);
+  lp.rides[r.id] = true;
+  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; render(); window.scrollTo(0, 0);
 }
-function lessonFinished(l) { return l.rides.every((r) => rideDone(l, r)); }
 
 /* ---------- pictures ---------- */
 function visual(v) {
@@ -459,7 +524,7 @@ function visual(v) {
     for (let i = 1; i <= 12; i++) { const a = ((i * 30 - 90) * Math.PI) / 180; nums += `<text x="${80 + 58 * Math.cos(a)}" y="${86 + 58 * Math.sin(a)}" text-anchor="middle" font-size="16" font-weight="700" fill="#2c1a0e">${i}</text>`; }
     return `<div class="vis"><svg viewBox="0 0 160 160" width="170" height="170" role="img" aria-label="Clock showing ${v.hour}:${String(v.minute).padStart(2, "0")}"><circle cx="80" cy="80" r="74" fill="#fff" stroke="#2c1a0e" stroke-width="4"/>${nums}${hand(hA, 34, 6)}${hand(mA, 50, 4)}</svg></div>`;
   }
-  if (v.type === "grid") return `<div class="vis"><div class="gridv" style="grid-template-columns:repeat(${v.cols},34px)" role="img" aria-label="${v.rows} rows of ${v.cols} squares">${"<i></i>".repeat(v.rows * v.cols)}</div></div>`;
+  if (v.type === "grid") return `<div class="vis"><div class="gridlab"><span></span><span>${v.labels ? `${v.cols} units` : ""}</span><span>${v.labels ? `${v.rows} units` : ""}</span><div class="gridv" style="grid-template-columns:repeat(${v.cols},34px)" role="img" aria-label="${v.rows} rows of ${v.cols} squares">${"<i></i>".repeat(v.rows * v.cols)}</div></div></div>`;
   if (v.type === "calendar") {
     const cells = "SMTWTFS".split("").map((d) => `<b>${d}</b>`).join("") + "<span></span>".repeat(v.first) + Array.from({ length: v.days }, (_, i) => `<span>${i + 1}</span>`).join("");
     return `<div class="vis"><div class="calt">${esc(v.title)}</div><div class="cal">${cells}</div></div>`;
@@ -483,12 +548,167 @@ function visual(v) {
   }
   return "";
 }
-function boardHtml(c, stepIdx) {
+
+/* ---------- screens ---------- */
+const hudRide = (extra = "") => `<div class="hud"><button class="btn dark small" data-act="leaveRide">Map</button>${extra}
+  ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>${S.nuggets}</span></div>`;
+const bubble = (t, extra = "") => { speak(t); return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div>`; };
+function titleView() {
+  return `<div class="console center"><p>Outlaws took over the West, and they only run from one thing: math. Your horse Biscuit talks. Sorry in advance.</p>
+    <button class="btn go wide" data-act="start" style="font-size:1.4rem;min-height:70px">PRESS START</button></div>`;
+}
+
+/* ---------- maps ---------- */
+function smooth(pts) {
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    d += `C${p1[0] + (p2[0] - p0[0]) / 6} ${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6} ${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]} ${p2[1]}`;
+  }
+  return d;
+}
+const mtn = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-30 0L0-44 30 0Z" fill="#9c8468"/><path d="M0-44L30 0H6L-3-14 4-24Z" fill="#7b6650"/><path d="M0-44l-10 15 5-2 5 5 5-4 4 1Z" fill="#fff"/></g>`;
+const pine = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0-22L9-4H-9ZM0-14L11 4H-11Z" fill="#3f6b42"/><rect x="-1.500" y="4" width="3" height="5" fill="#5b3a1e"/></g>`;
+const cactus = (x, y) => `<path transform="translate(${x} ${y})" d="M-2-20h4V2h-4zM-8-12h3v5h3v3h-6zM5-14h3v8H2v-3h3z" fill="#4c7d4a"/>`;
+const cow = (x, y) => `<g transform="translate(${x} ${y})"><ellipse rx="9" ry="5" fill="#7a4a24"/><circle cx="10" cy="-2" r="3.500" fill="#7a4a24"/><path d="M8-6l-5-3M12-6l5-3" stroke="#f3e6c8" stroke-width="1.500"/><path d="M-6 4v5M5 4v5" stroke="#4a2b12" stroke-width="2"/></g>`;
+const compass = (x, y) => `<g transform="translate(${x} ${y})"><circle r="36" fill="#f3e3b8" stroke="#5a3a1e" stroke-width="2"/><circle r="29" fill="none" stroke="#5a3a1e" stroke-dasharray="2 4"/><g class="needle"><path d="M0-30L7 0 0 30-7 0Z" fill="#7b2d1c"/><path d="M0-30L7 0H-7Z" fill="#b5442c"/></g><g font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412" text-anchor="middle"><text y="-39">N</text><text y="50">S</text><text x="45" y="5">E</text><text x="-45" y="5">W</text></g></g>`;
+const mapBase = (w, h) => `<defs>
+    <radialGradient id="parch" cx="50%" cy="45%" r="75%"><stop offset="0%" stop-color="#f4e4bd"/><stop offset="72%" stop-color="#e8cf9a"/><stop offset="100%" stop-color="#b98f55"/></radialGradient>
+    <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="9"/></filter>
+  </defs>
+  <rect x="6" y="6" width="${w - 12}" height="${h - 12}" rx="10" fill="url(#parch)" stroke="#5a3a1e" stroke-width="4" filter="url(#rough)"/>
+  <g stroke="#7a5a30" stroke-opacity=".18" stroke-width="1">${[1, 2, 3, 4].map((i) => `<path d="M${(w * i) / 5} 20V${h - 20}"/>`).join("")}${[1, 2, 3].map((i) => `<path d="M20 ${(h * i) / 4}H${w - 20}"/>`).join("")}</g>`;
+const riderToken = () => `<g id="token"><g class="bob"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#8a5a2b"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#2c1a0e"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#3f6fb0"}"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><path d="M-9-36c1-5 4-6 7-6 2 0 4 1 5 3-5 2-8 2-12 3z" fill="#f2d262"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#b98a4e"}"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#b98a4e"}"/></g></g>`;
+const label = (x, y, text, sub = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="19" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="4" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="17" text-anchor="middle" font-size="13" font-weight="600" fill="#5a3a1e" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
+const townIcon = (s = 1) => `<g transform="scale(${s})"><path d="M-30 12V-8h18l4-6 4 6h6v20z" fill="#a8703a" stroke="#3a2412" stroke-width="2"/><path d="M-2 12V-18h10l6-6 6 6h8v30z" fill="#c98d4d" stroke="#3a2412" stroke-width="2"/><rect x="6" y="-8" width="7" height="8" fill="#3a2412"/><rect x="18" y="-8" width="7" height="8" fill="#3a2412"/><rect x="12" y="2" width="7" height="10" fill="#3a2412"/><rect x="-24" y="0" width="6" height="12" fill="#3a2412"/><path d="M14-24v-14" stroke="#3a2412" stroke-width="2"/><path class="flag" d="M14-38l14 4-14 4z" fill="#c8202c"/></g>`;
+const placeIcon = {
+  target: `<circle r="24" fill="#f3e6c8" stroke="#3a2412" stroke-width="2"/><circle r="15" fill="#c8202c"/><circle r="8" fill="#f3e6c8"/><circle r="3" fill="#c8202c"/>`,
+  school: `<path d="M-28 16V-8L0-26 28-8V16Z" fill="#b5442c" stroke="#3a2412" stroke-width="2"/><rect x="-7" y="1" width="14" height="15" fill="#3a2412"/><path d="M0-26v-14" stroke="#3a2412" stroke-width="2"/><path d="M-5-40h10v7H-5z" fill="#d9a441" stroke="#3a2412"/>`,
+  ranch: `<path d="M-28 16V-6L-14-20 2-6V16Z" fill="#a8703a" stroke="#3a2412" stroke-width="2"/><path d="M2 16V0H28V16" fill="#c98d4d" stroke="#3a2412" stroke-width="2"/><path d="M-30 18H32M-30 10H32" stroke="#5a3a1e" stroke-width="2"/>`,
+  goal: `<path d="M-28 16V-16H28V16" fill="#fff" fill-opacity=".45" stroke="#fff" stroke-width="4"/><path d="M-28 16V-16H28V16" fill="none" stroke="#3a2412" stroke-width="1.500"/><g stroke="#3a2412" stroke-opacity=".5"><path d="M-14-16V16M0-16V16M14-16V16M-28-5H28M-28 6H28"/></g><use href="#ball" x="-9" y="1" width="18" height="18"/>`,
+  bank: `<path d="M-28 16V-6H28V16Z" fill="#c9b08a" stroke="#3a2412" stroke-width="2"/><path d="M-32-6L0-26 32-6Z" fill="#8a6a44" stroke="#3a2412" stroke-width="2"/><path d="M-18-6V16M-6-6V16M6-6V16M18-6V16" stroke="#3a2412" stroke-width="3"/>`,
+  saloon: `<path d="M-28 16V-20H28V16Z" fill="#a8703a" stroke="#3a2412" stroke-width="2"/><path d="M-20-14H20V-3H-20Z" fill="#f3e6c8" stroke="#3a2412"/><path d="M-9 16V3H9V16" fill="#3a2412"/><path d="M0 3V12" stroke="#c98d4d" stroke-width="2"/>`
+};
+const WORLD_PTS = [[105, 495], [225, 470], [180, 345], [335, 300], [480, 385], [610, 300], [520, 165]];
+function worldMapSvg() {
+  const names = ["Abilene", "Tombstone", "Deadwood", "Santa Fe", "Laramie", "Fort Worth"].filter((t) => !LESSONS.some((l) => l.town === t));
+  const stops = WORLD_PTS.map((pt, i) => ({ pt, l: LESSONS[i], name: LESSONS[i]?.town || names[i - LESSONS.length] }));
+  const lastOpen = Math.min(LESSONS.findIndex((l) => !lessonFinished(l)) < 0 ? LESSONS.length - 1 : LESSONS.findIndex((l) => !lessonFinished(l)), WORLD_PTS.length - 1);
+  const towns = stops.map((s, i) => {
+    const [x, y] = s.pt;
+    if (!s.l) return `<g transform="translate(${x} ${y})" opacity=".85"><ellipse rx="44" ry="26" fill="#d9c9a4"/><ellipse cx="-18" cy="-6" rx="24" ry="16" fill="#e8dcc0"/><ellipse cx="20" cy="4" rx="24" ry="15" fill="#e8dcc0"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#5a3a1e">?</text></g>${label(x, y + 48, s.name, "next lesson")}`;
+    const done = lessonFinished(s.l), next = i === lastOpen && !done;
+    return `<g class="stop" data-act="town" data-id="${esc(s.l.id)}" role="button" tabindex="0" aria-label="${esc(s.l.town)}, Saxon lesson ${esc(s.l.bookLesson)}"><g transform="translate(${x} ${y})"><circle r="48" fill="transparent"/>${next ? `<circle class="pulse" r="44" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${townIcon(1.1)}${done ? `<path d="M26-34l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#ffc42e" stroke="#3a2412"/>` : ""}</g>${label(x, y + 46, s.l.town, `Lesson ${s.l.bookLesson}`)}</g>`;
+  }).join("");
+  return `<svg class="map" viewBox="0 0 720 640" role="img" aria-label="Map of the frontier with a trail between towns">${mapBase(720, 640)}
+    <path d="M430 620c10-90 110-120 280-130v130Z" fill="#dcbb7c" opacity=".7"/>
+    <path id="river" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#5fa3c7" stroke-width="13" stroke-linecap="round"/><path class="flow" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
+    <ellipse cx="620" cy="100" rx="52" ry="28" fill="#5fa3c7"/><ellipse class="wave" cx="620" cy="100" rx="30" ry="12" fill="none" stroke="#bfe4f2" stroke-width="2"/>
+    ${[[70, 150, 1.2], [125, 120, 1], [175, 165, .9], [60, 240, .9], [120, 225, 1.1], [395, 90, 1], [450, 120, .9], [500, 80, 1.1], [660, 430, .9]].map((m) => mtn(...m)).join("")}
+    ${[[40, 330], [60, 360], [85, 335], [660, 200], [680, 240], [640, 250]].map((p) => pine(...p)).join("")}
+    ${[[500, 550], [560, 590], [620, 540], [660, 590], [470, 600]].map((p) => cactus(...p)).join("")}
+    <g class="herd">${cow(0, 0)}${cow(28, 8)}${cow(-24, 10)}</g>
+    <path d="${smooth(WORLD_PTS)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
+    <g class="cloud"><ellipse cx="0" cy="0" rx="62" ry="22" fill="#3a2412" opacity=".1"/></g>
+    ${towns}
+    ${compass(625, 555)}
+    <g transform="translate(360 44)"><path d="M-178-26H178L162 0 178 26H-178L-162 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="9" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#ffe7a8">The Math Frontier</text></g>
+    <text transform="translate(405 560) rotate(-8)" font-family="Rye,Georgia,serif" font-size="15" fill="#7b2d1c" opacity=".75">Here be outlaws</text>
+    <g transform="translate(40 610)" stroke="#3a2412" stroke-width="2" fill="none"><path d="M0 0h90M0-5v10M45-5v10M90-5v10"/></g><text x="40" y="598" font-size="12" font-weight="700" fill="#3a2412">10 leagues</text>
+    ${riderToken()}</svg>`;
+}
+const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [630, 370], [490, 305], [345, 355], [195, 275], [330, 150]];
+function townMapSvg(l) {
+  const lp = LP(l.id), nx = nextRide(l);
+  const pts = TOWN_PTS.slice(0, l.rides.length);
+  const stops = l.rides.map((r, i) => {
+    const [x, y] = pts[i], done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
+    return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? `<path d="M22-30l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z" fill="#ffc42e" stroke="#3a2412"/>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, r.blurb)}</g>`;
+  }).join("");
+  return `<svg class="map" viewBox="0 0 720 640" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(720, 640)}
+    <path d="M6 96H714" stroke="#3a2412" stroke-width="6"/><path d="M6 96H714" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
+    <g class="train"><rect x="-34" y="-20" width="40" height="17" rx="3" fill="#2a2430"/><rect x="-8" y="-32" width="16" height="16" fill="#2a2430"/><rect x="-30" y="-30" width="7" height="11" fill="#2a2430"/><circle cx="-24" cy="-1" r="5" fill="#7b2d1c"/><circle cx="-2" cy="-1" r="5" fill="#7b2d1c"/><rect x="10" y="-16" width="34" height="13" fill="#7b2d1c"/><circle cx="18" cy="-1" r="4" fill="#2a2430"/><circle cx="36" cy="-1" r="4" fill="#2a2430"/></g>
+    <path d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#5fa3c7" stroke-width="15" stroke-linecap="round"/><path class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
+    ${[[50, 180, .9], [110, 160, 1], [510, 190, .8]].map((m) => mtn(...m)).join("")}
+    ${[[40, 400], [70, 430], [30, 470], [430, 420], [620, 560], [560, 600]].map((p) => cactus(...p)).join("")}
+    <g class="herd slow">${cow(0, 0)}${cow(26, 7)}</g>
+    <path d="${smooth(pts)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
+    ${stops}
+    <g transform="translate(350 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
+    ${compass(60, 80)}
+    ${riderToken()}</svg>`;
+}
+let tokTimer = 0;
+function placeToken(key, idx, pts) {
+  const el = document.getElementById("token"); if (!el) return;
+  clearInterval(tokTimer);
+  const to = pts[idx], offset = [-34, -38], set = (x, y) => el.setAttribute("transform", `translate(${x + offset[0]} ${y + offset[1]})`);
+  const from = U.lastTok[key];
+  U.lastTok[key] = idx;
+  if (from == null || from === idx || reduced) return set(to[0], to[1]);
+  const seq = from < idx ? pts.slice(from, idx + 1) : [pts[from], to]; let t = 0;
+  tokTimer = setInterval(() => {
+    t += .02; const f = Math.min(1, t) * (seq.length - 1), i = Math.min(Math.floor(f), seq.length - 2), k = f - i;
+    set(seq[i][0] + (seq[i + 1][0] - seq[i][0]) * k, seq[i][1] + (seq[i + 1][1] - seq[i][1]) * k);
+    if (t >= 1) { clearInterval(tokTimer); beep(BLIP); }
+  }, 20);
+}
+function homeView() {
+  return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
+  ${worldMapSvg()}
+  <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+}
+function townView() {
+  const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn;
+  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">World map</button><span class="chip nug"><i></i>${S.nuggets}</span></div>
+  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then Clue School. Then the whole map opens.")}
+  ${townMapSvg(l)}
+  ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
+}
+
+/* ---------- the book page ---------- */
+function bookMath(b, ans, big) {
+  const slot = ans !== null ? `<span class="slot ${ans ? "" : "open"}" ${big ? 'id="ans"' : ""}>${ans ? esc(ans) : big ? "?" : ""}</span>` : "";
+  if (b.type === "div") return `<span class="dv"><span class="dvq">${slot}</span><span class="dvl"><span>${esc(b.divisor)}</span><span class="dvb">${esc(b.dividend)}</span></span></span>`;
+  if (b.type === "frac") return `<span class="fr"><span>${esc(b.top)}</span><span class="frb"></span><span>${esc(b.bottom)}</span></span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
+  return `<span class="inl">${esc(b.text)}</span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
+}
+function pageView(l, r) {
+  const lp = LP(l.id), left = r.problems.filter((id) => !PP(lp, id).done).length;
+  const cells = r.problems.map((id) => {
+    const q = qOf(l, id), p = PP(lp, id), math = q.book;
+    return `<button class="pcell ${math ? "pmath" : "pword"} ${p.done ? "pdone" : ""} ${p.flagged && !p.done ? "pflag" : ""}" data-act="openq" data-id="${esc(id)}">
+      <span class="pnum"><b>${esc(id)}.</b>${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>
+      <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
+      ${p.done ? `<span class="stamp">${p.proved || p.firstTry ? "GOLD" : "DONE"}</span>` : ""}</button>`;
+  }).join("");
+  const demoLink = r.demos?.length ? `<button class="link dk" data-act="replayDemo">Watch Biscuit's example</button>` : "";
+  return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Your book page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
+    `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
+    <button class="btn dark wide" data-act="leaveRide">Save and go to the map</button>`;
+}
+function padHtml(extra = []) {
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ...extra, "DEL"];
+  return `<div class="pad">${keys.map((k) => `<button data-act="key" data-k="${k}" aria-label="${k === "DEL" ? "Delete" : k === "R" ? "Remainder" : k}">${k === "DEL" ? "&#9003;" : k}</button>`).join("")}</div>`;
+}
+function helperHtml(s) {
+  const h = s.help;
+  if (h?.type === "skip") {
+    const vals = Array.from({ length: U.helpN }, (_, i) => (i + 1) * h.by);
+    return `<div class="helper"><p>Skip count by ${h.by}. Tap until you land on or just under ${h.to}. Count your taps.</p><div class="chips">${vals.map((v) => `<b class="${v > h.to ? "over" : ""}">${v}</b>`).join("") || "<span class='sub'>Nothing yet</span>"}</div><div class="actions"><button class="btn" data-act="helpTap">+ ${h.by}</button><button class="btn go" data-act="helpDone" ${U.helpN ? "" : "disabled"}>I've got it</button></div></div>`;
+  }
+  if (h?.type === "count") {
+    const at = Math.min(h.from + U.helpN, h.to);
+    return `<div class="helper"><p>Start at ${h.from} and count up to ${h.to}. Every tap is one finger.</p><div class="chips"><b>${at}</b></div><div class="fingers">${"<i></i>".repeat(Math.min(U.helpN, h.to - h.from))}</div><div class="actions"><button class="btn" data-act="helpTap" ${at >= h.to ? "disabled" : ""}>Count 1 more</button><button class="btn go" data-act="helpDone" ${at >= h.to ? "" : "disabled"}>I've got it</button></div></div>`;
+  }
+  return `<div class="helper"><p>${esc(s.nudge)} Do this one on your paper, one number at a time.</p><button class="btn go wide" data-act="helpDone">I did it on paper</button></div>`;
+}
+function boardHtml(c, stepIdx, finished) {
   const s = c.steps[Math.min(stepIdx, c.steps.length - 1)], bi = s.board || 0, b = c.boards[bi];
   if (!b) return "";
   const shown = {};
   c.steps.forEach((st, i) => { if (i <= stepIdx && (st.board || 0) === bi && st.show) st.show.forEach(([id, val]) => { shown[id] = val; }); });
-  const live = U.coachDone ? null : s, hot = new Set(live?.hot || []), target = live?.put?.[0];
+  const live = finished ? null : s, hot = new Set(live?.hot || []), target = live?.put?.[0];
   const out = [];
   b.rows.forEach((row) => {
     if (row.rule) { out.push(`<span class="brule"></span>`); return; }
@@ -502,79 +722,67 @@ function boardHtml(c, stepIdx) {
   });
   return `<div class="boardwrap"><div class="board" style="grid-template-columns:repeat(${b.cols},auto)">${out.join("")}</div></div>`;
 }
-
-/* ---------- screens ---------- */
-const hudRide = (l, r) => `<div class="hud"><button class="btn dark small" data-act="leaveRide">Map</button>
-  <span class="pips" aria-label="Item ${U.i + 1} of ${U.items.length}">${U.items.length <= 16 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : `<span class="chip">${U.i + 1}/${U.items.length}</span>`}</span>
-  ${U.combo > 1 ? `<span class="combo pop">${U.combo}x</span>` : ""}<span class="chip nug"><i></i>${S.nuggets}</span></div>`;
-const bubble = (t, extra = "") => { speak(t); return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div>`; };
-
-function titleView() {
-  return `<div class="console center"><p>Outlaws took over the West, and they only run from one thing: math. Your horse Biscuit talks. Sorry in advance.</p>
-    <button class="btn go wide" data-act="start" style="font-size:1.4rem;min-height:70px">PRESS START</button></div>`;
+function problemHead(q, inBig) {
+  const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span></div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt">${esc(q.prompt)}</p>`}`;
 }
-function homeView() {
-  const list = LESSONS.map((l) => {
-    const lp = LP(l.id), done = lessonFinished(l), n = l.rides.filter((r) => rideDone(l, r)).length;
-    return `<button class="town ${done ? "done" : "next"}" data-act="town" data-id="${esc(l.id)}"><span class="n">${done ? "&#10003;" : esc(l.bookLesson || "?")}</span><span><h3>${esc(l.town)}</h3><span class="sub">Saxon Lesson ${esc(l.bookLesson)} · ${n} of ${l.rides.length} rides</span></span><span class="chip">PLAY</span></button>`;
-  }).join("");
-  const lock = ["Tombstone", "Deadwood"].filter((t) => !LESSONS.some((l) => l.town === t)).map((t) => `<div class="town lock"><span class="n">?</span><span><h3>${t}</h3><span class="sub">Opens when your next lesson arrives</span></span><span></span></div>`).join("");
-  return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
-  <div class="towns">${list}${lock}</div>
-  <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
-}
-function townView() {
-  const l = curLesson(), lp = LP(l.id), nx = nextRide(l), learned = !!lp.rides.learn;
-  const rows = l.rides.map((r, i) => {
-    const done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
-    return `<button class="town ${done ? "done" : locked ? "lock" : next ? "next" : ""}" data-act="ride" data-id="${r.id}" ${locked ? "disabled" : ""}><span class="n">${done ? "&#10003;" : i + 1}</span><span><h3>${esc(r.name)}</h3><span class="sub">${esc(r.blurb)}</span></span><span class="chip">${locked ? "" : done ? "Replay" : "GO"}</span></button>`;
-  }).join("");
-  speak("");
-  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>${esc(l.town)}</h2><span class="chip nug"><i></i>${S.nuggets}</span></div>
-  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any ride. Short ones. You can quit whenever." : "Start with Quick Draw and Clue School. Then you pick.")}
-  ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}
-  <div class="towns">${rows}</div>`;
-}
-function rideView() {
-  const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i], top = hudRide(l, r);
-  if (it.type === "note") return top + bubble(it.text) + `<button class="btn go wide" data-act="noteDone">Done, let's draw</button>`;
-  if (it.type === "fact") {
-    if (!U.drawT) U.drawT = Date.now();
-    return top + `<div class="console"><p class="tag">Quick draw</p><p class="prompt math">${esc(it.w.prompt)}</p><div class="choices big">${it.w.choices.map((c) => `<button data-act="fact" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`;
+function solveView(l, q) {
+  const p = PP(LP(l.id), q.id), c = q.coach;
+  if (U.mode === "solved") {
+    return bubble(U.solvedNote || pick(["Boom. Write that down in your book.", "That's it! Put it on your paper.", "Siuuu! Get it on your paper.", "Even I'm impressed, and I eat grass."])) +
+      `<div class="bookpage pop">${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+${U.earned} nuggets` : ""}</p></div><button class="btn go wide" data-act="closeq">BACK TO THE PAGE</button>`;
   }
-  if (it.type === "sort") return top + bubble(U.msg || "Clue or dust?") + `<div class="console"><div class="ctx">${esc(it.context)}</div><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">CLUE</button><button class="no" data-act="sort" data-c="0">DUST</button></div></div>`;
-  if (it.type === "ask") return top + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" ")) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`;
-  return top + problemPanel(l, qOf(l, it.id));
-}
-function padHtml(q, coach) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ...(coach ? [] : q.extra || []), "DEL"];
-  return `<div class="pad">${keys.map((k) => `<button data-act="key" data-k="${k}" aria-label="${k === "DEL" ? "Delete" : k === "R" ? "Remainder" : k}">${k === "DEL" ? "&#9003;" : k}</button>`).join("")}</div>`;
-}
-function problemPanel(l, q) {
-  const isMath = !/[a-z]{4}/i.test(q.prompt), c = q.coach, lp = LP(l.id), p = PP(lp, q.id);
-  const head = `<p class="tag">Book problem ${esc(q.id.replace(/[ab]$/, (m) => (q.id.length > 1 ? " part " + m : m)))}</p><p class="prompt ${isMath ? "math" : ""}">${esc(q.prompt)}</p>`;
-  if (U.solved) return bubble(pick(["Boom. Write that down in your book.", "That's it! Put it on your paper.", "Siuuu! Get it on your paper.", "Even I'm impressed, and I eat grass."])) + `<div class="console pop">${head}<div class="answer">${esc(U.draft)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div><p class="tag">${U.earned ? `+${U.earned} nuggets` : "Replay"}</p><button class="btn go wide" data-act="next">NEXT</button></div>`;
+  if (U.mode === "proof") {
+    const pr = q.proof;
+    return hudRide(`<span class="chip">Prove it</span>`) + bubble(U.msg || "You got it with coaching. Now prove it. New numbers, no help, double gold.", U.msg ? "shake" : "") +
+      `<div class="bookpage"><div class="bh"><span>Prove it</span></div>${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt">${esc(pr.prompt)}</p>`}
+      ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}</div>`;
+  }
   if (U.mode === "coach") {
-    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" ");
-    const stuck = U.stepWrong >= 3;
-    return bubble(txt, U.msg ? "shake" : "") + `<div class="console"><p class="tag">Biscuit's coaching · step ${U.step + 1} of ${c.steps.length}</p><p class="prompt">${esc(q.prompt)}</p>${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
-      <div class="ctx">${esc(s.ask)}</div>
-      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div>` : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Tap the number</span>`}</div>${padHtml(q, true)}`}
-      ${stuck ? `<button class="btn dark wide" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
+    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), locked = U.stepWrong >= 2 && !U.helped && !s.choices;
+    return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg ? "shake" : "") +
+      `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span></div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
+      ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>
+      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}`}
+      ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
   const stuck = U.wrongNow >= 3;
-  const txt = U.msg || (U.coachDone ? (c.end || "You've got everything you need. Give me the answer.") : pick(["Your shot. Work it on paper first.", "Try it on paper, then shoot.", "Solve it on paper. If it's nasty, hit Coach me."]));
-  if (!U.line || U.lineFor !== `${U.i}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${U.i}|${U.msg}|${U.coachDone}`; }
+  const fresh = !p.coached && !p.wrong.length;
+  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Work it on paper first.", "On paper first, then type it here.", "Solve it on paper. If it's nasty, hit Coach me."]));
+  if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
   const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Coach me</button>`;
-  if (q.paper) return bubble(U.coachDone ? "Now draw it on your paper. Same shape, same size." : U.line) + `<div class="console">${head}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}</div>`;
-  if (q.choices) return bubble(U.line, U.msg ? "shake" : "") + `<div class="console">${head}${visual(q.picture)}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div>${help}<button class="link" data-act="flag">Skip, come back later</button></div>`;
-  return bubble(U.line, U.msg ? "shake" : "") + `<div class="console">${head}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1) : ""}${visual(q.picture)}
-    <div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>${padHtml(q, false)}
-    <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<button class="link" data-act="flag">Skip for now</button>`}</div>
-    ${help ? `<button class="link" data-act="flag">Skip, come back later</button>` : ""}</div>`;
+  const later = `<button class="link dk" data-act="closeq">Back to the page</button>`;
+  if (q.paper) return bubble(U.coachDone ? "Now draw it on your paper. Same shape, same size." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
+  if (q.choices) return bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
+  return bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}
+    ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(q.extra || [])}
+    <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<span></span>`}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
+}
+function rideView() {
+  const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i];
+  if (U.qid) return solveView(l, qOf(l, U.qid));
+  if (it.type === "page") return pageView(l, r);
+  const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
+  if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
+  if (it.type === "fact") {
+    if (!U.drawT) U.drawT = Date.now();
+    return hudRide(pips) + bubble(U.msg || `Warm-up ${it.w.label}. Do it in your head.`, U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Mental Math ${esc(it.w.label)}</span></div><div class="pmathbig">${bookMath({ type: "inline", text: it.w.prompt }, U.draft, true)}</div>${padHtml(it.w.extra || [])}${U.stepWrong >= 3 ? `<button class="link dk" data-act="next">Skip this one</button>` : ""}</div>`;
+  }
+  if (it.type === "demo") return demoView(it.demo, pips);
+  if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the clues</button></div>`;
+  if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Clue or dust?", U.msg ? "shake" : "") + `<div class="console"><div class="ctx">${esc(it.context)}</div><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">CLUE</button><button class="no" data-act="sort" data-c="0">DUST</button></div></div>`;
+  if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<div class="ctx">${esc(it.ask)}</div><div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}</div>`;
+  return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
+}
+function demoView(d, pips) {
+  const c = { boards: [d.board], steps: d.steps }, n = U.demoStep, s = d.steps[Math.min(n, d.steps.length - 1)], finished = n >= d.steps.length;
+  const line = n === 0 ? `${d.title}. ${d.intro}` : finished ? "See? Same moves every time. Now you try yours." : "";
+  const live = !finished && n > 0 ? [s.say, `${s.label || ""}: ${s.ask.replace(" = ?", "")}${s.ask.includes("?") && !s.ask.includes("=") ? ` ${s.answer}.` : ` = ${s.answer}.`}`].filter(Boolean).join(" ") : line;
+  return hudRide(pips) + bubble(live) + `<div class="bookpage"><div class="bh"><span>Worked example: ${esc(d.problem)}</span></div>${boardHtml(c, Math.max(0, n - 1), finished || n === 0)}${!finished && n > 0 && s.label ? `<p class="move">${esc(s.label)}</p>` : ""}
+    <button class="btn go wide" data-act="${finished ? "demoDone" : "demoNext"}">${finished ? "My turn" : n === 0 ? "Show me" : "Next move"}</button>${finished ? "" : `<button class="link dk" data-act="demoDone">Skip the example</button>`}</div>`;
 }
 function rideEndView() {
-  const l = curLesson(), shots = Math.max(3, U.solvedRun);
+  const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6));
   const r = rideOf(l, U.ride);
   const best = r.kind === "warmup" ? `Time: ${(U.drawMs / 1000).toFixed(1)} seconds.` : "";
   return `<div class="console center pop"><div class="big">Ride complete</div><p>${best} You earned <strong>${shots} boosts</strong>. Pick your game.</p></div>
@@ -601,14 +809,14 @@ function gameView() {
     <button class="btn go wide" id="dbtn" data-act="fire" style="min-height:130px;font-size:1.8rem">FIRE</button></div>`;
 }
 function gameEndView() {
-  const e = U.gameEnd, l = curLesson(), nx = l && nextRide(l), done = l && lessonFinished(l);
+  const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l);
   return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>
-  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">${nx ? "Next ride" : "Back to town"}</button><button class="btn dark wide" data-act="view" data-v="home">That's enough for today</button>`}`;
+  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">Back to the map</button>`}`;
 }
 function rewardView() {
   const l = curLesson();
   return `<div class="console center pop"><p class="tag">${esc(l.town)} is clean</p><div class="big">${esc(l.badge?.name || "Badge")}</div><p>+100 nuggets</p>
-    <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn go wide" data-act="view" data-v="home">Back to the map</button>`;
+    <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn go wide" data-act="view" data-v="home">Back to the world map</button>`;
 }
 const GEAR = [
   { id: "bandana", name: "Red bandana", note: "Outlaws hate it", cost: 300 },
@@ -629,7 +837,9 @@ function storeView() {
 function statusOf(p) {
   if (p.accepted) return ["Parent accepted", "s-good"];
   if (p.paper) return ["Check his drawing", "s-work"];
+  if (p.shaky) return ["Go over this together", "s-stuck"];
   if (p.done && p.firstTry) return ["Solo, first try", "s-good"];
+  if (p.done && p.proved) return ["Coached, then proved it", "s-good"];
   if (p.done && p.coached) return ["Solved with coaching", "s-work"];
   if (p.done) return ["Fixed his own mistake", "s-work"];
   if (p.flagged) return ["Needs a parent", "s-stuck"];
@@ -641,7 +851,7 @@ function reportText() {
   LESSONS.forEach((l) => {
     const lp = LP(l.id);
     out.push("", `${l.town}: Saxon Lesson ${l.bookLesson}${lp.completed ? " [finished]" : ""}`);
-    l.problems.forEach((q) => { const p = PP(lp, q.id); out.push(`  ${q.id} [${q.skill}] ${statusOf(p)[0]}; coach steps ${p.steps}${p.wrong.length ? `; wrong tries: ${p.wrong.join(", ")}` : ""}`); });
+    l.problems.forEach((q) => { const p = PP(lp, q.id); out.push(`  ${q.id} [${q.skill}] ${statusOf(p)[0]}; coach steps ${p.steps}, step misses ${p.stepMiss || 0}${p.wrong.length ? `; wrong tries: ${p.wrong.join(", ")}` : ""}`); });
   });
   return out.join("\n");
 }
@@ -732,95 +942,148 @@ function duelResult(win, line) {
 /* ---------- actions ---------- */
 function correctFx(msg) { U.combo++; worldBoost(msg); beep(CHIME); }
 function wrongFx() { U.combo = 0; W.shake = 6; beep(NOPE); }
-function curQ() { const it = U.items[U.i]; return it?.type === "problem" ? qOf(curLesson(), it.id) : null; }
+const curQ = () => (U.qid ? qOf(curLesson(), U.qid) : null);
+const curItem = () => U.items[U.i];
 function startCoach() {
   const q = curQ(), p = PP(LP(U.lesson), q.id);
   if (!q.coach) return;
-  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.draft = ""; U.msg = null; save(); render();
+  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; save(); render();
 }
 function applyStepRight(val) {
   const q = curQ(), c = q.coach, s = c.steps[U.step], p = PP(LP(U.lesson), q.id);
   if (s.put) { const ds = String(val).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`${s.board || 0}:${id}`] = ds[i]; }); }
-  p.steps++; earn(1); correctFx(); U.draft = ""; U.msg = null; U.stepWrong = 0; U.step++;
+  p.steps++;
+  if (U.stepWrong === 0) { earn(1); correctFx(); } else beep(BLIP);
+  U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
   if (U.step >= c.steps.length) { U.mode = "try"; U.coachDone = true; U.step = c.steps.length - 1; U.wrongNow = 0; }
   save(); render();
 }
-function stepWrong() { const s = curQ().coach.steps[U.step]; U.stepWrong++; U.msg = `${pick(["Not quite.", "Nope, close.", "Try again."])} ${s.nudge}`; U.draft = ""; wrongFx(); render(); }
+function stepWrong(choice) {
+  const q = curQ(), s = q.coach.steps[U.step], p = PP(LP(U.lesson), q.id);
+  U.stepWrong++; p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
+  if (choice) U.off.push(choice);
+  U.msg = `${pick(["Not quite.", "Nope, close.", "Slow down."])} ${s.nudge}`; U.draft = ""; wrongFx(); save(); render();
+}
 function checkStepTyped() {
   const q = curQ(), s = q.coach.steps[U.step];
   if (seal(U.lesson, `${q.id}.${U.step}`, U.draft) === s.sealed) applyStepRight(U.draft); else stepWrong();
 }
+function finishProblem(clean, proved) {
+  const q = curQ(), lp = LP(U.lesson), p = PP(lp, q.id);
+  if (!p.done) {
+    p.done = true; p.flagged = false; p.firstTry = clean; p.proved = !!proved;
+    U.earned = clean ? 25 + Math.min(U.combo, 10) : proved ? 25 : 8;
+    earn(U.earned); if (clean || proved) U.solvedRun++;
+  } else U.earned = 0;
+  U.mode = "solved"; U.msg = null; U.draft = ""; correctFx(pick(["BOOM!", "BULLSEYE!", "SIUUU!", "TOO EASY!"])); confetti(30); W.targetGap = pageGap(curLesson(), rideOf(curLesson(), U.ride)); save(); render();
+}
 function checkFinal() {
-  const q = curQ(); if (!q || U.solved) return;
+  const q = curQ(); if (!q) return;
   const l = curLesson(), p = PP(LP(l.id), q.id), val = norm(U.draft);
   if (!val) { U.msg = "Type your answer first, boss."; return render(); }
   const sealed = seal(l.id, q.id, val);
   if (q.sealed.includes(sealed)) {
-    if (!p.done) { const fixed = p.wrong.length > 0; p.done = true; p.flagged = false; p.firstTry = !fixed && !p.coached; U.earned = 15 + (fixed ? 5 : 0) + (p.firstTry ? 5 : 0) + Math.min(U.combo, 10); earn(U.earned); U.solvedRun++; } else U.earned = 0;
-    U.solved = true; U.msg = null; correctFx(pick(["BOOM!", "BULLSEYE!", "SIUUU!", "TOO EASY!"])); confetti(30); save(); return render();
+    p.ans = U.draft;
+    const clean = !p.wrong.length && !p.coached && !p.stepMiss;
+    if (!clean && q.proof && !p.done) { U.mode = "proof"; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); return render(); }
+    return finishProblem(clean, false);
   }
   if (!p.done && !p.wrong.includes(U.draft)) p.wrong.push(U.draft);
   U.wrongNow++; wrongFx();
+  if (q.choices) U.off.push(U.draft);
   U.msg = q.traps[sealed] || pick(["Not it. Check your paper one step at a time.", "Missed the target. Go again."]);
   U.draft = ""; save();
-  if (U.wrongNow >= 2 && !U.coachDone && q.coach) { U.msg = null; return startCoach(); }
+  if ((U.wrongNow >= 2 || q.choices) && !U.coachDone && q.coach) { const keep = U.msg; startCoach(); U.msg = null; U.lineFor = null; beep(BLIP); void keep; return; }
   render();
 }
+function checkProof() {
+  const q = curQ(), p = PP(LP(U.lesson), q.id), val = norm(U.draft);
+  if (!val) { U.msg = "Type your answer first, boss."; return render(); }
+  if (q.proof.sealed.includes(seal(U.lesson, `${q.id}.proof`, val))) { U.solvedNote = "Proved it! That one's yours now. Write your book answer down."; return finishProblem(false, true); }
+  U.proofMiss++; p.proofMiss = (p.proofMiss || 0) + 1; wrongFx();
+  if (q.proof.choices) U.off.push(U.draft);
+  U.draft = "";
+  if (U.proofMiss >= 2) { p.shaky = true; U.solvedNote = "This one's still tricky. I told your parents so you can go over it together."; save(); return finishProblem(false, false); }
+  U.msg = `Not yet. ${q.proof.nudge}`; save(); render();
+}
+function checkEntryAuto() {
+  const it = curItem();
+  if (U.qid) {
+    if (U.mode === "coach") { const s = curQ().coach.steps[U.step]; if (s.len && U.draft.length >= s.len) { checkStepTyped(); return true; } }
+    return false;
+  }
+  if (it.type === "fact" && norm(U.draft).length >= it.w.len) { checkFact(); return true; }
+  if (it.type === "num" && U.draft.length >= it.len) { checkLearnNum(); return true; }
+  return false;
+}
+function checkFact() {
+  const it = curItem(), l = curLesson();
+  if (seal(l.id, `w${it.i}`, U.draft) === it.w.sealed) { if (U.stepWrong === 0) { earn(3); correctFx(pick(["BANG!", "POW!", "HIT!"])); U.solvedRun = Math.min(U.solvedRun + 1, 5); } else beep(BLIP); nextItem(); return; }
+  U.stepWrong++; U.msg = it.w.nudge; U.draft = ""; wrongFx(); render();
+}
+function checkLearnNum() {
+  const it = curItem();
+  if (seal(U.lesson, `l${it.idx}`, U.draft) === it.sealed) { if (U.stepWrong === 0) earn(3); correctFx(); nextItem(); return; }
+  U.stepWrong++; U.msg = it.nudge; U.draft = ""; wrongFx(); render();
+}
 function pressKey(k) {
-  if (U.solved) return;
   if (k === "DEL") U.draft = U.draft.slice(0, -1);
   else if (U.draft.length < 20) U.draft += k;
-  const q = curQ();
-  if (q && U.mode === "coach" && k !== "DEL") {
-    const s = q.coach.steps[U.step];
-    if (s.len && U.draft.length >= s.len) return checkStepTyped();
-  }
+  if (k !== "DEL" && checkEntryAuto()) return;
   const box = document.getElementById("ans");
-  if (box) box.innerHTML = U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`;
+  if (box) { const slot = box.classList.contains("slot"); box.innerHTML = U.draft ? esc(U.draft) : slot ? "?" : `<span class="empty">${U.mode === "coach" ? "Type it" : "Your answer"}</span>`; if (slot) box.classList.toggle("open", !U.draft); }
   beep([[520, 0, .03]]);
 }
 const acts = {
-  start() { U.view = "home"; W.title = false; worldBoost(); beep(FANFARE); render(); },
+  start() { U.view = "home"; W.title = false; beep(FANFARE); render(); },
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
   leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
   mute() { S.muted = !S.muted; if (S.muted) { stopMusic(); try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
   voice() { S.voice = S.voice === false; if (S.voice === false) { try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
   town(d) { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
   ride(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
-  leaveRide() { U.view = "town"; U.combo = 0; save(); render(); },
-  noteDone() { nextItem(); },
-  fact(d, el) {
-    const it = U.items[U.i], l = curLesson();
-    if (seal(l.id, `w${it.i}`, d.c) !== it.w.sealed) { wrongFx(); el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); return; }
-    earn(2); correctFx(pick(["BANG!", "POW!", "HIT!"])); U.solvedRun = Math.min(U.solvedRun + 1, 5); nextItem();
-  },
+  leaveRide() { U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
+  next() { nextItem(); },
+  openq(d) { U.qid = d.id; resetItem(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
+  closeq() { backToPage(); },
   sort(d) {
-    const it = U.items[U.i];
+    const it = curItem();
     if ((d.c === "1") === it.clue) { earn(2); correctFx(it.clue ? "CLUE!" : "DUST!"); nextItem(); }
     else { U.msg = it.why; wrongFx(); render(); }
   },
   learnPick(d) {
-    const it = U.items[U.i];
-    if (d.c === it.answer) { earn(2); correctFx(); nextItem(); }
-    else { U.msg = it.nudge; wrongFx(); render(); }
+    const it = curItem();
+    if (seal(U.lesson, `l${it.idx}`, d.c) === it.sealed) { if (!U.off.length) earn(2); correctFx(); nextItem(); }
+    else { U.off.push(d.c); U.msg = it.nudge; wrongFx(); render(); }
   },
+  demoNext() {
+    const d = curItem().demo, s = d.steps[U.demoStep];
+    if (U.demoStep > 0) { const prev = d.steps[U.demoStep - 1]; void prev; }
+    if (s.put) { const ds = String(s.answer).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`0:${id}`] = ds[i]; }); }
+    U.demoStep++; beep(BLIP); render();
+  },
+  demoDone() { const lp = LP(U.lesson); lp.demoSeen = lp.demoSeen || {}; lp.demoSeen[curItem().demo.title] = true; save(); nextItem(); },
+  replayDemo() { const l = curLesson(), r = rideOf(l, U.ride); U.items = [...r.demos.map((demo) => ({ type: "demo", demo })), { type: "page" }]; U.i = 0; resetItem(); render(); window.scrollTo(0, 0); },
+  helpTap() { U.helpN++; beep(BLIP); render(); },
+  helpDone() { U.helped = true; U.msg = null; render(); },
   mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
   deal(d) { U.deal = Math.min(+d.t, U.deal + +d.g); beep(BLIP); render(); },
   key(d) { pressKey(d.k); },
   check: checkFinal,
+  checkProof,
   coach: startCoach,
   stepPick(d) {
     const q = curQ(), s = q.coach.steps[U.step];
-    if (hash(`${U.lesson}|${q.id}.${U.step}|pick|${d.c}`) === s.sealed) applyStepRight(d.c); else stepWrong();
+    if (hash(`${U.lesson}|${q.id}.${U.step}|pick|${d.c}`) === s.sealed) applyStepRight(d.c); else stepWrong(d.c);
   },
   finalPick(d) { U.draft = d.c; checkFinal(); },
+  proofPick(d) { U.draft = d.c; checkProof(); },
   paper() {
     const q = curQ(), p = PP(LP(U.lesson), q.id);
     if (!p.done) { p.done = true; p.paper = true; p.flagged = false; earn(15); U.solvedRun++; }
-    correctFx("NICE DRAW!"); save(); nextItem();
+    correctFx("NICE DRAW!"); save(); backToPage();
   },
-  flag() { const q = curQ(); PP(LP(U.lesson), q.id).flagged = true; U.combo = 0; save(); nextItem(); },
-  next() { nextItem(); },
+  flag() { const q = curQ(); PP(LP(U.lesson), q.id).flagged = true; U.combo = 0; save(); backToPage(); },
   game(d) {
     U.game = { kind: d.g, n: +d.n }; U.view = "game";
     if (d.g === "run") startRun(+d.n);
@@ -835,7 +1098,7 @@ const acts = {
     if (duel.state === "wait") { clearTimeout(duel.timer); duelResult(false, "You fired early!"); }
     else if (duel.state === "draw") duelResult(true, `${Math.round(performance.now() - duel.at)} milliseconds!`);
   },
-  backTown() { const l = curLesson(), nx = nextRide(l); if (nx && !(nx.after && !LP(l.id).rides[nx.after])) startRide(l, nx); else { U.view = "town"; render(); } },
+  backTown() { U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
   buy(d) { const g = GEAR.find((x) => x.id === d.id); if (S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); S.worn[g.id] = true; beep(CHIME); save(); render(); } },
   wear(d) { S.worn[d.id] = !S.worn[d.id]; save(); render(); },
@@ -865,29 +1128,36 @@ app.addEventListener("click", (e) => {
   const el = e.target.closest("[data-act]");
   if (el && !el.disabled && acts[el.dataset.act]) acts[el.dataset.act](el.dataset, el);
 });
+app.addEventListener("keydown", (e) => {
+  if ((e.key === "Enter" || e.key === " ") && e.target.tagName !== "BUTTON" && e.target.dataset?.act) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
 canvas.addEventListener("pointerdown", () => { if (W.run) runJump(); });
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (W.run) { if (e.key === " " || e.key === "ArrowUp") { runJump(); e.preventDefault(); } else if (e.key === "d" || e.key === "ArrowRight") runDash(); return; }
   if (U.view !== "ride") return;
-  const q = curQ();
-  if (!q || U.solved) return;
-  if (U.mode === "coach" ? q.coach.steps[U.step].choices : q.choices || q.paper) return;
+  const q = curQ(), it = curItem();
+  const typing = q
+    ? (U.mode === "coach" ? !q.coach.steps[U.step].choices && !(U.stepWrong >= 2 && !U.helped) : U.mode === "proof" ? !q.proof.choices : U.mode === "try" && !q.choices && !q.paper)
+    : it && (it.type === "fact" || it.type === "num");
+  if (!typing) return;
   if (/^[0-9/.:,]$/.test(e.key)) pressKey(e.key);
   else if (e.key === "r" || e.key === "R") pressKey("R");
   else if (e.key === "Backspace") { pressKey("DEL"); e.preventDefault(); }
-  else if (e.key === "Enter" && U.mode !== "coach" && e.target.tagName !== "BUTTON") checkFinal();
+  else if (e.key === "Enter" && e.target.tagName !== "BUTTON") { if (U.mode === "proof") checkProof(); else if (q && U.mode === "try") checkFinal(); }
 });
 
 /* ---------- draw ---------- */
 function render() {
   clearInterval(kickTimer);
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "game" || U.view === "gameEnd" || U.view === "reward") && !curLesson()) U.view = "home";
-  W.title = U.view === "title" || U.view === "home";
-  canvas.hidden = U.view === "parent";
+  W.title = U.view === "title";
+  canvas.hidden = ["parent", "home", "town"].includes(U.view);
   const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView };
   try { app.innerHTML = views[U.view](); }
-  catch (e) { app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
+  catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
+  if (U.view === "home" && document.getElementById("token")) { const li = LESSONS.findIndex((l) => !lessonFinished(l)); placeToken("world", Math.min(li < 0 ? Math.max(0, LESSONS.length - 1) : li, WORLD_PTS.length - 1), WORLD_PTS); }
+  if (U.view === "town" && document.getElementById("token")) { const l = curLesson(), nx = nextRide(l), idx = nx ? l.rides.indexOf(nx) : l.rides.length - 1; placeToken(`town:${l.id}`, idx, TOWN_PTS); }
 }
 worldSize(200);
 render();
