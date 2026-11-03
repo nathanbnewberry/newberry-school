@@ -253,6 +253,11 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .centered{max-width:760px;width:100%;margin:0 auto}
 .row-btns{display:inline-flex;gap:8px;flex-wrap:wrap;align-items:center}
 .hud .btn.small.mapbtn{min-height:56px;padding:8px 26px;font-size:1.2rem;background:var(--gold);color:var(--ink);box-shadow:0 5px 0 var(--gold-deep)}
+#duelScene{display:block;width:100%;max-height:48vh;border-radius:10px;cursor:pointer}
+.gunarm{transform-box:fill-box;transform-origin:left top;transition:transform .12s}.dhat{transform-box:fill-box;transform-origin:center;transition:transform .5s ease-out,opacity .5s}
+.st-win .f-you .gunarm,.st-lose .f-out .gunarm,.st-early .f-out .gunarm,.st-draw .f-out .gunarm{transform:rotate(-70deg)}
+.st-win .f-out .dhat,.st-lose .f-you .dhat,.st-early .f-you .dhat{transform:translate(30px,-110px) rotate(200deg);opacity:0}
+.duelgame #duelSub{font-size:1.05rem}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1077,7 +1082,7 @@ function rideEndView() {
   <div class="games">
     <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">Jump, grab loot, smash through with dashes. Tap to jump.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">${shots} shots. Stop the target. Beat the keeper.</span></button>
-    <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Wait for DRAW. Faster than the outlaw wins.</span></button>
+    <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap FIRE when you see DRAW.</span></button>
   </div>
   <button class="link" data-act="skipGame">Skip the game</button>`;
 }
@@ -1093,8 +1098,27 @@ function gameView() {
       <g id="aim"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
       <g id="kball" transform="translate(165 205)"><circle cx="15" cy="15" r="14" fill="#fff" stroke="#222" stroke-width="2"/><path d="M15 8l6 4-2 7h-8l-2-7zM15 1l-3 3 3 2 3-2zM28 12l-4-1-1 4 3 3zM2 12l4-1 1 4-3 3zM8 26l2-4h10l2 4-4 2h-6z" fill="#222"/></g></svg></div>
     <div class="call" id="call">Tap when the target is clear of the keeper!</div><div class="score" id="kscore"></div><button class="btn go wide" id="kbtn" data-act="shoot" style="min-height:76px;font-size:1.4rem">SHOOT</button></div>`;
-  return `<div class="console center duelgame"><div class="big" id="duelCall" style="min-height:1.2em">Wait...</div><div class="score" id="dscore"></div><p class="sub" id="duelSub">Don't touch it until you see DRAW.</p>
-    <button class="btn go wide" id="dbtn" data-act="fire" style="min-height:130px;font-size:1.8rem">FIRE</button></div>`;
+  const fighter = (x, dir, shirt, hat, hair, skin, name) => `<g transform="translate(${x} 150) scale(${dir} 1)" class="${name}">
+      <path d="M-9 76L-14 124M9 76L14 124" stroke="#2f3a55" stroke-width="12" stroke-linecap="round"/><path d="M-22 128h16v-8h-12zM22 128H6v-8h12z" fill="#4a2b12"/>
+      <rect x="-17" y="18" width="34" height="60" rx="8" fill="${shirt}"/>
+      <path d="M-14 28L-24 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/>
+      <g class="gunarm"><path d="M14 28L26 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/><rect x="20" y="64" width="22" height="8" rx="2" fill="#23222a"/></g>
+      <circle cy="4" r="17" fill="${skin}"/><path d="M-16 4c-2-13 7-18 16-18s18 5 16 18c-4-5-9-7-16-7s-12 2-16 7z" fill="${hair}"/><circle cx="7" cy="5" r="2.200" fill="#27354f"/>
+      <g class="dhat"><ellipse cy="-14" rx="29" ry="5" fill="${hat}"/><rect x="-14" y="-32" width="28" height="18" rx="6" fill="${hat}"/></g>
+    </g>`;
+  return `<div class="console center duelgame"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" data-act="fire" role="img" aria-label="Elliot and an outlaw face each other on a dusty street">
+      <rect width="640" height="300" fill="#8ec9e8"/><circle cx="320" cy="44" r="30" fill="#ffe27a"/>
+      <path d="M0 215H640V300H0Z" fill="#d9b071"/><path d="M0 150h110v65H0zM530 140h110v75H530z" fill="#a8703a"/><path d="M15 165h30v30H15zM60 165h30v30H60zM548 155h30v30h-30zM592 155h30v30h-30z" fill="#3a2412"/><path d="M-6 150h122l-8-14H2zM524 140h122l-8-14H532z" fill="#6b3f1d"/>
+      ${fighter(150, 1, S.worn.jersey ? "#c8202c" : "#3f6fb0", S.worn.blackhat ? "#23222a" : "#b98a4e", "#f2d262", "#f4cda8", "f-you")}
+      ${fighter(490, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
+      <text x="150" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="490" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text>
+      <g id="flash"><path d="M0 0" /></g>
+      <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
+    </svg>
+    <div class="big" id="duelCall" style="min-height:1.2em;font-size:2.2rem">High Noon</div>
+    <p id="duelSub">An outlaw wants a duel. When you see <strong>DRAW!</strong>, tap FIRE before his red bar fills up. If you tap too early, you lose the round.</p>
+    <div class="score" id="dscore"></div>
+    <button class="btn go wide" id="dbtn" data-act="fire" style="min-height:100px;font-size:1.8rem">I'M READY</button></div>`;
 }
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
@@ -1119,7 +1143,7 @@ function arcadeView() {
   <div class="games">
     <button class="game" data-act="game" data-g="run" data-n="5" data-free="1"><h3>Boost Run</h3><span class="sub">Jump, grab loot, smash through with dashes.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="5" data-free="1"><h3>Penalty Kicks</h3><span class="sub">Stop the target. Beat the keeper.</span></button>
-    <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Wait for DRAW. Faster than the outlaw wins.</span></button>
+    <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap FIRE when you see DRAW.</span></button>
   </div>`;
 }
 function rewardView() {
@@ -1238,28 +1262,43 @@ function shoot() {
   }, 16);
 }
 function finishKick() { clearInterval(kickTimer); const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
+function duelState(st) { const sc = document.getElementById("duelScene"); if (sc) sc.setAttribute("class", `st-${st}`); }
 function duelRound() {
-  const call = document.getElementById("duelCall"); if (!call) return;
-  duel.state = "wait"; call.textContent = "Wait..."; call.style.color = "";
-  clearTimeout(duel.timer);
+  const call = document.getElementById("duelCall"), sub = document.getElementById("duelSub"), btn = document.getElementById("dbtn");
+  if (!call) return;
+  clearInterval(duel.bar); clearTimeout(duel.timer);
+  duel.state = "wait"; duelState("wait");
+  call.textContent = "Wait for it..."; call.style.color = "";
+  sub.textContent = `Round ${duel.shots.length + 1} of ${duel.n}. Don't tap yet.`;
+  if (btn) { btn.textContent = "FIRE"; btn.disabled = false; }
+  document.getElementById("drawBar")?.setAttribute("opacity", "0"); document.getElementById("drawFill")?.setAttribute("width", "0");
   duel.timer = setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
-    duel.state = "draw"; duel.at = performance.now(); call.textContent = "DRAW!"; call.style.color = "var(--red)"; beep(BLIP);
+    duel.state = "draw"; duel.at = performance.now(); duelState("draw");
+    call.textContent = "DRAW!"; call.style.color = "var(--red)"; sub.textContent = "Tap FIRE now!"; beep(BLIP);
     duel.limit = 800 + Math.random() * 400;
-    duel.timer = setTimeout(() => { if (duel.state === "draw") duelResult(false, "Too slow. He got you."); }, duel.limit);
-  }, reduced ? 900 : 900 + Math.random() * 2400);
+    document.getElementById("drawBar")?.setAttribute("opacity", ".85");
+    duel.bar = setInterval(() => {
+      const k = Math.min(1, (performance.now() - duel.at) / duel.limit);
+      document.getElementById("drawFill")?.setAttribute("width", String(194 * k));
+      if (k >= 1 && duel.state === "draw") duelResult(false, "He was faster and shot your hat off.");
+    }, 30);
+  }, reduced ? 900 : 1100 + Math.random() * 2400);
 }
-function duelResult(win, line) {
-  duel.state = "done"; clearTimeout(duel.timer);
+function duelResult(win, line, early) {
+  duel.state = "done"; clearTimeout(duel.timer); clearInterval(duel.bar);
   duel.shots.push(win); drawScore("dscore", duel.shots, duel.n);
-  const sub = document.getElementById("duelSub"), call = document.getElementById("duelCall");
-  if (sub) sub.textContent = line; if (call) { call.textContent = win ? "BANG!" : "Missed"; call.style.color = ""; }
-  if (win) { S.wins++; if (!U.game?.free) earn(8); beep(BANG); confetti(14); W.shake = 10; save(); } else beep(NOPE);
+  duelState(win ? "win" : early ? "early" : "lose");
+  const sub = document.getElementById("duelSub"), call = document.getElementById("duelCall"), btn = document.getElementById("dbtn");
+  if (sub) sub.textContent = line;
+  if (call) { call.textContent = win ? "You got him!" : early ? "Too early!" : "Too slow!"; call.style.color = ""; }
+  if (btn) btn.disabled = true;
+  if (win) { S.wins++; if (!U.game?.free) earn(8); beep(BANG); confetti(14); save(); } else beep(NOPE);
   setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
-    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; U.gameEnd = { title: w === duel.n ? "Fastest in the West!" : `${w} outlaws down`, line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}.`}` }; U.view = "gameEnd"; render(); return; }
+    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; U.gameEnd = { title: w === duel.n ? "Fastest in the West!" : w ? `You won ${w} duel${w === 1 ? "" : "s"}` : "He got you this time", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`}` }; U.view = "gameEnd"; render(); return; }
     duelRound();
-  }, 1200);
+  }, 1700);
 }
 
 /* ---------- actions ---------- */
@@ -1634,14 +1673,15 @@ const acts = {
     if (d.g === "run") startRun(+d.n);
     render(); window.scrollTo(0, 0);
     if (d.g === "kick") startKick();
-    if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "wait" }; drawScore("dscore", duel.shots, duel.n); duelRound(); }
+    if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "intro" }; drawScore("dscore", duel.shots, duel.n); }
   },
   skipGame() { U.game = null; U.gameEnd = { title: "Back in the saddle", line: "Your boosts are safe with Biscuit. He ate two." }; U.view = "gameEnd"; render(); },
   jump: runJump, dash: runDash, shoot,
   fire() {
     if (!duel) return;
-    if (duel.state === "wait") { clearTimeout(duel.timer); duelResult(false, "You fired early!"); }
-    else if (duel.state === "draw") duelResult(true, `${Math.round(performance.now() - duel.at)} milliseconds!`);
+    if (duel.state === "intro") return duelRound();
+    if (duel.state === "wait") duelResult(false, "You fired before DRAW, so that round goes to the outlaw.", true);
+    else if (duel.state === "draw") duelResult(true, `You shot his hat off in ${(performance.now() - duel.at) / 1000 < 1 ? Math.round(performance.now() - duel.at) + " milliseconds" : "about a second"}!`);
   },
   backTown() { U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
