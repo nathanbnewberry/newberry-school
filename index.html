@@ -531,7 +531,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=31cc916655"></script>
+<script src="lessons.js?v=0050366809"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -2324,6 +2324,7 @@ function shareReport() {
 const acts = {
   resume() {
     const r0 = S.resume, l = LESSONS.find((x) => x.id === r0?.lesson);
+    if (r0 && r0.ride && l && !l.rides.some((x) => x.id === r0.ride)) r0.ride = null;
     W.title = false; beep(FANFARE);
     if (!l) return acts.start();
     U.lesson = l.id;
