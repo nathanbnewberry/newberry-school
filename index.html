@@ -501,7 +501,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=82fbf9c006"></script>
+<script src="lessons.js?v=3493ee2716"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -1625,14 +1625,14 @@ function rewardView() {
     <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn dark wide" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button><button class="btn go wide" data-act="view" data-v="home">Back to the world map</button>`;
 }
 const RANCH = [
-  { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 300 },
-  { id: "well", name: "Water well", note: "Every ranch needs water", cost: 400 },
-  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 500 },
-  { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 600 },
-  { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 700 },
-  { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 900 },
-  { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 1100 },
-  { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 1500 }
+  { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 30 },
+  { id: "well", name: "Water well", note: "Every ranch needs water", cost: 40 },
+  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 50 },
+  { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 60 },
+  { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 70 },
+  { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 90 },
+  { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 110 },
+  { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 150 }
 ];
 function ranchSvg(place = "") {
   const has = (id) => (S.owned || []).includes(id);
