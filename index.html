@@ -159,6 +159,13 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .chips{display:flex;flex-wrap:wrap;gap:6px;min-height:38px;align-items:center}.chips b{background:#1c5a8f;color:#fff;border-radius:6px;padding:4px 10px;font-size:1.15rem;font-variant-numeric:tabular-nums}.chips b.over{background:var(--red);text-decoration:line-through}
 .fingers{display:flex;flex-wrap:wrap;gap:4px}.fingers i{width:14px;height:24px;border-radius:7px 7px 3px 3px;background:#e0ab7b;display:block}
 .bookpage .boardwrap{background:#fff;border:1px solid #c8c2b2}.bookpage .vis{background:#fff;border:1px solid #c8c2b2;font-family:var(--body)}
+.vert{display:inline-grid;justify-items:end;line-height:1.2}.vb{border-bottom:.08em solid currentColor;padding-left:.3em;min-width:100%;text-align:right}
+.pmath .vert .vb{min-width:4em}
+.pzboard{display:block;width:100%;max-width:440px;margin:0 auto;border-radius:8px}.pzwon{animation:pop .4s ease-out;transform-box:fill-box;transform-origin:center}
+.tools{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
+.big-tool{min-height:84px;min-width:140px;font-size:1.4rem}
+.arrows{display:grid;justify-items:center;gap:4px}.arrows>div{display:flex;gap:44px}.arrows .btn{min-width:56px;min-height:48px;padding:6px 10px;font-size:1.1rem}
+.match{display:grid;grid-template-columns:1fr 1fr;gap:10px}.match>div{display:grid;gap:10px}.match button{background:var(--panel2);color:var(--moon);font-family:var(--body);font-weight:800;min-height:64px;font-size:1.1rem;box-shadow:0 4px 0 #15183a}.match button.sel{background:var(--gold);color:var(--ink)}.match button.ok{background:var(--green);color:var(--ink);box-shadow:none}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -477,13 +484,20 @@ const qOf = (l, id) => l.problems.find((p) => p.id === id);
 function rideDone(l, r) { return !!LP(l.id).rides[r.id]; }
 function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
 function lessonFinished(l) { return l.rides.every((r) => rideDone(l, r)); }
+// The lesson marked current is today's stop. After that, the first lesson still unfinished.
+function currentIdx() {
+  const today = LESSONS.findIndex((l) => l.current && !lessonFinished(l));
+  if (today >= 0) return today;
+  const open = LESSONS.findIndex((l) => !lessonFinished(l));
+  return open < 0 ? Math.max(0, LESSONS.length - 1) : open;
+}
 function buildItems(l, r) {
   if (r.kind === "warmup") return [...(l.paperFirst ? [{ type: "paperFirst", text: l.paperFirst }] : []), ...l.warmup.map((w, i) => ({ type: "fact", w, i }))];
   if (r.kind === "learn") return l.learn.map((c, i) => ({ ...c, idx: i }));
   const lp = LP(l.id), seen = (lp.demoSeen = lp.demoSeen || {});
   return [...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "" }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null }); }
 function pageGap(l, r) {
   const lp = LP(l.id);
   if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
@@ -534,6 +548,11 @@ function visual(v) {
     for (let m = 0; m <= v.mm + 10; m += 2) { const x = 20 + m * 4.4, big = m % 10 === 0; t += `<line x1="${x}" x2="${x}" y1="70" y2="${big ? 92 : 80}" stroke="#2c1a0e" stroke-width="${big ? 2.5 : 1}"/>${big ? `<text x="${x}" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#2c1a0e">${m}</text>` : ""}`; }
     return `<div class="vis"><svg viewBox="0 0 340 116" style="width:100%;max-width:440px" role="img" aria-label="Key measured on a millimeter ruler"><rect x="20" y="24" width="${v.mm * 4.4}" height="14" rx="3" fill="#8a6a2b"/><circle cx="26" cy="31" r="16" fill="#8a6a2b"/><circle cx="24" cy="31" r="6" fill="#fff4d8"/><path d="M${20 + v.mm * 4.4 - 40} 38l6 8 6-8 6 8 6-8 6 8 6-8z" fill="#8a6a2b"/><rect x="14" y="68" width="${(v.mm + 10) * 4.4 + 14}" height="44" fill="none" stroke="#2c1a0e" stroke-width="2"/>${t}</svg></div>`;
   }
+  if (v.type === "crossTri") return `<div class="vis"><svg viewBox="0 0 220 190" width="240" role="img" aria-label="Two right triangles sharing corner C. Triangle ABC goes left and down, triangle DEC goes up and right."><path d="M30 80H120V170Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M120 80V10H190" fill="none"/><path d="M120 80V-10" fill="none"/><path d="M120 80V10L190 80Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="12" y="84">A</text><text x="126" y="182">B</text><text x="126" y="72">C</text><text x="108" y="16">D</text><text x="196" y="86">E</text></g></svg></div>`;
+  if (v.type === "kite") return `<div class="vis"><svg viewBox="0 0 220 170" width="230" role="img" aria-label="A tall triangle split down the middle by a line from A to B, with D on the left and C on the right."><path d="M110 18L40 138H110Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><path d="M110 18L180 138H110Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M110 138v-12h12v12" fill="none" stroke="#2c1a0e"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="104" y="14">A</text><text x="104" y="158">B</text><text x="186" y="150">C</text><text x="22" y="150">D</text></g></svg></div>`;
+  if (v.type === "segment") return `<div class="vis"><svg viewBox="0 0 340 74" style="width:100%;max-width:420px" role="img" aria-label="A line with points A, B and C. AB is 2.3 centimeters and BC is 3.5 centimeters."><path d="M20 34H320" stroke="#2c1a0e" stroke-width="3"/><g fill="#2c1a0e"><circle cx="20" cy="34" r="5"/><circle cx="139" cy="34" r="5"/><circle cx="320" cy="34" r="5"/></g><g font-size="16" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="20" y="62">A</text><text x="139" y="62">B</text><text x="320" y="62">C</text></g><g font-size="14" fill="#1c5a8f" font-weight="700" text-anchor="middle"><text x="80" y="24">2.3 cm</text><text x="230" y="24">3.5 cm</text></g></svg></div>`;
+  if (v.type === "hexruler") return `<div class="vis"><svg viewBox="0 -10 260 160" width="260" role="img" aria-label="A regular hexagon above a centimeter ruler. Its bottom side runs from the start of the ruler to the 1 centimeter mark."><path d="M42 94L72 42H132L162 94 132 146H72Z" transform="translate(0 -46)" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><rect x="10" y="100" width="240" height="46" fill="#fff" stroke="#2c1a0e" stroke-width="2"/><g stroke="#2c1a0e" stroke-width="2"><path d="M42 100v16M102 100v16M162 100v16M222 100v16"/></g><g font-size="14" font-weight="700" fill="#2c1a0e" text-anchor="middle"><text x="26" y="136">cm</text><text x="102" y="136">1</text><text x="162" y="136">2</text><text x="222" y="136">3</text></g></svg></div>`;
+  if (v.type === "canteen") return `<div class="vis"><svg viewBox="0 0 240 120" width="260" role="img" aria-label="A one gallon jug next to a much smaller one quart canteen."><path d="M30 104V36c0-12 8-16 18-16h4v-8h20v8h6c10 0 18 4 18 16v68Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><text x="63" y="70" text-anchor="middle" font-size="15" font-weight="800" fill="#2c1a0e">1 gal</text><path d="M160 104V64c0-8 5-11 10-12v-8h14v8c5 1 10 4 10 12v40Z" fill="#8a6a44" stroke="#2c1a0e" stroke-width="3"/><text x="177" y="118" text-anchor="middle" font-size="14" font-weight="800" fill="#2c1a0e">1 qt</text></svg></div>`;
   if (v.type === "polygon") return `<div class="vis"><svg viewBox="0 0 200 130" width="230" role="img" aria-label="A four-sided shape with corners D top left, A top right, B bottom right, C bottom left"><path d="M50 26H170L130 104H50Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M50 40h13V26M50 90h13v14" fill="none" stroke="#2c1a0e" stroke-width="2"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="34" y="26">D</text><text x="176" y="26">A</text><text x="34" y="118">C</text><text x="134" y="122">B</text></g></svg></div>`;
   if (v.type === "mow") {
     const n = v.width / v.path, w = 320 / n, done = Math.min(U.mow, n);
@@ -593,7 +612,7 @@ const WORLD_PTS = [[105, 495], [225, 470], [180, 345], [335, 300], [480, 385], [
 function worldMapSvg() {
   const names = ["Abilene", "Tombstone", "Deadwood", "Santa Fe", "Laramie", "Fort Worth"].filter((t) => !LESSONS.some((l) => l.town === t));
   const stops = WORLD_PTS.map((pt, i) => ({ pt, l: LESSONS[i], name: LESSONS[i]?.town || names[i - LESSONS.length] }));
-  const lastOpen = Math.min(LESSONS.findIndex((l) => !lessonFinished(l)) < 0 ? LESSONS.length - 1 : LESSONS.findIndex((l) => !lessonFinished(l)), WORLD_PTS.length - 1);
+  const lastOpen = Math.min(currentIdx(), WORLD_PTS.length - 1);
   const towns = stops.map((s, i) => {
     const [x, y] = s.pt;
     if (!s.l) return `<g transform="translate(${x} ${y})" opacity=".85"><ellipse rx="44" ry="26" fill="#d9c9a4"/><ellipse cx="-18" cy="-6" rx="24" ry="16" fill="#e8dcc0"/><ellipse cx="20" cy="4" rx="24" ry="15" fill="#e8dcc0"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#5a3a1e">?</text></g>${label(x, y + 48, s.name, "next lesson")}`;
@@ -655,6 +674,7 @@ function placeToken(key, idx, pts) {
 }
 function homeView() {
   return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
+  ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
@@ -670,6 +690,9 @@ function townView() {
 function bookMath(b, ans, big) {
   const slot = ans !== null ? `<span class="slot ${ans ? "" : "open"}" ${big ? 'id="ans"' : ""}>${ans ? esc(ans) : big ? "?" : ""}</span>` : "";
   if (b.type === "div") return `<span class="dv"><span class="dvq">${slot}</span><span class="dvl"><span>${esc(b.divisor)}</span><span class="dvb">${esc(b.dividend)}</span></span></span>`;
+  if (b.type === "vert") return b.result
+    ? `<span class="vert"><span>${esc(b.top)}</span><span class="vb">${esc(b.op)} ${esc(b.bottom)}</span><span>${esc(b.result)}</span></span>${big || ans ? ` <span class="eq">${esc(b.find)} =</span> ${slot}` : ""}`
+    : `<span class="vert"><span>${esc(b.top)}</span><span class="vb">${esc(b.op)} ${esc(b.bottom)}</span>${big || ans ? slot : ""}</span>`;
   if (b.type === "frac") return `<span class="fr"><span>${esc(b.top)}</span><span class="frb"></span><span>${esc(b.bottom)}</span></span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
   return `<span class="inl">${esc(b.text)}</span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
 }
@@ -746,8 +769,8 @@ function solveView(l, q) {
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
+  if (q.match) return bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}<button class="link dk" data-act="closeq">Back to the page</button></div>`;
   const stuck = U.wrongNow >= 3;
-  const fresh = !p.coached && !p.wrong.length;
   const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Work it on paper first.", "On paper first, then type it here.", "Solve it on paper. If it's nasty, hit Coach me."]));
   if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
   const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Coach me</button>`;
@@ -766,13 +789,41 @@ function rideView() {
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
   if (it.type === "fact") {
     if (!U.drawT) U.drawT = Date.now();
-    return hudRide(pips) + bubble(U.msg || `Warm-up ${it.w.label}. Do it in your head.`, U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Mental Math ${esc(it.w.label)}</span></div><div class="pmathbig">${bookMath({ type: "inline", text: it.w.prompt }, U.draft, true)}</div>${padHtml(it.w.extra || [])}${U.stepWrong >= 3 ? `<button class="link dk" data-act="next">Skip this one</button>` : ""}</div>`;
+    return hudRide(pips) + bubble(U.msg || `Warm-up ${it.w.label}. Do it in your head.`, U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Mental Math ${esc(it.w.label)}</span></div>${it.w.word ? `<p class="prompt">${esc(it.w.prompt)}</p><div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>` : `<div class="pmathbig">${bookMath({ type: "inline", text: it.w.prompt }, U.draft, true)}</div>`}${padHtml(it.w.extra || [])}${U.stepWrong >= 3 ? `<button class="link dk" data-act="next">Skip this one</button>` : ""}</div>`;
   }
   if (it.type === "demo") return demoView(it.demo, pips);
+  if (it.type === "puzzle") return hudRide(pips) + puzzleView(it);
+  if (it.type === "match") return hudRide(pips) + bubble(U.msg || it.say, U.msg ? "shake" : "") + `<div class="console">${matchHtml(it.pairs)}</div>`;
   if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the clues</button></div>`;
   if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Clue or dust?", U.msg ? "shake" : "") + `<div class="console"><div class="ctx">${esc(it.context)}</div><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">CLUE</button><button class="no" data-act="sort" data-c="0">DUST</button></div></div>`;
   if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<div class="ctx">${esc(it.ask)}</div><div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}</div>`;
   return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
+}
+const BRAND = [[0, 0], [3, 0], [0, 2]];
+const absPts = (rel, ax, ay) => rel.map(([x, y]) => [x + ax, y + ay]);
+const samePts = (a, b) => JSON.stringify(a.map(String).sort()) === JSON.stringify(b.map(String).sort());
+function targetPts(t) {
+  let rel = BRAND.map((p) => [...p]);
+  if (t.flip) rel = rel.map(([x, y]) => [-x, y]);
+  for (let i = 0; i < (t.turns || 0); i++) rel = rel.map(([x, y]) => [-y, x]);
+  return absPts(rel, t.x, t.y);
+}
+function puzzleView(it) {
+  const pz = (U.pz = U.pz || { x: it.start.x, y: it.start.y, rel: BRAND.map((p) => [...p]), moves: 0, won: false });
+  const C = 40, poly = (pts) => pts.map(([x, y]) => `${x * C},${y * C}`).join(" ");
+  const cur = absPts(pz.rel, pz.x, pz.y), tgt = targetPts(it.target);
+  const grid = Array.from({ length: 11 }, (_, i) => `<path d="M${i * C} 0V320"/>`).join("") + Array.from({ length: 9 }, (_, i) => `<path d="M0 ${i * C}H400"/>`).join("");
+  const tool = (t) => t === "slide"
+    ? `<div class="arrows"><button class="btn" data-act="pzSlide" data-dx="0" data-dy="-1" aria-label="Slide up">&#9650;</button><div><button class="btn" data-act="pzSlide" data-dx="-1" data-dy="0" aria-label="Slide left">&#9664;</button><button class="btn" data-act="pzSlide" data-dx="1" data-dy="0" aria-label="Slide right">&#9654;</button></div><button class="btn" data-act="pzSlide" data-dx="0" data-dy="1" aria-label="Slide down">&#9660;</button><span class="tag">Slide</span></div>`
+    : t === "turn" ? `<button class="btn big-tool" data-act="pzTurn">&#8635; TURN</button>` : `<button class="btn big-tool" data-act="pzFlip">&#8644; FLIP</button>`;
+  const stars = pz.moves <= it.par ? "Perfect! Fewest moves." : `Done in ${pz.moves} moves. Best is ${it.par}.`;
+  return bubble(pz.won ? it.win : it.say) + `<div class="console"><svg class="pzboard" viewBox="-2 -2 404 324" role="img" aria-label="A grid with a brand shape and its shadow"><rect width="400" height="320" fill="#e8cf9a"/><g stroke="#7a5a30" stroke-opacity=".25">${grid}</g><polygon points="${poly(tgt)}" fill="#3a2412" fill-opacity=".18" stroke="#3a2412" stroke-width="3" stroke-dasharray="8 7"/><polygon class="${pz.won ? "pzwon" : ""}" points="${poly(cur)}" fill="${pz.won ? "#39d07a" : "#c8602c"}" stroke="#2c1a0e" stroke-width="3"/></svg>
+    ${pz.won ? `<p class="center"><strong>${stars}</strong></p><button class="btn go wide" data-act="next">NEXT</button>` : `<div class="tools">${it.tools.map(tool).join("")}</div><p class="center sub">Moves: ${pz.moves}. Best is ${it.par}.</p>`}</div>`;
+}
+function matchHtml(pairs) {
+  const m = (U.m = U.m || { sel: null, done: [], miss: 0 });
+  const right = [...pairs.slice(1), pairs[0]].map((p) => p[1]);
+  return `<div class="match"><div>${pairs.map(([a]) => `<button class="${m.done.includes(a) ? "ok" : m.sel === a ? "sel" : ""}" data-act="matchL" data-c="${esc(a)}" ${m.done.includes(a) ? "disabled" : ""}>${esc(a)}</button>`).join("")}</div><div>${right.map((b) => { const done = pairs.some((p) => p[1] === b && m.done.includes(p[0])); return `<button class="${done ? "ok" : ""}" data-act="matchR" data-c="${esc(b)}" ${done ? "disabled" : ""}>${esc(b)}</button>`; }).join("")}</div></div>`;
 }
 function demoView(d, pips) {
   const c = { boards: [d.board], steps: d.steps }, n = U.demoStep, s = d.steps[Math.min(n, d.steps.length - 1)], finished = n >= d.steps.length;
@@ -1034,6 +1085,11 @@ function pressKey(k) {
   if (box) { const slot = box.classList.contains("slot"); box.innerHTML = U.draft ? esc(U.draft) : slot ? "?" : `<span class="empty">${U.mode === "coach" ? "Type it" : "Your answer"}</span>`; if (slot) box.classList.toggle("open", !U.draft); }
   beep([[520, 0, .03]]);
 }
+function pzMoved() {
+  const it = curItem(), pz = U.pz; pz.moves++; beep(BLIP);
+  if (samePts(absPts(pz.rel, pz.x, pz.y), targetPts(it.target))) { pz.won = true; earn(pz.moves <= it.par ? 15 : 8); correctFx("BRANDED!"); confetti(24); }
+  render();
+}
 const acts = {
   start() { U.view = "home"; W.title = false; beep(FANFARE); render(); },
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
@@ -1064,6 +1120,23 @@ const acts = {
   },
   demoDone() { const lp = LP(U.lesson); lp.demoSeen = lp.demoSeen || {}; lp.demoSeen[curItem().demo.title] = true; save(); nextItem(); },
   replayDemo() { const l = curLesson(), r = rideOf(l, U.ride); U.items = [...r.demos.map((demo) => ({ type: "demo", demo })), { type: "page" }]; U.i = 0; resetItem(); render(); window.scrollTo(0, 0); },
+  pzSlide(d) { const pz = U.pz, x = pz.x + +d.dx, y = pz.y + +d.dy; if (x < 3 || x > 6 || y < 3 || y > 4) { W.shake = 3; beep(NOPE); return; } pz.x = x; pz.y = y; pzMoved(); },
+  pzTurn() { U.pz.rel = U.pz.rel.map(([x, y]) => [-y, x]); pzMoved(); },
+  pzFlip() { U.pz.rel = U.pz.rel.map(([x, y]) => [-x, y]); pzMoved(); },
+  matchL(d) { U.m.sel = d.c; U.msg = null; beep(BLIP); render(); },
+  matchR(d) {
+    const pairs = U.qid ? curQ().match : curItem().pairs, m = U.m;
+    if (!m.sel) { U.msg = "Tap a cowboy word first."; return render(); }
+    const pair = pairs.find((p) => p[0] === m.sel);
+    if (pair[1] === d.c) {
+      m.done.push(m.sel); m.sel = null; U.msg = null; correctFx(); earn(2);
+      if (m.done.length === pairs.length) {
+        if (U.qid) { const p = PP(LP(U.lesson), U.qid); p.ans = "All matched"; return finishProblem(m.miss === 0, false); }
+        return nextItem();
+      }
+    } else { m.miss++; m.sel = null; U.msg = `A ${pair[0].toLowerCase()} isn't called that. Try again.`; wrongFx(); }
+    render();
+  },
   helpTap() { U.helpN++; beep(BLIP); render(); },
   helpDone() { U.helped = true; U.msg = null; render(); },
   mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
@@ -1156,7 +1229,7 @@ function render() {
   const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView };
   try { app.innerHTML = views[U.view](); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
-  if (U.view === "home" && document.getElementById("token")) { const li = LESSONS.findIndex((l) => !lessonFinished(l)); placeToken("world", Math.min(li < 0 ? Math.max(0, LESSONS.length - 1) : li, WORLD_PTS.length - 1), WORLD_PTS); }
+  if (U.view === "home" && document.getElementById("token")) placeToken("world", Math.min(currentIdx(), WORLD_PTS.length - 1), WORLD_PTS);
   if (U.view === "town" && document.getElementById("token")) { const l = curLesson(), nx = nextRide(l), idx = nx ? l.rides.indexOf(nx) : l.rides.length - 1; placeToken(`town:${l.id}`, idx, TOWN_PTS); }
 }
 worldSize(200);
