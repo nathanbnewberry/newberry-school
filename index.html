@@ -513,6 +513,9 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .pnote{margin:0;text-align:center;font-size:clamp(1.05rem,2.6vh,1.3rem);font-weight:700;color:#1c5a8f}
 .eqwrap{display:inline-grid;justify-items:center;gap:8px}.eqfind{display:inline-flex;align-items:center;gap:10px}
 .mysteryvis{font-size:clamp(1.5rem,4vh,2.1rem);font-weight:800;text-align:center;padding:12px}.mletter{display:inline-grid;place-items:center;min-width:1.5em;height:1.5em;background:#ffd23f;border:2px dashed #8a5f00;border-radius:8px;margin:0 3px}
+.lcol,.split:not(.hasScratch)>.left{container-type:inline-size}.pmathbig{max-width:100%}.pmathbig .inl{overflow-wrap:anywhere}
+@media (orientation:landscape) and (min-width:800px){.lcol .pmathbig .inl{font-size:min(1em,9cqw)}}
+.map .rivermain{filter:drop-shadow(0 0 3px rgba(70,85,50,.75))}.map .stop>g{filter:drop-shadow(2px 4px 3px rgba(40,25,10,.45))}.map .stop:focus>g,.map .stop:hover>g{filter:drop-shadow(2px 4px 3px rgba(40,25,10,.45)) brightness(1.1)}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1091,18 +1094,29 @@ function smooth(pts) {
   }
   return d;
 }
-const mtn = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-30 0L0-44 30 0Z" fill="#9c8468"/><path d="M0-44L30 0H6L-3-14 4-24Z" fill="#7b6650"/><path d="M0-44l-10 15 5-2 5 5 5-4 4 1Z" fill="#fff"/></g>`;
-const pine = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0-22L9-4H-9ZM0-14L11 4H-11Z" fill="#3f6b42"/><rect x="-1.500" y="4" width="3" height="5" fill="#5b3a1e"/></g>`;
+const mtn = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="6" cy="2" rx="38" ry="6" fill="rgba(50,35,20,.3)"/><path d="M-34 2L-14-22-6-14 0-46 12-26 18-30 36 2Z" fill="url(#rockLit)"/><path d="M0-46L12-26 18-30 36 2H8L-2-12 5-26Z" fill="url(#rockDark)"/><path d="M-20 2L-12-8-6 2zM14 2L22-10 30 2z" fill="rgba(40,30,20,.25)"/><path d="M0-46L-9-30-4-33 0-27 5-32 9-30Z" fill="#f5f7fa"/><path d="M0-46L5-32 9-30Z" fill="#cdd5de"/></g>`;
+const pine = (x, y) => `<g transform="translate(${x} ${y})"><ellipse cx="3" cy="9" rx="11" ry="3" fill="rgba(40,30,15,.3)"/><rect x="-1.500" y="3" width="3" height="6" fill="#4d3219"/><path d="M0-24L8-10H-8Z" fill="#3f7047"/><path d="M0-17L10-3H-10Z" fill="#2f5f3c"/><path d="M0-9L12 5H-12Z" fill="#274f33"/><path d="M0-24L8-10H2ZM0-17L10-3H3ZM0-9L12 5H4Z" fill="rgba(0,0,0,.18)"/></g>`;
 const cactus = (x, y) => `<path transform="translate(${x} ${y})" d="M-2-20h4V2h-4zM-8-12h3v5h3v3h-6zM5-14h3v8H2v-3h3z" fill="#4c7d4a"/>`;
 const cow = (x, y) => `<g transform="translate(${x} ${y})"><ellipse rx="9" ry="5" fill="#7a4a24"/><circle cx="10" cy="-2" r="3.500" fill="#7a4a24"/><path d="M8-6l-5-3M12-6l5-3" stroke="#f3e6c8" stroke-width="1.500"/><path d="M-6 4v5M5 4v5" stroke="#4a2b12" stroke-width="2"/></g>`;
 const compass = (x, y) => `<g transform="translate(${x} ${y})"><circle r="36" fill="#f3e3b8" stroke="#5a3a1e" stroke-width="2"/><circle r="29" fill="none" stroke="#5a3a1e" stroke-dasharray="2 4"/><g class="needle"><path d="M0-30L7 0 0 30-7 0Z" fill="#7b2d1c"/><path d="M0-30L7 0H-7Z" fill="#b5442c"/></g><g font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412" text-anchor="middle"><text y="-39">N</text><text y="50">S</text><text x="45" y="5">E</text><text x="-45" y="5">W</text></g></g>`;
 const K = 1180 / 720;
-const mapBase = (w, h) => `<defs>
-    <radialGradient id="parch" cx="50%" cy="45%" r="75%"><stop offset="0%" stop-color="#f4e4bd"/><stop offset="72%" stop-color="#e8cf9a"/><stop offset="100%" stop-color="#b98f55"/></radialGradient>
+const mapBase = (w, h) => {
+  const seeded = (n) => { const x = Math.sin(n * 91.7) * 43758.5; return x - Math.floor(x); };
+  const tufts = Array.from({ length: 90 }, (_, n) => { const x = 24 + seeded(n) * (w - 48), y = 24 + seeded(n + 200) * (h - 48), g = seeded(n + 400) > .5; return `<path d="M${x} ${y}l-3-6M${x} ${y}l0-8M${x} ${y}l3-6" stroke="${g ? "#5f7f3a" : "#8a7a45"}" stroke-width="1.300" stroke-linecap="round" opacity=".6" fill="none"/>`; }).join("");
+  return `<defs>
+    <linearGradient id="landBase" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6c48c"/><stop offset=".55" stop-color="#c9b67a"/><stop offset="1" stop-color="#d9b983"/></linearGradient>
+    <linearGradient id="rockLit" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a39a8d"/><stop offset="1" stop-color="#7d6f5c"/></linearGradient>
+    <linearGradient id="rockDark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6b5e4e"/><stop offset="1" stop-color="#4a3f33"/></linearGradient>
     <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="9"/></filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="34"/></filter>
+    <filter id="terrainNoise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".014 .02" numOctaves="4" seed="9"/><feColorMatrix values="0 0 0 0 .32  0 0 0 0 .26  0 0 0 0 .14  0 0 0 1.5 -.62"/></filter>
+    <clipPath id="landClip"><rect x="8" y="8" width="${w - 16}" height="${h - 16}" rx="10"/></clipPath>
   </defs>
-  <rect x="6" y="6" width="${w - 12}" height="${h - 12}" rx="10" fill="url(#parch)" stroke="#5a3a1e" stroke-width="4" filter="url(#rough)"/>
-  <g stroke="#7a5a30" stroke-opacity=".18" stroke-width="1">${[1, 2, 3, 4].map((i) => `<path d="M${(w * i) / 5} 20V${h - 20}"/>`).join("")}${[1, 2, 3].map((i) => `<path d="M20 ${(h * i) / 4}H${w - 20}"/>`).join("")}</g>`;
+  <rect x="6" y="6" width="${w - 12}" height="${h - 12}" rx="10" fill="url(#landBase)" stroke="#5a3a1e" stroke-width="5" filter="url(#rough)"/>
+  <g clip-path="url(#landClip)"><g filter="url(#soft)">
+    <ellipse cx="${w * .2}" cy="${h * .62}" rx="${w * .22}" ry="${h * .24}" fill="#8fae5c" opacity=".85"/><ellipse cx="${w * .56}" cy="${h * .36}" rx="${w * .2}" ry="${h * .2}" fill="#9db768" opacity=".7"/><ellipse cx="${w * .9}" cy="${h * .4}" rx="${w * .16}" ry="${h * .26}" fill="#7f9f55" opacity=".7"/><ellipse cx="${w * .72}" cy="${h * .9}" rx="${w * .28}" ry="${h * .14}" fill="#e2c28a" opacity=".9"/><ellipse cx="${w * .14}" cy="${h * .16}" rx="${w * .2}" ry="${h * .16}" fill="#a79a7a" opacity=".8"/>
+  </g><rect width="${w}" height="${h}" filter="url(#terrainNoise)" opacity=".42"/>${tufts}</g>`;
+};
 const riderToken = () => `<g id="token"><g class="bob" transform="scale(1.35)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a" stroke-width="1.1" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1" stroke="#3a3f4a" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#8fb7dc"}" stroke="#3a3f4a" stroke-width=".8"/><path d="M-7-29h10l-5 6z" fill="#c8202c"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><rect x="-8" y="-38.500" width="12.500" height="4" rx="1.500" fill="#15171b"/><circle cx="1" cy="-36.500" r="1" fill="#f4cda8"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-42.500" width="10" height="2" fill="#15171b"/></g></g>`;
 const label = (x, y, text, sub = "", col = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="19" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="4" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="18" text-anchor="middle" font-size="14" font-weight="800" fill="${col || "#5a3a1e"}" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
 const doneMark = (x, y) => `<g transform="translate(${x} ${y})"><circle r="15" fill="#1f9a4f" stroke="#fff" stroke-width="3"/><path d="M-7 0l5 6 10-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
@@ -1134,7 +1148,7 @@ function worldMapSvg() {
     ${[[40, 330], [60, 360], [85, 335], [660, 200], [680, 240], [640, 250]].map((p) => pine(p[0] * K, p[1])).join("")}
     ${[[500, 550], [560, 590], [620, 540], [660, 590], [470, 600]].map((p) => cactus(p[0] * K, p[1])).join("")}
     <g class="herd">${cow(0, 0)}${cow(28, 8)}${cow(-24, 10)}</g>
-    <path d="${smooth(WORLD_PTS)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
+    <path d="${smooth(WORLD_PTS)}" fill="none" stroke="#7a5c34" stroke-width="13" stroke-linecap="round" opacity=".55"/><path d="${smooth(WORLD_PTS)}" fill="none" stroke="#dcc492" stroke-width="9" stroke-linecap="round"/><path d="${smooth(WORLD_PTS)}" fill="none" stroke="#a98a58" stroke-width="1.500" stroke-dasharray="8 11" stroke-linecap="round"/>
     <g class="cloud"><ellipse cx="0" cy="0" rx="62" ry="22" fill="#3a2412" opacity=".1"/></g>
     ${towns}
     ${compass(1050, 550)}
@@ -1155,11 +1169,12 @@ function townMapSvg(l) {
   return `<svg class="map" viewBox="0 0 1180 640" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(1180, 640)}
     <path d="M6 96H1174" stroke="#3a2412" stroke-width="6"/><path d="M6 96H1174" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
     <g class="train"><rect x="-34" y="-20" width="40" height="17" rx="3" fill="#2a2430"/><rect x="-8" y="-32" width="16" height="16" fill="#2a2430"/><rect x="-30" y="-30" width="7" height="11" fill="#2a2430"/><circle cx="-24" cy="-1" r="5" fill="#7b2d1c"/><circle cx="-2" cy="-1" r="5" fill="#7b2d1c"/><rect x="10" y="-16" width="34" height="13" fill="#7b2d1c"/><circle cx="18" cy="-1" r="4" fill="#2a2430"/><circle cx="36" cy="-1" r="4" fill="#2a2430"/></g>
-    <path transform="scale(${K} 1)" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#5fa3c7" stroke-width="15" stroke-linecap="round"/><path transform="scale(${K} 1)" class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
+    <path transform="scale(${K} 1)" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" class="rivermain" stroke="#3a7fae" stroke-width="20" stroke-linecap="round"/><path transform="scale(${K} 1)" class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
     ${[[50, 180, .9], [110, 160, 1], [510, 190, .8]].map((m) => mtn(m[0] * K, m[1], m[2])).join("")}
     ${[[40, 400], [70, 430], [30, 470], [430, 420], [620, 560], [560, 600]].map((p) => cactus(p[0] * K, p[1])).join("")}
+    ${[[20, 200], [38, 222], [14, 250], [250, 90 + 30], [272, 135], [590, 150], [610, 180], [655, 330], [680, 360], [650, 395]].map((p) => pine(p[0] * K, p[1])).join("")}
     <g class="herd slow">${cow(0, 0)}${cow(26, 7)}</g>
-    <path d="${smooth(pts)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
+    <path d="${smooth(pts)}" fill="none" stroke="#7a5c34" stroke-width="13" stroke-linecap="round" opacity=".55"/><path d="${smooth(pts)}" fill="none" stroke="#dcc492" stroke-width="9" stroke-linecap="round"/><path d="${smooth(pts)}" fill="none" stroke="#a98a58" stroke-width="1.500" stroke-dasharray="8 11" stroke-linecap="round"/>
     ${stops}
     <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
     ${compass(60, 80)}
@@ -1237,7 +1252,7 @@ function vertCells(b) {
   const cell = (t) => `<span class="vc">${esc(t)}</span>`;
   const carryRow = pad(top).map((ch, col) => (/\d/.test(ch) ? `<button class="cc ${U.carryAt === col ? "on" : ""}" data-act="carry" data-i="${col}" aria-label="Carry box">${esc(U.carries?.[col] ?? "")}</button>` : `<span class="vc"></span>`)).join("");
   const answer = pad(lay).map((x) => (x === "" ? `<span class="vc"></span>` : typeof x === "number" ? `<button class="ac ${U.cellAt === x ? "on" : ""}" data-act="cell" data-i="${x}" aria-label="Answer box ${x + 1} from the right">${U.cells[x] ?? ""}</button>` : `<span class="vc">${esc(x)}</span>`)).join("");
-  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em)">${carryRow}${pad(top).map(cell).join("")}${mids.map((m) => pad(m).map(cell).join("")).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
+  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em);font-size:min(1em,calc(92cqw / ${cols}))">${carryRow}${pad(top).map(cell).join("")}${mids.map((m) => pad(m).map(cell).join("")).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
 }
 function bookMath(b, ans, big) {
   const slot = ans !== null ? `<span class="slot ${ans ? "" : "open"}" ${big ? 'id="ans"' : ""}>${ans ? esc(ans) : big ? "?" : ""}</span>` : "";
