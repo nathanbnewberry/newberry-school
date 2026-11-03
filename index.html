@@ -113,10 +113,10 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .map .flow{animation:flow 2.4s linear infinite}@keyframes flow{to{stroke-dashoffset:-56}}
 .map .wave{animation:wave 3s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes wave{50%{transform:scale(1.3);opacity:.3}}
 .map .needle{animation:needle 5s ease-in-out infinite}@keyframes needle{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
-.map .herd{animation:herd 34s linear infinite alternate}@keyframes herd{from{transform:translate(110px,430px)}to{transform:translate(310px,520px)}}
+.map .herd{animation:herd 34s linear infinite alternate}@keyframes herd{from{transform:translate(110px,430px)}to{transform:translate(520px,540px)}}
 .map .herd.slow{animation:herdt 42s linear infinite alternate}@keyframes herdt{from{transform:translate(90px,330px)}to{transform:translate(280px,420px)}}
-.map .train{animation:train 18s linear infinite}@keyframes train{from{transform:translate(-60px,93px)}to{transform:translate(780px,93px)}}
-.map .cloud{animation:cloud 44s linear infinite}@keyframes cloud{from{transform:translate(-80px,240px)}to{transform:translate(800px,170px)}}
+.map .train{animation:train 18s linear infinite}@keyframes train{from{transform:translate(-60px,93px)}to{transform:translate(1240px,93px)}}
+.map .cloud{animation:cloud 44s linear infinite}@keyframes cloud{from{transform:translate(-80px,240px)}to{transform:translate(1260px,170px)}}
 .map .flag{animation:flagw 1.3s ease-in-out infinite;transform-box:fill-box;transform-origin:left center}@keyframes flagw{50%{transform:scaleX(.72)}}
 .map .bob{animation:bob .5s ease-in-out infinite alternate}@keyframes bob{to{transform:translateY(-3px)}}
 
@@ -257,7 +257,73 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .gunarm{transform-box:fill-box;transform-origin:left top;transition:transform .12s}.dhat{transform-box:fill-box;transform-origin:center;transition:transform .5s ease-out,opacity .5s}
 .st-win .f-you .gunarm,.st-lose .f-out .gunarm,.st-early .f-out .gunarm,.st-draw .f-out .gunarm{transform:rotate(-70deg)}
 .st-win .f-out .dhat,.st-lose .f-you .dhat,.st-early .f-you .dhat{transform:translate(30px,-110px) rotate(200deg);opacity:0}
+.blood,.puddle,.flash{opacity:0}
+.st-win .f-you .flash,.st-lose .f-out .flash,.st-early .f-out .flash{animation:muzzle .35s ease-out}
+@keyframes muzzle{0%{opacity:1;transform:scale(1.2)}100%{opacity:0}}.fbody{transform-box:view-box}
+.st-win .f-out .blood{opacity:1;animation:pop .25s ease-out}
+.st-win .f-out .puddle{opacity:1;transition:opacity .5s .5s}
+.st-win .f-out .fbody{transform-box:fill-box;transform-origin:50% 100%;animation:duelfall .7s .12s ease-in forwards}
+@keyframes duelfall{to{transform:translateY(-14px) rotate(-88deg)}}
+.st-win .f-you .fbody{animation:dueljump .5s .15s ease-in-out 4}
+.st-win .f-you .gunarm{transform:rotate(-130deg)}
+@keyframes dueljump{50%{transform:translateY(-46px)}}
+.st-lose .f-you .fbody,.st-early .f-you .fbody{transform-box:fill-box;transform-origin:50% 100%;transform:rotate(-14deg);transition:transform .3s}
+.st-lose .f-out .fbody,.st-early .f-out .fbody{animation:dueljump .5s ease-in-out 2}
 .duelgame #duelSub{font-size:1.05rem}
+.lcol{display:contents}
+.cc{width:.72em;height:.8em;padding:0;margin-bottom:-.1em;border:1px dashed #9c9584;border-radius:3px;background:transparent;color:#b4411a;font:700 .62em Georgia,"Times New Roman",serif;line-height:1;align-self:end;justify-self:center}.cc.on{border:2px solid #b4411a;background:#ffe9dc}
+.scratch.big{position:fixed;inset:8px;z-index:25;background:#fbf8ef;border-radius:10px;padding:12px;grid-template-rows:auto auto minmax(0,1fr);box-shadow:0 0 0 100vmax rgba(0,0,0,.5);color:#1c1712}.scratch.big #spad{height:100%!important}.spbigq{font-family:Georgia,serif;font-size:1.3rem;text-align:center}
+@media (orientation:landscape) and (min-width:800px){
+  .split.hasScratch{grid-template-columns:minmax(220px,.8fr) minmax(0,1.5fr) minmax(280px,.8fr);gap:14px}
+  .split.hasScratch>.left{display:contents}
+  .split.hasScratch .lcol{display:grid;gap:8px;min-width:0;align-content:start}
+  .split.hasScratch #spad{height:calc(100vh - 215px);min-height:300px}
+  .split.hasScratch .pmathbig{font-size:clamp(1.7rem,3.2vw,2.5rem)}
+  .split.hasScratch .prompt{font-size:1.1rem}
+  .split.hasScratch .pad{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .split.hasScratch .pad button{min-height:54px}
+  .split.hasScratch .actions{grid-template-columns:1fr}
+  .split.hasScratch .vis{padding:6px}
+}
+.pcell.pdone{background:#a8ecbc;border-color:#1f9a4f}.stamp{font-size:1.1rem!important;color:#fff!important;background:#1f9a4f!important;border-color:#1f9a4f!important;border-radius:50%!important;width:30px;height:30px;display:grid;place-items:center;padding:0!important;transform:none!important;font-family:var(--body)!important}
+.solvedpage{background:#d9f7e0}.rightbanner{background:#1f9a4f;color:#fff;font-family:var(--display);font-size:1.7rem;text-align:center;padding:8px;border-radius:8px}
+.coaches{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:60px;align-items:center}.coach{display:grid;grid-template-columns:repeat(5,14px);gap:3px;padding:6px 8px 12px;border:3px solid #7a4a24;border-radius:8px;background:#f3d9a4;position:relative}.coach i{width:14px;height:14px;border-radius:50%;background:#c8602c;display:block}
+.clearhead{text-align:center;display:grid;gap:4px}.shopcard{display:grid;gap:6px;align-content:space-between}
+@media (orientation:landscape) and (min-width:800px){
+  html,body{height:100%;overflow:hidden}
+  body{height:100vh;height:100dvh;padding-block:6px}
+  #shell{height:100%;max-width:none;display:flex;flex-direction:column;gap:6px}
+  #world{flex:none}
+  #app{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto}
+  .map{flex:1 1 0;min-height:0;width:100%;height:100%;margin:0}
+  #app>.hud{flex:none}
+  body[data-view="ride"] #shell{display:grid;grid-template-columns:350px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:6px 10px;align-items:stretch}
+  body[data-view="ride"] #world{grid-column:1;grid-row:1;width:100%;height:auto;max-height:none;margin:0;cursor:pointer;align-self:start}
+  body[data-view="ride"] #topbar{grid-column:2;grid-row:1;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:6px}
+  body[data-view="ride"] #topbar .biscuit{grid-column:1/-1;order:-1}
+  body[data-view="ride"] #topbar .mapbtn{display:none}
+  body[data-view="ride"] #topbar .hud{justify-content:flex-start;flex-wrap:nowrap;gap:10px}
+  body[data-view="ride"] #app{grid-column:1/-1;grid-row:2;align-self:stretch;min-height:0}
+  #app>.bookpage,#app>.console.split,#app>.console.boardbox{flex:1 1 0;min-height:0}
+  .bookpage{overflow:auto;align-content:start}
+  .split{height:100%}
+  .split.hasScratch{overflow:hidden;align-items:stretch;align-content:stretch;grid-template-rows:minmax(0,1fr)}
+  .split.hasScratch .lcol,.split.hasScratch>.right{overflow:auto;align-content:start}
+  .split.hasScratch>.left>.scratch{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;min-height:0}
+  .split.hasScratch #spad{height:100%;min-height:0}
+  .boardbox{display:grid;grid-template-rows:minmax(0,1fr) auto}.boardbox .chalkboard{height:100%;max-height:none;min-height:0}
+  body[data-view="rideEnd"] #world{height:14vh}
+  .clearhead .big{font-size:2rem}.game{min-height:70px;padding:10px}
+}
+.kickgame{position:relative;flex:1 1 auto;min-height:70vh;border-radius:10px;overflow:hidden;background:#2f9757;cursor:pointer;touch-action:manipulation}
+.kickgame .scene{position:absolute;inset:0;border-radius:0}.kickgame .scene svg{display:block;width:100%!important;height:100%!important;max-height:none!important}
+.kickhud{position:absolute;left:0;right:0;bottom:10px;display:grid;gap:4px;justify-items:center;pointer-events:none}.kickhud .call{background:rgba(18,20,43,.75);padding:4px 18px;border-radius:999px;min-height:0;font-size:clamp(1.1rem,3vw,1.7rem)}
+.ksad,.tear,.bawl{opacity:0}.kbody{transform-box:fill-box;transform-origin:50% 100%;transition:transform .35s ease-in}
+#keeper.down .kbody{transform:rotate(82deg) translate(6px,2px)}#keeper.down .ksmile{opacity:0}#keeper.down .ksad,#keeper.down .bawl{opacity:1;transition:opacity .2s .35s}
+#keeper.down .tear{opacity:1;animation:tear .55s linear .35s infinite}#keeper.down .t2{animation-delay:.6s}
+@keyframes tear{from{transform:translateY(0);opacity:1}to{transform:translate(-3px,14px);opacity:0}}
+@media (orientation:landscape) and (min-width:800px){body[data-view="game-kick"] #app{overflow:hidden}.kickgame{min-height:0;height:100%}}
+.badge{background:var(--panel2);color:var(--gold);padding:6px 12px;border-radius:999px;font-weight:700;font-size:.9rem}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -273,7 +339,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=1917e80935"></script>
+<script src="lessons.js?v=89e6340a94"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -305,7 +371,7 @@ try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } ca
 let dbDoc = null, cloud = "device", saveTimer = 0;
 function save() {
   S.updatedAt = Date.now();
-  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, fills: U.fills, coachDone: U.coachDone, draft: U.draft, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
+  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, fills: U.fills, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   if (!dbDoc) return;
   clearTimeout(saveTimer);
@@ -410,7 +476,7 @@ function dancer() {
       <g class="d-leg d-ll"><path d="M70 150L58 232" stroke="#2f4e7e" stroke-width="16" stroke-linecap="round"/><path d="M50 238h20v-10H56z" fill="${w.goldboots ? "#ffc42e" : "#5b3419"}"/></g>
       <g class="d-leg d-lr"><path d="M90 150L102 232" stroke="#2f4e7e" stroke-width="16" stroke-linecap="round"/><path d="M110 238H90v-10h14z" fill="${w.goldboots ? "#ffc42e" : "#5b3419"}"/></g>
       <g class="d-arm d-al"><path d="M60 92L28 62" stroke="${shirt}" stroke-width="13" stroke-linecap="round"/><circle cx="26" cy="60" r="7" fill="#f4cda8"/></g>
-      <g class="d-arm d-ar"><path d="M100 92L132 62" stroke="${shirt}" stroke-width="13" stroke-linecap="round"/><circle cx="134" cy="60" r="7" fill="#f4cda8"/></g>
+      <g class="d-arm d-ar"><path d="M100 92L132 62" stroke="${shirt}" stroke-width="13" stroke-linecap="round"/><circle cx="134" cy="60" r="7" fill="#f4cda8"/>${w.gun || w.goldgun ? `<rect x="134" y="48" width="24" height="8" rx="2" fill="${w.goldgun ? "#ffc42e" : "#23222a"}"/>` : ""}</g>
       <rect x="54" y="78" width="52" height="76" rx="12" fill="${shirt}"/>
       ${w.jersey ? `<text x="80" y="128" text-anchor="middle" font-family="Georgia,serif" font-size="32" font-weight="700" fill="#fff">7</text>` : ""}
       ${w.star ? `<circle cx="94" cy="96" r="6" fill="#ffc42e"/>` : ""}
@@ -521,6 +587,8 @@ function drawPerson(x, y, o = {}) {
   c.fillStyle = shirt; c.beginPath(); c.roundRect(-9, -30, 19, 30, 5); c.fill();
   if (worn.vest) { c.fillStyle = "#6b3f1d"; c.fillRect(-9, -30, 6, 30); c.fillRect(4, -30, 6, 30); }
   if (worn.star) { c.fillStyle = "#ffc42e"; c.beginPath(); c.arc(5, -20, 3.5, 0, 7); c.fill(); }
+  if (worn.lasso) { c.strokeStyle = "#d9b071"; c.lineWidth = 3; c.beginPath(); c.arc(-11, -6, 7, 0, 7); c.stroke(); }
+  if (worn.gun || worn.goldgun) { c.fillStyle = worn.goldgun ? "#ffc42e" : "#23222a"; c.fillRect(20, -18, 14, 5); c.fillRect(20, -15, 4, 8); }
   if (worn.jersey) { c.fillStyle = "#fff"; c.font = "700 13px Georgia,serif"; c.textAlign = "center"; c.fillText("7", 0, -11); }
   c.strokeStyle = shirt; c.lineWidth = 6; c.lineCap = "round"; c.beginPath(); c.moveTo(8, -24); c.lineTo(22, -14); c.stroke();
   c.fillStyle = o.skin || "#f4cda8"; c.beginPath(); c.arc(1, -39, 10, 0, 7); c.fill();
@@ -563,6 +631,7 @@ function worldDraw() {
     c.textAlign = "center"; c.fillStyle = "#ffc42e"; c.font = "400 54px Rye,Georgia,serif"; c.shadowColor = "#000"; c.shadowOffsetY = 4; c.shadowBlur = 0;
     c.fillText("OUTLAW RUN", 360, H * .34); c.font = "400 19px Rye,Georgia,serif"; c.fillStyle = "#f2f3ff"; c.fillText("Elliot vs. the Math Gang", 360, H * .34 + 28); c.shadowColor = "transparent"; c.shadowOffsetY = 0;
   }
+  if (U.view === "ride") { c.fillStyle = "rgba(255,196,46,.95)"; c.beginPath(); c.roundRect(10, 8, 170, 66, 12); c.fill(); c.fillStyle = "#2c1a0e"; c.textAlign = "center"; c.font = "400 50px Rye,Georgia,serif"; c.fillText("MAP", 95, 58); }
   if (W.textT > 0) { W.textT--; c.textAlign = "center"; c.font = "400 34px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.shadowColor = "#000"; c.shadowOffsetY = 3; c.fillText(W.text, 360, 44 + (55 - W.textT) * -.2 + 10); c.shadowColor = "transparent"; c.shadowOffsetY = 0; }
 }
 const ballSprite = new Image();
@@ -570,37 +639,51 @@ ballSprite.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://
 setInterval(() => { worldStep(); if (!canvas.hidden) { try { worldDraw(); } catch (e) {} } }, 1000 / 40);
 
 /* ---------- boost run: the playable runner ---------- */
+const PRIZES = ["Silver Spur", "Golden Horseshoe", "Lucky Sheriff's Star", "Trail Boss Belt Buckle", "Gold Soccer Ball", "Rodeo Trophy", "Wanted Poster", "Pony Express Medal", "Captain's Armband", "Treasure Map"];
 function startRun(boosts) {
   worldSize(340);
-  W.run = { y: 0, vy: 0, obs: [], gold: [], score: 0, hits: 0, time: 40 * 28, next: 40, dash: 0, boosts, flash: 0, over: false };
+  W.run = { y: 0, vy: 0, obs: [], gold: [], score: 0, stomps: 0, lives: 3, safe: 0, time: 40 * 25, next: 40, dash: 0, boosts, flash: 0, over: false };
   startMusic();
 }
 function runJump() { const r = W.run; if (!r || r.over) return; if (r.y === 0) { r.vy = 13.5; beep(BLIP); } }
 function runDash() { const r = W.run; if (!r || r.over || r.boosts <= 0 || r.dash > 0) return; r.boosts--; r.dash = 70; W.boost = 70; W.shake = 8; beep(FANFARE.slice(0, 2)); updateRunUI(); }
 function runStep() {
   const r = W.run; if (r.over) return;
-  r.time--; if (r.flash > 0) r.flash--; if (r.dash > 0) r.dash--;
+  r.time--; if (r.flash > 0) r.flash--; if (r.dash > 0) r.dash--; if (r.safe > 0) r.safe--;
   r.y += r.vy; r.vy -= .85; if (r.y <= 0) { r.y = 0; r.vy = 0; }
-  const sp = (r.dash > 0 ? 13 : 8) + (40 * 28 - r.time) / 180;
+  const sp = (r.dash > 0 ? 13 : 8) + (40 * 25 - r.time) / 180;
   W.scroll += sp - W.speed;
   r.next--;
   if (r.next <= 0) {
-    r.obs.push({ x: 760, w: 26, h: W.theme === "pitch" ? 46 : 36 + Math.random() * 18 });
+    r.obs.push({ x: 760, w: 30, h: 66, down: 0 });
     r.gold.push({ x: 760 + 80 + Math.random() * 120, y: 20 + Math.random() * 90, got: false });
-    r.next = 34 + Math.random() * 34;
+    r.next = 36 + Math.random() * 36;
   }
-  r.obs.forEach((o) => { o.x -= sp; if (!o.hit && o.x < 150 && o.x + o.w > 96 && r.y < o.h - 4) { if (r.dash > 0) { o.hit = true; o.smash = true; beep(THUD); r.score += 2; } else { o.hit = true; r.hits++; r.flash = 18; W.shake = 12; beep(NOPE); } } });
+  r.obs.forEach((o) => {
+    o.x -= sp; if (o.down) o.down++;
+    if (o.down || o.x > 150 || o.x + o.w < 96 || r.y >= o.h) return;
+    if (r.dash > 0 || (r.vy < 0 && r.y > 10)) {
+      o.down = 1; r.stomps++; r.score += 3; if (r.dash <= 0) r.vy = 11; W.shake = 6; beep(THUD); W.text = pick(["SQUASHED!", "WAAAH!", "GOT HIM!"]); W.textT = 26;
+    } else if (r.safe <= 0) {
+      r.lives--; r.safe = 45; r.flash = 45; W.shake = 12; beep(NOPE); o.bumped = true;
+      if (r.lives <= 0) finishRun(false);
+    }
+  });
   r.gold.forEach((g) => { g.x -= sp; if (!g.got && Math.abs(g.x - 124) < 34 && Math.abs(g.y - (r.y + 44)) < 42) { g.got = true; r.score += 1; beep(BLIP); } });
-  r.obs = r.obs.filter((o) => o.x > -50); r.gold = r.gold.filter((g) => g.x > -50);
+  r.obs = r.obs.filter((o) => o.x > -70); r.gold = r.gold.filter((g) => g.x > -50);
   if (r.time % 10 === 0) updateRunUI();
-  if (r.time <= 0) finishRun();
+  if (!r.over && r.time <= 0) finishRun(true);
 }
 function runDraw(gy) {
   const c = ctx, r = W.run;
   r.obs.forEach((o) => {
-    if (o.smash) return;
-    if (W.theme === "pitch") drawPlayerRun(o.x + 12, gy, { shirt: "#23222a", hair: "#3a2415", skin: "#c99a70" });
-    else { c.fillStyle = "#1f5a3a"; c.fillRect(o.x + 9, gy - o.h + 8, 10, o.h); c.fillRect(o.x, gy - o.h + 22, 9, 6); c.fillRect(o.x, gy - o.h + 12, 5, 12); c.fillRect(o.x + 19, gy - o.h + 28, 8, 6); c.fillRect(o.x + 23, gy - o.h + 16, 5, 14); }
+    const look = W.theme === "pitch" ? { shirt: "#23222a", hair: "#3a2415", skin: "#c99a70" } : { shirt: "#4a2020", hair: "#3a2415", skin: "#dcb48a" };
+    if (!o.down) return drawPlayerRun(o.x + 14, gy, look);
+    c.save(); c.translate(o.x + 14, gy + 10); c.rotate(-1.5);
+    drawPerson(0, 0, { worn: {}, shirt: look.shirt, hat: "transparent", hair: look.hair, skin: look.skin }); c.restore();
+    c.fillStyle = "#6fc3ff";
+    for (let i = 0; i < 3; i++) { const t = (o.down * .5 + i * 7) % 20; c.beginPath(); c.arc(o.x - 26 + i * 8, gy - 22 + t, 3, 0, 7); c.fill(); }
+    c.fillStyle = "#fff"; c.textAlign = "center"; c.font = "400 22px Rye,Georgia,serif"; c.fillText("WAAAH!", o.x, gy - 44);
   });
   r.gold.forEach((g) => {
     if (g.got) return;
@@ -612,16 +695,26 @@ function runDraw(gy) {
   if (W.theme === "pitch") drawPlayerRun(120, gy - r.y, { worn: S.worn });
   else drawHorseRider(120, gy - 12 - r.y, { worn: S.worn, fast: true });
   c.globalAlpha = 1;
-  c.textAlign = "left"; c.font = "400 26px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.fillText(`${r.score}`, 18, 36);
+  c.textAlign = "left"; c.font = "400 26px Rye,Georgia,serif"; c.fillStyle = "#ff5a4f"; c.fillText("\u2665".repeat(Math.max(0, r.lives)) , 18, 36); c.fillStyle = "rgba(255,255,255,.3)"; c.fillText("\u2665".repeat(3 - Math.max(0, r.lives)), 18 + Math.max(0, r.lives) * 24, 36);
+  c.fillStyle = "#ffc42e"; c.textAlign = "center"; c.fillText(`Score ${r.score}`, 360, 36);
   c.textAlign = "right"; c.fillStyle = "#f2f3ff"; c.fillText(`${Math.ceil(r.time / 40)}s`, 702, 36);
 }
 function updateRunUI() { const el = document.getElementById("dashbtn"); if (el && W.run) { el.textContent = `DASH (${W.run.boosts})`; el.disabled = W.run.boosts <= 0; } }
-function finishRun() {
+function finishRun(won) {
   const r = W.run; r.over = true; stopMusic();
-  const free = U.game?.free, pay = free ? 0 : r.score * 2 + (r.hits === 0 ? 15 : 0);
-  if (pay) earn(pay); if (r.score > S.runBest) { S.runBest = r.score; banner("New high score!"); } save();
-  U.gameEnd = { title: r.hits === 0 ? "Flawless!" : "Nice ride!", line: `${r.score} collected, ${r.hits} crashes.${free ? "" : ` +$${pay}.`} High score: ${S.runBest}.` };
-  W.run = null; worldSize(200); U.view = "gameEnd"; beep(FANFARE); render();
+  const free = U.game?.free;
+  if (r.score > S.runBest) S.runBest = r.score;
+  if (won) {
+    const left = PRIZES.filter((p) => !(S.prizes || []).includes(p)), prize = left.length ? pick(left) : null, pay = free ? 0 : 15 + r.stomps * 3;
+    S.prizes = S.prizes || []; if (prize) S.prizes.push(prize);
+    if (pay) earn(pay);
+    U.gameEnd = { title: "You won!", line: `${prize ? `Prize: ${prize}! ` : ""}You squashed ${r.stomps} guys with ${r.lives} ${r.lives === 1 ? "life" : "lives"} left.${pay ? ` +$${pay}` : ""} High score: ${S.runBest}.` };
+    beep(FANFARE); confetti(50);
+  } else {
+    U.gameEnd = { title: "Out of lives!", line: `You bumped into 3 guys. Jump and land on top of them next time. Score: ${r.score}. High score: ${S.runBest}.` };
+    beep(NOPE);
+  }
+  save(); W.run = null; worldSize(200); U.view = "gameEnd"; render();
 }
 
 /* ---------- screen state ---------- */
@@ -648,7 +741,7 @@ function buildItems(l, r) {
   const seen = (lp.demoSeen = lp.demoSeen || {});
   return [...(r.teach || []).filter((t) => !seen[t.title]).map((t) => ({ ...t, teachKey: t.title })), ...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0 }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false }); }
 function pageGap(l, r) {
   const lp = LP(l.id);
   if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
@@ -676,7 +769,7 @@ function backToPage() {
 function endRide() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
   if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
-  if (!lp.rides[r.id]) earn(20);
+  if (!lp.rides[r.id]) earn(50);
   lp.rides[r.id] = true;
   save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; render(); window.scrollTo(0, 0);
 }
@@ -717,6 +810,11 @@ function visual(v) {
     for (let i = 0; i < done; i++) s += `<rect x="${i * w}" y="0" width="${w - .6}" height="120" fill="${i % 2 ? "#c2e88a" : "#a9dd6f"}"/>`;
     return `<div class="vis"><svg viewBox="0 0 320 120" style="width:100%;max-width:440px" role="img" aria-label="A hay field with mowed paths"><rect width="320" height="120" fill="#5d9c3f"/>${s}</svg><button data-act="mow" ${done >= n ? "disabled" : ""}>${done >= n ? "All mowed!" : "Mow one path"}</button></div>`;
   }
+  if (v.type === "load") {
+    const count = v.total / v.per, filled = Math.min(count, Math.floor(U.deal / v.per));
+    const boxes = Array.from({ length: filled }, () => `<div class="coach">${"<i></i>".repeat(v.per)}</div>`).join("");
+    return `<div class="vis"><div class="coaches">${boxes || `<span class="sub">No coaches loaded yet. ${v.total} riders are waiting.</span>`}</div><button data-act="deal" data-g="${v.per}" data-t="${v.total}" ${U.deal >= v.total ? "disabled" : ""}>${U.deal >= v.total ? "Everyone's on board. Count the coaches!" : `Load ${v.per} riders into a coach`}</button></div>`;
+  }
   if (v.type === "deal") {
     const per = Math.floor(U.deal / v.groups), extra = U.deal % v.groups;
     const nets = Array.from({ length: v.groups }, (_, g) => `<div class="net">${`<svg aria-hidden="true"><use href="#ball"/></svg>`.repeat(per + (g < extra ? 1 : 0))}</div>`).join("");
@@ -750,6 +848,7 @@ const pine = (x, y) => `<g transform="translate(${x} ${y})"><path d="M0-22L9-4H-
 const cactus = (x, y) => `<path transform="translate(${x} ${y})" d="M-2-20h4V2h-4zM-8-12h3v5h3v3h-6zM5-14h3v8H2v-3h3z" fill="#4c7d4a"/>`;
 const cow = (x, y) => `<g transform="translate(${x} ${y})"><ellipse rx="9" ry="5" fill="#7a4a24"/><circle cx="10" cy="-2" r="3.500" fill="#7a4a24"/><path d="M8-6l-5-3M12-6l5-3" stroke="#f3e6c8" stroke-width="1.500"/><path d="M-6 4v5M5 4v5" stroke="#4a2b12" stroke-width="2"/></g>`;
 const compass = (x, y) => `<g transform="translate(${x} ${y})"><circle r="36" fill="#f3e3b8" stroke="#5a3a1e" stroke-width="2"/><circle r="29" fill="none" stroke="#5a3a1e" stroke-dasharray="2 4"/><g class="needle"><path d="M0-30L7 0 0 30-7 0Z" fill="#7b2d1c"/><path d="M0-30L7 0H-7Z" fill="#b5442c"/></g><g font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412" text-anchor="middle"><text y="-39">N</text><text y="50">S</text><text x="45" y="5">E</text><text x="-45" y="5">W</text></g></g>`;
+const K = 1180 / 720;
 const mapBase = (w, h) => `<defs>
     <radialGradient id="parch" cx="50%" cy="45%" r="75%"><stop offset="0%" stop-color="#f4e4bd"/><stop offset="72%" stop-color="#e8cf9a"/><stop offset="100%" stop-color="#b98f55"/></radialGradient>
     <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="4"/><feDisplacementMap in="SourceGraphic" scale="9"/></filter>
@@ -757,7 +856,8 @@ const mapBase = (w, h) => `<defs>
   <rect x="6" y="6" width="${w - 12}" height="${h - 12}" rx="10" fill="url(#parch)" stroke="#5a3a1e" stroke-width="4" filter="url(#rough)"/>
   <g stroke="#7a5a30" stroke-opacity=".18" stroke-width="1">${[1, 2, 3, 4].map((i) => `<path d="M${(w * i) / 5} 20V${h - 20}"/>`).join("")}${[1, 2, 3].map((i) => `<path d="M20 ${(h * i) / 4}H${w - 20}"/>`).join("")}</g>`;
 const riderToken = () => `<g id="token"><g class="bob"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#8a5a2b"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#2c1a0e"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#3f6fb0"}"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><path d="M-9-36c1-5 4-6 7-6 2 0 4 1 5 3-5 2-8 2-12 3z" fill="#f2d262"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#b98a4e"}"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#b98a4e"}"/></g></g>`;
-const label = (x, y, text, sub = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="19" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="4" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="17" text-anchor="middle" font-size="13" font-weight="600" fill="#5a3a1e" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
+const label = (x, y, text, sub = "", col = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="19" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="4" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="18" text-anchor="middle" font-size="14" font-weight="800" fill="${col || "#5a3a1e"}" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
+const doneMark = (x, y) => `<g transform="translate(${x} ${y})"><circle r="15" fill="#1f9a4f" stroke="#fff" stroke-width="3"/><path d="M-7 0l5 6 10-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 const townIcon = (s = 1) => `<g transform="scale(${s})"><path d="M-30 12V-8h18l4-6 4 6h6v20z" fill="#a8703a" stroke="#3a2412" stroke-width="2"/><path d="M-2 12V-18h10l6-6 6 6h8v30z" fill="#c98d4d" stroke="#3a2412" stroke-width="2"/><rect x="6" y="-8" width="7" height="8" fill="#3a2412"/><rect x="18" y="-8" width="7" height="8" fill="#3a2412"/><rect x="12" y="2" width="7" height="10" fill="#3a2412"/><rect x="-24" y="0" width="6" height="12" fill="#3a2412"/><path d="M14-24v-14" stroke="#3a2412" stroke-width="2"/><path class="flag" d="M14-38l14 4-14 4z" fill="#c8202c"/></g>`;
 const placeIcon = {
   target: `<circle r="24" fill="#f3e6c8" stroke="#3a2412" stroke-width="2"/><circle r="15" fill="#c8202c"/><circle r="8" fill="#f3e6c8"/><circle r="3" fill="#c8202c"/>`,
@@ -767,7 +867,7 @@ const placeIcon = {
   bank: `<path d="M-28 16V-6H28V16Z" fill="#c9b08a" stroke="#3a2412" stroke-width="2"/><path d="M-32-6L0-26 32-6Z" fill="#8a6a44" stroke="#3a2412" stroke-width="2"/><path d="M-18-6V16M-6-6V16M6-6V16M18-6V16" stroke="#3a2412" stroke-width="3"/>`,
   saloon: `<path d="M-28 16V-20H28V16Z" fill="#a8703a" stroke="#3a2412" stroke-width="2"/><path d="M-20-14H20V-3H-20Z" fill="#f3e6c8" stroke="#3a2412"/><path d="M-9 16V3H9V16" fill="#3a2412"/><path d="M0 3V12" stroke="#c98d4d" stroke-width="2"/>`
 };
-const WORLD_PTS = [[105, 495], [225, 470], [180, 345], [335, 300], [480, 385], [610, 300], [520, 165]];
+const WORLD_PTS = [[105, 495], [225, 470], [180, 345], [335, 300], [480, 385], [610, 300], [520, 165]].map(([x, y]) => [x * K, y]);
 function worldMapSvg() {
   const names = ["Abilene", "Tombstone", "Deadwood", "Santa Fe", "Laramie", "Fort Worth"].filter((t) => !LESSONS.some((l) => l.town === t));
   const stops = WORLD_PTS.map((pt, i) => ({ pt, l: LESSONS[i], name: LESSONS[i]?.town || names[i - LESSONS.length] }));
@@ -776,43 +876,43 @@ function worldMapSvg() {
     const [x, y] = s.pt;
     if (!s.l) return `<g transform="translate(${x} ${y})" opacity=".85"><ellipse rx="44" ry="26" fill="#d9c9a4"/><ellipse cx="-18" cy="-6" rx="24" ry="16" fill="#e8dcc0"/><ellipse cx="20" cy="4" rx="24" ry="15" fill="#e8dcc0"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#5a3a1e">?</text></g>${label(x, y + 48, s.name, "next lesson")}`;
     const done = lessonFinished(s.l), next = i === lastOpen && !done;
-    return `<g class="stop" data-act="town" data-id="${esc(s.l.id)}" role="button" tabindex="0" aria-label="${esc(s.l.town)}, Saxon lesson ${esc(s.l.bookLesson)}"><g transform="translate(${x} ${y})"><circle r="48" fill="transparent"/>${next ? `<circle class="pulse" r="44" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${townIcon(1.1)}${done ? `<path d="M26-34l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#ffc42e" stroke="#3a2412"/>` : ""}</g>${label(x, y + 46, s.l.town, `Lesson ${s.l.bookLesson}`)}</g>`;
+    return `<g class="stop" data-act="town" data-id="${esc(s.l.id)}" role="button" tabindex="0" aria-label="${esc(s.l.town)}, Saxon lesson ${esc(s.l.bookLesson)}"><g transform="translate(${x} ${y})"><circle r="48" fill="transparent"/>${next ? `<circle class="pulse" r="44" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${townIcon(1.1)}${done ? doneMark(30, -32) : ""}</g>${label(x, y + 46, s.l.town, done ? "Finished" : `${s.l.rides.filter((r) => rideDone(s.l, r)).length} of ${s.l.rides.length} sections done`, done ? "#0f6b34" : next ? "#a01d10" : "")}</g>`;
   }).join("");
-  return `<svg class="map" viewBox="0 0 720 640" role="img" aria-label="Map of the frontier with a trail between towns">${mapBase(720, 640)}
-    <path d="M430 620c10-90 110-120 280-130v130Z" fill="#dcbb7c" opacity=".7"/>
-    <path id="river" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#5fa3c7" stroke-width="13" stroke-linecap="round"/><path class="flow" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
-    <ellipse cx="620" cy="100" rx="52" ry="28" fill="#5fa3c7"/><ellipse class="wave" cx="620" cy="100" rx="30" ry="12" fill="none" stroke="#bfe4f2" stroke-width="2"/>
-    ${[[70, 150, 1.2], [125, 120, 1], [175, 165, .9], [60, 240, .9], [120, 225, 1.1], [395, 90, 1], [450, 120, .9], [500, 80, 1.1], [660, 430, .9]].map((m) => mtn(...m)).join("")}
-    ${[[40, 330], [60, 360], [85, 335], [660, 200], [680, 240], [640, 250]].map((p) => pine(...p)).join("")}
-    ${[[500, 550], [560, 590], [620, 540], [660, 590], [470, 600]].map((p) => cactus(...p)).join("")}
+  return `<svg class="map" viewBox="0 0 1180 640" role="img" aria-label="Map of the frontier with a trail between towns">${mapBase(1180, 640)}
+    <path transform="scale(${K} 1)" d="M430 620c10-90 110-120 280-130v130Z" fill="#dcbb7c" opacity=".7"/>
+    <path transform="scale(${K} 1)" id="river" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#5fa3c7" stroke-width="13" stroke-linecap="round"/><path transform="scale(${K} 1)" class="flow" d="M250 18C230 110 300 150 270 240S380 330 400 420 340 560 380 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
+    <ellipse cx="1030" cy="100" rx="66" ry="32" fill="#5fa3c7"/><ellipse class="wave" cx="1030" cy="100" rx="30" ry="12" fill="none" stroke="#bfe4f2" stroke-width="2"/>
+    ${[[70, 150, 1.2], [125, 120, 1], [175, 165, .9], [60, 240, .9], [120, 225, 1.1], [395, 90, 1], [450, 120, .9], [500, 80, 1.1], [660, 430, .9]].map((m) => mtn(m[0] * K, m[1], m[2])).join("")}
+    ${[[40, 330], [60, 360], [85, 335], [660, 200], [680, 240], [640, 250]].map((p) => pine(p[0] * K, p[1])).join("")}
+    ${[[500, 550], [560, 590], [620, 540], [660, 590], [470, 600]].map((p) => cactus(p[0] * K, p[1])).join("")}
     <g class="herd">${cow(0, 0)}${cow(28, 8)}${cow(-24, 10)}</g>
     <path d="${smooth(WORLD_PTS)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
     <g class="cloud"><ellipse cx="0" cy="0" rx="62" ry="22" fill="#3a2412" opacity=".1"/></g>
     ${towns}
-    ${compass(625, 555)}
-    <g transform="translate(360 44)"><path d="M-178-26H178L162 0 178 26H-178L-162 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="9" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#ffe7a8">The Math Frontier</text></g>
-    <text transform="translate(405 560) rotate(-8)" font-family="Rye,Georgia,serif" font-size="15" fill="#7b2d1c" opacity=".75">Here be outlaws</text>
+    ${compass(1050, 550)}
+    <g transform="translate(590 44)"><path d="M-178-26H178L162 0 178 26H-178L-162 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="9" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#ffe7a8">The Math Frontier</text></g>
+    <text transform="translate(720 590) rotate(-6)" font-family="Rye,Georgia,serif" font-size="15" fill="#7b2d1c" opacity=".75">Here be outlaws</text>
     <g transform="translate(40 610)" stroke="#3a2412" stroke-width="2" fill="none"><path d="M0 0h90M0-5v10M45-5v10M90-5v10"/></g><text x="40" y="598" font-size="12" font-weight="700" fill="#3a2412">10 leagues</text>
     ${riderToken()}</svg>`;
 }
-const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]];
+const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]].map(([x, y]) => [x * K, y]);
 function townMapSvg(l) {
   const lp = LP(l.id), nx = nextRide(l);
   const pts = TOWN_PTS.slice(0, l.rides.length);
   const stops = l.rides.map((r, i) => {
     const [x, y] = pts[i], done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
-    return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? `<path d="M22-30l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z" fill="#ffc42e" stroke="#3a2412"/>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, r.blurb)}</g>`;
+    return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? doneMark(26, -28) : ""}${next ? `<g transform="translate(0 -56)"><rect x="-44" y="-14" width="88" height="24" rx="6" fill="#c8202c"/><text y="4" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="15" fill="#fff">NEXT</text></g>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, done ? "Finished" : r.problems && r.problems.some((id) => PP(lp, id).done) ? `${r.problems.filter((id) => PP(lp, id).done).length} of ${r.problems.length} solved` : r.blurb, done ? "#0f6b34" : "")}</g>`;
   }).join("");
-  return `<svg class="map" viewBox="0 0 720 640" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(720, 640)}
-    <path d="M6 96H714" stroke="#3a2412" stroke-width="6"/><path d="M6 96H714" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
+  return `<svg class="map" viewBox="0 0 1180 640" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(1180, 640)}
+    <path d="M6 96H1174" stroke="#3a2412" stroke-width="6"/><path d="M6 96H1174" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
     <g class="train"><rect x="-34" y="-20" width="40" height="17" rx="3" fill="#2a2430"/><rect x="-8" y="-32" width="16" height="16" fill="#2a2430"/><rect x="-30" y="-30" width="7" height="11" fill="#2a2430"/><circle cx="-24" cy="-1" r="5" fill="#7b2d1c"/><circle cx="-2" cy="-1" r="5" fill="#7b2d1c"/><rect x="10" y="-16" width="34" height="13" fill="#7b2d1c"/><circle cx="18" cy="-1" r="4" fill="#2a2430"/><circle cx="36" cy="-1" r="4" fill="#2a2430"/></g>
-    <path d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#5fa3c7" stroke-width="15" stroke-linecap="round"/><path class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
-    ${[[50, 180, .9], [110, 160, 1], [510, 190, .8]].map((m) => mtn(...m)).join("")}
-    ${[[40, 400], [70, 430], [30, 470], [430, 420], [620, 560], [560, 600]].map((p) => cactus(...p)).join("")}
+    <path transform="scale(${K} 1)" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#5fa3c7" stroke-width="15" stroke-linecap="round"/><path transform="scale(${K} 1)" class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
+    ${[[50, 180, .9], [110, 160, 1], [510, 190, .8]].map((m) => mtn(m[0] * K, m[1], m[2])).join("")}
+    ${[[40, 400], [70, 430], [30, 470], [430, 420], [620, 560], [560, 600]].map((p) => cactus(p[0] * K, p[1])).join("")}
     <g class="herd slow">${cow(0, 0)}${cow(26, 7)}</g>
     <path d="${smooth(pts)}" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="3 13" stroke-linecap="round"/>
     ${stops}
-    <g transform="translate(350 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
+    <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
     ${compass(60, 80)}
     ${riderToken()}</svg>`;
 }
@@ -840,7 +940,7 @@ function homeView() {
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
   return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
-  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then go to school. Then the whole map opens.")}
+  ${(() => { const nx = nextRide(l), n = l.rides.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : `${n} of ${l.rides.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`); })()}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
@@ -875,8 +975,9 @@ function vertCells(b) {
   const pad = (arr) => [...Array(cols - arr.length).fill(""), ...arr];
   const botRow = pad(bot); const opAt = botRow.findIndex((x) => x !== "") - 1; if (opAt >= 0) botRow[opAt] = b.op; else botRow[0] = b.op;
   const cell = (t) => `<span class="vc">${esc(t)}</span>`;
+  const carryRow = pad(top).map((ch, col) => (/\d/.test(ch) ? `<button class="cc ${U.carryAt === col ? "on" : ""}" data-act="carry" data-i="${col}" aria-label="Carry box">${esc(U.carries?.[col] ?? "")}</button>` : `<span class="vc"></span>`)).join("");
   const answer = pad(lay).map((x) => (x === "" ? `<span class="vc"></span>` : typeof x === "number" ? `<button class="ac ${U.cellAt === x ? "on" : ""}" data-act="cell" data-i="${x}" aria-label="Answer box ${x + 1} from the right">${U.cells[x] ?? ""}</button>` : `<span class="vc">${esc(x)}</span>`)).join("");
-  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em)">${pad(top).map(cell).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
+  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em)">${carryRow}${pad(top).map(cell).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
 }
 function bookMath(b, ans, big) {
   const slot = ans !== null ? `<span class="slot ${ans ? "" : "open"}" ${big ? 'id="ans"' : ""}>${ans ? esc(ans) : big ? "?" : ""}</span>` : "";
@@ -895,12 +996,12 @@ function pageView(l, r) {
     return `<button class="pcell ${math ? "pmath" : "pword"} ${p.done ? "pdone" : ""} ${p.flagged && !p.done ? "pflag" : ""}" data-act="openq" data-id="${esc(id)}">
       <span class="pnum"><b>${esc(id)}.</b>${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
-      ${p.done ? `<span class="stamp">${p.proved || p.firstTry ? "GOLD" : "DONE"}</span>` : ""}</button>`;
+      ${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
   const demoLink = r.demos?.length || r.teach?.length ? `<button class="btn dark wide" data-act="replayDemo" style="font-family:var(--body)">Watch Biscuit explain it</button>` : "";
   return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
     `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
-    <button class="btn dark wide" data-act="leaveRide">Save and go to the map</button>`;
+    <button class="btn dark wide" data-act="leaveRide">Back to the map</button>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function askBar(q) {
@@ -910,8 +1011,13 @@ function askBar(q) {
     <div class="askchips"><button data-act="askChip" data-t="why was I wrong">Why was I wrong?</button><button data-act="askChip" data-t="how do I start">How do I start?</button><button data-act="askChip" data-t="what does that word mean">What's that word?</button>${showDemo ? `<button data-act="askChip" data-t="show me an example">Explain it on the board</button>` : ""}</div>
     ${U.heard ? `<p class="heard">You said: "${esc(U.heard)}"</p>` : ""}</div>`;
 }
+function spadPrompt() {
+  const q = curQ(), it = curItem();
+  if (q) return U.mode === "proof" ? q.proof.prompt : q.prompt;
+  return it?.w?.prompt || it?.ask || "";
+}
 function scratchHtml() {
-  return `<div class="scratch"><div class="schead"><span>Scratch pad</span><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}">Pen</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}">Eraser</button><button data-act="spClear">Clear</button></div><canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas></div>`;
+  return `<div class="scratch ${U.spBig ? "big" : ""}"><div class="schead"><span>Scratch pad</span><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}">Pen</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}">Eraser</button><button data-act="spClear">Clear</button><button data-act="spBig">${U.spBig ? "Close big pad" : "Full screen"}</button></div>${U.spBig ? `<p class="spbigq">${esc(spadPrompt())}</p>` : ""}<canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas></div>`;
 }
 function factsState() {
   const lp = LP(U.lesson);
@@ -925,7 +1031,7 @@ function factsState() {
 }
 function stampedeView(pips) {
   const f = factsState();
-  if (U.stBreak) return hudRide() + bubble(`${f.i} down, ${100 - f.i} to go. Take a breath, shake out your hands.`) + `<div class="console center pop"><div class="big">${f.i} of 100</div><button class="btn go wide" data-act="stGo">KEEP GOING</button><button class="btn dark wide" data-act="leaveRide">Save and go to the map</button></div>`;
+  if (U.stBreak) return hudRide() + bubble(`${f.i} down, ${100 - f.i} to go. Take a breath, shake out your hands.`) + `<div class="console center pop"><div class="big">${f.i} of 100</div><button class="btn go wide" data-act="stGo">KEEP GOING</button><button class="btn dark wide" data-act="leaveRide">Back to the map</button></div>`;
   const [a, b] = f.order[f.i];
   U.factT = U.factT || Date.now();
   return hudRide(`<span class="chip">Fact ${f.i + 1} of 100</span>`) + bubble(U.msg || "100 facts. Just you against your own best.", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Facts Stampede</span></div><div class="stbar"><i style="width:${f.i}%"></i></div><div class="pmathbig">${bookMath({ type: "inline", text: `${a} × ${b}` }, U.draft, true)}</div>${padHtml()}<button class="btn dark wide skipbtn" data-act="stSkip">Skip, come back later</button></div>`;
@@ -973,13 +1079,13 @@ function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
-      `<div class="bookpage pop">${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide" data-act="closeq">BACK TO THE PAGE</button>`;
+      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide" data-act="closeq">BACK TO THE PAGE</button>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
-    return hudRide(`<span class="chip">Prove it</span>`) + bubble(U.msg || "You got it with coaching. Now prove it. New numbers, no help, double gold.", U.msg ? "shake" : "") +
-      `<div class="bookpage"><div class="bh"><span>Prove it</span></div>${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt">${esc(pr.prompt)}</p>`}${scratchHtml()}
-      ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a box to change it.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
+    return hudRide(`<span class="chip">Prove it</span>`) + bubble(U.msg || "You got it! Now here's a new problem with different numbers, to show you can do it alone.", U.msg ? "shake" : "") +
+      `<div class="bookpage"><div class="bh"><span>Prove it: a new problem, same idea</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt">${esc(pr.prompt)}</p>`}${scratchHtml()}
+      ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
   }
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), locked = U.stepWrong >= 2 && !U.helped && !s.choices;
@@ -999,7 +1105,7 @@ function solveView(l, q) {
   if (q.paper) return top + bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
   if (q.choices) return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
   return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
-    ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a box to change it.</p>` : ""}${padHtml(cellBook() ? [] : q.extra || [])}
+    ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : q.extra || [])}
     <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<span></span>`}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
 }
 function rideView() {
@@ -1062,6 +1168,13 @@ function chalk(it) {
   if (it.anim === "flip") art = `${shape("ch-ghost", 180, 50)}<path d="M180 30V190" class="ch-mirror"/><text x="190" y="26" class="ch-sm">flip line</text><g class="an-flip">${shape("ch-fill", 180, 50)}</g><path d="M150 122Q180 90 212 122" class="ch-arrow"/>`;
   if (it.anim === "combo") art = `${shape("ch-ghost", 260, 50)}<path d="M260 30V190" class="ch-mirror"/><g class="an-combo">${shape("ch-fill", 260, 50)}</g><text x="60" y="110" class="ch-sm">1. turn</text><text x="60" y="140" class="ch-sm">2. flip</text>`;
   if (it.anim === "table") art = [["Slide", "Translation"], ["Turn", "Rotation"], ["Flip", "Reflection"]].map(([a, b], i) => `<g class="ch-pop" style="--d:${i * .9 + .1}s"><text x="110" y="${72 + i * 56}" class="ch-big">${a}</text><path d="M240 ${63 + i * 56}H320" class="ch-arrow"/><path d="M320 ${63 + i * 56}l-13 -7M320 ${63 + i * 56}l-13 7" class="ch-arrow"/><text x="350" y="${72 + i * 56}" class="ch-big ch-y">${b}</text></g>`).join("");
+  if (it.anim === "groups") {
+    const count = it.total / it.per, w = Math.min(130, 590 / count), R = 8;
+    art = Array.from({ length: count }, (_, c) => {
+      const x = 320 - (count * w) / 2 + c * w + 6, dots = Array.from({ length: it.per }, (_, i) => `<circle class="ch-pop" style="--d:${c * 1.2 + i * .13}s" cx="${x + 16 + (i % 4) * 22}" cy="${112 + Math.floor(i / 4) * 24}" r="${R}" fill="#ffd76a"/>`).join("");
+      return `<g class="ch-pop" style="--d:${c * 1.2}s"><rect x="${x}" y="90" width="${w - 14}" height="68" rx="8" fill="none" stroke="#fff" stroke-width="3"/><circle cx="${x + 20}" cy="172" r="11" fill="none" stroke="#fff" stroke-width="3"/><circle cx="${x + w - 34}" cy="172" r="11" fill="none" stroke="#fff" stroke-width="3"/><text x="${x + (w - 14) / 2}" y="212" text-anchor="middle" class="ch-sm">Coach ${c + 1}</text></g>${dots}`;
+    }).join("");
+  }
   if (it.anim === "lines") art = it.lines.map((t, i) => `<g class="ch-pop" style="--d:${i * 1.5 + .3}s"><text x="320" y="${92 + i * 56}" text-anchor="middle" class="ch-big ${i === it.lines.length - 1 ? "ch-y" : ""}">${esc(t)}</text></g>`).join("");
   if (it.anim === "cross") art = `<text x="320" y="40" text-anchor="middle" class="ch-sm ch-y">${esc(it.title)}</text>` + it.lines.map((t, i) => `<g class="ch-pop" style="--d:${i * .5}s"><text x="130" y="${84 + i * 42}" class="ch-big">${esc(t)}</text></g>${it.crossed.includes(i) ? `<path d="M120 ${76 + i * 42}H${130 + t.length * 15}" class="ch-strike" style="--d:${2.2 + it.crossed.indexOf(i) * .7}s"/>` : ""}`).join("");
   const head = it.anim === "cross" ? "" : `<text x="24" y="34" class="ch-sm ch-y">${esc(it.title)}</text>`;
@@ -1074,38 +1187,44 @@ function demoView(d, pips) {
   return hudRide(pips) + bubble(live) + `<div class="bookpage"><div class="bh"><span>Worked example: ${esc(d.problem)}</span></div>${boardHtml(c, Math.max(0, n - 1), finished || n === 0)}${!finished && n > 0 && s.label ? `<p class="move">${esc(s.label)}</p>` : ""}
     <button class="btn go wide" data-act="${finished ? "demoDone" : "demoNext"}">${finished ? "My turn" : n === 0 ? "Show me" : "Next move"}</button>${finished ? "" : `<button class="link dk" data-act="demoDone">Skip the example</button>`}</div>`;
 }
+function shopRow() {
+  const list = GEAR.filter((g) => !S.owned.includes(g.id)).sort((a, b) => a.cost - b.cost).slice(0, 3);
+  if (!list.length) return `<p class="sub center">You own everything in the store. Legend.</p>`;
+  return `<div class="games">${list.map((g) => `<div class="game shopcard"><h3>${esc(g.name)}</h3><span class="sub">${esc(g.note)}</span><button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${S.nuggets < g.cost ? `Costs $${g.cost}` : `Buy for $${g.cost}`}</button></div>`).join("")}</div>`;
+}
 function rideEndView() {
-  const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6));
-  const r = rideOf(l, U.ride);
-  const best = r.kind === "warmup" ? `Time: ${(U.drawMs / 1000).toFixed(1)} seconds.` : "";
-  return `<div class="console center pop"><div class="big">Ride complete</div><p>${best} You earned <strong>${shots} boosts</strong>. Pick your game.</p></div>
+  const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6)), nx = nextRide(l);
+  return `<div class="clearhead pop"><div class="big">Section cleared!</div><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p></div>
+  <p class="tag">Spend your money</p>${shopRow()}
+  <p class="tag">Or play a game</p>
   <div class="games">
-    <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">Jump, grab loot, smash through with dashes. Tap to jump.</span></button>
-    <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">${shots} shots. Stop the target. Beat the keeper.</span></button>
-    <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap FIRE when you see DRAW.</span></button>
+    <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
+    <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">Beat the keeper.</span></button>
+    <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Duel an outlaw.</span></button>
   </div>
-  <button class="link" data-act="skipGame">Skip the game</button>`;
+  <button class="btn go wide" data-act="backTown">${nx ? `Next up: ${esc(nx.name)}` : "Back to the map"}</button>`;
 }
 function gameView() {
   const g = U.game;
-  if (g.kind === "run") return `<div class="hud"><span class="tag">Tap the world or press JUMP</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  if (g.kind === "run") return `<div class="hud"><span class="tag">3 lives. Jump and land on the guys. Don't bump into them!</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
     <div class="actions"><button class="btn go" data-act="jump" style="min-height:96px;font-size:1.5rem">JUMP</button><button class="btn" id="dashbtn" data-act="dash" style="min-height:96px;font-size:1.3rem">DASH (${W.run ? W.run.boosts : 0})</button></div>`;
-  if (g.kind === "kick") return `<div class="console kickgame"><div class="scene" data-act="shoot"><svg id="pitch" viewBox="0 0 360 250" role="img" aria-label="A soccer goal with a keeper">
+  if (g.kind === "kick") return `<div class="kickgame" data-act="shoot"><div class="scene"><svg id="pitch" viewBox="0 0 360 250" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A soccer goal with a keeper">
       <rect width="360" height="250" fill="#2a8a4f"/><path d="M0 60h360v190H0z" fill="#2f9757"/><path d="M0 0h360v60H0z" fill="#141a44"/>
       <g stroke="#dfe3ff" stroke-width="1" opacity=".5">${Array.from({ length: 11 }, (_, i) => `<path d="M${60 + i * 24} 40v100"/>`).join("")}${Array.from({ length: 5 }, (_, i) => `<path d="M60 ${40 + i * 25}h240"/>`).join("")}</g>
       <path d="M60 140V40h240v100" fill="none" stroke="#fff" stroke-width="6"/><path d="M70 200h220M40 250l30-50M320 250l-30-50" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>
-      <g id="keeper"><rect x="-13" y="84" width="26" height="36" rx="5" fill="#ffc42e"/><circle cx="0" cy="74" r="10" fill="#f4cda8"/><path d="M-13 92l-13-16M13 92l13-16" stroke="#ffc42e" stroke-width="7" stroke-linecap="round"/><path d="M-7 120v20M7 120v20" stroke="#23222a" stroke-width="7"/></g>
+      <g id="keeper"><g class="kbody"><rect x="-13" y="84" width="26" height="36" rx="5" fill="#ffc42e"/><circle cx="0" cy="74" r="10" fill="#f4cda8"/><circle cx="-3.500" cy="72" r="1.300" fill="#27354f"/><circle cx="3.500" cy="72" r="1.300" fill="#27354f"/><path class="ksmile" d="M-4 77q4 3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><path class="ksad" d="M-4 79q4-3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><circle class="tear t1" cx="-4" cy="75" r="1.700" fill="#6fc3ff"/><circle class="tear t2" cx="4" cy="75" r="1.700" fill="#6fc3ff"/><path d="M-13 92l-13-16M13 92l13-16" stroke="#ffc42e" stroke-width="7" stroke-linecap="round"/><path d="M-7 120v20M7 120v20" stroke="#23222a" stroke-width="7"/></g><text class="bawl" x="24" y="96" font-size="11" font-weight="800" fill="#fff">WAAAH!</text></g>
       <g id="aim"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
       <g id="kball" transform="translate(165 205)"><circle cx="15" cy="15" r="14" fill="#fff" stroke="#222" stroke-width="2"/><path d="M15 8l6 4-2 7h-8l-2-7zM15 1l-3 3 3 2 3-2zM28 12l-4-1-1 4 3 3zM2 12l4-1 1 4-3 3zM8 26l2-4h10l2 4-4 2h-6z" fill="#222"/></g></svg></div>
-    <div class="call" id="call">Tap when the target is clear of the keeper!</div><div class="score" id="kscore"></div><button class="btn go wide" id="kbtn" data-act="shoot" style="min-height:76px;font-size:1.4rem">SHOOT</button></div>`;
-  const fighter = (x, dir, shirt, hat, hair, skin, name) => `<g transform="translate(${x} 150) scale(${dir} 1)" class="${name}">
+    </div><div class="kickhud"><div class="call" id="call">Tap anywhere to shoot at the target!</div><div class="score" id="kscore"></div></div></div>`;
+  const fighter = (x, dir, shirt, hat, hair, skin, name) => `<g transform="translate(${x} 128) scale(${dir} 1)" class="${name}"><ellipse class="puddle" cx="-44" cy="122" rx="38" ry="7" fill="#b3121d"/><g class="fbody">
       <path d="M-9 76L-14 124M9 76L14 124" stroke="#2f3a55" stroke-width="12" stroke-linecap="round"/><path d="M-22 128h16v-8h-12zM22 128H6v-8h12z" fill="#4a2b12"/>
       <rect x="-17" y="18" width="34" height="60" rx="8" fill="${shirt}"/>
       <path d="M-14 28L-24 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/>
-      <g class="gunarm"><path d="M14 28L26 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/><rect x="20" y="64" width="22" height="8" rx="2" fill="#23222a"/></g>
+      <g class="gunarm"><path d="M14 28L26 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/><g fill="${name === "f-you" && S.worn.goldgun ? "#ffc42e" : "#23222a"}"><rect x="22" y="60" width="38" height="9" rx="2"/><rect x="24" y="60" width="16" height="13" rx="2"/><path d="M24 70h11l-4 18H21z"/></g><path class="flash" d="M64 64l14-8-6 9 14 1-14 4 6 9-14-8-6 8 2-11-6-3z" fill="#ffb31a" stroke="#ff5a1a"/></g>
       <circle cy="4" r="17" fill="${skin}"/><path d="M-16 4c-2-13 7-18 16-18s18 5 16 18c-4-5-9-7-16-7s-12 2-16 7z" fill="${hair}"/><circle cx="7" cy="5" r="2.200" fill="#27354f"/>
       <g class="dhat"><ellipse cy="-14" rx="29" ry="5" fill="${hat}"/><rect x="-14" y="-32" width="28" height="18" rx="6" fill="${hat}"/></g>
-    </g>`;
+      <path class="blood" d="M0 30l5 9 9-5-4 10 10 3-10 4 5 10-10-5-5 10-4-10-10 4 5-10-9-5 10-2-2-11z" fill="#d11a2a"/>
+    </g></g>`;
   return `<div class="console center duelgame"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" data-act="fire" role="img" aria-label="Elliot and an outlaw face each other on a dusty street">
       <rect width="640" height="300" fill="#8ec9e8"/><circle cx="320" cy="44" r="30" fill="#ffe27a"/>
       <path d="M0 215H640V300H0Z" fill="#d9b071"/><path d="M0 150h110v65H0zM530 140h110v75H530z" fill="#a8703a"/><path d="M15 165h30v30H15zM60 165h30v30H60zM548 155h30v30h-30zM592 155h30v30h-30z" fill="#3a2412"/><path d="M-6 150h122l-8-14H2zM524 140h122l-8-14H532z" fill="#6b3f1d"/>
@@ -1141,7 +1260,7 @@ function arcadeView() {
   return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Arcade</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   <p class="center sub">Play as much as you want. Money only comes from solving math.</p>
   <div class="games">
-    <button class="game" data-act="game" data-g="run" data-n="5" data-free="1"><h3>Boost Run</h3><span class="sub">Jump, grab loot, smash through with dashes.</span></button>
+    <button class="game" data-act="game" data-g="run" data-n="5" data-free="1"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="5" data-free="1"><h3>Penalty Kicks</h3><span class="sub">Stop the target. Beat the keeper.</span></button>
     <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap FIRE when you see DRAW.</span></button>
   </div>`;
@@ -1156,14 +1275,18 @@ const GEAR = [
   { id: "jersey", name: "No. 7 jersey", note: "Red, like the one Ronaldo made famous", cost: 500 },
   { id: "star", name: "Sheriff's star", note: "Shiny", cost: 700 },
   { id: "blackhat", name: "Black hat", note: "Yes, the bad guy kind", cost: 900 },
-  { id: "vest", name: "Leather vest", note: "Real trail hand gear", cost: 1200 }
+  { id: "vest", name: "Leather vest", note: "Real trail hand gear", cost: 1200 },
+  { id: "gun", name: "Six-shooter", note: "On your rider and in High Noon", cost: 400 },
+  { id: "lasso", name: "Lasso", note: "Coiled up on your belt", cost: 600 },
+  { id: "goldboots", name: "Golden boots", note: "For top goal scorers", cost: 1000 },
+  { id: "goldgun", name: "Golden six-shooter", note: "The shiniest gun in the West", cost: 1500 }
 ];
 function storeView() {
   const items = GEAR.map((g) => {
     const own = S.owned.includes(g.id), on = S.worn[g.id];
     return `<div class="item"><div><b>${esc(g.name)}</b><span class="sub">${esc(g.note)}</span></div>${own ? `<button class="btn small dark" data-act="wear" data-id="${g.id}">${on ? "Take off" : "Put on"}</button>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
-  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><p class="sub center">Your gear shows up on your rider above.</p><div class="shop">${items}</div>`;
+  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><p class="sub center">Your gear shows up on your rider above.</p><div class="shop">${items}</div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
 }
 
 /* ---------- parents ---------- */
@@ -1250,13 +1373,14 @@ function shoot() {
     clearInterval(anim);
     kick.shots.push(!saved); drawScore("kscore", kick.shots, kick.n);
     const call = document.getElementById("call");
-    if (call) call.textContent = saved ? "Saved!" : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
+    if (call) call.textContent = saved ? "Saved! Tap to try again" : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
+    document.getElementById("keeper")?.classList.toggle("down", !saved);
     if (!saved) { S.goals++; if (!U.game?.free) earn(8); beep(CHIME); confetti(16); W.shake = 8; save(); } else beep(NOPE);
     setTimeout(() => {
       if (!document.getElementById("kball")) return;
       if (kick.shots.length >= kick.n) return finishKick();
-      ball.setAttribute("transform", "translate(165 205)"); placeKeeper(180);
-      if (btn) btn.disabled = false; if (call) call.textContent = `Shot ${kick.shots.length + 1} of ${kick.n}`;
+      ball.setAttribute("transform", "translate(165 205)"); placeKeeper(180); document.getElementById("keeper")?.classList.remove("down");
+      if (btn) btn.disabled = false; if (call) call.textContent = `Shot ${kick.shots.length + 1} of ${kick.n}. Tap anywhere!`;
       kick.phase = "aim";
     }, reduced ? 400 : 900);
   }, 16);
@@ -1281,7 +1405,7 @@ function duelRound() {
     duel.bar = setInterval(() => {
       const k = Math.min(1, (performance.now() - duel.at) / duel.limit);
       document.getElementById("drawFill")?.setAttribute("width", String(194 * k));
-      if (k >= 1 && duel.state === "draw") duelResult(false, "He was faster and shot your hat off.");
+      if (k >= 1 && duel.state === "draw") duelResult(false, "He was faster. He knocked your hat off.");
     }, 30);
   }, reduced ? 900 : 1100 + Math.random() * 2400);
 }
@@ -1289,6 +1413,7 @@ function duelResult(win, line, early) {
   duel.state = "done"; clearTimeout(duel.timer); clearInterval(duel.bar);
   duel.shots.push(win); drawScore("dscore", duel.shots, duel.n);
   duelState(win ? "win" : early ? "early" : "lose");
+  document.getElementById("drawBar")?.setAttribute("opacity", "0"); document.getElementById("drawFill")?.setAttribute("width", "0");
   const sub = document.getElementById("duelSub"), call = document.getElementById("duelCall"), btn = document.getElementById("dbtn");
   if (sub) sub.textContent = line;
   if (call) { call.textContent = win ? "You got him!" : early ? "Too early!" : "Too slow!"; call.style.color = ""; }
@@ -1349,7 +1474,7 @@ function checkFinal() {
   if (q.sealed.includes(sealed)) {
     p.ans = U.draft;
     const clean = !p.wrong.length && !p.coached && !p.stepMiss;
-    if (!clean && q.proof && !p.done) { U.mode = "proof"; U.strokes = []; U.cells = []; U.cellAt = 0; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); return render(); }
+    if (!clean && q.proof && !p.done) { U.mode = "proof"; U.strokes = []; U.cells = []; U.cellAt = 0; U.carries = {}; U.carryAt = null; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); return render(); }
     return finishProblem(clean, false);
   }
   if (!p.done && !p.wrong.includes(U.draft)) p.wrong.push(U.draft);
@@ -1412,6 +1537,12 @@ function checkLearnNum() {
 }
 function pressKey(k) {
   const cb = cellBook();
+  if (cb && U.carryAt != null) {
+    U.carries = U.carries || {};
+    if (k === "DEL") delete U.carries[U.carryAt];
+    else if (/^\d$/.test(k)) { U.carries[U.carryAt] = k; U.carryAt = null; }
+    beep([[520, 0, .03]]); return render();
+  }
   if (cb) {
     const max = cellLayout(cb).filter((x) => typeof x === "number").length;
     if (k === "DEL") { if (U.cells[U.cellAt] === undefined && U.cellAt > 0) U.cellAt--; U.cells[U.cellAt] = undefined; }
@@ -1543,7 +1674,7 @@ const acts = {
     if (r0.qid && qOf(l, r0.qid)) {
       while (U.items[U.i]?.type === "demo") U.i++;
       U.qid = r0.qid; U.qStart = Date.now();
-      Object.assign(U, { mode: r0.mode || "try", step: r0.step || 0, fills: r0.fills || {}, coachDone: !!r0.coachDone, draft: r0.draft || "", cells: r0.cells || [], cellAt: r0.cellAt || 0, strokes: r0.strokes || [] });
+      Object.assign(U, { mode: r0.mode || "try", step: r0.step || 0, fills: r0.fills || {}, coachDone: !!r0.coachDone, draft: r0.draft || "", carries: r0.carries || {}, cells: r0.cells || [], cellAt: r0.cellAt || 0, strokes: r0.strokes || [] });
       if (U.mode === "solved") { U.qid = null; }
       const b = cellBook(); if (b) syncCellDraft(b);
       render();
@@ -1623,7 +1754,9 @@ const acts = {
   },
   spTool(d, el) { U.spTool = d.t; el.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.t === d.t)); },
   spClear() { U.strokes = []; initScratch(); },
-  cell(d) { U.cellAt = +d.i; render(); },
+  cell(d) { U.cellAt = +d.i; U.carryAt = null; render(); },
+  carry(d) { U.carryAt = U.carryAt === +d.i ? null : +d.i; render(); },
+  spBig() { U.spBig = !U.spBig; render(); },
   boardAgain() { render(); speak(curItem().say, true); },
   moveCopy() {
     const code = saveCode();
@@ -1681,9 +1814,9 @@ const acts = {
     if (!duel) return;
     if (duel.state === "intro") return duelRound();
     if (duel.state === "wait") duelResult(false, "You fired before DRAW, so that round goes to the outlaw.", true);
-    else if (duel.state === "draw") duelResult(true, `You shot his hat off in ${(performance.now() - duel.at) / 1000 < 1 ? Math.round(performance.now() - duel.at) + " milliseconds" : "about a second"}!`);
+    else if (duel.state === "draw") duelResult(true, `You got the outlaw in ${(performance.now() - duel.at) / 1000 < 1 ? Math.round(performance.now() - duel.at) + " milliseconds" : "about a second"}!`);
   },
-  backTown() { U.view = "town"; render(); window.scrollTo(0, 0); },
+  backTown() { U.game = null; const l = curLesson(), nx = l && nextRide(l); if (U.view === "rideEnd" && nx) return startRide(l, nx); U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
   buy(d) { const g = GEAR.find((x) => x.id === d.id); if (S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); S.worn[g.id] = true; beep(CHIME); save(); render(); } },
   wear(d) { S.worn[d.id] = !S.worn[d.id]; save(); render(); },
@@ -1743,11 +1876,11 @@ function initScratch() {
   const seg = (t, a, b) => {
     c.globalCompositeOperation = t === "erase" ? "destination-out" : "source-over";
     c.strokeStyle = "#1c1712"; c.lineWidth = (t === "erase" ? 26 : 4) * dpr; c.lineCap = "round"; c.lineJoin = "round";
-    c.beginPath(); c.moveTo(a[0] * cv.width, a[1] * cv.height); c.lineTo(b[0] * cv.width, b[1] * cv.height); c.stroke();
+    c.beginPath(); c.moveTo(a[0] * cv.width, a[1] * cv.width); c.lineTo(b[0] * cv.width, b[1] * cv.width); c.stroke();
   };
   (U.strokes || []).forEach((st) => st.p.forEach((pt, i) => seg(st.t, st.p[Math.max(0, i - 1)], pt)));
   let cur = null;
-  const at = (e) => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height]; };
+  const at = (e) => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.width]; };
   cv.addEventListener("pointerdown", (e) => { e.preventDefault(); cv.setPointerCapture?.(e.pointerId); cur = { t: U.spTool === "erase" ? "erase" : "pen", p: [at(e)] }; (U.strokes = U.strokes || []).push(cur); seg(cur.t, cur.p[0], cur.p[0]); });
   cv.addEventListener("pointermove", (e) => { if (!cur) return; e.preventDefault(); const p = at(e), last = cur.p[cur.p.length - 1]; cur.p.push(p); seg(cur.t, last, p); });
   const end = () => { if (cur) save(); cur = null; };
@@ -1757,7 +1890,7 @@ function arrange() {
   document.body.dataset.view = U.view === "game" ? `game-${U.game?.kind}` : U.view;
   const top = document.getElementById("topbar"); top.innerHTML = "";
   if (U.view === "ride") [...app.children].filter((el) => el.matches(".hud,.biscuit,.askbar")).forEach((el) => top.appendChild(el));
-  if (U.view !== "ride" && !(U.view === "game" && U.game?.kind === "kick")) return;
+  if (U.view !== "ride") return;
   app.querySelectorAll(":scope > .bookpage, :scope > .console:not(.boardbox)").forEach((box) => {
     const kids = [...box.children];
     if (!kids.some((k) => k.matches(ENTRY.replace(",.btn,.link", "") + ",.boardwrap,.scene"))) return;
@@ -1766,12 +1899,19 @@ function arrange() {
     left.className = "left"; right.className = "right";
     kids.forEach((k) => (k.matches(ENTRY) ? right : left).appendChild(k));
     box.classList.add("split"); box.append(left, right);
+    const pad = left.querySelector(":scope > .scratch");
+    if (pad) {
+      const col = document.createElement("div"); col.className = "lcol";
+      [...left.children].filter((k) => k !== pad).forEach((k) => col.appendChild(k));
+      left.prepend(col); box.classList.add("hasScratch");
+    }
   });
 }
 function render() {
   clearInterval(kickTimer);
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
+  if (U.view === "ride") canvas.setAttribute("data-act", "leaveRide"); else canvas.removeAttribute("data-act");
   canvas.hidden = ["parent", "home", "town", "move"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
   const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   try { app.innerHTML = views[U.view](); }
