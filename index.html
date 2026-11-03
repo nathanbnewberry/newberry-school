@@ -427,6 +427,24 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .askpanel h3{margin:0;font-size:1.15rem}.askstatus{margin:0;min-height:1.4em;font-weight:600}.askstatus.on{color:#ffd23f}.askrow{display:flex;gap:8px}.askrow input{flex:1;min-width:0;font:500 17px var(--body);padding:10px 12px;border-radius:10px;border:2px solid #6b7192;background:#fff;color:#1c1712}
 .askbtns{display:flex;gap:8px;justify-content:flex-end}.askbtns .btn{min-height:46px}.helprow .heard{flex-basis:100%;margin:0;color:#6f685d;font-size:.85rem}.helprow{flex-wrap:wrap}
 .biscuit>.mascot{filter:drop-shadow(0 1px 1px rgba(40,50,70,.55)) drop-shadow(0 0 1px rgba(40,50,70,.4))}
+.schead{gap:6px}.schead button{width:46px;height:46px;min-height:0;padding:0;display:grid;place-items:center;border-radius:10px}.schead button svg{width:24px;height:24px}.schead .spsize{margin-left:auto}
+.spwrap{position:relative;min-height:0}.split.hasScratch .spwrap,.scratch.big .spwrap{height:100%}.sphint{position:absolute;inset:0;margin:0;display:grid;place-items:center;text-align:center;padding:20px;color:#a39b89;font-size:1.05rem;font-weight:600;pointer-events:none}.sphint[hidden]{display:none}
+.problempage{display:flex;flex-direction:column;gap:10px}
+.pghead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:3px solid #1c5a8f;padding-bottom:8px}.pgtitle{display:grid;line-height:1.25}.pgtitle b{font-size:1.2rem;font-weight:800;color:#1c5a8f}.pgtitle span{font-size:.85rem;color:#6f685d}
+.pgprog{display:grid;gap:4px;margin-left:auto;justify-items:end;font-size:.85rem;font-weight:700;color:#47413a}.pgdots{display:flex;gap:4px}.pgdots i{width:18px;height:8px;border-radius:4px;background:#ddd5c2}.pgdots i.on{background:#1f9a4f}.pgexplain{min-height:46px;padding:6px 16px;font-family:var(--body);font-size:.95rem;width:auto}
+.problempage .pgrid{gap:10px;flex:1;min-height:0}
+.problempage .pcell{position:relative;background:#fff;border:2px solid #e2d9c3;border-radius:12px;padding:12px 14px;box-shadow:0 2px 0 #e2d9c3;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;min-height:0}
+.problempage .pcell:hover,.problempage .pcell:focus-visible{background:#fff8e3;border-color:#d9a441}
+.problempage .pnum{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#1c5a8f;color:#fff;font-size:.95rem;line-height:1}.problempage .pnum b{font-weight:800}
+.problempage .pbody{font-size:1.1rem;line-height:1.4}.problempage .pmath .pbody{font-size:1.7rem;justify-self:center;align-self:center;padding-right:34px}
+.prefs{position:absolute;right:8px;top:6px;font-size:.68rem;font-style:normal;color:#a39b89}
+.problempage .pnext{border-color:#e8a317;box-shadow:0 0 0 2px #ffd23f}.pnexttag{position:absolute;left:12px;bottom:8px;background:#ffd23f;color:#1c1712;font-size:.68rem;font-weight:800;text-transform:uppercase;border-radius:5px;padding:1px 6px;letter-spacing:.03em}
+.problempage .pcell.pdone{background:#dcf5e3;border-color:#1f9a4f;box-shadow:0 2px 0 #1f9a4f}.problempage .pdone .pnum{background:#1f9a4f}.problempage .stamp{right:8px;bottom:8px;width:26px;height:26px}
+@media (orientation:landscape) and (min-width:800px){.problempage{height:100%}.problempage .pgrid{grid-auto-rows:minmax(0,1fr)}.problempage .pgrid:not(.cols){grid-template-columns:repeat(2,minmax(0,1fr))}.problempage .pgrid.cols{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.problempage{gap:6px}.problempage .pgrid{gap:6px}.problempage .pcell{padding:6px 10px;gap:8px}.problempage .pbody{font-size:.98rem;line-height:1.28}.problempage .pmath .pbody{font-size:1.25rem}.problempage .pnum{width:28px;height:28px;font-size:.85rem}.pnexttag{left:8px;bottom:4px}.pgtitle b{font-size:1.05rem}.schead button{width:40px;height:40px}}
+.problempage .pword .pbody{padding-right:34px}
+@media (orientation:landscape) and (min-width:800px){.problempage{height:calc(100% - 4px)}}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.problempage .pcell.pmath{padding-block:2px}.problempage .pmath .pbody{font-size:1.15rem;line-height:1.15}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1153,19 +1171,19 @@ function bookMath(b, ans, big) {
   return `<span class="inl">${esc(b.text)}</span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
 }
 function pageView(l, r) {
-  const lp = LP(l.id), left = r.problems.filter((id) => !PP(lp, id).done).length;
+  const lp = LP(l.id), total = r.problems.length, done = r.problems.filter((id) => PP(lp, id).done).length;
+  const nextUp = r.problems.map((id) => qOf(l, id)).find((q) => !PP(lp, q.id).done);
   const cells = r.problems.map((id) => {
-    const q = qOf(l, id), p = PP(lp, id), math = q.book;
-    return `<button class="pcell ${math ? "pmath" : "pword"} ${p.done ? "pdone" : ""} ${p.flagged && !p.done ? "pflag" : ""}" data-act="openq" data-id="${esc(id)}">
-      <span class="pnum"><b>${esc(id)}.</b>${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>
+    const q = qOf(l, id), p = PP(lp, id), math = q.book, next = nextUp && nextUp.id === q.id;
+    return `<button class="pcell ${math ? "pmath" : "pword"} ${p.done ? "pdone" : ""} ${next ? "pnext" : ""} ${p.flagged && !p.done ? "pflag" : ""}" data-act="openq" data-id="${esc(id)}">
+      <span class="pnum"><b>${esc(id)}</b></span>${next ? `<span class="pnexttag">Next</span>` : ""}
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
-      ${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
+      ${q.refs ? `<i class="prefs">${esc(q.refs)}</i>` : ""}${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
-  const nextUp = r.problems.map((id) => qOf(l, id)).find((q) => q.coach && !PP(LP(l.id), q.id).done);
-  const demoLink = nextUp ? `<button class="btn go wide" data-act="explainNext" data-id="${esc(nextUp.id)}" style="font-family:var(--body)">Silver explains problem ${esc(nextUp.id)}</button>` : "";
-  return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
-    `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
-    <button class="btn dark wide" data-act="leaveRide">Back to the map</button>`;
+  const dots = r.problems.map((id) => `<i class="${PP(lp, id).done ? "on" : ""}"></i>`).join("");
+  const explain = nextUp?.coach ? `<button class="btn go pgexplain" data-act="explainNext" data-id="${esc(nextUp.id)}">Silver explains problem ${esc(nextUp.id)}</button>` : "";
+  return hudRide() + bubble(done === 0 ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
+    `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>Lesson ${esc(l.bookLesson)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div><div class="pgprog"><span>${done} of ${total} done</span><div class="pgdots">${dots}</div></div>${explain}</div><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function helpRow(q) {
@@ -1177,8 +1195,10 @@ function spadPrompt() {
   if (q) return U.mode === "proof" ? q.proof.prompt : q.prompt;
   return it?.w?.prompt || it?.ask || "";
 }
+const SP_ICON = (d, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" ${fill ? `fill="currentColor"` : `fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"`}/></svg>`;
 function scratchHtml() {
-  return `<div class="scratch ${U.spBig ? "big" : ""}"><div class="schead"><span>Scratch pad</span><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}">Pen</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}">Eraser</button><button data-act="spClear">Clear</button><button data-act="spBig">${U.spBig ? "Close big pad" : "Full screen"}</button></div>${U.spBig ? `<p class="spbigq">${esc(spadPrompt())}</p>` : ""}<canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas></div>`;
+  const big = U.spBig;
+  return `<div class="scratch ${big ? "big" : ""}"><div class="schead"><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}" aria-label="Pen">${SP_ICON("M4 20l1-5L16 4l4 4L9 19zM14 6l4 4")}</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}" aria-label="Eraser">${SP_ICON("M8 20l-4-4 10-11 7 6-8 9zM9 10l7 6M8 20h12")}</button><button data-act="spClear" aria-label="Clear the pad">${SP_ICON("M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v5M14 11v5")}</button><button class="spsize" data-act="spBig" aria-label="${big ? "Make the pad smaller" : "Make the pad full screen"}">${big ? SP_ICON("M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5") : SP_ICON("M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")}</button></div>${big ? `<p class="spbigq">${esc(spadPrompt())}</p>` : ""}<div class="spwrap"><canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas><p class="sphint" id="sphint">Work it out here with your finger</p></div></div>`;
 }
 function factsState() {
   const lp = LP(U.lesson);
@@ -2173,9 +2193,10 @@ function initScratch() {
     c.beginPath(); c.moveTo(a[0] * cv.width, a[1] * cv.width); c.lineTo(b[0] * cv.width, b[1] * cv.width); c.stroke();
   };
   (U.strokes || []).forEach((st) => st.p.forEach((pt, i) => seg(st.t, st.p[Math.max(0, i - 1)], pt)));
+  const hint = document.getElementById("sphint"); if (hint) hint.hidden = !!U.strokes?.length;
   let cur = null;
   const at = (e) => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.width]; };
-  cv.addEventListener("pointerdown", (e) => { e.preventDefault(); cv.setPointerCapture?.(e.pointerId); cur = { t: U.spTool === "erase" ? "erase" : "pen", p: [at(e)] }; (U.strokes = U.strokes || []).push(cur); seg(cur.t, cur.p[0], cur.p[0]); });
+  cv.addEventListener("pointerdown", (e) => { e.preventDefault(); cv.setPointerCapture?.(e.pointerId); if (hint) hint.hidden = true; cur = { t: U.spTool === "erase" ? "erase" : "pen", p: [at(e)] }; (U.strokes = U.strokes || []).push(cur); seg(cur.t, cur.p[0], cur.p[0]); });
   cv.addEventListener("pointermove", (e) => { if (!cur) return; e.preventDefault(); const p = at(e), last = cur.p[cur.p.length - 1]; cur.p.push(p); seg(cur.t, last, p); });
   const end = () => { if (cur) save(); cur = null; };
   cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
