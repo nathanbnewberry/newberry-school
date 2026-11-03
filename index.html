@@ -1,0 +1,896 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Lexend:wght@400;600;800&display=swap">
+<style>
+/* Layout concept: an arcade game. A live game world runs across the top of the screen and the math happens on the console under it. */
+:root{
+  --night:#12142b; --panel:#1e2245; --panel2:#2b2f5e; --line:#454a86; --ember:#ff7a3c; --gold:#ffc42e; --gold-deep:#c98a0c;
+  --green:#39d07a; --green-deep:#1f8f50; --red:#ff5a4f; --moon:#f2f3ff; --moon-soft:#b4b9e0; --paper:#fff4d8; --ink:#2c1a0e;
+  --display:"Rye",Georgia,"Times New Roman",serif; --body:"Lexend","Trebuchet MS",Verdana,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{min-height:100%}
+body{background:var(--night);color:var(--moon);font:400 17px/1.45 var(--body);padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px 40px;user-select:none;-webkit-user-select:none}
+#shell{max-width:720px;margin:0 auto;display:grid;gap:12px}
+#world{display:block;width:100%;border-radius:14px;background:#27295a;touch-action:manipulation}
+#app{display:grid;gap:12px;min-width:0}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.1;text-wrap:balance}
+p{margin:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;color:inherit;background:none;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--moon);outline-offset:2px}
+.btn{background:var(--gold);color:var(--ink);font-weight:800;padding:14px 20px;min-height:56px;box-shadow:0 5px 0 var(--gold-deep);font-size:1.05rem}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--gold-deep)}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.go{background:var(--green);box-shadow:0 5px 0 var(--green-deep)}
+.btn.dark{background:var(--panel2);color:var(--moon);box-shadow:0 5px 0 #15183a}
+.btn.small{min-height:44px;padding:8px 14px;font-size:.92rem}
+.wide{width:100%}
+.link{color:var(--moon-soft);text-decoration:underline;padding:10px 8px;min-height:44px}
+.hud{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-variant-numeric:tabular-nums}
+.nug{color:var(--gold)}.nug i{width:16px;height:13px;background:var(--gold);border-radius:45% 55% 50% 40%;box-shadow:inset -3px -3px 0 var(--gold-deep);display:block}
+.combo{color:var(--ember);font-family:var(--display);font-size:1.15rem}
+.pips{display:flex;gap:6px}.pips b{width:26px;height:10px;border-radius:5px;background:var(--panel2);display:block}.pips b.on{background:var(--green)}.pips b.now{background:var(--gold)}
+.rank{display:grid;gap:4px;min-width:150px;flex:1}.rank span{font-family:var(--display);font-size:1.1rem}
+.xp{height:10px;border-radius:5px;background:var(--panel2);overflow:hidden}.xp i{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--gold))}
+
+.biscuit{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--paper);color:var(--ink);border-radius:14px;padding:10px 12px;font-weight:600;min-height:66px}
+.biscuit svg{width:50px;height:50px;color:#8a5a2b;display:block}
+.biscuit .mic{font-size:.8rem;font-weight:800;color:var(--ink);padding:8px;min-height:44px;text-decoration:underline}
+.console{background:var(--panel);border-radius:14px;padding:14px;display:grid;gap:12px;min-width:0}
+.tag{font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--moon-soft);text-align:center}
+.prompt{font-size:clamp(1.15rem,4.4vw,1.55rem);font-weight:600;text-align:center;line-height:1.3}
+.prompt.math{font-size:clamp(2rem,9vw,3rem);font-weight:800;font-variant-numeric:tabular-nums}
+.ctx{background:var(--panel2);border-radius:10px;padding:10px 12px;font-weight:600;text-align:center}
+.answer{display:flex;align-items:center;justify-content:center;min-height:62px;border:3px solid var(--line);border-radius:10px;background:var(--night);font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums;overflow-x:auto;color:var(--gold)}
+.answer .empty{color:var(--moon-soft);font-weight:400;font-size:1rem}
+.answer.mini{min-height:48px;font-size:1.5rem}
+.pad{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.pad button{background:var(--panel2);color:var(--moon);font-weight:800;font-size:1.4rem;min-height:56px;box-shadow:0 4px 0 #15183a;font-variant-numeric:tabular-nums}
+.pad button:active{transform:translateY(3px);box-shadow:0 1px 0 #15183a;background:var(--line)}
+.pad.pin{grid-template-columns:repeat(3,minmax(0,1fr));max-width:280px;margin:0 auto;width:100%}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.choices button{background:var(--panel2);box-shadow:0 4px 0 #15183a;padding:12px;font-weight:700;min-height:58px;font-size:1.05rem}
+.choices button:active{transform:translateY(3px);box-shadow:0 1px 0 #15183a}
+.choices.big button{font-size:1.7rem;font-weight:800;min-height:84px}
+.sort{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sort .yes{background:var(--green);color:var(--ink);box-shadow:0 5px 0 var(--green-deep)}.sort .no{background:#9a8f7b;color:var(--ink);box-shadow:0 5px 0 #5f5748}
+.sort button{font-weight:800;font-size:1.3rem;min-height:72px}
+.card{background:var(--paper);color:var(--ink);font-family:var(--display);font-size:clamp(1.4rem,6vw,2rem);text-align:center;padding:20px 12px;border-radius:10px}
+.shake{animation:shake .32s}@keyframes shake{20%{transform:translateX(-8px)}60%{transform:translateX(8px)}}
+.pop{animation:pop .3s ease-out}@keyframes pop{0%{transform:scale(.75);opacity:.2}70%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+
+.board{display:inline-grid;font-size:clamp(1.5rem,6vw,2.1rem);font-weight:800;font-variant-numeric:tabular-nums;grid-auto-rows:1.4em;justify-items:center;align-items:center}
+.boardwrap{text-align:center;overflow-x:auto;background:var(--paper);color:var(--ink);border-radius:10px;padding:10px}
+.bc{width:1.05em;height:1.3em;display:flex;align-items:center;justify-content:center;border-radius:5px;position:relative}
+.bc.small{font-size:.62em;color:#b4411a}
+.bc.bar::before{content:"";position:absolute;top:0;left:-1px;right:-1px;border-top:3px solid var(--ink)}
+.bc.hot{background:#ffd76a}
+.bc.target{background:var(--green);outline:2px dashed var(--green-deep)}
+.bc.typed{color:#17663a}
+.brule{grid-column:1/-1;height:3px;background:var(--ink);width:100%}
+
+.vis{text-align:center;overflow-x:auto;background:var(--paper);color:var(--ink);border-radius:10px;padding:10px;min-width:0}
+.vis button{background:var(--green);color:var(--ink);font-weight:800;padding:10px 16px;min-height:46px;margin-top:8px;box-shadow:0 4px 0 var(--green-deep)}
+.nets{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.net{border:3px solid var(--ink);border-radius:8px;padding:5px;display:grid;grid-template-columns:repeat(4,18px);gap:2px;min-height:48px;min-width:96px;align-content:start}
+.net svg{width:18px;height:18px;display:block}
+.gridv{display:inline-grid;gap:2px}.gridv i{width:34px;height:34px;background:#7ec77e;border:2px solid #2d6b2d;display:block}
+.cal{display:inline-grid;grid-template-columns:repeat(7,2em);gap:2px;font-weight:700;font-variant-numeric:tabular-nums}.cal b{background:var(--ink);color:var(--paper);border-radius:3px}.cal span{padding:2px 0}.calt{font-family:var(--display);margin-bottom:4px}
+
+.towns{display:grid;gap:10px}
+.town{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:12px;width:100%;text-align:left;color:var(--moon);min-height:70px;font-weight:400}
+.town .n{width:44px;height:44px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-family:var(--display)}
+.town.done .n{background:var(--green);color:var(--ink)}.town.next{outline:3px solid var(--gold)}.town.next .n{background:var(--gold);color:var(--ink)}
+.town.lock{opacity:.5;cursor:not-allowed}
+.town h3{font-size:1.2rem}
+.sub{font-size:.9rem;color:var(--moon-soft)}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.game{background:var(--panel2);border-radius:12px;padding:14px;text-align:left;display:grid;gap:4px;box-shadow:0 5px 0 #15183a;min-height:96px}
+.game h3{font-size:1.25rem;color:var(--gold)}
+.big{font-family:var(--display);font-size:clamp(2.2rem,10vw,3.6rem);text-align:center;color:var(--gold);text-shadow:0 4px 0 #7a4f06;line-height:1.05}
+.center{text-align:center}
+.scene{border-radius:10px;overflow:hidden;background:var(--green-deep)}.scene svg{display:block;width:100%;height:auto}
+.call{text-align:center;font-family:var(--display);font-size:1.6rem;min-height:2.2rem;color:var(--gold)}
+.score{display:flex;gap:8px;justify-content:center}.score i{width:20px;height:20px;border-radius:50%;background:var(--panel2);border:2px solid var(--line);display:block}.score i.g{background:var(--green)}.score i.m{background:var(--red)}
+.fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:20}.fx i{position:absolute;top:30%;width:10px;height:14px;border-radius:2px;animation:conf 1s ease-out forwards}
+@keyframes conf{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+.banner{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:21;background:var(--gold);color:var(--ink);font-family:var(--display);font-size:1.6rem;padding:12px 22px;border-radius:12px;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.5);text-align:center}
+
+.shop{display:grid;gap:10px}.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--panel);border-radius:10px;padding:10px 14px}.item b{display:block}
+.panel{background:var(--panel);border-radius:12px;padding:16px;display:grid;gap:12px;min-width:0;user-select:text;-webkit-user-select:text}.panel h2{font-size:1.3rem}
+table{border-collapse:collapse;width:100%;font-size:.9rem;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--moon-soft)}
+.tablewrap{overflow-x:auto}.state{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:800;white-space:nowrap;color:var(--ink)}
+.s-good{background:#a6ecc0}.s-work{background:#ffe2a8}.s-stuck{background:#ffb9a8}.s-none{background:var(--line);color:var(--moon)}
+textarea{width:100%;min-height:130px;background:var(--night);color:var(--moon);border:1px solid var(--line);border-radius:8px;padding:10px;font:400 .85rem/1.4 ui-monospace,Menlo,monospace}
+ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
+.mini{padding:6px 10px;min-height:38px;font-size:.84rem;font-weight:700;background:var(--paper);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="horse" viewBox="0 0 24 24"><path fill="currentColor" d="M20.5 3 17 5.200 13.500 7c-2 .6-6.300.7-8 1.600C3.700 9.600 3 11.200 3 13l.8 8h1.900l.3-5.300 2.300 1 .4 4.300h1.900l.3-5h3.800l.6 5h1.900l.5-8.500 2-3 2.200.8.900-1.500L20 5.700z"/><circle cx="18.800" cy="6.200" r=".8" fill="#fff"/></symbol>
+  <symbol id="ball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#222" stroke-width="1.500"/><path fill="#222" d="m12 7.500 4.300 3.100-1.600 5h-5.400l-1.600-5zM12 1.300l-3 2.300 3 2 3-2zM22.500 10.500l-3.500-1.300-1 3.600 3 2.200zM1.500 10.500l3.500-1.300 1 3.600-3 2.200zM6.800 20.500l1.800-3.300h6.800l1.800 3.300-3.300 2h-3.800z"/></symbol>
+</svg>
+
+<div id="shell">
+  <canvas id="world" aria-label="Game world: Elliot riding after an outlaw"></canvas>
+  <div id="app"></div>
+</div>
+<div class="fx" id="fx"></div>
+<script src="lessons.js"></script>
+<script>
+const LESSONS = window.LESSONS || [];
+const KEY = "elliot-trail-v1";
+const DOC_PATH = "progress/elliot";
+
+// Keep hash() and norm() identical to the copies in tools/build-lessons.mjs.
+function hash(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+const norm = (s) => String(s).toLowerCase().replace(/[^0-9a-z/.:]/g, "");
+const seal = (lessonId, itemId, value) => hash(`${lessonId}|${itemId}|${norm(value)}`);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const app = document.getElementById("app");
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- saved progress ---------- */
+const blank = () => ({ nuggets: 0, xp: 0, owned: [], worn: {}, lessons: {}, goals: 0, wins: 0, runBest: 0, muted: false, voice: true, pin: null, updatedAt: 0 });
+let S = blank();
+try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch (e) {}
+let dbDoc = null, cloud = "device", saveTimer = 0;
+function save() {
+  S.updatedAt = Date.now();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  if (!dbDoc) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { dbDoc.set(JSON.parse(JSON.stringify(S))).then(() => { cloud = "synced"; }).catch(() => { cloud = "device"; }); }, 1200);
+}
+async function connect() {
+  const db = await (window.claude?.use?.("db") ?? Promise.resolve(null)).catch(() => null);
+  if (!db) return;
+  dbDoc = db.doc(DOC_PATH);
+  await pull();
+}
+async function pull() {
+  if (!dbDoc) return;
+  try {
+    const snap = await dbDoc.get();
+    cloud = "synced";
+    const remote = snap.exists ? snap.data() : null;
+    if (remote && (remote.updatedAt || 0) > S.updatedAt) {
+      S = { ...blank(), ...remote };
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      if (U.view === "home" || U.view === "parent") render();
+    }
+  } catch (e) { cloud = "device"; }
+}
+// Saves from older versions can be missing fields, so fill them in place.
+const LP = (id) => {
+  const lp = (S.lessons[id] = S.lessons[id] || {});
+  lp.completed = !!lp.completed; lp.problems = lp.problems || {}; lp.rides = lp.rides || {}; lp.drawBest = lp.drawBest ?? null;
+  return lp;
+};
+const PP = (lp, id) => {
+  const p = (lp.problems[id] = lp.problems[id] || {});
+  p.done = !!p.done; p.firstTry = !!p.firstTry; p.wrong = p.wrong || []; p.coached = !!p.coached; p.steps = p.steps || 0; p.flagged = !!p.flagged; p.accepted = !!p.accepted;
+  return p;
+};
+
+/* ---------- ranks ---------- */
+const RANKS = [["Greenhorn", 0], ["Trail Hand", 300], ["Deputy", 800], ["Sheriff", 1600], ["Marshal", 3000], ["Legend of the West", 5000]];
+const rankOf = (xp) => { let i = 0; RANKS.forEach((r, n) => { if (xp >= r[1]) i = n; }); return i; };
+function earn(n) {
+  const before = rankOf(S.xp);
+  S.nuggets += n; S.xp += n;
+  const after = rankOf(S.xp);
+  if (after > before) { banner(`Rank up: ${RANKS[after][0]}!`); confetti(40); beep(FANFARE); }
+}
+function rankHud() {
+  const i = rankOf(S.xp), next = RANKS[i + 1], from = RANKS[i][1];
+  const pct = next ? Math.round(((S.xp - from) / (next[1] - from)) * 100) : 100;
+  return `<div class="rank"><span>${RANKS[i][0]}</span><div class="xp" aria-label="${pct} percent to next rank"><i style="width:${pct}%"></i></div></div>`;
+}
+
+/* ---------- sound and voice ---------- */
+let ac = null, music = 0;
+function beep(notes) {
+  if (S.muted) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    notes.forEach(([f, at, len, type]) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type || "square"; o.frequency.value = f;
+      g.gain.setValueAtTime(.07, ac.currentTime + at);
+      g.gain.exponentialRampToValueAtTime(.001, ac.currentTime + at + len);
+      o.connect(g).connect(ac.destination); o.start(ac.currentTime + at); o.stop(ac.currentTime + at + len);
+    });
+  } catch (e) {}
+}
+const CHIME = [[523, 0, .09], [659, .08, .09], [784, .16, .18]], BLIP = [[880, 0, .07]], NOPE = [[170, 0, .16, "sawtooth"]], THUD = [[100, 0, .15, "triangle"]], BANG = [[80, 0, .25, "sawtooth"], [50, .04, .3, "sawtooth"]];
+const FANFARE = [[523, 0, .12], [523, .12, .08], [523, .2, .08], [784, .28, .3], [659, .5, .12], [784, .62, .5]];
+function startMusic() {
+  stopMusic();
+  const bass = [147, 147, 220, 147, 196, 147, 175, 165]; let i = 0;
+  music = setInterval(() => { beep([[bass[i % 8], 0, .14, "triangle"], ...(i % 2 ? [[bass[i % 8] * 3, 0, .05]] : [])]); i++; }, 210);
+}
+function stopMusic() { clearInterval(music); music = 0; }
+let lastSaid = "";
+function speak(t) {
+  if (!t || t === lastSaid) return;
+  lastSaid = t;
+  try {
+    if (S.voice === false || S.muted || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t.replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of "));
+    u.rate = 1.05; u.pitch = 1.1;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function confetti(n = 24) {
+  if (reduced) return;
+  const fx = document.getElementById("fx"), cols = ["#ffc42e", "#ff7a3c", "#39d07a", "#f2f3ff", "#ff5a4f"];
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement("i");
+    el.style.left = "50%"; el.style.background = pick(cols);
+    el.style.setProperty("--dx", `${(Math.random() - .5) * 700}px`); el.style.setProperty("--dy", `${Math.random() * 500 - 100}px`);
+    fx.appendChild(el); setTimeout(() => el.remove(), 1000);
+  }
+}
+function banner(t) { const b = document.createElement("div"); b.className = "banner pop"; b.textContent = t; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); }
+
+/* ---------- the game world ---------- */
+const canvas = document.getElementById("world"), ctx = canvas.getContext("2d");
+const W = { t: 0, scroll: 0, speed: 3, boost: 0, gap: .8, targetGap: .8, theme: "west", H: 200, shake: 0, dust: [], text: "", textT: 0, run: null, title: false, jump: 0 };
+function worldSize(h) {
+  W.H = h;
+  const cssW = canvas.clientWidth || 720, dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.style.aspectRatio = `720 / ${h}`;
+  canvas.width = Math.round(cssW * dpr); canvas.height = Math.round((cssW * h / 720) * dpr);
+}
+addEventListener("resize", () => worldSize(W.H));
+function worldBoost(msg) { W.boost = 50; W.shake = 8; if (msg) { W.text = msg; W.textT = 55; } for (let i = 0; i < 14; i++) W.dust.push({ x: 130, y: W.H - 28, vx: -2 - Math.random() * 5, vy: -Math.random() * 3, a: 1 }); }
+function drawSky() {
+  const H = W.H, c = ctx;
+  if (W.theme === "pitch") {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#141a44"); g.addColorStop(.55, "#2a3a7a"); g.addColorStop(.56, "#2f9f5c"); g.addColorStop(1, "#1f7d45");
+    c.fillStyle = g; c.fillRect(0, 0, 720, H);
+    c.fillStyle = "#0e1230"; c.fillRect(0, H * .3, 720, H * .26);
+    for (let i = 0; i < 90; i++) { const x = ((i * 37 - W.scroll * .3) % 760 + 760) % 760 - 20, y = H * .32 + (i % 4) * H * .055; c.fillStyle = ["#ff5a4f", "#ffc42e", "#f2f3ff", "#39d07a"][i % 4]; c.fillRect(x, y + Math.sin(W.t * .2 + i) * 1.5, 5, 5); }
+    [120, 360, 600].forEach((x) => { c.fillStyle = "#e8ecff"; c.fillRect(x - 2, 6, 4, H * .26); const gl = c.createRadialGradient(x, 10, 2, x, 10, 46); gl.addColorStop(0, "rgba(255,255,255,.95)"); gl.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = gl; c.fillRect(x - 46, -36, 92, 92); });
+    c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = 3;
+    for (let i = 0; i < 8; i++) { const x = ((i * 130 - W.scroll) % 1040 + 1040) % 1040 - 100; c.beginPath(); c.moveTo(x, H * .58); c.lineTo(x - 60, H); c.stroke(); }
+    return;
+  }
+  const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#1d1f52"); g.addColorStop(.45, "#8a3f6c"); g.addColorStop(.75, "#ff7a3c"); g.addColorStop(1, "#ffc42e");
+  c.fillStyle = g; c.fillRect(0, 0, 720, H);
+  c.fillStyle = "#ffe08a"; c.beginPath(); c.arc(540, H * .62, H * .18, 0, 7); c.fill();
+  const mesa = (par, col, base, tall, gap) => {
+    c.fillStyle = col;
+    for (let i = -1; i < 7; i++) {
+      const x = ((i * gap - W.scroll * par) % (gap * 6) + gap * 6) % (gap * 6) - gap;
+      const w = gap * .55 + (i % 2 + 2) * 12, h = tall + ((i * 7) % 3) * 12;
+      c.beginPath(); c.moveTo(x, base); c.lineTo(x + 14, base - h); c.lineTo(x + w - 14, base - h); c.lineTo(x + w, base); c.fill();
+    }
+  };
+  mesa(.12, "#6d3660", H * .8, H * .24, 190); mesa(.3, "#4e2547", H * .85, H * .16, 150);
+  c.fillStyle = "#3a1c30"; c.fillRect(0, H * .84, 720, H * .16);
+  c.fillStyle = "#2a1424";
+  for (let i = 0; i < 16; i++) { const x = ((i * 70 - W.scroll) % 1120 + 1120) % 1120 - 60; c.fillRect(x, H * .9, 30, 3); }
+  c.fillStyle = "#1f5a3a";
+  for (let i = 0; i < 4; i++) { const x = ((i * 260 + 60 - W.scroll * .8) % 1040 + 1040) % 1040 - 60, b = H * .85; c.fillRect(x, b - 30, 9, 30); c.fillRect(x - 9, b - 22, 9, 5); c.fillRect(x - 9, b - 30, 4, 10); c.fillRect(x + 9, b - 16, 9, 5); c.fillRect(x + 14, b - 26, 4, 12); }
+}
+function drawHorseRider(x, y, o = {}) {
+  const c = ctx, t = W.t * (o.fast ? .55 : .34), s = o.s || 1;
+  c.save(); c.translate(x, y + Math.sin(t * 2) * 2.4); c.scale(s, s);
+  const coat = o.coat || "#8a5a2b";
+  c.strokeStyle = coat; c.lineWidth = 6; c.lineCap = "round";
+  [[-24, 0], [-14, 2], [16, 1], [26, 3]].forEach(([lx, ph]) => { const a = Math.sin(t + ph) * 12; c.beginPath(); c.moveTo(lx, -12); c.lineTo(lx + a, 8); c.lineTo(lx + a * 1.5, 22); c.stroke(); });
+  c.fillStyle = coat; c.beginPath(); c.ellipse(0, -20, 36, 15, 0, 0, 7); c.fill();
+  c.beginPath(); c.moveTo(24, -28); c.lineTo(44, -56); c.lineTo(56, -52); c.lineTo(38, -20); c.fill();
+  c.beginPath(); c.ellipse(55, -54, 14, 7, .35, 0, 7); c.fill();
+  c.fillStyle = "#2c1a0e"; c.beginPath(); c.moveTo(-34, -24); c.quadraticCurveTo(-58, -22 + Math.sin(t * 1.5) * 6, -56, 0); c.quadraticCurveTo(-42, -10, -34, -14); c.fill();
+  c.beginPath(); c.moveTo(42, -60); c.lineTo(28, -30); c.lineTo(36, -28); c.lineTo(50, -58); c.fill();
+  c.fillStyle = "#fff"; c.beginPath(); c.arc(58, -57, 2, 0, 7); c.fill();
+  drawPerson(-2, -32, o);
+  c.restore();
+}
+function drawPerson(x, y, o = {}) {
+  const c = ctx, worn = o.worn || {}, shirt = o.shirt || (worn.jersey ? "#c8202c" : "#3f6fb0");
+  c.save(); c.translate(x, y);
+  c.fillStyle = "#2f4e7e"; c.fillRect(-6, -2, 13, 16);
+  c.fillStyle = shirt; c.beginPath(); c.roundRect(-9, -30, 19, 30, 5); c.fill();
+  if (worn.vest) { c.fillStyle = "#6b3f1d"; c.fillRect(-9, -30, 6, 30); c.fillRect(4, -30, 6, 30); }
+  if (worn.star) { c.fillStyle = "#ffc42e"; c.beginPath(); c.arc(5, -20, 3.5, 0, 7); c.fill(); }
+  if (worn.jersey) { c.fillStyle = "#fff"; c.font = "700 13px Georgia,serif"; c.textAlign = "center"; c.fillText("7", 0, -11); }
+  c.strokeStyle = shirt; c.lineWidth = 6; c.lineCap = "round"; c.beginPath(); c.moveTo(8, -24); c.lineTo(22, -14); c.stroke();
+  c.fillStyle = o.skin || "#f4cda8"; c.beginPath(); c.arc(1, -39, 10, 0, 7); c.fill();
+  if (worn.bandana) { c.fillStyle = "#c8202c"; c.fillRect(-7, -32, 16, 5); }
+  c.fillStyle = o.hair || "#f2d262"; c.beginPath(); c.arc(-3, -41, 9.5, Math.PI * .5, Math.PI * 1.6); c.fill(); c.fillRect(-11, -44, 7, 12);
+  c.fillStyle = "#27354f"; c.beginPath(); c.arc(5, -40, 1.6, 0, 7); c.fill();
+  c.fillStyle = o.hat || (worn.blackhat ? "#23222a" : "#b98a4e");
+  c.beginPath(); c.ellipse(0, -46, 19, 4, 0, 0, 7); c.fill(); c.beginPath(); c.roundRect(-9, -60, 18, 14, 5); c.fill();
+  c.restore();
+}
+function drawPlayerRun(x, y, o = {}) {
+  const c = ctx, t = W.t * .5;
+  c.save(); c.translate(x, y);
+  c.strokeStyle = "#f4cda8"; c.lineWidth = 6; c.lineCap = "round";
+  [0, 3].forEach((ph) => { const a = Math.sin(t + ph) * 14; c.beginPath(); c.moveTo(0, -14); c.lineTo(a, 6); c.lineTo(a - 3, 18); c.stroke(); });
+  c.restore();
+  drawPerson(x, y - 14, { worn: o.shirt ? {} : { ...(o.worn || {}), jersey: true }, shirt: o.shirt, hat: "transparent", hair: o.hair, skin: o.skin });
+}
+function worldStep() {
+  W.t++; W.speed = 3 + (W.boost > 0 ? 7 : 0); W.scroll += W.speed; if (W.boost > 0) W.boost--;
+  W.gap += (W.targetGap - W.gap) * .05; if (W.shake > 0) W.shake *= .85;
+  W.dust = W.dust.filter((d) => (d.a -= .025) > 0);
+  W.dust.forEach((d) => { d.x += d.vx; d.y += d.vy; });
+  if (W.run) runStep();
+}
+function worldDraw() {
+  const c = ctx, scale = canvas.width / 720;
+  c.setTransform(scale, 0, 0, scale, 0, 0);
+  if (W.shake > .5 && !reduced) c.translate((Math.random() - .5) * W.shake, (Math.random() - .5) * W.shake);
+  drawSky();
+  const H = W.H, gy = H - 24;
+  if (W.run) runDraw(gy);
+  else {
+    const ox = 230 + W.gap * 400;
+    if (W.theme === "pitch") { drawPlayerRun(ox, gy, { shirt: "#23222a", hair: "#3a2415", skin: "#c99a70" }); drawPlayerRun(120, gy, { worn: S.worn }); c.save(); c.translate(150, gy + 12); c.rotate(W.t * .3); c.drawImage(ballSprite, -10, -10, 20, 20); c.restore(); }
+    else { drawHorseRider(ox, gy - 12, { coat: "#2c2430", worn: {}, shirt: "#4a2020", hat: "#16151b", hair: "#3a2415", skin: "#dcb48a", s: .9 }); drawHorseRider(120, gy - 12, { worn: S.worn, fast: W.boost > 0 }); }
+  }
+  W.dust.forEach((d) => { c.fillStyle = `rgba(255,230,190,${d.a})`; c.beginPath(); c.arc(d.x, d.y, 5, 0, 7); c.fill(); });
+  if (W.title) {
+    c.textAlign = "center"; c.fillStyle = "#ffc42e"; c.font = "400 54px Rye,Georgia,serif"; c.shadowColor = "#000"; c.shadowOffsetY = 4; c.shadowBlur = 0;
+    c.fillText("OUTLAW RUN", 360, H * .34); c.font = "400 19px Rye,Georgia,serif"; c.fillStyle = "#f2f3ff"; c.fillText("Elliot vs. the Math Gang", 360, H * .34 + 28); c.shadowColor = "transparent"; c.shadowOffsetY = 0;
+  }
+  if (W.textT > 0) { W.textT--; c.textAlign = "center"; c.font = "400 34px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.shadowColor = "#000"; c.shadowOffsetY = 3; c.fillText(W.text, 360, 44 + (55 - W.textT) * -.2 + 10); c.shadowColor = "transparent"; c.shadowOffsetY = 0; }
+}
+const ballSprite = new Image();
+ballSprite.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#222" stroke-width="1.5"/><path fill="#222" d="m12 7.5 4.3 3.100-1.600 5h-5.400l-1.600-5zM12 1.300l-3 2.300 3 2 3-2zM22.500 10.500l-3.500-1.300-1 3.600 3 2.200zM1.500 10.500l3.500-1.300 1 3.600-3 2.200zM6.800 20.500l1.800-3.300h6.800l1.800 3.300-3.300 2h-3.800z"/></svg>');
+setInterval(() => { worldStep(); if (!canvas.hidden) { try { worldDraw(); } catch (e) {} } }, 1000 / 40);
+
+/* ---------- boost run: the playable runner ---------- */
+function startRun(boosts) {
+  worldSize(340);
+  W.run = { y: 0, vy: 0, obs: [], gold: [], score: 0, hits: 0, time: 40 * 28, next: 40, dash: 0, boosts, flash: 0, over: false };
+  startMusic();
+}
+function runJump() { const r = W.run; if (!r || r.over) return; if (r.y === 0) { r.vy = 13.5; beep(BLIP); } }
+function runDash() { const r = W.run; if (!r || r.over || r.boosts <= 0 || r.dash > 0) return; r.boosts--; r.dash = 70; W.boost = 70; W.shake = 8; beep(FANFARE.slice(0, 2)); updateRunUI(); }
+function runStep() {
+  const r = W.run; if (r.over) return;
+  r.time--; if (r.flash > 0) r.flash--; if (r.dash > 0) r.dash--;
+  r.y += r.vy; r.vy -= .85; if (r.y <= 0) { r.y = 0; r.vy = 0; }
+  const sp = (r.dash > 0 ? 13 : 8) + (40 * 28 - r.time) / 180;
+  W.scroll += sp - W.speed;
+  r.next--;
+  if (r.next <= 0) {
+    r.obs.push({ x: 760, w: 26, h: W.theme === "pitch" ? 46 : 36 + Math.random() * 18 });
+    r.gold.push({ x: 760 + 80 + Math.random() * 120, y: 20 + Math.random() * 90, got: false });
+    r.next = 34 + Math.random() * 34;
+  }
+  r.obs.forEach((o) => { o.x -= sp; if (!o.hit && o.x < 150 && o.x + o.w > 96 && r.y < o.h - 4) { if (r.dash > 0) { o.hit = true; o.smash = true; beep(THUD); r.score += 2; } else { o.hit = true; r.hits++; r.flash = 18; W.shake = 12; beep(NOPE); } } });
+  r.gold.forEach((g) => { g.x -= sp; if (!g.got && Math.abs(g.x - 124) < 34 && Math.abs(g.y - (r.y + 44)) < 42) { g.got = true; r.score += 1; beep(BLIP); } });
+  r.obs = r.obs.filter((o) => o.x > -50); r.gold = r.gold.filter((g) => g.x > -50);
+  if (r.time % 10 === 0) updateRunUI();
+  if (r.time <= 0) finishRun();
+}
+function runDraw(gy) {
+  const c = ctx, r = W.run;
+  r.obs.forEach((o) => {
+    if (o.smash) return;
+    if (W.theme === "pitch") drawPlayerRun(o.x + 12, gy, { shirt: "#23222a", hair: "#3a2415", skin: "#c99a70" });
+    else { c.fillStyle = "#1f5a3a"; c.fillRect(o.x + 9, gy - o.h + 8, 10, o.h); c.fillRect(o.x, gy - o.h + 22, 9, 6); c.fillRect(o.x, gy - o.h + 12, 5, 12); c.fillRect(o.x + 19, gy - o.h + 28, 8, 6); c.fillRect(o.x + 23, gy - o.h + 16, 5, 14); }
+  });
+  r.gold.forEach((g) => {
+    if (g.got) return;
+    if (W.theme === "pitch") c.drawImage(ballSprite, g.x - 12, gy - g.y - 12, 24, 24);
+    else { c.fillStyle = "#ffc42e"; c.beginPath(); c.ellipse(g.x, gy - g.y, 12, 9, Math.sin(W.t * .2), 0, 7); c.fill(); c.fillStyle = "#c98a0c"; c.beginPath(); c.arc(g.x + 3, gy - g.y + 2, 3, 0, 7); c.fill(); }
+  });
+  c.globalAlpha = r.flash % 6 > 2 ? .35 : 1;
+  if (r.dash > 0) { c.strokeStyle = "#ffc42e"; c.lineWidth = 4; c.beginPath(); c.arc(124, gy - r.y - 30, 58, 0, 7); c.stroke(); }
+  if (W.theme === "pitch") drawPlayerRun(120, gy - r.y, { worn: S.worn });
+  else drawHorseRider(120, gy - 12 - r.y, { worn: S.worn, fast: true });
+  c.globalAlpha = 1;
+  c.textAlign = "left"; c.font = "400 26px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.fillText(`${r.score}`, 18, 36);
+  c.textAlign = "right"; c.fillStyle = "#f2f3ff"; c.fillText(`${Math.ceil(r.time / 40)}s`, 702, 36);
+}
+function updateRunUI() { const el = document.getElementById("dashbtn"); if (el && W.run) { el.textContent = `DASH (${W.run.boosts})`; el.disabled = W.run.boosts <= 0; } }
+function finishRun() {
+  const r = W.run; r.over = true; stopMusic();
+  const pay = r.score * 2 + (r.hits === 0 ? 15 : 0);
+  earn(pay); if (r.score > S.runBest) { S.runBest = r.score; banner("New high score!"); } save();
+  U.gameEnd = { title: r.hits === 0 ? "Flawless!" : "Nice ride!", line: `${r.score} collected, ${r.hits} crashes. +${pay} nuggets. High score: ${S.runBest}.` };
+  W.run = null; worldSize(200); U.view = "gameEnd"; beep(FANFARE); render();
+}
+
+/* ---------- screen state ---------- */
+const U = { view: "title", lesson: null, ride: null, items: [], i: 0, draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, solved: false, earned: 0, combo: 0, solvedRun: 0, mow: 0, deal: 0, drawT: 0, drawMs: 0, gameEnd: null, parentOk: false, pin: "", pinMsg: "", confirmReset: false, copied: false, game: null };
+const curLesson = () => LESSONS.find((l) => l.id === U.lesson);
+const rideOf = (l, id) => l.rides.find((r) => r.id === id);
+const qOf = (l, id) => l.problems.find((p) => p.id === id);
+function rideDone(l, r) { const lp = LP(l.id); return !!lp.rides[r.id]; }
+function nextRide(l) { return l.rides.find((r) => !rideDone(l, r)); }
+function buildItems(l, r) {
+  if (r.kind === "warmup") return [...(l.paperFirst ? [{ type: "note", text: l.paperFirst }] : []), ...l.warmup.map((w, i) => ({ type: "fact", w, i }))];
+  if (r.kind === "learn") return l.learn;
+  const lp = LP(l.id), left = r.problems.filter((id) => !PP(lp, id).done);
+  return (left.length ? left : r.problems).map((id) => ({ type: "problem", id }));
+}
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, solved: false, earned: 0, mow: 0, deal: 0 }); }
+function startRide(l, r) {
+  U.lesson = l.id; U.ride = r.id; U.items = buildItems(l, r); U.i = 0; U.solvedRun = 0; U.drawT = 0;
+  W.theme = r.theme || "west"; W.gap = .9; W.targetGap = .9; resetItem(); U.view = "ride"; render(); window.scrollTo(0, 0);
+}
+function nextItem() {
+  U.i++;
+  W.targetGap = Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
+  if (U.i >= U.items.length) return endRide();
+  resetItem(); render(); window.scrollTo(0, 0);
+}
+function endRide() {
+  const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
+  if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
+  const finished = r.problems ? r.problems.every((id) => PP(lp, id).done) : true;
+  if (finished) lp.rides[r.id] = true;
+  earn(20); save(); U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; render(); window.scrollTo(0, 0);
+}
+function lessonFinished(l) { return l.rides.every((r) => rideDone(l, r)); }
+
+/* ---------- pictures ---------- */
+function visual(v) {
+  if (!v) return "";
+  if (v.type === "clock") {
+    const hA = ((v.hour % 12) + v.minute / 60) * 30 - 90, mA = v.minute * 6 - 90;
+    const hand = (a, l, w) => `<line x1="80" y1="80" x2="${80 + l * Math.cos((a * Math.PI) / 180)}" y2="${80 + l * Math.sin((a * Math.PI) / 180)}" stroke="#2c1a0e" stroke-width="${w}" stroke-linecap="round"/>`;
+    let nums = "";
+    for (let i = 1; i <= 12; i++) { const a = ((i * 30 - 90) * Math.PI) / 180; nums += `<text x="${80 + 58 * Math.cos(a)}" y="${86 + 58 * Math.sin(a)}" text-anchor="middle" font-size="16" font-weight="700" fill="#2c1a0e">${i}</text>`; }
+    return `<div class="vis"><svg viewBox="0 0 160 160" width="170" height="170" role="img" aria-label="Clock showing ${v.hour}:${String(v.minute).padStart(2, "0")}"><circle cx="80" cy="80" r="74" fill="#fff" stroke="#2c1a0e" stroke-width="4"/>${nums}${hand(hA, 34, 6)}${hand(mA, 50, 4)}</svg></div>`;
+  }
+  if (v.type === "grid") return `<div class="vis"><div class="gridv" style="grid-template-columns:repeat(${v.cols},34px)" role="img" aria-label="${v.rows} rows of ${v.cols} squares">${"<i></i>".repeat(v.rows * v.cols)}</div></div>`;
+  if (v.type === "calendar") {
+    const cells = "SMTWTFS".split("").map((d) => `<b>${d}</b>`).join("") + "<span></span>".repeat(v.first) + Array.from({ length: v.days }, (_, i) => `<span>${i + 1}</span>`).join("");
+    return `<div class="vis"><div class="calt">${esc(v.title)}</div><div class="cal">${cells}</div></div>`;
+  }
+  if (v.type === "ruler") {
+    let t = "";
+    for (let m = 0; m <= v.mm + 10; m += 2) { const x = 20 + m * 4.4, big = m % 10 === 0; t += `<line x1="${x}" x2="${x}" y1="70" y2="${big ? 92 : 80}" stroke="#2c1a0e" stroke-width="${big ? 2.5 : 1}"/>${big ? `<text x="${x}" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#2c1a0e">${m}</text>` : ""}`; }
+    return `<div class="vis"><svg viewBox="0 0 340 116" style="width:100%;max-width:440px" role="img" aria-label="Key measured on a millimeter ruler"><rect x="20" y="24" width="${v.mm * 4.4}" height="14" rx="3" fill="#8a6a2b"/><circle cx="26" cy="31" r="16" fill="#8a6a2b"/><circle cx="24" cy="31" r="6" fill="#fff4d8"/><path d="M${20 + v.mm * 4.4 - 40} 38l6 8 6-8 6 8 6-8 6 8 6-8z" fill="#8a6a2b"/><rect x="14" y="68" width="${(v.mm + 10) * 4.4 + 14}" height="44" fill="none" stroke="#2c1a0e" stroke-width="2"/>${t}</svg></div>`;
+  }
+  if (v.type === "polygon") return `<div class="vis"><svg viewBox="0 0 200 130" width="230" role="img" aria-label="A four-sided shape with corners D top left, A top right, B bottom right, C bottom left"><path d="M50 26H170L130 104H50Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M50 40h13V26M50 90h13v14" fill="none" stroke="#2c1a0e" stroke-width="2"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="34" y="26">D</text><text x="176" y="26">A</text><text x="34" y="118">C</text><text x="134" y="122">B</text></g></svg></div>`;
+  if (v.type === "mow") {
+    const n = v.width / v.path, w = 320 / n, done = Math.min(U.mow, n);
+    let s = "";
+    for (let i = 0; i < done; i++) s += `<rect x="${i * w}" y="0" width="${w - .6}" height="120" fill="${i % 2 ? "#c2e88a" : "#a9dd6f"}"/>`;
+    return `<div class="vis"><svg viewBox="0 0 320 120" style="width:100%;max-width:440px" role="img" aria-label="A hay field with mowed paths"><rect width="320" height="120" fill="#5d9c3f"/>${s}</svg><button data-act="mow" ${done >= n ? "disabled" : ""}>${done >= n ? "All mowed!" : "Mow one path"}</button></div>`;
+  }
+  if (v.type === "deal") {
+    const per = Math.floor(U.deal / v.groups), extra = U.deal % v.groups;
+    const nets = Array.from({ length: v.groups }, (_, g) => `<div class="net">${`<svg aria-hidden="true"><use href="#ball"/></svg>`.repeat(per + (g < extra ? 1 : 0))}</div>`).join("");
+    return `<div class="vis"><div class="nets">${nets}</div><button data-act="deal" data-g="${v.groups}" data-t="${v.total}" ${U.deal >= v.total ? "disabled" : ""}>${U.deal >= v.total ? "All dealt. Count one net!" : `Deal ${v.groups} goals`}</button></div>`;
+  }
+  return "";
+}
+function boardHtml(c, stepIdx) {
+  const s = c.steps[Math.min(stepIdx, c.steps.length - 1)], bi = s.board || 0, b = c.boards[bi];
+  if (!b) return "";
+  const shown = {};
+  c.steps.forEach((st, i) => { if (i <= stepIdx && (st.board || 0) === bi && st.show) st.show.forEach(([id, val]) => { shown[id] = val; }); });
+  const live = U.coachDone ? null : s, hot = new Set(live?.hot || []), target = live?.put?.[0];
+  const out = [];
+  b.rows.forEach((row) => {
+    if (row.rule) { out.push(`<span class="brule"></span>`); return; }
+    row.forEach((cell) => {
+      if (!cell) { out.push(`<span class="bc"></span>`); return; }
+      const typed = cell.id ? U.fills[`${bi}:${cell.id}`] : undefined;
+      const val = typed ?? (cell.id && shown[cell.id] !== undefined ? shown[cell.id] : cell.v ?? "");
+      const cls = ["bc", cell.bar ? "bar" : "", cell.small ? "small" : "", typed !== undefined ? "typed" : "", hot.has(cell.id) ? "hot" : "", cell.id && cell.id === target && typed === undefined ? "target" : ""].join(" ");
+      out.push(`<span class="${cls}">${esc(val)}</span>`);
+    });
+  });
+  return `<div class="boardwrap"><div class="board" style="grid-template-columns:repeat(${b.cols},auto)">${out.join("")}</div></div>`;
+}
+
+/* ---------- screens ---------- */
+const hudRide = (l, r) => `<div class="hud"><button class="btn dark small" data-act="leaveRide">Map</button>
+  <span class="pips" aria-label="Item ${U.i + 1} of ${U.items.length}">${U.items.length <= 16 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : `<span class="chip">${U.i + 1}/${U.items.length}</span>`}</span>
+  ${U.combo > 1 ? `<span class="combo pop">${U.combo}x</span>` : ""}<span class="chip nug"><i></i>${S.nuggets}</span></div>`;
+const bubble = (t, extra = "") => { speak(t); return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div>`; };
+
+function titleView() {
+  return `<div class="console center"><p>Outlaws took over the West, and they only run from one thing: math. Your horse Biscuit talks. Sorry in advance.</p>
+    <button class="btn go wide" data-act="start" style="font-size:1.4rem;min-height:70px">PRESS START</button></div>`;
+}
+function homeView() {
+  const list = LESSONS.map((l) => {
+    const lp = LP(l.id), done = lessonFinished(l), n = l.rides.filter((r) => rideDone(l, r)).length;
+    return `<button class="town ${done ? "done" : "next"}" data-act="town" data-id="${esc(l.id)}"><span class="n">${done ? "&#10003;" : esc(l.bookLesson || "?")}</span><span><h3>${esc(l.town)}</h3><span class="sub">Saxon Lesson ${esc(l.bookLesson)} · ${n} of ${l.rides.length} rides</span></span><span class="chip">PLAY</span></button>`;
+  }).join("");
+  const lock = ["Tombstone", "Deadwood"].filter((t) => !LESSONS.some((l) => l.town === t)).map((t) => `<div class="town lock"><span class="n">?</span><span><h3>${t}</h3><span class="sub">Opens when your next lesson arrives</span></span><span></span></div>`).join("");
+  return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
+  <div class="towns">${list}${lock}</div>
+  <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+}
+function townView() {
+  const l = curLesson(), lp = LP(l.id), nx = nextRide(l), learned = !!lp.rides.learn;
+  const rows = l.rides.map((r, i) => {
+    const done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
+    return `<button class="town ${done ? "done" : locked ? "lock" : next ? "next" : ""}" data-act="ride" data-id="${r.id}" ${locked ? "disabled" : ""}><span class="n">${done ? "&#10003;" : i + 1}</span><span><h3>${esc(r.name)}</h3><span class="sub">${esc(r.blurb)}</span></span><span class="chip">${locked ? "" : done ? "Replay" : "GO"}</span></button>`;
+  }).join("");
+  speak("");
+  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>${esc(l.town)}</h2><span class="chip nug"><i></i>${S.nuggets}</span></div>
+  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any ride. Short ones. You can quit whenever." : "Start with Quick Draw and Clue School. Then you pick.")}
+  ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}
+  <div class="towns">${rows}</div>`;
+}
+function rideView() {
+  const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i], top = hudRide(l, r);
+  if (it.type === "note") return top + bubble(it.text) + `<button class="btn go wide" data-act="noteDone">Done, let's draw</button>`;
+  if (it.type === "fact") {
+    if (!U.drawT) U.drawT = Date.now();
+    return top + `<div class="console"><p class="tag">Quick draw</p><p class="prompt math">${esc(it.w.prompt)}</p><div class="choices big">${it.w.choices.map((c) => `<button data-act="fact" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`;
+  }
+  if (it.type === "sort") return top + bubble(U.msg || "Clue or dust?") + `<div class="console"><div class="ctx">${esc(it.context)}</div><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">CLUE</button><button class="no" data-act="sort" data-c="0">DUST</button></div></div>`;
+  if (it.type === "ask") return top + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" ")) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>`;
+  return top + problemPanel(l, qOf(l, it.id));
+}
+function padHtml(q, coach) {
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ...(coach ? [] : q.extra || []), "DEL"];
+  return `<div class="pad">${keys.map((k) => `<button data-act="key" data-k="${k}" aria-label="${k === "DEL" ? "Delete" : k === "R" ? "Remainder" : k}">${k === "DEL" ? "&#9003;" : k}</button>`).join("")}</div>`;
+}
+function problemPanel(l, q) {
+  const isMath = !/[a-z]{4}/i.test(q.prompt), c = q.coach, lp = LP(l.id), p = PP(lp, q.id);
+  const head = `<p class="tag">Book problem ${esc(q.id.replace(/[ab]$/, (m) => (q.id.length > 1 ? " part " + m : m)))}</p><p class="prompt ${isMath ? "math" : ""}">${esc(q.prompt)}</p>`;
+  if (U.solved) return bubble(pick(["Boom. Write that down in your book.", "That's it! Put it on your paper.", "Siuuu! Get it on your paper.", "Even I'm impressed, and I eat grass."])) + `<div class="console pop">${head}<div class="answer">${esc(U.draft)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div><p class="tag">${U.earned ? `+${U.earned} nuggets` : "Replay"}</p><button class="btn go wide" data-act="next">NEXT</button></div>`;
+  if (U.mode === "coach") {
+    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" ");
+    const stuck = U.stepWrong >= 3;
+    return bubble(txt, U.msg ? "shake" : "") + `<div class="console"><p class="tag">Biscuit's coaching · step ${U.step + 1} of ${c.steps.length}</p><p class="prompt">${esc(q.prompt)}</p>${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
+      <div class="ctx">${esc(s.ask)}</div>
+      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div>` : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Tap the number</span>`}</div>${padHtml(q, true)}`}
+      ${stuck ? `<button class="btn dark wide" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
+  }
+  const stuck = U.wrongNow >= 3;
+  const txt = U.msg || (U.coachDone ? (c.end || "You've got everything you need. Give me the answer.") : pick(["Your shot. Work it on paper first.", "Try it on paper, then shoot.", "Solve it on paper. If it's nasty, hit Coach me."]));
+  if (!U.line || U.lineFor !== `${U.i}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${U.i}|${U.msg}|${U.coachDone}`; }
+  const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Coach me</button>`;
+  if (q.paper) return bubble(U.coachDone ? "Now draw it on your paper. Same shape, same size." : U.line) + `<div class="console">${head}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}</div>`;
+  if (q.choices) return bubble(U.line, U.msg ? "shake" : "") + `<div class="console">${head}${visual(q.picture)}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}">${esc(o)}</button>`).join("")}</div>${help}<button class="link" data-act="flag">Skip, come back later</button></div>`;
+  return bubble(U.line, U.msg ? "shake" : "") + `<div class="console">${head}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1) : ""}${visual(q.picture)}
+    <div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>${padHtml(q, false)}
+    <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<button class="link" data-act="flag">Skip for now</button>`}</div>
+    ${help ? `<button class="link" data-act="flag">Skip, come back later</button>` : ""}</div>`;
+}
+function rideEndView() {
+  const l = curLesson(), shots = Math.max(3, U.solvedRun);
+  const r = rideOf(l, U.ride);
+  const best = r.kind === "warmup" ? `Time: ${(U.drawMs / 1000).toFixed(1)} seconds.` : "";
+  return `<div class="console center pop"><div class="big">Ride complete</div><p>${best} You earned <strong>${shots} boosts</strong>. Pick your game.</p></div>
+  <div class="games">
+    <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">Jump, grab loot, smash through with dashes. Tap to jump.</span></button>
+    <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">${shots} shots. Stop the target. Beat the keeper.</span></button>
+    <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Wait for DRAW. Faster than the outlaw wins.</span></button>
+  </div>
+  <button class="link" data-act="skipGame">Skip the game</button>`;
+}
+function gameView() {
+  const g = U.game;
+  if (g.kind === "run") return `<div class="hud"><span class="tag">Tap the world or press JUMP</span><span class="chip nug"><i></i>${S.nuggets}</span></div>
+    <div class="actions"><button class="btn go" data-act="jump" style="min-height:96px;font-size:1.5rem">JUMP</button><button class="btn" id="dashbtn" data-act="dash" style="min-height:96px;font-size:1.3rem">DASH (${W.run ? W.run.boosts : 0})</button></div>`;
+  if (g.kind === "kick") return `<div class="console"><div class="scene"><svg id="pitch" viewBox="0 0 360 250" role="img" aria-label="A soccer goal with a keeper">
+      <rect width="360" height="250" fill="#2a8a4f"/><path d="M0 60h360v190H0z" fill="#2f9757"/><path d="M0 0h360v60H0z" fill="#141a44"/>
+      <g stroke="#dfe3ff" stroke-width="1" opacity=".5">${Array.from({ length: 11 }, (_, i) => `<path d="M${60 + i * 24} 40v100"/>`).join("")}${Array.from({ length: 5 }, (_, i) => `<path d="M60 ${40 + i * 25}h240"/>`).join("")}</g>
+      <path d="M60 140V40h240v100" fill="none" stroke="#fff" stroke-width="6"/><path d="M70 200h220M40 250l30-50M320 250l-30-50" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>
+      <g id="keeper"><rect x="-13" y="84" width="26" height="36" rx="5" fill="#ffc42e"/><circle cx="0" cy="74" r="10" fill="#f4cda8"/><path d="M-13 92l-13-16M13 92l13-16" stroke="#ffc42e" stroke-width="7" stroke-linecap="round"/><path d="M-7 120v20M7 120v20" stroke="#23222a" stroke-width="7"/></g>
+      <g id="aim"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
+      <use id="kball" href="#ball" x="165" y="205" width="30" height="30"/></svg></div>
+    <div class="call" id="call">Stop the target!</div><div class="score" id="kscore"></div><button class="btn go wide" id="kbtn" data-act="shoot" style="min-height:76px;font-size:1.4rem">SHOOT</button></div>`;
+  return `<div class="console center"><div class="big" id="duelCall" style="min-height:1.2em">Wait...</div><div class="score" id="dscore"></div><p class="sub" id="duelSub">Don't touch it until you see DRAW.</p>
+    <button class="btn go wide" id="dbtn" data-act="fire" style="min-height:130px;font-size:1.8rem">FIRE</button></div>`;
+}
+function gameEndView() {
+  const e = U.gameEnd, l = curLesson(), nx = l && nextRide(l), done = l && lessonFinished(l);
+  return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>
+  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">${nx ? "Next ride" : "Back to town"}</button><button class="btn dark wide" data-act="view" data-v="home">That's enough for today</button>`}`;
+}
+function rewardView() {
+  const l = curLesson();
+  return `<div class="console center pop"><p class="tag">${esc(l.town)} is clean</p><div class="big">${esc(l.badge?.name || "Badge")}</div><p>+100 nuggets</p>
+    <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn go wide" data-act="view" data-v="home">Back to the map</button>`;
+}
+const GEAR = [
+  { id: "bandana", name: "Red bandana", note: "Outlaws hate it", cost: 300 },
+  { id: "jersey", name: "No. 7 jersey", note: "Red, like the one Ronaldo made famous", cost: 500 },
+  { id: "star", name: "Sheriff's star", note: "Shiny", cost: 700 },
+  { id: "blackhat", name: "Black hat", note: "Yes, the bad guy kind", cost: 900 },
+  { id: "vest", name: "Leather vest", note: "Real trail hand gear", cost: 1200 }
+];
+function storeView() {
+  const items = GEAR.map((g) => {
+    const own = S.owned.includes(g.id), on = S.worn[g.id];
+    return `<div class="item"><div><b>${esc(g.name)}</b><span class="sub">${esc(g.note)}</span></div>${own ? `<button class="btn small dark" data-act="wear" data-id="${g.id}">${on ? "Take off" : "Put on"}</button>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${g.cost}</button>`}</div>`;
+  }).join("");
+  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Store</h2><span class="chip nug"><i></i>${S.nuggets}</span></div><p class="sub center">Your gear shows up on your rider above.</p><div class="shop">${items}</div>`;
+}
+
+/* ---------- parents ---------- */
+function statusOf(p) {
+  if (p.accepted) return ["Parent accepted", "s-good"];
+  if (p.paper) return ["Check his drawing", "s-work"];
+  if (p.done && p.firstTry) return ["Solo, first try", "s-good"];
+  if (p.done && p.coached) return ["Solved with coaching", "s-work"];
+  if (p.done) return ["Fixed his own mistake", "s-work"];
+  if (p.flagged) return ["Needs a parent", "s-stuck"];
+  if (p.wrong.length || p.steps) return ["Working on it", "s-work"];
+  return ["Not started", "s-none"];
+}
+function reportText() {
+  const out = [`Elliot's Math Trail report, ${new Date().toLocaleDateString()}`, `Rank ${RANKS[rankOf(S.xp)][0]}, nuggets ${S.nuggets}`];
+  LESSONS.forEach((l) => {
+    const lp = LP(l.id);
+    out.push("", `${l.town}: Saxon Lesson ${l.bookLesson}${lp.completed ? " [finished]" : ""}`);
+    l.problems.forEach((q) => { const p = PP(lp, q.id); out.push(`  ${q.id} [${q.skill}] ${statusOf(p)[0]}; coach steps ${p.steps}${p.wrong.length ? `; wrong tries: ${p.wrong.join(", ")}` : ""}`); });
+  });
+  return out.join("\n");
+}
+function parentView() {
+  if (!U.parentOk) {
+    const creating = !S.pin;
+    return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button></div><div class="console center"><h2>Parents only</h2><p class="sub">${creating ? "Choose a 4-digit PIN. Set this before Elliot plays." : "Enter your 4-digit PIN."}</p>
+      <div class="answer">${U.pin ? "&#9679;".repeat(U.pin.length) : `<span class="empty">PIN</span>`}</div><div class="pad pin">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "CLR", "0", "OK"].map((k) => `<button data-act="pin" data-k="${k}">${k === "CLR" ? "C" : k}</button>`).join("")}</div>${U.pinMsg ? `<p>${esc(U.pinMsg)}</p>` : ""}${creating ? "" : `<p class="sub">Forgot it? Tell Claude and a reset can be added.</p>`}</div>`;
+  }
+  const skills = {};
+  LESSONS.forEach((l) => { const lp = LP(l.id); l.problems.forEach((q) => { const p = PP(lp, q.id); if (!p.done && !p.steps && !p.wrong.length && !p.flagged) return; const s = (skills[q.skill] = skills[q.skill] || { n: 0, coached: 0, wrong: 0, solo: 0 }); s.n++; s.coached += p.coached ? 1 : 0; s.wrong += p.wrong.length; s.solo += p.firstTry ? 1 : 0; }); });
+  const rows = Object.entries(skills).sort((a, b) => (b[1].coached + b[1].wrong) / b[1].n - (a[1].coached + a[1].wrong) / a[1].n);
+  const lessons = LESSONS.map((l) => {
+    const lp = LP(l.id);
+    return `<div class="panel"><h2>${esc(l.town)} · Saxon Lesson ${esc(l.bookLesson)}</h2><div class="tablewrap"><table><thead><tr><th>Book #</th><th>Skill</th><th>Status</th><th>Wrong tries</th><th></th></tr></thead><tbody>${l.problems.map((q) => { const p = PP(lp, q.id), [t, c] = statusOf(p); return `<tr><td>${esc(q.id)}</td><td>${esc(q.skill)}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : "None"}</td><td>${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div></div>`;
+  }).join("");
+  return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Syncs to your account" : "Saved on this device"}</span></div><h1>Parent page</h1>
+  <div class="panel"><h2>Where Elliot needs you</h2>${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Skill</th><th>Problems</th><th>Solo</th><th>Coached</th><th>Wrong</th></tr></thead><tbody>${rows.map(([k, s]) => `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.solo}</td><td>${s.coached}</td><td>${s.wrong}</td></tr>`).join("")}</tbody></table></div><p class="sub">Most help needed is first. Answers aren't shown here, so you can still work it out with him.</p>` : `<p>Nothing yet. This fills in as soon as he plays.</p>`}</div>
+  ${lessons}
+  <div class="panel"><h2>Add this week's lessons</h2><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Paste the report below so the coaching targets what he found hard.</li><li>Claude adds a new town to this same link. Elliot refreshes.</li></ol></div>
+  <div class="panel"><h2>Report for Claude</h2><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small" data-act="copy">${U.copied ? "Copied" : "Copy report"}</button></div></div>
+  <div class="panel"><h2>Start over</h2><p class="sub">Erases his nuggets, rank, gear and progress.</p>${U.confirmReset ? `<div class="hud"><button class="btn small" style="background:var(--red);box-shadow:none" data-act="resetYes">Yes, erase everything</button><button class="btn small dark" data-act="resetNo">Keep it</button></div>` : `<div><button class="btn small dark" data-act="resetAsk">Erase progress</button></div>`}</div>`;
+}
+
+/* ---------- mini games ---------- */
+let kick = null, kickTimer = 0, duel = null;
+function startKick() {
+  kick = { shots: [], n: U.game.n, phase: "aim", t: 0, x: 180 };
+  drawScore("kscore", kick.shots, kick.n); placeKeeper(180);
+  kickTimer = setInterval(() => {
+    if (kick.phase !== "aim") return;
+    kick.t += .055; kick.x = 180 + 105 * Math.sin(kick.t * (1 + kick.shots.length * .18));
+    document.getElementById("aim")?.setAttribute("transform", `translate(${kick.x} 0)`);
+  }, 30);
+}
+function drawScore(id, shots, n) { const el = document.getElementById(id); if (el) el.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${shots[i] === true ? "g" : shots[i] === false ? "m" : ""}"></i>`).join(""); }
+function placeKeeper(x) { document.getElementById("keeper")?.setAttribute("transform", `translate(${x} 0)`); }
+function shoot() {
+  if (!kick || kick.phase !== "aim") return;
+  kick.phase = "fly";
+  const btn = document.getElementById("kbtn"); if (btn) btn.disabled = true;
+  beep(THUD);
+  const zones = [85, 180, 275], guess = Math.random() < .28 ? kick.x : pick(zones), saved = Math.abs(guess - kick.x) < 34, tx = kick.x, dur = reduced ? 1 : 420, t0 = performance.now();
+  const anim = setInterval(() => {
+    const k = Math.min(1, (performance.now() - t0) / dur), ball = document.getElementById("kball");
+    if (!ball) { clearInterval(anim); return; }
+    ball.setAttribute("x", 180 + (tx - 180) * k - 15); ball.setAttribute("y", 205 - 115 * k); placeKeeper(180 + (guess - 180) * k);
+    if (k < 1) return;
+    clearInterval(anim);
+    kick.shots.push(!saved); drawScore("kscore", kick.shots, kick.n);
+    const call = document.getElementById("call");
+    if (call) call.textContent = saved ? "Saved!" : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
+    if (!saved) { S.goals++; earn(8); beep(CHIME); confetti(16); W.shake = 8; save(); } else beep(NOPE);
+    setTimeout(() => {
+      if (!document.getElementById("kball")) return;
+      if (kick.shots.length >= kick.n) return finishKick();
+      ball.setAttribute("x", 165); ball.setAttribute("y", 205); placeKeeper(180);
+      if (btn) btn.disabled = false; if (call) call.textContent = `Shot ${kick.shots.length + 1} of ${kick.n}`;
+      kick.phase = "aim";
+    }, reduced ? 400 : 900);
+  }, 16);
+}
+function finishKick() { clearInterval(kickTimer); const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net. +${g * 8} nuggets.` }; U.view = "gameEnd"; render(); }
+function duelRound() {
+  const call = document.getElementById("duelCall"); if (!call) return;
+  duel.state = "wait"; call.textContent = "Wait..."; call.style.color = "";
+  clearTimeout(duel.timer);
+  duel.timer = setTimeout(() => {
+    if (!document.getElementById("duelCall")) return;
+    duel.state = "draw"; duel.at = performance.now(); call.textContent = "DRAW!"; call.style.color = "var(--red)"; beep(BLIP);
+    duel.limit = 520 + Math.random() * 260;
+    duel.timer = setTimeout(() => { if (duel.state === "draw") duelResult(false, "Too slow. He got you."); }, duel.limit);
+  }, reduced ? 900 : 900 + Math.random() * 2400);
+}
+function duelResult(win, line) {
+  duel.state = "done"; clearTimeout(duel.timer);
+  duel.shots.push(win); drawScore("dscore", duel.shots, duel.n);
+  const sub = document.getElementById("duelSub"), call = document.getElementById("duelCall");
+  if (sub) sub.textContent = line; if (call) { call.textContent = win ? "BANG!" : "Missed"; call.style.color = ""; }
+  if (win) { S.wins++; earn(8); beep(BANG); confetti(14); W.shake = 10; save(); } else beep(NOPE);
+  setTimeout(() => {
+    if (!document.getElementById("duelCall")) return;
+    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; U.gameEnd = { title: w === duel.n ? "Fastest in the West!" : `${w} outlaws down`, line: `You won ${w} of ${duel.n} duels. +${w * 8} nuggets.` }; U.view = "gameEnd"; render(); return; }
+    duelRound();
+  }, 1200);
+}
+
+/* ---------- actions ---------- */
+function correctFx(msg) { U.combo++; worldBoost(msg); beep(CHIME); }
+function wrongFx() { U.combo = 0; W.shake = 6; beep(NOPE); }
+function curQ() { const it = U.items[U.i]; return it?.type === "problem" ? qOf(curLesson(), it.id) : null; }
+function startCoach() {
+  const q = curQ(), p = PP(LP(U.lesson), q.id);
+  if (!q.coach) return;
+  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.draft = ""; U.msg = null; save(); render();
+}
+function applyStepRight(val) {
+  const q = curQ(), c = q.coach, s = c.steps[U.step], p = PP(LP(U.lesson), q.id);
+  if (s.put) { const ds = String(val).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`${s.board || 0}:${id}`] = ds[i]; }); }
+  p.steps++; earn(1); correctFx(); U.draft = ""; U.msg = null; U.stepWrong = 0; U.step++;
+  if (U.step >= c.steps.length) { U.mode = "try"; U.coachDone = true; U.step = c.steps.length - 1; U.wrongNow = 0; }
+  save(); render();
+}
+function stepWrong() { const s = curQ().coach.steps[U.step]; U.stepWrong++; U.msg = `${pick(["Not quite.", "Nope, close.", "Try again."])} ${s.nudge}`; U.draft = ""; wrongFx(); render(); }
+function checkStepTyped() {
+  const q = curQ(), s = q.coach.steps[U.step];
+  if (seal(U.lesson, `${q.id}.${U.step}`, U.draft) === s.sealed) applyStepRight(U.draft); else stepWrong();
+}
+function checkFinal() {
+  const q = curQ(); if (!q || U.solved) return;
+  const l = curLesson(), p = PP(LP(l.id), q.id), val = norm(U.draft);
+  if (!val) { U.msg = "Type your answer first, boss."; return render(); }
+  const sealed = seal(l.id, q.id, val);
+  if (q.sealed.includes(sealed)) {
+    if (!p.done) { const fixed = p.wrong.length > 0; p.done = true; p.flagged = false; p.firstTry = !fixed && !p.coached; U.earned = 15 + (fixed ? 5 : 0) + (p.firstTry ? 5 : 0) + Math.min(U.combo, 10); earn(U.earned); U.solvedRun++; } else U.earned = 0;
+    U.solved = true; U.msg = null; correctFx(pick(["BOOM!", "BULLSEYE!", "SIUUU!", "TOO EASY!"])); confetti(30); save(); return render();
+  }
+  if (!p.done && !p.wrong.includes(U.draft)) p.wrong.push(U.draft);
+  U.wrongNow++; wrongFx();
+  U.msg = q.traps[sealed] || pick(["Not it. Check your paper one step at a time.", "Missed the target. Go again."]);
+  U.draft = ""; save();
+  if (U.wrongNow >= 2 && !U.coachDone && q.coach) { U.msg = null; return startCoach(); }
+  render();
+}
+function pressKey(k) {
+  if (U.solved) return;
+  if (k === "DEL") U.draft = U.draft.slice(0, -1);
+  else if (U.draft.length < 20) U.draft += k;
+  const q = curQ();
+  if (q && U.mode === "coach" && k !== "DEL") {
+    const s = q.coach.steps[U.step];
+    if (s.len && U.draft.length >= s.len) return checkStepTyped();
+  }
+  const box = document.getElementById("ans");
+  if (box) box.innerHTML = U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`;
+  beep([[520, 0, .03]]);
+}
+const acts = {
+  start() { U.view = "home"; W.title = false; worldBoost(); beep(FANFARE); render(); },
+  view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
+  leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
+  mute() { S.muted = !S.muted; if (S.muted) { stopMusic(); try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
+  voice() { S.voice = S.voice === false; if (S.voice === false) { try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
+  town(d) { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
+  ride(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
+  leaveRide() { U.view = "town"; U.combo = 0; save(); render(); },
+  noteDone() { nextItem(); },
+  fact(d, el) {
+    const it = U.items[U.i], l = curLesson();
+    if (seal(l.id, `w${it.i}`, d.c) !== it.w.sealed) { wrongFx(); el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake"); return; }
+    earn(2); correctFx(pick(["BANG!", "POW!", "HIT!"])); U.solvedRun = Math.min(U.solvedRun + 1, 5); nextItem();
+  },
+  sort(d) {
+    const it = U.items[U.i];
+    if ((d.c === "1") === it.clue) { earn(2); correctFx(it.clue ? "CLUE!" : "DUST!"); nextItem(); }
+    else { U.msg = it.why; wrongFx(); render(); }
+  },
+  learnPick(d) {
+    const it = U.items[U.i];
+    if (d.c === it.answer) { earn(2); correctFx(); nextItem(); }
+    else { U.msg = it.nudge; wrongFx(); render(); }
+  },
+  mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
+  deal(d) { U.deal = Math.min(+d.t, U.deal + +d.g); beep(BLIP); render(); },
+  key(d) { pressKey(d.k); },
+  check: checkFinal,
+  coach: startCoach,
+  stepPick(d) {
+    const q = curQ(), s = q.coach.steps[U.step];
+    if (hash(`${U.lesson}|${q.id}.${U.step}|pick|${d.c}`) === s.sealed) applyStepRight(d.c); else stepWrong();
+  },
+  finalPick(d) { U.draft = d.c; checkFinal(); },
+  paper() {
+    const q = curQ(), p = PP(LP(U.lesson), q.id);
+    if (!p.done) { p.done = true; p.paper = true; p.flagged = false; earn(15); U.solvedRun++; }
+    correctFx("NICE DRAW!"); save(); nextItem();
+  },
+  flag() { const q = curQ(); PP(LP(U.lesson), q.id).flagged = true; U.combo = 0; save(); nextItem(); },
+  next() { nextItem(); },
+  game(d) {
+    U.game = { kind: d.g, n: +d.n }; U.view = "game";
+    if (d.g === "run") startRun(+d.n);
+    render(); window.scrollTo(0, 0);
+    if (d.g === "kick") startKick();
+    if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "wait" }; drawScore("dscore", duel.shots, duel.n); duelRound(); }
+  },
+  skipGame() { U.gameEnd = { title: "Back in the saddle", line: "Your boosts are safe with Biscuit. He ate two." }; U.view = "gameEnd"; render(); },
+  jump: runJump, dash: runDash, shoot,
+  fire() {
+    if (!duel) return;
+    if (duel.state === "wait") { clearTimeout(duel.timer); duelResult(false, "You fired early!"); }
+    else if (duel.state === "draw") duelResult(true, `${Math.round(performance.now() - duel.at)} milliseconds!`);
+  },
+  backTown() { const l = curLesson(), nx = nextRide(l); if (nx && !(nx.after && !LP(l.id).rides[nx.after])) startRide(l, nx); else { U.view = "town"; render(); } },
+  reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
+  buy(d) { const g = GEAR.find((x) => x.id === d.id); if (S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); S.worn[g.id] = true; beep(CHIME); save(); render(); } },
+  wear(d) { S.worn[d.id] = !S.worn[d.id]; save(); render(); },
+  pin(d) {
+    if (d.k === "CLR") U.pin = "";
+    else if (d.k === "OK") {
+      if (U.pin.length !== 4) U.pinMsg = "A PIN has 4 digits.";
+      else if (!S.pin) { S.pin = hash("pin|" + U.pin); U.parentOk = true; U.pinMsg = ""; save(); }
+      else if (S.pin === hash("pin|" + U.pin)) { U.parentOk = true; U.pinMsg = ""; }
+      else U.pinMsg = "That PIN doesn't match.";
+      U.pin = "";
+    } else if (U.pin.length < 4) U.pin += d.k;
+    render();
+  },
+  accept(d) { const p = PP(LP(d.l), d.id); p.done = true; p.accepted = true; p.flagged = false; earn(15); save(); render(); },
+  copy() {
+    const t = document.getElementById("report");
+    const done = () => { U.copied = true; render(); };
+    if (navigator.clipboard) navigator.clipboard.writeText(reportText()).then(done, () => { t.focus(); t.select(); });
+    else { t.focus(); t.select(); }
+  },
+  resetAsk() { U.confirmReset = true; render(); },
+  resetNo() { U.confirmReset = false; render(); },
+  resetYes() { const pin = S.pin; S = { ...blank(), pin }; U.confirmReset = false; save(); render(); }
+};
+app.addEventListener("click", (e) => {
+  const el = e.target.closest("[data-act]");
+  if (el && !el.disabled && acts[el.dataset.act]) acts[el.dataset.act](el.dataset, el);
+});
+canvas.addEventListener("pointerdown", () => { if (W.run) runJump(); });
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (W.run) { if (e.key === " " || e.key === "ArrowUp") { runJump(); e.preventDefault(); } else if (e.key === "d" || e.key === "ArrowRight") runDash(); return; }
+  if (U.view !== "ride") return;
+  const q = curQ();
+  if (!q || U.solved) return;
+  if (U.mode === "coach" ? q.coach.steps[U.step].choices : q.choices || q.paper) return;
+  if (/^[0-9/.:,]$/.test(e.key)) pressKey(e.key);
+  else if (e.key === "r" || e.key === "R") pressKey("R");
+  else if (e.key === "Backspace") { pressKey("DEL"); e.preventDefault(); }
+  else if (e.key === "Enter" && U.mode !== "coach" && e.target.tagName !== "BUTTON") checkFinal();
+});
+
+/* ---------- draw ---------- */
+function render() {
+  clearInterval(kickTimer);
+  if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "game" || U.view === "gameEnd" || U.view === "reward") && !curLesson()) U.view = "home";
+  W.title = U.view === "title" || U.view === "home";
+  canvas.hidden = U.view === "parent";
+  const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView };
+  try { app.innerHTML = views[U.view](); }
+  catch (e) { app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
+}
+worldSize(200);
+render();
+connect();
+</script>
+</body></html>
