@@ -300,7 +300,7 @@ try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } ca
 let dbDoc = null, cloud = "device", saveTimer = 0;
 function save() {
   S.updatedAt = Date.now();
-  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, fills: U.fills, coachDone: U.coachDone, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
+  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, fills: U.fills, coachDone: U.coachDone, draft: U.draft, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   if (!dbDoc) return;
   clearTimeout(saveTimer);
@@ -1504,7 +1504,7 @@ const acts = {
     if (r0.qid && qOf(l, r0.qid)) {
       while (U.items[U.i]?.type === "demo") U.i++;
       U.qid = r0.qid; U.qStart = Date.now();
-      Object.assign(U, { mode: r0.mode || "try", step: r0.step || 0, fills: r0.fills || {}, coachDone: !!r0.coachDone, cells: r0.cells || [], cellAt: r0.cellAt || 0, strokes: r0.strokes || [] });
+      Object.assign(U, { mode: r0.mode || "try", step: r0.step || 0, fills: r0.fills || {}, coachDone: !!r0.coachDone, draft: r0.draft || "", cells: r0.cells || [], cellAt: r0.cellAt || 0, strokes: r0.strokes || [] });
       if (U.mode === "solved") { U.qid = null; }
       const b = cellBook(); if (b) syncCellDraft(b);
       render();
@@ -1710,7 +1710,7 @@ function initScratch() {
   const at = (e) => { const b = cv.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, (e.clientY - b.top) / b.height]; };
   cv.addEventListener("pointerdown", (e) => { e.preventDefault(); cv.setPointerCapture?.(e.pointerId); cur = { t: U.spTool === "erase" ? "erase" : "pen", p: [at(e)] }; (U.strokes = U.strokes || []).push(cur); seg(cur.t, cur.p[0], cur.p[0]); });
   cv.addEventListener("pointermove", (e) => { if (!cur) return; e.preventDefault(); const p = at(e), last = cur.p[cur.p.length - 1]; cur.p.push(p); seg(cur.t, last, p); });
-  const end = () => { cur = null; };
+  const end = () => { if (cur) save(); cur = null; };
   cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
 }
 function arrange() {
@@ -1738,10 +1738,13 @@ function render() {
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
   initScratch();
+  if (U.view === "ride" || U.view === "town") save();
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
   if (U.view === "home" && document.getElementById("token")) placeToken("world", Math.min(currentIdx(), WORLD_PTS.length - 1), WORLD_PTS);
   if (U.view === "town" && document.getElementById("token")) { const l = curLesson(), nx = nextRide(l), idx = nx ? l.rides.indexOf(nx) : l.rides.length - 1; placeToken(`town:${l.id}`, idx, TOWN_PTS); }
 }
+addEventListener("pagehide", save);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") save(); });
 worldSize(200);
 render();
 connect();
