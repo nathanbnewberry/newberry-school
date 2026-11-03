@@ -412,7 +412,8 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .helprow{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:auto;padding-top:6px}.helprow .explainbtn{flex:1}.micbtn{flex:none}
 @media (orientation:landscape) and (min-width:800px){.split>.right{display:flex;flex-direction:column;align-self:stretch;min-height:0}.split>.right>*{flex:none}.split>.right>.helprow{margin-top:auto}}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split>.right .choices{gap:4px}.split>.right .choices button{min-height:38px;padding-block:4px}}
-.dealt{display:inline-grid;place-items:center;flex:none;font-style:normal}.dealt.bag{width:34px;height:32px;border-radius:9px 9px 6px 6px;background:#a9794a;color:#fff;font:800 .85rem var(--body);box-shadow:inset 0 5px 0 #7d5530}.dealt.post{width:8px;height:24px;border-radius:2px;background:#7d5530}.dealt.coin{width:14px;height:14px;border-radius:50%;background:#e8b52c;box-shadow:inset 0 0 0 2px #b98a12}
+.dealt{display:inline-grid;place-items:center;flex:none;font-style:normal}.dealt.dbag{width:34px;height:32px;border-radius:9px 9px 6px 6px;background:#a9794a;color:#fff;font:800 .85rem var(--body);box-shadow:inset 0 5px 0 #7d5530}.dealt.dpost{width:8px;height:24px;border-radius:2px;background:#7d5530}.dealt.dcoin{width:14px;height:14px;border-radius:50%;background:#e8b52c;box-shadow:inset 0 0 0 2px #b98a12}
+.net:has(.dealt){display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:3px;height:auto;min-height:42px;min-width:82px;padding:4px}.net .dealt{position:static;margin:0;transform:none}.dealt.dbag{width:32px;height:30px}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -937,7 +938,7 @@ function visual(v) {
   }
   if (v.type === "deal") {
     const per = Math.floor(U.deal / v.groups), extra = U.deal % v.groups;
-    const nets = Array.from({ length: v.groups }, (_, g) => `<div class="net">${(v.item ? `<i class="dealt ${v.item}">${v.item === "bag" ? "10" : ""}</i>` : `<svg aria-hidden="true"><use href="#ball"/></svg>`).repeat(per + (g < extra ? 1 : 0))}</div>`).join("");
+    const nets = Array.from({ length: v.groups }, (_, g) => `<div class="net">${(v.item ? `<i class="dealt d${v.item}">${v.item === "bag" ? "10" : ""}</i>` : `<svg aria-hidden="true"><use href="#ball"/></svg>`).repeat(per + (g < extra ? 1 : 0))}</div>`).join("");
     return `<div class="vis"><div class="nets">${nets}</div><button data-act="deal" data-g="${v.groups}" data-t="${v.total}" ${U.deal >= v.total ? "disabled" : ""}>${U.deal >= v.total ? `All dealt. Count one ${v.item ? "pile" : "net"}!` : `Deal ${v.groups} ${v.noun || "goals"}`}</button></div>`;
   }
   return "";
