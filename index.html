@@ -486,6 +486,30 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 svg.ranch svg,.map svg.ranch{overflow:hidden}
 .gameback{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));z-index:30;min-height:50px;padding:6px 18px;font-size:1.05rem}
 .kickgame:not(.duelgame) .kickhud{top:8px!important;bottom:auto!important}
+.hughead{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;text-align:left}.hugscene{width:clamp(170px,24vw,280px);height:auto;background:linear-gradient(#ffe6b8,#ffd08a);border-radius:14px;overflow:hidden}.noracheer{font-size:clamp(1.15rem,3vh,1.5rem);font-weight:800;color:#c8202c;margin:4px 0}
+.hugnora{animation:hugrun .55s ease-out both}.hugboy{animation:hugjump .55s .55s ease-in-out 3}.hugnora>g{animation:none}.hugstars{animation:hugpop .8s .5s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}
+@keyframes hugrun{from{transform:translateX(70px)}to{transform:none}}@keyframes hugjump{50%{transform:translateY(-8px)}}@keyframes hugpop{from{opacity:.35;transform:scale(.9)}to{opacity:1;transform:scale(1.08)}}
+@media (orientation:landscape) and (min-width:800px){
+  .split.hasScratch{grid-template-columns:minmax(0,.72fr) minmax(0,.9fr) minmax(400px,1.28fr)}
+  .split:not(.hasScratch):not(.stgame){grid-template-columns:minmax(0,1fr) minmax(400px,.9fr)}
+  .stgame.split{grid-template-columns:minmax(0,1fr) 400px}
+  .split>.right .answer{min-height:76px;font-size:2.3rem;display:grid;place-items:center}.split>.right .answer .empty{font-size:1.3rem}
+  .split>.right .pad,.split.hasScratch .pad{flex:1 1 auto;min-height:0;grid-auto-rows:minmax(0,1fr);gap:8px}
+  .split .pad button,.split.hasScratch .pad button{min-height:60px;font-size:clamp(1.9rem,5vh,2.7rem)}
+  .split>.right .btn[data-act="check"],.split>.right .btn[data-act="checkStep"],.split>.right .btn[data-act="checkProof"],.split>.right .btn[data-act="recallCheck"]{min-height:72px;font-size:1.4rem}
+  .split>.right .choices{flex:1 1 auto;grid-auto-rows:minmax(84px,1fr);align-content:stretch;max-height:430px}.split>.right .choices button{min-height:0;font-size:1.35rem}
+}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){
+  .split>.right .answer{min-height:56px;font-size:1.8rem;padding-block:2px}.split .pad button,.split.hasScratch .pad button{min-height:50px;font-size:1.8rem}.split>.right .pad,.split.hasScratch .pad{gap:5px}
+  .split>.right .btn[data-act="check"],.split>.right .btn[data-act="checkStep"],.split>.right .btn[data-act="checkProof"],.split>.right .btn[data-act="recallCheck"]{min-height:54px;font-size:1.15rem}
+  .split>.right .choices{grid-auto-rows:minmax(58px,1fr)}.hugscene{width:150px}
+}
+.hughead{align-items:center}.hughead .nextbtn{margin-top:8px;min-height:60px}.hugscene{width:clamp(170px,20vw,240px)}
+.hughead~.games{gap:8px}.hughead~.games .game{padding:8px 12px}
+@media (orientation:landscape) and (min-width:800px){.hughead~.games{grid-template-columns:repeat(auto-fit,minmax(0,1fr));grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}.hughead~.tag{margin:4px 0 0}}
+.ranchwrap{position:relative}.ranchwrap .ranch{cursor:pointer;touch-action:manipulation}.norasay{position:absolute;left:8px;right:8px;top:8px;margin:0;background:#fff;color:#1c1712;border:2px solid #2f7f96;border-radius:12px;padding:6px 12px;font-weight:700;font-size:1rem;text-align:center;pointer-events:none}.norasay[hidden]{display:none}
+#ranchNora.happy .norabody{animation:norajump .4s ease-in-out 4}@keyframes norajump{50%{transform:translateY(-14px)}}#ranchNora.happy .noraarms{d:path("M-3-25l-6-9M3-25l6-9")}
+@media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.storewrap .shop{grid-template-columns:1fr}.storewrap .item{padding-block:6px}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -501,7 +525,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=3493ee2716"></script>
+<script src="lessons.js?v=3e82d9a1f2"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -936,8 +960,7 @@ function buildItems(l, r) {
   const left = (items, key) => { const f = items.filter((x) => !doneKeys.includes(x[key])); return f.length ? f : items; };
   if (r.kind === "warmup") return left(l.warmup.map((w, i) => ({ type: "fact", w, i })), "i");
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
-  const recall = l.problems.find((q) => { const p = lp.problems?.[q.id]; return p?.done && !p.recalled && q.proof && !r.problems.includes(q.id) && (p.coached || p.wrong?.length || p.stepMiss || p.shaky); });
-  return [...(recall ? [{ type: "recall", id: recall.id }] : []), { type: "page" }];
+  return [{ type: "page" }];
 }
 function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false }); }
 function pageGap(l, r) {
@@ -958,10 +981,19 @@ function nextItem() {
   if (U.i >= U.items.length) return endRide();
   resetItem(); render(); window.scrollTo(0, 0);
 }
+// One earlier problem he needed help with comes back once, right after he finishes a section.
+function recallFor(l, r) {
+  const lp = LP(l.id);
+  return l.problems.find((q) => { const p = lp.problems?.[q.id]; return p?.done && !p.given && !p.recalled && q.proof && !r.problems.includes(q.id) && (p.coached || p.wrong?.length || p.stepMiss || p.shaky); });
+}
 function backToPage() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
   closeTimer(); U.qid = null; resetItem(); W.targetGap = pageGap(l, r);
-  if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) return endRide();
+  if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) {
+    const recall = recallFor(l, r);
+    if (!recall) return endRide();
+    U.items = [{ type: "page" }, { type: "recall", id: recall.id }]; U.i = 1; resetItem(); render(); window.scrollTo(0, 0); return;
+  }
   render(); window.scrollTo(0, 0);
 }
 function endRide() {
@@ -969,7 +1001,7 @@ function endRide() {
   if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
   if (!lp.rides[r.id]) earn(50);
   lp.rides[r.id] = true;
-  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; render(); window.scrollTo(0, 0);
+  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; U.hugLine = pick(NORA_CHEERS); render(); window.scrollTo(0, 0); lastSaid = ""; speak(U.hugLine);
 }
 
 /* ---------- pictures ---------- */
@@ -1428,7 +1460,7 @@ function rideView() {
   if (it.type === "page") return pageView(l, r);
   if (it.type === "recall") {
     const pr = qOf(l, it.id).proof;
-    return hudRide() + bubble(U.msg || "Quick one before we ride. Do you remember how to do this?", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Remember this?</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="recallPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(pr.extra || [])}<button class="btn go wide" data-act="recallCheck">SHOOT</button>`}</div>`;
+    return hudRide() + bubble(U.msg || "One more from earlier before you finish. Do you remember how to do this?", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Remember this?</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="recallPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(pr.extra || [])}<button class="btn go wide" data-act="recallCheck">SHOOT</button>`}</div>`;
   }
   const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
@@ -1526,9 +1558,30 @@ function shopRow() {
   if (!list.length) return `<p class="sub center">You built the whole family ranch. Nora loves it.</p>`;
   return `<div class="games">${list.map((g) => `<div class="game shopcard"><h3>${esc(g.name)}</h3><span class="sub">${esc(g.note)}</span><button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${S.nuggets < g.cost ? `Costs $${g.cost}` : `Buy for $${g.cost}`}</button></div>`).join("")}</div>`;
 }
+const NORA_CHEERS = ["You did it, Elliot! I knew you could!", "Elliot, that was amazing! You got every one!", "Way to go, Elliot! You're so smart!", "You got it, Elliot! I'm so proud of you!"];
+const hugScene = () => `<svg class="hugscene" viewBox="40 -40 220 180" role="img" aria-label="Nora gives Elliot a big hug">
+  <g class="hugstars" fill="#ffd23f"><path d="M70-18l3 7 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1z"/><path d="M232-22l3 7 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1z"/><path d="M60 40l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z"/><path d="M242 44l2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z"/></g>
+  <g class="hugboy"><g transform="translate(125 0)">
+    <path d="M-15 62h30l1 14-6 40H-13l-3-40z" fill="#2f3a55"/><path d="M-14 112h11l1 11 7 2v3h-20zM2 112h11l2 11 9 2v3H2z" fill="#2a1a0e"/>
+    <path d="M-13 17c-4 13-6 27-6 41" fill="none" stroke="#7da5c9" stroke-width="8" stroke-linecap="round"/><circle cx="-19" cy="61" r="4.300" fill="#f4cda8"/>
+    <path d="M-17 16c6-5 28-5 34 0l-3 44h-28z" fill="#8fb7dc"/><rect x="-15" y="58" width="30" height="6" rx="1" fill="#24170d"/>
+    <rect x="-3.500" y="5" width="7" height="9" fill="#f4cda8"/><path d="M-9 11c5-3 13-3 18 0l-9 10z" fill="#c8202c"/>
+    <path d="M-11-10c-3 7-2 13 0 16l4-2c-1-4-1-9 1-14z" fill="#3a2415"/><path d="M-9-6c0-8 4-11 9-11s9 3 9 11c0 6-3 11-8 13-6-1-10-6-10-13z" fill="#f4cda8"/>
+    <path d="M-9-9h19v7c-3 2-5 1-6-1-2 2-6 2-8 1l-5 1z" fill="#121318"/><ellipse cx="4.500" cy="-5" rx="2.700" ry="2" fill="#f4e2cf"/><circle cx="5.200" cy="-5" r="1.200" fill="#27354f"/><path d="M0 2c3 3 6 3 9 0" fill="none" stroke="#7a3b22" stroke-width="1.500" stroke-linecap="round"/>
+    <path d="M-9-15c-1-9 3-14 8-14 2 0 3 2 5 1 4 0 6 5 5 13z" fill="#fbfbf7"/><path d="M-9-19c6 2 12 2 18 0v4c-6 2-12 2-18 0z" fill="#15171b"/><path d="M-22-14c10 4 34 4 44 0 2 3-10 7-22 7s-24-4-22-7z" fill="#fbfbf7"/><path d="M-22-14c10 8 34 8 44 0-6 6-38 7-44 0z" fill="#c9c4b4"/>
+  </g></g>
+  <g class="hugboy"><g transform="translate(125 0)"><path d="M13 19c8 0 18 2 26 7" fill="none" stroke="#8fb7dc" stroke-width="8" stroke-linecap="round"/></g></g>
+  <g class="hugnora"><g transform="translate(160 2) scale(-1 1) rotate(-5)">
+    <path d="M-11-10c-4 10-4 24-1 34h7c-3-10-3-22-1-34z" fill="#6b3f1d"/>
+    <path d="M-15 16c6-5 24-5 30 0l2 36c4 24 9 48 11 76H-28c2-28 7-52 11-76z" fill="#2f7f96"/><path d="M-14 48c8 3 20 3 28 0v5c-8 3-20 3-28 0z" fill="#fff3d9"/>
+    <rect x="-3" y="5" width="6" height="9" fill="#f0c9a4"/><path d="M-8-6c0-8 4-10 8-10s8 2 8 10c0 6-3 10-8 12-5-2-8-6-8-12z" fill="#f0c9a4"/><path d="M1-6c1-2 4-2 5 0" fill="none" stroke="#2a1a0e" stroke-width="1.500" stroke-linecap="round"/><path d="M0 1c2 4 5 4 7 0z" fill="#b5453f"/><path d="M-9-7c-1-9 5-13 10-12 5 0 8 4 8 8-5-2-8-3-10-5-2 3-5 6-8 9z" fill="#6b3f1d"/>
+    <path d="M10 19c9-4 19-5 30-3" fill="none" stroke="#2f7f96" stroke-width="6.500" stroke-linecap="round"/><circle cx="42" cy="16" r="4" fill="#f0c9a4"/>
+  </g></g>
+  <g class="hugboy"><circle cx="146" cy="30" r="4.300" fill="#f4cda8" transform="translate(30 -2)"/></g>
+</svg>`;
 function rideEndView() {
   const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6)), nx = nextRide(l);
-  return `<div class="clearhead pop"><div class="big">Section cleared!</div><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p></div>
+  return `<div class="clearhead pop hughead">${hugScene()}<div><div class="big">Section cleared!</div><p class="noracheer">${esc(U.hugLine || NORA_CHEERS[0])}</p><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p><button class="btn go wide nextbtn" data-act="backTown">${nx ? `Next up: ${esc(nx.name)}` : "Back to the map"}</button></div></div>
   <p class="tag">Build the family ranch</p>${shopRow()}
   <p class="tag">Or head to the Saloon and play a game</p>
   <div class="games">
@@ -1536,8 +1589,7 @@ function rideEndView() {
     <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">Beat the keeper.</span></button>
     <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Duel an outlaw.</span></button>
-  </div>
-  <button class="btn go wide" data-act="backTown">${nx ? `Next up: ${esc(nx.name)}` : "Back to the map"}</button>`;
+  </div>`;
 }
 function gameView() {
   const g = U.game;
@@ -1625,18 +1677,40 @@ function rewardView() {
     <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn dark wide" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button><button class="btn go wide" data-act="view" data-v="home">Back to the world map</button>`;
 }
 const RANCH = [
-  { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 30 },
-  { id: "well", name: "Water well", note: "Every ranch needs water", cost: 40 },
-  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 50 },
-  { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 60 },
-  { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 70 },
-  { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 90 },
-  { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 110 },
-  { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 150 }
+  { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 30, say: "Now the horses can't wander off!" },
+  { id: "well", name: "Water well", note: "Every ranch needs water", cost: 40, say: "Fresh water! You think of everything!" },
+  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 50, say: "My own garden! Thank you, Elliot!" },
+  { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 60, say: "Our very own home! I love it!" },
+  { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 70, say: "Silver's going to love it here!" },
+  { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 90, say: "What a beautiful barn!" },
+  { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 110, say: "Look at it! You can see it for miles!" },
+  { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 150, say: "A porch swing! Sit with me at sunset!" }
 ];
-function ranchSvg(place = "") {
+const RANCH_SPOTS = { cabin: [106, 150], barn: [302, 150], well: [205, 172], garden: [100, 205], corral: [310, 208], windmill: [345, 140], porch: [167, 168], fence: [200, 225] };
+let ranchWalk = 0;
+function ranchFigures() {
+  const r = (U.ranch = U.ranch || { x: 200, y: 200, tx: 200, ty: 200, nx: 165, ny: 196, flip: false });
+  return `<g id="ranchNora" class="${U.noraHappy ? "happy" : ""}" transform="translate(${r.nx} ${r.ny})"><g class="norabody"><ellipse cy="1" rx="9" ry="2.500" fill="rgba(0,0,0,.25)"/><path d="M-3.500-27l7 0 3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="noraarms" d="M-3-25l-6 7M3-25l6 7" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></g></g><g id="ranchRider" transform="translate(${r.x} ${r.y})${r.flip ? " scale(-1 1)" : ""}">${riderToken().replace('id="token"', "")}</g>`;
+}
+function ranchStep(prev, now) {
+  const r = U.ranch, rider = document.getElementById("ranchRider"), nora = document.getElementById("ranchNora");
+  if (!r || !rider || !nora) { ranchWalk = 0; return; }
+  const dt = Math.min(50, now - prev) / 1000, dx = r.tx - r.x, dy = r.ty - r.y, d = Math.hypot(dx, dy), step = 110 * dt;
+  if (d > 1) { r.x += d <= step ? dx : dx / d * step; r.y += d <= step ? dy : dy / d * step; r.flip = dx < -1 ? true : dx > 1 ? false : r.flip; }
+  const fx = r.x + (r.flip ? 34 : -34), fy = r.y - 3, nd = Math.hypot(fx - r.nx, fy - r.ny), ns = 85 * dt;
+  if (nd > 1.5) { r.nx += (fx - r.nx) / nd * Math.min(ns, nd); r.ny += (fy - r.ny) / nd * Math.min(ns, nd); }
+  rider.setAttribute("transform", `translate(${r.x} ${r.y})${r.flip ? " scale(-1 1)" : ""}`); nora.setAttribute("transform", `translate(${r.nx} ${r.ny})`);
+  if (d > 1 || nd > 1.5) ranchWalk = requestAnimationFrame((t) => ranchStep(now, t)); else ranchWalk = 0;
+}
+function noraSays(t, happy = true) {
+  const el = document.getElementById("noraSay"); if (el) { el.textContent = t; el.hidden = false; }
+  const n = document.getElementById("ranchNora");
+  if (n && happy) { n.classList.remove("happy"); void n.getBoundingClientRect(); n.classList.add("happy"); }
+  lastSaid = ""; speak(t);
+}
+function ranchSvg(place = "", live = false) {
   const has = (id) => (S.owned || []).includes(id);
-  return `<svg class="ranch" ${place} viewBox="0 0 400 240" role="img" aria-label="The family ranch with ${(S.owned || []).length} things built"><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fa8d6"/><stop offset=".7" stop-color="#ffd9a0"/></linearGradient><linearGradient id="rLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb5c"/><stop offset="1" stop-color="#6d8c3c"/></linearGradient></defs>
+  return `<svg class="ranch" ${live ? `id="ranchLive" data-act="ranchTap"` : ""} ${place} viewBox="0 0 400 240" role="img" aria-label="The family ranch with ${(S.owned || []).length} things built"><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fa8d6"/><stop offset=".7" stop-color="#ffd9a0"/></linearGradient><linearGradient id="rLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb5c"/><stop offset="1" stop-color="#6d8c3c"/></linearGradient></defs>
     <rect width="400" height="240" fill="url(#rSky)"/><circle cx="330" cy="46" r="20" fill="#ffe59a"/><path d="M0 130l50-44 46 34 58-52 62 50 54-38 66 42 64-30v60H0z" fill="#8c6b8f" opacity=".7"/><path d="M0 138c80-14 300-14 400 0v102H0z" fill="url(#rLand)"/>
     ${has("windmill") ? `<g transform="translate(345 128)"><path d="M-8 50L-2-30h4L8 50zM-5 25h10M-4 5h8" fill="none" stroke="#5a4632" stroke-width="2.500"/><g class="rmill" transform="translate(0 -32)"><path d="M0 0L-3-24h6zM0 0L24-3v6zM0 0L3 24h-6zM0 0L-24 3v-6z" fill="#e8e3d3" stroke="#5a4632"/></g></g>` : ""}
     ${has("barn") ? `<g transform="translate(262 92)"><path d="M0 34L14 10 40 0 66 10 80 34V92H0z" fill="#a8342c"/><path d="M0 34L14 10 40 0 66 10 80 34" fill="none" stroke="#4d1a15" stroke-width="3"/><rect x="26" y="52" width="28" height="40" fill="#7c241e" stroke="#f3ead8" stroke-width="2"/><path d="M26 52l28 40M54 52L26 92" stroke="#f3ead8" stroke-width="2"/><rect x="33" y="24" width="14" height="12" fill="#2c1a0e" stroke="#f3ead8" stroke-width="1.500"/></g>` : ""}
@@ -1647,6 +1721,7 @@ function ranchSvg(place = "") {
     ${has("corral") ? `<g transform="translate(250 190)"><path d="M0 8h120M0 24h120M0 0v34M40 0v34M80 0v34M120 0v34" stroke="#6e4726" stroke-width="3"/><g transform="translate(62 16) scale(.8)"><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a"/></g></g>` : ""}
     ${has("fence") ? `<g transform="translate(0 222)"><path d="M0 0H400M0 10H400" stroke="#7d5530" stroke-width="3"/>${Array.from({ length: 11 }, (_, n) => `<path d="M${n * 40} -6V16" stroke="#5a3a1e" stroke-width="4"/>`).join("")}</g>` : ""}
     ${(S.owned || []).length ? "" : `<g transform="translate(200 186)"><rect x="-96" y="-18" width="192" height="34" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Family Ranch: build here</text></g>`}
+    ${live ? ranchFigures() : ""}
   </svg>`;
 }
 // Rider gear used to be for sale. Now the store builds the ranch, so that money goes back to him.
@@ -1661,7 +1736,7 @@ function storeView() {
     const own = S.owned.includes(g.id);
     return `<div class="item"><div><b>${esc(g.name)}</b><span class="sub">${esc(g.note)}</span></div>${own ? `<span class="builtmark">&#10003; Built</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
-  return `<div class="hud"><button class="btn dark small" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>Map</button><h2>General Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero">${ranchSvg()}<p class="sub center">Build the family ranch for you and Nora. ${S.owned.length} of ${RANCH.length} built. It shows up on your maps too.</p></div><div class="shop">${items}</div></div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
+  return `<div class="hud"><button class="btn dark small" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>Map</button><h2>General Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><div class="ranchwrap">${ranchSvg("", true)}<p class="norasay" id="noraSay">${esc(U.noraLine || "Tap anywhere to walk around our ranch, Elliot!")}</p></div><p class="sub center">${S.owned.length} of ${RANCH.length} built. Tap anything you built to visit it.</p></div><div class="shop">${items}</div></div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
 }
 
 /* ---------- parents ---------- */
@@ -2421,7 +2496,15 @@ const acts = {
   },
   backTown() { U.game = null; const l = curLesson(), nx = l && nextRide(l); if (U.view === "rideEnd" && nx) return startRide(l, nx); U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
-  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); beep(CHIME); save(); render(); } },
+  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); beep(CHIME); save(); const all = RANCH.every((x) => S.owned.includes(x.id)); U.noraLine = all ? "You got us everything, Elliot! This is the best ranch in the West!" : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
+  ranchTap() {
+    const svg = document.getElementById("ranchLive"), r = U.ranch; if (!svg || !r || !kickTap) return;
+    const p = svg.createSVGPoint(); p.x = kickTap[0]; p.y = kickTap[1]; const g = p.matrixTransform(svg.getScreenCTM().inverse());
+    const owned = RANCH.filter((x) => S.owned.includes(x.id) && x.id !== "fence").map((x) => ({ x, d: Math.hypot(RANCH_SPOTS[x.id][0] - g.x, RANCH_SPOTS[x.id][1] - g.y) })).sort((a, b) => a.d - b.d)[0];
+    r.tx = Math.max(24, Math.min(376, g.x)); r.ty = Math.max(160, Math.min(226, g.y)); beep(BLIP);
+    if (owned && owned.d < 42) { U.noraLine = owned.x.say; noraSays(owned.x.say); }
+    if (!ranchWalk) { const t0 = performance.now(); ranchWalk = requestAnimationFrame((t) => ranchStep(t0, t)); }
+  },
   pin(d) {
     if (d.k === "CLR") U.pin = "";
     else if (d.k === "OK") {
