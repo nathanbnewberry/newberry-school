@@ -580,6 +580,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .ftrail b{font-size:1rem}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.trailcard{padding:4px 12px}.trailcard .pline{height:54px;margin-right:36px}.trailcard .prider{width:50px;margin-left:-25px}.trailcard .pnora{width:36px;height:54px;right:-36px}.trailcard .ptrack{height:16px}}
 .problempage .pgrid:not(.cols) .pmath .pbody{font-size:1.25rem;line-height:1.08}.problempage .pgrid:not(.cols) .pcell{padding-block:6px}
+.notenough{display:grid;gap:6px;padding:8px 12px}.nerow{display:grid;grid-template-columns:76px minmax(0,1fr);align-items:center;gap:8px;font-size:.95rem}.nerow span{display:flex;gap:4px;align-items:center;min-height:24px}.nerow svg{width:22px;height:28px;flex:none}.nerow .dcoin{width:18px;height:18px}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -595,7 +596,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=979938ae43"></script>
+<script src="lessons.js?v=d31f20c4ac"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -1100,6 +1101,7 @@ function visual(v) {
   if (v.type === "crossTri") return `<div class="vis"><svg viewBox="0 0 220 190" width="240" role="img" aria-label="Two right triangles sharing corner C. Triangle ABC goes left and down, triangle DEC goes up and right."><path d="M30 80H120V170Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M120 80V10H190" fill="none"/><path d="M120 80V-10" fill="none"/><path d="M120 80V10L190 80Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="12" y="84">A</text><text x="126" y="182">B</text><text x="126" y="72">C</text><text x="108" y="16">D</text><text x="196" y="86">E</text></g></svg></div>`;
   if (v.type === "kite") return `<div class="vis"><svg viewBox="0 0 220 170" width="230" role="img" aria-label="A tall triangle split down the middle by a line from A to B, with D on the left and C on the right."><path d="M110 18L40 138H110Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><path d="M110 18L180 138H110Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M110 138v-12h12v12" fill="none" stroke="#2c1a0e"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="104" y="14">A</text><text x="104" y="158">B</text><text x="186" y="150">C</text><text x="22" y="150">D</text></g></svg></div>`;
   if (v.type === "segment") return `<div class="vis"><svg viewBox="0 0 340 74" style="width:100%;max-width:420px" role="img" aria-label="A line with points A, B and C. AB is 2.3 centimeters and BC is 3.5 centimeters."><path d="M20 34H320" stroke="#2c1a0e" stroke-width="3"/><g fill="#2c1a0e"><circle cx="20" cy="34" r="5"/><circle cx="139" cy="34" r="5"/><circle cx="320" cy="34" r="5"/></g><g font-size="16" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="20" y="62">A</text><text x="139" y="62">B</text><text x="320" y="62">C</text></g><g font-size="14" fill="#1c5a8f" font-weight="700" text-anchor="middle"><text x="80" y="24">2.3 cm</text><text x="230" y="24">3.5 cm</text></g></svg></div>`;
+  if (v.type === "notenough") return `<div class="vis notenough"><div class="nerow"><b>${v.coins} ${v.coins === 1 ? "coin" : "coins"}</b><span>${Array.from({ length: v.coins }, () => `<i class="dealt dcoin"></i>`).join("") || "none"}</span></div><div class="nerow"><b>${v.riders} riders</b><span>${Array.from({ length: v.riders }, () => `<svg viewBox="-6 -14 12 16" aria-hidden="true"><circle cy="-10" r="3" fill="#f0c9a4"/><path d="M-4-7h8l1 8H-5z" fill="#8fb7dc"/><path d="M-5-13h10M-2.500-13v-1.500h5v1.500" stroke="#3a2412" stroke-width="1.200" fill="none"/></svg>`).join("")}</span></div></div>`;
   if (v.type === "mystery") return `<div class="vis mysteryvis">${esc(v.text).split(v.letter).join(`<b class="mletter">${esc(v.letter)}</b>`)}</div>`;
   if (v.type === "hexruler") {
     const ticks = Array.from({ length: 31 }, (_, n) => { const x = 42 + n * 6, h = n % 10 === 0 ? 18 : n % 5 === 0 ? 12 : 7; return `<path d="M${x} 100v${h}"/>`; }).join("");
@@ -1440,7 +1442,7 @@ function helperHtml(s) {
   const h = s.help;
   if (h?.type === "skip") {
     const vals = Array.from({ length: U.helpN }, (_, i) => (i + 1) * h.by), times = /×/.test(String(s.ask));
-    return `<div class="helpwrap"><div class="helper"><p>${times ? `Skip count by ${h.by}. Tap once for each group.` : `Skip count by ${h.by}. Tap until you land on or just under ${h.to}. Count your taps.`}</p><div class="chips">${vals.map((v) => `<b>${v}</b>`).join("") || "<span class='sub'>Nothing yet</span>"}</div><button class="btn" data-act="helpTap">+ ${h.by}</button></div></div>`;
+    return `<div class="helpwrap"><div class="helper"><p>${times ? `Tap the button to count by ${h.by}s, once for each group.` : `Tap the button to count by ${h.by}s. Stop before you go past ${h.to}. The number of taps is your answer.`}</p><div class="chips">${vals.map((v) => `<b>${v}</b>`).join("") || "<span class='sub'>Nothing yet</span>"}</div><button class="btn" data-act="helpTap">+ ${h.by}</button></div></div>`;
   }
   if (h?.type === "count") {
     const at = Math.min(h.from + U.helpN, h.to);
@@ -2369,7 +2371,7 @@ function tutorLine(s, q, level) {
     if (n < d) return `You have ${n} coins and each bag needs ${d}. Can you fill even one bag?`;
     if (level === 0) return `Picture ${n} gold coins and bags that hold ${d} each. How many full bags can you make?`;
     for (const k of [10, 5, 2]) if (n - k * d >= d) return `${k} bags use up ${k * d} coins, and that leaves ${n - k * d}. How many more bags can you fill?`;
-    return `Count by ${d} and stop when you reach ${n} or just under it. Count how many jumps you made.`;
+    return `Count by ${d}s and stop before you go past ${n}. How many jumps did you make?`;
   }
   m = ask.match(/^(\d+) − (\d+) = \?$/);
   if (m) return level === 0 ? `You have ${m[1]} coins and you spend ${m[2]}. How many are left?` : `Start at ${m[2]} and count up to ${m[1]}. How many counts did that take?`;
