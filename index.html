@@ -482,6 +482,10 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .cheart{opacity:0}.st-win .cheart{opacity:1}.st-win .cbody{animation:cbounce .5s ease-in-out 3}@keyframes cbounce{50%{transform:translateY(-10px)}}
 .outlawsay{left:44%;right:auto;top:16%;max-width:34%}
 .storehero .ranch{width:100%;max-height:none;border-radius:10px;display:block}.builtmark{color:#7fe0a0;font-weight:800;white-space:nowrap}.rmill{animation:none}
+.kbody{transform-box:fill-box;transform-origin:50% 100%}
+svg.ranch svg,.map svg.ranch{overflow:hidden}
+.gameback{position:fixed;left:calc(10px + env(safe-area-inset-left));top:calc(10px + env(safe-area-inset-top));z-index:30;min-height:50px;padding:6px 18px;font-size:1.05rem}
+.kickgame:not(.duelgame) .kickhud{top:8px!important;bottom:auto!important}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1110,6 +1114,7 @@ function worldMapSvg() {
     <g transform="translate(590 44)"><path d="M-178-26H178L162 0 178 26H-178L-162 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="9" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="26" fill="#ffe7a8">The Math Frontier</text></g>
     <text transform="translate(720 590) rotate(-6)" font-family="Rye,Georgia,serif" font-size="15" fill="#7b2d1c" opacity=".75">Here be outlaws</text>
     <g transform="translate(40 610)" stroke="#3a2412" stroke-width="2" fill="none"><path d="M0 0h90M0-5v10M45-5v10M90-5v10"/></g><text x="40" y="598" font-size="12" font-weight="700" fill="#3a2412">10 leagues</text>
+    ${ranchStop(800, 470, 135)}
     ${riderToken()}</svg>`;
 }
 const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]].map(([x, y]) => [x * K, y]);
@@ -1131,6 +1136,7 @@ function townMapSvg(l) {
     ${stops}
     <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
     ${compass(60, 80)}
+    ${ranchStop(860, 118, 150)}
     ${riderToken()}</svg>`;
 }
 let tokTimer = 0;
@@ -1162,6 +1168,7 @@ function homeView() {
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
+const ranchStop = (x, y, w) => { const h = w * .6; return `<g class="stop" data-act="view" data-v="store" role="button" tabindex="0" aria-label="The family ranch. Tap to build."><rect x="${x - 4}" y="${y - 4}" width="${w + 8}" height="${h + 8}" rx="8" fill="#3a2412"/>${ranchSvg(`x="${x}" y="${y}" width="${w}" height="${h}"`)}<g transform="translate(${x + w / 2} ${y + h + 6})"><rect x="-68" y="-13" width="136" height="26" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Family Ranch</text></g></g>`; };
 const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>Saloon Games</button><button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>General Store</button></span>`;
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
@@ -1516,13 +1523,13 @@ function demoView(d, pips) {
 }
 function shopRow() {
   const list = RANCH.filter((g) => !S.owned.includes(g.id)).sort((a, b) => a.cost - b.cost).slice(0, 3);
-  if (!list.length) return `<p class="sub center">You built the whole ranch. Clara loves it.</p>`;
+  if (!list.length) return `<p class="sub center">You built the whole family ranch. Nora loves it.</p>`;
   return `<div class="games">${list.map((g) => `<div class="game shopcard"><h3>${esc(g.name)}</h3><span class="sub">${esc(g.note)}</span><button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${S.nuggets < g.cost ? `Costs $${g.cost}` : `Buy for $${g.cost}`}</button></div>`).join("")}</div>`;
 }
 function rideEndView() {
   const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6)), nx = nextRide(l);
   return `<div class="clearhead pop"><div class="big">Section cleared!</div><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p></div>
-  <p class="tag">Build Clara's ranch</p>${shopRow()}
+  <p class="tag">Build the family ranch</p>${shopRow()}
   <p class="tag">Or head to the Saloon and play a game</p>
   <div class="games">
     <button class="game" data-act="stPlay"><h3>Facts Stampede</h3><span class="sub">Rope 100 steers. Beat your time.</span></button>
@@ -1540,10 +1547,10 @@ function gameView() {
       <rect width="360" height="250" fill="#2a8a4f"/><path d="M0 60h360v190H0z" fill="#2f9757"/><path d="M0 0h360v60H0z" fill="#141a44"/>
       <g stroke="#dfe3ff" stroke-width="1" opacity=".5">${Array.from({ length: 11 }, (_, i) => `<path d="M${60 + i * 24} 40v100"/>`).join("")}${Array.from({ length: 5 }, (_, i) => `<path d="M60 ${40 + i * 25}h240"/>`).join("")}</g>
       <path d="M60 140V40h240v100" fill="none" stroke="#fff" stroke-width="6"/><path d="M70 200h220M40 250l30-50M320 250l-30-50" stroke="#fff" stroke-width="3" fill="none" opacity=".7"/>
-      <g id="keeper"><g class="kbody"><rect x="-13" y="84" width="26" height="36" rx="5" fill="#ffc42e"/><circle cx="0" cy="74" r="10" fill="#f4cda8"/><circle cx="-3.500" cy="72" r="1.300" fill="#27354f"/><circle cx="3.500" cy="72" r="1.300" fill="#27354f"/><path class="ksmile" d="M-4 77q4 3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><path class="ksad" d="M-4 79q4-3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><circle class="tear t1" cx="-4" cy="75" r="1.700" fill="#6fc3ff"/><circle class="tear t2" cx="4" cy="75" r="1.700" fill="#6fc3ff"/><path d="M-13 92l-13-16M13 92l13-16" stroke="#ffc42e" stroke-width="7" stroke-linecap="round"/><path d="M-7 120v20M7 120v20" stroke="#23222a" stroke-width="7"/></g><text class="bawl" x="24" y="96" font-size="11" font-weight="800" fill="#fff">WAAAH!</text></g>
-      <g id="aim"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
-      <g id="kball" transform="translate(165 205)"><circle cx="15" cy="15" r="14" fill="#fff" stroke="#222" stroke-width="2"/><path d="M15 8l6 4-2 7h-8l-2-7zM15 1l-3 3 3 2 3-2zM28 12l-4-1-1 4 3 3zM2 12l4-1 1 4-3 3zM8 26l2-4h10l2 4-4 2h-6z" fill="#222"/></g></svg></div>
-    </div><div class="kickhud"><div class="call" id="call">Tap anywhere to shoot at the target!</div><div class="score" id="kscore"></div></div></div>`;
+      <rect id="kband" x="106" y="40" width="148" height="100" fill="rgba(255,196,46,.28)" stroke="#ffc42e" stroke-width="1.500" stroke-dasharray="5 5"/><g id="keeper"><g class="kbody"><rect x="-13" y="84" width="26" height="36" rx="5" fill="#ffc42e"/><circle cx="0" cy="74" r="10" fill="#f4cda8"/><circle cx="-3.500" cy="72" r="1.300" fill="#27354f"/><circle cx="3.500" cy="72" r="1.300" fill="#27354f"/><path class="ksmile" d="M-4 77q4 3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><path class="ksad" d="M-4 79q4-3 8 0" fill="none" stroke="#7a3b22" stroke-width="1.300"/><circle class="tear t1" cx="-4" cy="75" r="1.700" fill="#6fc3ff"/><circle class="tear t2" cx="4" cy="75" r="1.700" fill="#6fc3ff"/><path d="M-13 92l-13-16M13 92l13-16" stroke="#ffc42e" stroke-width="7" stroke-linecap="round"/><path d="M-7 120v20M7 120v20" stroke="#23222a" stroke-width="7"/></g><text class="bawl" x="24" y="96" font-size="11" font-weight="800" fill="#fff">WAAAH!</text></g>
+      <g id="aim" opacity="0"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
+      <g id="kball" transform="translate(165 190)"><circle cx="15" cy="15" r="14" fill="#fff" stroke="#222" stroke-width="2"/><path d="M15 8l6 4-2 7h-8l-2-7zM15 1l-3 3 3 2 3-2zM28 12l-4-1-1 4 3 3zM2 12l4-1 1 4-3 3zM8 26l2-4h10l2 4-4 2h-6z" fill="#222"/></g></svg></div>
+    </div><div class="kickhud"><div class="call" id="call">Tap the goal to shoot. Stay out of the keeper's yellow zone!</div><div class="score" id="kscore"></div></div></div>`;
   const fighter = (x, dir, shirt, hat, hair, skin, name) => {
     const hero = name === "f-you", pants = hero ? "#2f3a55" : "#3b2c22", boot = hero ? "#2a1a0e" : "#1c130b", shade = "rgba(20,15,10,.2)", hatShade = hero ? "#c9c4b4" : "#050506", wrap = hero ? "#c8202c" : "#6d2a22";
     return `<g transform="translate(${x} 128) scale(${dir} 1)" class="${name}"><ellipse class="puddle" cx="-44" cy="122" rx="38" ry="7" fill="#b3121d"/><g class="fbody">
@@ -1572,22 +1579,22 @@ function gameView() {
     <path d="M-15 16c6-5 24-5 30 0l2 36c4 24 9 48 11 76H-28c2-28 7-52 11-76z" fill="#2f7f96"/><path d="M4 14c5 0 8 1 11 2l2 36c4 24 9 48 11 76H12c1-40-2-80-8-114z" fill="rgba(10,30,45,.22)"/><path d="M-14 48c8 3 20 3 28 0v5c-8 3-20 3-28 0z" fill="#fff3d9"/>
     <path d="M-14 18c-3 10-2 20 2 26l14-4M14 18c2 8 1 16-3 21l-9 1" fill="none" stroke="#2f7f96" stroke-width="6.500" stroke-linecap="round" stroke-linejoin="round"/><circle cx="3" cy="40" r="4" fill="#f0c9a4"/>
     <rect x="-3" y="5" width="6" height="9" fill="#f0c9a4"/><path d="M-8-6c0-8 4-10 8-10s8 2 8 10c0 6-3 10-8 12-5-2-8-6-8-12z" fill="#f0c9a4"/><path d="M6.500-3l3 2.500-3 .8z" fill="#e0b48e"/><ellipse cx="3.500" cy="-5" rx="1.500" ry="1.300" fill="#2a1a0e"/><path d="M0-8l6 .5" stroke="#6b3f1d" stroke-width="1"/><path d="M1 3c2 1 3.500 1 5-.5" fill="none" stroke="#b5453f" stroke-width="1.300" stroke-linecap="round"/><path d="M-9-7c-1-9 5-13 10-12 5 0 8 4 8 8-5-2-8-3-10-5-2 3-5 6-8 9z" fill="#6b3f1d"/></g></g>`;
-  return `<div class="kickgame duelgame" data-act="fire"><div class="scene"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A masked rider faces an outlaw on a dusty street while Clara waits to be saved">
+  return `<div class="kickgame duelgame" data-act="fire"><div class="scene"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A masked rider faces an outlaw on a dusty street while Nora waits to be saved">
       <rect width="640" height="300" fill="#8ec9e8"/><circle cx="320" cy="44" r="30" fill="#ffe27a"/>
       <path d="M0 215H640V300H0Z" fill="#d9b071"/><path d="M0 150h110v65H0zM530 140h110v75H530z" fill="#a8703a"/><path d="M15 165h30v30H15zM60 165h30v30H60zM548 155h30v30h-30zM592 155h30v30h-30z" fill="#3a2412"/><path d="M-6 150h122l-8-14H2zM524 140h122l-8-14H532z" fill="#6b3f1d"/>
       ${fighter(195, 1, S.worn.jersey ? "#c8202c" : "#8fb7dc", S.worn.blackhat ? "#23222a" : "#fbfbf7", "#3a2415", "#f4cda8", "f-you")}
       ${clara}${fighter(405, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
-      <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text><text x="498" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Clara</text>
+      <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text><text x="498" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Nora</text>
       <g id="flash"><path d="M0 0" /></g>
       <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
     </svg></div>
     <div class="outlawsay" id="outlawSay" hidden></div><div class="duelhud"><div class="big" id="duelCall">High Noon</div>
-    <p id="duelSub">The outlaw took Clara! When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p>
+    <p id="duelSub">The outlaw took Nora! When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p>
     <div class="score" id="dscore"></div></div></div>`;
 }
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
-  const ranchBtn = e.saved ? `<button class="btn go wide" data-act="view" data-v="store">Build Clara's ranch</button>` : "";
+  const ranchBtn = e.saved ? `<button class="btn go wide" data-act="view" data-v="store">Build the family ranch</button>` : "";
   if (g?.free) return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>${ranchBtn}<button class="btn go wide" data-act="game" data-g="${g.kind}" data-n="5" data-free="1">PLAY AGAIN</button><button class="btn dark wide" data-act="view" data-v="arcade">Pick another game</button><button class="btn dark wide" data-act="view" data-v="home">Back to the map</button>`;
   return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>${ranchBtn}
   ${g ? `<button class="btn dark wide" data-act="game" data-g="${g.kind}" data-n="5" data-free="1">PLAY AGAIN</button>` : ""}
@@ -1608,7 +1615,7 @@ function arcadeView() {
   <p class="center sub">Play as much as you want. Money only comes from solving math.</p>
   <div class="games">
     <button class="game" data-act="game" data-g="run" data-n="5" data-free="1"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
-    <button class="game" data-act="game" data-g="kick" data-n="5" data-free="1"><h3>Penalty Kicks</h3><span class="sub">Stop the target. Beat the keeper.</span></button>
+    <button class="game" data-act="game" data-g="kick" data-n="5" data-free="1"><h3>Penalty Kicks</h3><span class="sub">Tap the goal. Stay out of the keeper's zone.</span></button>
     <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap the screen when you see DRAW.</span></button>
   </div>`;
 }
@@ -1620,16 +1627,16 @@ function rewardView() {
 const RANCH = [
   { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 300 },
   { id: "well", name: "Water well", note: "Every ranch needs water", cost: 400 },
-  { id: "garden", name: "Clara's flower garden", note: "Her favorite spot", cost: 500 },
+  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 500 },
   { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 600 },
   { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 700 },
   { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 900 },
   { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 1100 },
   { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 1500 }
 ];
-function ranchSvg() {
+function ranchSvg(place = "") {
   const has = (id) => (S.owned || []).includes(id);
-  return `<svg class="ranch" viewBox="0 0 400 240" role="img" aria-label="Clara's ranch with ${(S.owned || []).length} things built"><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fa8d6"/><stop offset=".7" stop-color="#ffd9a0"/></linearGradient><linearGradient id="rLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb5c"/><stop offset="1" stop-color="#6d8c3c"/></linearGradient></defs>
+  return `<svg class="ranch" ${place} viewBox="0 0 400 240" role="img" aria-label="The family ranch with ${(S.owned || []).length} things built"><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fa8d6"/><stop offset=".7" stop-color="#ffd9a0"/></linearGradient><linearGradient id="rLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb5c"/><stop offset="1" stop-color="#6d8c3c"/></linearGradient></defs>
     <rect width="400" height="240" fill="url(#rSky)"/><circle cx="330" cy="46" r="20" fill="#ffe59a"/><path d="M0 130l50-44 46 34 58-52 62 50 54-38 66 42 64-30v60H0z" fill="#8c6b8f" opacity=".7"/><path d="M0 138c80-14 300-14 400 0v102H0z" fill="url(#rLand)"/>
     ${has("windmill") ? `<g transform="translate(345 128)"><path d="M-8 50L-2-30h4L8 50zM-5 25h10M-4 5h8" fill="none" stroke="#5a4632" stroke-width="2.500"/><g class="rmill" transform="translate(0 -32)"><path d="M0 0L-3-24h6zM0 0L24-3v6zM0 0L3 24h-6zM0 0L-24 3v-6z" fill="#e8e3d3" stroke="#5a4632"/></g></g>` : ""}
     ${has("barn") ? `<g transform="translate(262 92)"><path d="M0 34L14 10 40 0 66 10 80 34V92H0z" fill="#a8342c"/><path d="M0 34L14 10 40 0 66 10 80 34" fill="none" stroke="#4d1a15" stroke-width="3"/><rect x="26" y="52" width="28" height="40" fill="#7c241e" stroke="#f3ead8" stroke-width="2"/><path d="M26 52l28 40M54 52L26 92" stroke="#f3ead8" stroke-width="2"/><rect x="33" y="24" width="14" height="12" fill="#2c1a0e" stroke="#f3ead8" stroke-width="1.500"/></g>` : ""}
@@ -1639,7 +1646,7 @@ function ranchSvg() {
     ${has("garden") ? `<g transform="translate(40 196)">${[0, 26, 52, 78, 104, 130].map((fx, n) => `<g transform="translate(${fx} ${n % 2 ? 6 : 0})"><path d="M0 18V4" stroke="#3a6d2c" stroke-width="2"/><circle r="5" cy="2" fill="${["#e23b57", "#ffd23f", "#d96bb0"][n % 3]}"/><circle r="2" cy="2" fill="#fff3d9"/></g>`).join("")}</g>` : ""}
     ${has("corral") ? `<g transform="translate(250 190)"><path d="M0 8h120M0 24h120M0 0v34M40 0v34M80 0v34M120 0v34" stroke="#6e4726" stroke-width="3"/><g transform="translate(62 16) scale(.8)"><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a"/></g></g>` : ""}
     ${has("fence") ? `<g transform="translate(0 222)"><path d="M0 0H400M0 10H400" stroke="#7d5530" stroke-width="3"/>${Array.from({ length: 11 }, (_, n) => `<path d="M${n * 40} -6V16" stroke="#5a3a1e" stroke-width="4"/>`).join("")}</g>` : ""}
-    ${(S.owned || []).length ? "" : `<g transform="translate(200 186)"><rect x="-96" y="-18" width="192" height="34" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Clara's Ranch: build here</text></g>`}
+    ${(S.owned || []).length ? "" : `<g transform="translate(200 186)"><rect x="-96" y="-18" width="192" height="34" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Family Ranch: build here</text></g>`}
   </svg>`;
 }
 // Rider gear used to be for sale. Now the store builds the ranch, so that money goes back to him.
@@ -1654,7 +1661,7 @@ function storeView() {
     const own = S.owned.includes(g.id);
     return `<div class="item"><div><b>${esc(g.name)}</b><span class="sub">${esc(g.note)}</span></div>${own ? `<span class="builtmark">&#10003; Built</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
-  return `<div class="hud"><button class="btn dark small" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>Map</button><h2>General Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero">${ranchSvg()}<p class="sub center">Build a ranch for you and Clara. ${S.owned.length} of ${RANCH.length} built.</p></div><div class="shop">${items}</div></div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
+  return `<div class="hud"><button class="btn dark small" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>Map</button><h2>General Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero">${ranchSvg()}<p class="sub center">Build the family ranch for you and Nora. ${S.owned.length} of ${RANCH.length} built. It shows up on your maps too.</p></div><div class="shop">${items}</div></div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
 }
 
 /* ---------- parents ---------- */
@@ -1715,45 +1722,70 @@ function parentView() {
 }
 
 /* ---------- mini games ---------- */
-let kick = null, kickTimer = 0, duel = null;
+let kick = null, duel = null;
+let kickTap = null;
+document.addEventListener("pointerdown", (e) => { kickTap = [e.clientX, e.clientY]; }, true);
+const kickReach = () => 74 + 34 * (kick.shots.length / Math.max(1, kick.n - 1));
 function startKick() {
-  kick = { shots: [], n: U.game.n, phase: "aim", t: 0, x: 180 };
+  kick = { shots: [], n: U.game.n, phase: "aim", t: 0, kx: 180, last: performance.now() };
   drawScore("kscore", kick.shots, kick.n); placeKeeper(180);
-  kickTimer = setInterval(() => {
-    if (kick.phase !== "aim") return;
-    kick.t += .055; kick.x = 180 + 105 * Math.sin(kick.t * (1 + kick.shots.length * .18));
-    document.getElementById("aim")?.setAttribute("transform", `translate(${kick.x} 0)`);
-  }, 30);
+  requestAnimationFrame(kickLoop);
+}
+function kickBall(x, y, sc) { document.getElementById("kball")?.setAttribute("transform", `translate(${x - 15 * sc} ${y - 15 * sc}) scale(${sc})`); }
+function kickTilt(deg) { const b = document.querySelector("#keeper .kbody"); if (b) b.style.transform = deg ? `rotate(${deg}deg)` : ""; }
+function kickBand() {
+  const r = kickReach(), x1 = Math.max(60, kick.kx - r), x2 = Math.min(300, kick.kx + r), el = document.getElementById("kband");
+  if (el) { el.setAttribute("x", x1); el.setAttribute("width", Math.max(0, x2 - x1)); }
+}
+function kickLoop(now) {
+  if (!kick || !document.getElementById("pitch")) return;
+  const dt = Math.min(50, now - kick.last) / 1000; kick.last = now;
+  if (kick.phase === "aim" || kick.phase === "windup") {
+    kick.t += dt * (1.5 + kick.shots.length * .3);
+    kick.kx = 180 + 88 * Math.sin(kick.t) * (.8 + .2 * Math.sin(kick.t * .37));
+    placeKeeper(kick.kx); kickBand();
+    if (kick.phase === "windup") {
+      const w = Math.min(1, (now - kick.at) / 240); kickBall(180, 205 + 7 * Math.sin(w * Math.PI), 1);
+      if (w >= 1) {
+        const reach = kickReach(); kick.phase = "fly"; kick.at = now; kick.saved = Math.abs(kick.tx - kick.kx) <= reach; kick.from = kick.kx;
+        kick.to = kick.saved ? kick.tx : kick.kx + Math.sign(kick.tx - kick.kx || 1) * reach * .9; beep(THUD);
+        document.getElementById("kband")?.setAttribute("width", "0");
+      }
+    }
+  } else if (kick.phase === "fly") {
+    const raw = Math.min(1, (now - kick.at) / (reduced ? 120 : 440)), k = 1 - (1 - raw) * (1 - raw);
+    kickBall(180 + (kick.tx - 180) * k, 205 + (kick.ty - 205) * k - 26 * Math.sin(k * Math.PI), 1 - .5 * k);
+    placeKeeper(kick.from + (kick.to - kick.from) * k); kickTilt(Math.sign(kick.to - kick.from) * 62 * k);
+    if (raw >= 1) {
+      kick.phase = "result"; kick.at = now; kick.shots.push(!kick.saved); drawScore("kscore", kick.shots, kick.n);
+      const call = document.getElementById("call");
+      if (call) call.textContent = kick.saved ? "Saved! Stay out of his zone." : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
+      if (kick.saved) beep(NOPE);
+      else { kickTilt(0); document.getElementById("keeper")?.classList.add("down"); S.goals++; if (!U.game?.free) earn(8); beep(CHIME); confetti(16); W.shake = 8; save(); }
+    }
+  } else if (kick.phase === "result") {
+    if (kick.saved) { const b = Math.min(1, (now - kick.at) / 300); kickBall(kick.tx + Math.sign(kick.tx - 180 || 1) * 40 * b, kick.ty + 70 * b * b, .5); }
+    if (now - kick.at > (reduced ? 500 : 1250)) {
+      if (kick.shots.length >= kick.n) return finishKick();
+      document.getElementById("keeper")?.classList.remove("down"); kickTilt(0); kickBall(180, 205, 1);
+      document.getElementById("aim")?.setAttribute("opacity", "0");
+      const call = document.getElementById("call"); if (call) call.textContent = `Shot ${kick.shots.length + 1} of ${kick.n}. Tap the goal away from his zone!`;
+      kick.phase = "aim"; kick.t += .9;
+    }
+  }
+  requestAnimationFrame(kickLoop);
 }
 function drawScore(id, shots, n) { const el = document.getElementById(id); if (el) el.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${shots[i] === true ? "g" : shots[i] === false ? "m" : ""}"></i>`).join(""); }
 function placeKeeper(x) { document.getElementById("keeper")?.setAttribute("transform", `translate(${x} 0)`); }
 function shoot() {
   if (!kick || kick.phase !== "aim") return;
-  kick.phase = "fly";
-  const btn = document.getElementById("kbtn"); if (btn) btn.disabled = true;
-  beep(THUD);
-  const zones = [85, 180, 275], guess = Math.random() < .2 ? kick.x : pick(zones), saved = Math.abs(guess - kick.x) < 30, tx = kick.x, dur = reduced ? 1 : 420, t0 = performance.now();
-  const anim = setInterval(() => {
-    const k = Math.min(1, (performance.now() - t0) / dur), ball = document.getElementById("kball");
-    if (!ball) { clearInterval(anim); return; }
-    ball.setAttribute("transform", `translate(${180 + (tx - 180) * k - 15} ${205 - 115 * k})`); placeKeeper(180 + (guess - 180) * k);
-    if (k < 1) return;
-    clearInterval(anim);
-    kick.shots.push(!saved); drawScore("kscore", kick.shots, kick.n);
-    const call = document.getElementById("call");
-    if (call) call.textContent = saved ? "Saved! Tap to try again" : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
-    document.getElementById("keeper")?.classList.toggle("down", !saved);
-    if (!saved) { S.goals++; if (!U.game?.free) earn(8); beep(CHIME); confetti(16); W.shake = 8; save(); } else beep(NOPE);
-    setTimeout(() => {
-      if (!document.getElementById("kball")) return;
-      if (kick.shots.length >= kick.n) return finishKick();
-      ball.setAttribute("transform", "translate(165 205)"); placeKeeper(180); document.getElementById("keeper")?.classList.remove("down");
-      if (btn) btn.disabled = false; if (call) call.textContent = `Shot ${kick.shots.length + 1} of ${kick.n}. Tap anywhere!`;
-      kick.phase = "aim";
-    }, reduced ? 400 : 900);
-  }, 16);
+  const svg = document.getElementById("pitch"); let tx = 90, ty = 80;
+  if (svg && kickTap) { const m = svg.getScreenCTM(), p = svg.createSVGPoint(); p.x = kickTap[0]; p.y = kickTap[1]; const g = p.matrixTransform(m.inverse()); tx = g.x; ty = g.y; }
+  kick.tx = Math.max(76, Math.min(284, tx)); kick.ty = Math.max(54, Math.min(126, ty));
+  document.getElementById("aim")?.setAttribute("transform", `translate(${kick.tx} ${kick.ty - 88})`); document.getElementById("aim")?.setAttribute("opacity", "1");
+  kick.phase = "windup"; kick.at = performance.now(); beep(BLIP);
 }
-function finishKick() { clearInterval(kickTimer); const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
+function finishKick() { kick.phase = "done"; const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
 function gunshot(vol = 1, ricochet = false) {
   if (S.muted) return;
   try {
@@ -1779,10 +1811,10 @@ function gunshot(vol = 1, ricochet = false) {
 }
 // The outlaw talks in a speech bubble over the street.
 const OUTLAW_LINES = {
-  start: ["You'll never get Clara back, stranger.", "This town ain't big enough for the both of us.", "You got guts, stranger. I'll give you that.", "Reach for it, partner, if you dare.", "You feelin' quick today, stranger?", "I've outdrawn better than you before breakfast.", "Last chance to ride on out of town."],
+  start: ["You'll never get Nora back, stranger.", "This town ain't big enough for the both of us.", "You got guts, stranger. I'll give you that.", "Reach for it, partner, if you dare.", "You feelin' quick today, stranger?", "I've outdrawn better than you before breakfast.", "Last chance to ride on out of town."],
   win: ["Too slow, partner.", "Better go find your hat, stranger.", "Keep practicin', kid. You'll get there."],
   early: ["Easy there! Nobody said draw yet.", "Ha! Jumped the gun, did ya?"],
-  lose: ["Ya got me. Clara's free to go.", "Ya got me, stranger.", "Well, I'll be. That was quick.", "Aw, shucks. Never saw it comin'."],
+  lose: ["Ya got me. Nora's free to go.", "Ya got me, stranger.", "Well, I'll be. That was quick.", "Aw, shucks. Never saw it comin'."],
 };
 function outlawSay(kind) {
   const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay");
@@ -1826,7 +1858,7 @@ function duelResult(win, line, early) {
   if (win) { S.wins++; if (!U.game?.free) earn(8); gunshot(); outlawSay("lose"); confetti(14); save(); } else if (early) { beep(NOPE); outlawSay("early"); } else { gunshot(1, true); outlawSay("win"); }
   setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
-    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; const saved = w > duel.n / 2; if (saved) S.saved = (S.saved || 0) + 1; U.gameEnd = { saved, title: saved ? "You saved Clara!" : "Clara's still counting on you", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`} ${saved ? "Now go build her a ranch at the General Store." : "Win more than half to save her."}` }; U.view = "gameEnd"; render(); return; }
+    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; const saved = w > duel.n / 2; if (saved) S.saved = (S.saved || 0) + 1; U.gameEnd = { saved, title: saved ? "You saved Nora!" : "Nora's still counting on you", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`} ${saved ? "Now go build the family ranch at the General Store." : "Win more than half to save her."}` }; U.view = "gameEnd"; render(); return; }
     duelRound();
   }, 2400);
 }
@@ -2371,6 +2403,14 @@ const acts = {
     if (d.g === "kick") startKick();
     if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "intro" }; drawScore("dscore", duel.shots, duel.n); }
   },
+  leaveGame() {
+    const paid = U.game && !U.game.free;
+    if (kick) { kick.phase = "done"; kick = null; }
+    if (duel) { clearTimeout(duel.timer); clearInterval(duel.bar); duel = null; }
+    if (W.run) { W.run = null; stopMusic(); worldSize(200); }
+    try { speechSynthesis.cancel(); } catch (e) {}
+    U.game = null; U.view = paid ? "rideEnd" : "arcade"; render(); window.scrollTo(0, 0);
+  },
   skipGame() { U.game = null; U.gameEnd = { title: "Back in the saddle", line: "Your boosts are safe with Silver. He ate two." }; U.view = "gameEnd"; render(); },
   jump: runJump, dash: runDash, shoot,
   fire() {
@@ -2475,13 +2515,12 @@ function arrange() {
   });
 }
 function render() {
-  clearInterval(kickTimer);
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
   canvas.hidden = ["parent", "home", "town", "move"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
   const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
-  try { app.innerHTML = views[U.view](); }
+  try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
   drawMatchArrows();
