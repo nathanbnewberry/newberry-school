@@ -324,6 +324,9 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 @keyframes tear{from{transform:translateY(0);opacity:1}to{transform:translate(-3px,14px);opacity:0}}
 @media (orientation:landscape) and (min-width:800px){body[data-view="game-kick"] #app{overflow:hidden}.kickgame{min-height:0;height:100%}}
 .badge{background:var(--panel2);color:var(--gold);padding:6px 12px;border-radius:999px;font-weight:700;font-size:.9rem}
+.duelhud{position:absolute;left:0;right:0;top:10px;display:grid;gap:4px;justify-items:center;text-align:center;pointer-events:none;padding-inline:16px}.duelhud .big{font-size:clamp(2.2rem,6vw,3.4rem);min-height:1.1em}.duelhud p{background:rgba(18,20,43,.78);color:#fff;padding:6px 16px;border-radius:12px;max-width:760px;font-size:1.05rem}
+.duelgame #duelScene{max-height:none!important}
+@media (orientation:landscape) and (min-width:800px){body[data-view="game-duel"] #app{overflow:hidden}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1225,19 +1228,18 @@ function gameView() {
       <g class="dhat"><ellipse cy="-14" rx="29" ry="5" fill="${hat}"/><rect x="-14" y="-32" width="28" height="18" rx="6" fill="${hat}"/></g>
       <path class="blood" d="M0 30l5 9 9-5-4 10 10 3-10 4 5 10-10-5-5 10-4-10-10 4 5-10-9-5 10-2-2-11z" fill="#d11a2a"/>
     </g></g>`;
-  return `<div class="console center duelgame"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" data-act="fire" role="img" aria-label="Elliot and an outlaw face each other on a dusty street">
+  return `<div class="kickgame duelgame" data-act="fire"><div class="scene"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Elliot and an outlaw face each other on a dusty street">
       <rect width="640" height="300" fill="#8ec9e8"/><circle cx="320" cy="44" r="30" fill="#ffe27a"/>
       <path d="M0 215H640V300H0Z" fill="#d9b071"/><path d="M0 150h110v65H0zM530 140h110v75H530z" fill="#a8703a"/><path d="M15 165h30v30H15zM60 165h30v30H60zM548 155h30v30h-30zM592 155h30v30h-30z" fill="#3a2412"/><path d="M-6 150h122l-8-14H2zM524 140h122l-8-14H532z" fill="#6b3f1d"/>
-      ${fighter(150, 1, S.worn.jersey ? "#c8202c" : "#3f6fb0", S.worn.blackhat ? "#23222a" : "#b98a4e", "#f2d262", "#f4cda8", "f-you")}
-      ${fighter(490, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
-      <text x="150" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="490" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text>
+      ${fighter(195, 1, S.worn.jersey ? "#c8202c" : "#3f6fb0", S.worn.blackhat ? "#23222a" : "#b98a4e", "#f2d262", "#f4cda8", "f-you")}
+      ${fighter(405, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
+      <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text>
       <g id="flash"><path d="M0 0" /></g>
       <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
-    </svg>
-    <div class="big" id="duelCall" style="min-height:1.2em;font-size:2.2rem">High Noon</div>
-    <p id="duelSub">An outlaw wants a duel. When you see <strong>DRAW!</strong>, tap FIRE before his red bar fills up. If you tap too early, you lose the round.</p>
-    <div class="score" id="dscore"></div>
-    <button class="btn go wide" id="dbtn" data-act="fire" style="min-height:100px;font-size:1.8rem">I'M READY</button></div>`;
+    </svg></div>
+    <div class="duelhud"><div class="big" id="duelCall">High Noon</div>
+    <p id="duelSub">When you see <strong>DRAW!</strong>, tap the screen before his red bar fills up. Too early and you lose the round. <strong>Tap anywhere to start.</strong></p>
+    <div class="score" id="dscore"></div></div></div>`;
 }
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
@@ -1262,7 +1264,7 @@ function arcadeView() {
   <div class="games">
     <button class="game" data-act="game" data-g="run" data-n="5" data-free="1"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="5" data-free="1"><h3>Penalty Kicks</h3><span class="sub">Stop the target. Beat the keeper.</span></button>
-    <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap FIRE when you see DRAW.</span></button>
+    <button class="game" data-act="game" data-g="duel" data-n="5" data-free="1"><h3>High Noon</h3><span class="sub">Duel an outlaw. Tap the screen when you see DRAW.</span></button>
   </div>`;
 }
 function rewardView() {
@@ -1393,13 +1395,13 @@ function duelRound() {
   clearInterval(duel.bar); clearTimeout(duel.timer);
   duel.state = "wait"; duelState("wait");
   call.textContent = "Wait for it..."; call.style.color = "";
-  sub.textContent = `Round ${duel.shots.length + 1} of ${duel.n}. Don't tap yet.`;
+  sub.textContent = `Round ${duel.shots.length + 1} of ${duel.n}. Don't tap yet!`;
   if (btn) { btn.textContent = "FIRE"; btn.disabled = false; }
   document.getElementById("drawBar")?.setAttribute("opacity", "0"); document.getElementById("drawFill")?.setAttribute("width", "0");
   duel.timer = setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
     duel.state = "draw"; duel.at = performance.now(); duelState("draw");
-    call.textContent = "DRAW!"; call.style.color = "var(--red)"; sub.textContent = "Tap FIRE now!"; beep(BLIP);
+    call.textContent = "DRAW!"; call.style.color = "var(--red)"; sub.textContent = "Tap the screen now!"; beep(BLIP);
     duel.limit = 800 + Math.random() * 400;
     document.getElementById("drawBar")?.setAttribute("opacity", ".85");
     duel.bar = setInterval(() => {
