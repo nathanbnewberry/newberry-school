@@ -565,6 +565,21 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 #ranchLive .swing{animation:swingp 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 0}@keyframes swingp{50%{transform:rotate(6deg)}}#ranchLive .wellshine{animation:wshine 2s ease-in-out infinite}@keyframes wshine{50%{opacity:.3}}
 .hugscene{width:clamp(180px,20.5vw,240px)}.gamepicks.small .gameart{height:clamp(44px,8.5vh,66px);aspect-ratio:auto}.gamepicks.small .gametext{padding:3px 8px}.gamepicks.small h3{font-size:.95rem;margin:0}.hughead~.games .shopcard{padding:6px 10px}.hughead~.games .shopcard .btn{min-height:40px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.hugscene{width:140px}.hughead .nextbtn{min-height:48px;margin-top:2px}.hughead p{margin:1px 0}.hughead~.games .shopcard .itempic{width:48px;height:36px}.hughead~.games .shopcard .btn{min-height:34px;padding:2px 8px}.hughead~.games .shopcard .sub{display:none}.gamepicks.small .sub{display:none}.hughead~.tag{margin:1px 0 0}}
+.ptrail{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:14px}.pline{position:relative;height:50px;margin-right:30px}
+.ptrack{position:absolute;left:0;right:0;bottom:2px;display:flex;gap:3px;height:15px;background:#c9a874;border-radius:8px;padding:2px;box-shadow:inset 0 1px 3px rgba(0,0,0,.35)}.ptrack i{flex:1;border-radius:5px;background:rgba(255,255,255,.28)}.ptrack i.on{background:linear-gradient(#35c46f,#1f9a4f)}.ptrack i.now{background:#ffd23f;animation:ptracknow 1s ease-in-out infinite}@keyframes ptracknow{50%{opacity:.5}}
+.prider{position:absolute;bottom:6px;left:var(--to);width:44px;margin-left:-22px;animation:prride 1s ease-out}.prider svg{width:100%;display:block}@keyframes prride{from{left:var(--from)}to{left:var(--to)}}
+.pnora{position:absolute;right:-30px;bottom:0;width:30px;height:48px}.ptrail.close .pnora{animation:norawave .5s ease-in-out infinite alternate}@keyframes norawave{to{transform:translateY(-7px)}}
+.pmsg{margin:0;font-size:clamp(1rem,2.8vh,1.35rem);font-weight:800;color:#17663a;white-space:nowrap}.pmsg b{color:#1c5a8f;margin-right:6px}.ptrail.close .pmsg{color:#c8202c;animation:pmsgpop .7s ease-in-out infinite alternate}@keyframes pmsgpop{to{transform:scale(1.05)}}.ptrail.won .pmsg{color:#17663a}
+.ftrail{display:inline-flex;align-items:center;gap:8px}.ftrailbar{display:inline-flex;gap:3px}.ftrailbar i{width:24px;height:10px;border-radius:4px;background:#ddd5c2}.ftrailbar i.on{background:#1f9a4f}.ftrailbar i.now{background:#e8a317}.ftrail b{font-size:.92rem;font-weight:800;color:#17663a;white-space:nowrap}
+.solvedpage .ptrail{margin-top:8px}
+@media (orientation:landscape) and (min-width:800px){.centered{max-width:none}.solvedpage{width:100%}}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.pline{height:40px}.prider{width:36px;margin-left:-18px}.pnora{height:38px;width:24px;right:-24px}.ftrailbar i{width:16px}}
+.trailcard{background:#fbf3df;border-radius:12px;padding:8px 14px}.trailcard .pline{height:72px;margin-right:46px}.trailcard .prider{width:66px;margin-left:-33px;bottom:8px}.trailcard .pnora{width:46px;height:70px;right:-46px}.trailcard .ptrack{height:22px}.trailcard .pmsg{font-size:clamp(1.15rem,3.6vh,1.7rem)}
+.almostring{animation:almostr 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes almostr{50%{transform:scale(1.14);opacity:.55}}
+.ptrail.close .ptrack i.now{background:#ff7a3c}
+.ftrail b{font-size:1rem}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.trailcard{padding:4px 12px}.trailcard .pline{height:54px;margin-right:36px}.trailcard .prider{width:50px;margin-left:-25px}.trailcard .pnora{width:36px;height:54px;right:-36px}.trailcard .ptrack{height:16px}}
+.problempage .pgrid:not(.cols) .pmath .pbody{font-size:1.25rem;line-height:1.08}.problempage .pgrid:not(.cols) .pcell{padding-block:6px}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1227,7 +1242,7 @@ function townMapSvg(l) {
   const pts = TOWN_PTS.slice(0, l.rides.length);
   const stops = l.rides.map((r, i) => {
     const [x, y] = pts[i], done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
-    return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? doneMark(26, -28) : ""}${next ? `<g transform="translate(0 -56)"><rect x="-44" y="-14" width="88" height="24" rx="6" fill="#c8202c"/><text y="4" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="15" fill="#fff">NEXT</text></g>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, done ? "Finished" : r.problems && r.problems.some((id) => PP(lp, id).done) ? `${r.problems.filter((id) => PP(lp, id).done).length} of ${r.problems.length} solved` : r.blurb, done ? "#0f6b34" : "")}</g>`;
+    return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${!done && !locked && r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? `<circle class="almostring" r="46" fill="rgba(255,210,63,.3)" stroke="#ffd23f" stroke-width="5"/>` : ""}${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? doneMark(26, -28) : ""}${next ? `<g transform="translate(0 -56)"><rect x="-44" y="-14" width="88" height="24" rx="6" fill="#c8202c"/><text y="4" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="15" fill="#fff">NEXT</text></g>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, done ? "Finished" : r.problems && r.problems.some((id) => PP(lp, id).done) ? (r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "Just 1 left! Almost done!" : `${r.problems.filter((id) => PP(lp, id).done).length} of ${r.problems.length} solved`) : r.blurb, done ? "#0f6b34" : r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "#c8202c" : "")}${!done && r.problems && r.problems.some((id) => PP(lp, id).done) ? (() => { const f = r.problems.filter((id) => PP(lp, id).done).length / r.problems.length; return `<rect x="${x - 44}" y="${y + 66}" width="88" height="9" rx="4.500" fill="#3a2412"/><rect x="${x - 42}" y="${y + 68}" width="${84 * f}" height="5" rx="2.500" fill="#ffc42e"/>`; })() : ""}</g>`;
   }).join("");
   return `<svg class="map" viewBox="0 0 1180 640" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(1180, 640)}
     <path d="M6 96H1174" stroke="#3a2412" stroke-width="6"/><path d="M6 96H1174" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
@@ -1278,7 +1293,7 @@ const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
   return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span>${navRight()}</div>
-  ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`); })()}
+  ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
@@ -1338,10 +1353,9 @@ function pageView(l, r) {
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
       ${q.refs ? `<i class="prefs">${esc(q.refs)}</i>` : ""}${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
-  const dots = r.problems.map((id) => `<i class="${PP(lp, id).done ? "on" : ""}"></i>`).join("");
   const explain = nextUp?.coach ? `<button class="btn go pgexplain" data-act="explainNext" data-id="${esc(nextUp.id)}">Silver explains problem ${esc(nextUp.id)}</button>` : "";
   return hudRide() + bubble(done === 0 ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
-    `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>Lesson ${esc(l.bookLesson)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div><div class="pgprog"><span>${done} of ${total} done</span><div class="pgdots">${dots}</div></div>${explain}</div><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
+    `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>Lesson ${esc(l.bookLesson)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div>${explain}</div>${progressTrail(r, lp)}<div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function openChart() {
@@ -1453,10 +1467,25 @@ function boardHtml(c, stepIdx, finished) {
   });
   return `<div class="boardwrap"><div class="board" style="grid-template-columns:repeat(${b.cols},auto)">${out.join("")}</div></div>`;
 }
+function trailWords(done, total) {
+  const left = total - done;
+  if (!left) return "All done! You made it!";
+  if (left === 1) return "Just 1 more! Almost there!";
+  if (done / total >= .5) return `Almost done! Only ${left} to go!`;
+  if (done) return `Nice! ${left} to go.`;
+  return `${total} to go. Let's ride!`;
+}
+// Elliot rides along the section's problems toward Nora at the finish.
+function progressTrail(r, lp) {
+  const total = r.problems.length, done = r.problems.filter((id) => PP(lp, id).done).length, left = total - done, pct = total ? (done / total) * 100 : 0;
+  U.trailAt = U.trailAt || {}; const from = U.trailAt[r.id] ?? pct; U.trailAt[r.id] = pct;
+  return `<div class="ptrail ${left <= 1 ? "close" : ""} ${left === 0 ? "won" : ""}" aria-label="${done} of ${total} problems done"><div class="pline"><div class="ptrack">${r.problems.map((id, n) => `<i class="${n < done ? "on" : n === done ? "now" : ""}"></i>`).join("")}</div><div class="prider" style="--from:${from}%;--to:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></div><svg class="pnora" viewBox="-13 -40 26 42" aria-hidden="true"><path d="M-3.500-27h7l3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="pnoraarm" d="M3-25l6-8" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></svg></div><p class="pmsg"><b>${done} of ${total}</b> ${esc(trailWords(done, total))}</p></div>`;
+}
 function focusDots(q) {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
   if (!r?.problems || !r.problems.includes(q.id)) return "";
-  return `<span class="fdots" aria-label="Progress in this section">${r.problems.map((id) => `<i class="${PP(lp, id).done ? "on" : id === q.id ? "now" : ""}"></i>`).join("")}</span>`;
+  const done = r.problems.filter((id) => PP(lp, id).done).length, left = r.problems.length - done;
+  return `<span class="ftrail" aria-label="${done} of ${r.problems.length} problems done"><span class="ftrailbar">${r.problems.map((id) => `<i class="${PP(lp, id).done ? "on" : id === q.id ? "now" : ""}"></i>`).join("")}</span><b>${left === 1 ? "Last one!" : `${left} to go`}</b></span>`;
 }
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
@@ -1540,7 +1569,7 @@ function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
-      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button><button class="link dk" data-act="closeq">See all the problems</button>`;
+      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
     const log = U.stepLog || [];
@@ -2420,7 +2449,7 @@ function goFullscreen() {
   const el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
   try { const p = ask?.call(el); p?.catch?.(() => {}); } catch (e) {}
 }
-document.addEventListener("pointerup", goFullscreen, { once: true });
+document.addEventListener("pointerup", goFullscreen);
 let lastActive = Date.now(), driftStage = 0;
 ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, () => { lastActive = Date.now(); driftStage = 0; document.querySelectorAll(".attn").forEach((el) => el.classList.remove("attn")); }, true));
 function sayNow(t) {
