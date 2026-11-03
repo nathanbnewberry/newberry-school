@@ -340,6 +340,19 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   .split .btn,.split .skipbtn{min-height:42px;padding-block:6px;font-size:.95rem}
   .split>.right{gap:6px}.pcell{min-height:50px;padding:6px}
 }
+@media (orientation:landscape) and (min-width:800px){
+  body[data-view="ride"] #shell{grid-template-columns:auto 230px minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:6px 10px}
+  body[data-view="ride"] #topbar{display:contents}
+  body[data-view="ride"] #topbar .hud{grid-column:1;grid-row:1;align-self:center;flex-wrap:nowrap}
+  body[data-view="ride"] #topbar .hud .row-btns{flex-wrap:nowrap}
+  body[data-view="ride"] #topbar .hud .chip.nug{display:none}
+  body[data-view="ride"] #topbar .mapbtn{display:inline-block}
+  body[data-view="ride"] #world{grid-column:2;grid-row:1;cursor:default;align-self:center}
+  body[data-view="ride"] #topbar .biscuit{grid-column:3;grid-row:1;order:0}
+  body[data-view="ride"] #topbar .askbar{grid-column:1/-1;grid-row:2;align-items:center}
+  body[data-view="ride"] #app{grid-column:1/-1;grid-row:3}
+  .askbar>.chip{white-space:nowrap}.askbar>.pips{flex:none}
+}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -355,7 +368,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=89e6340a94"></script>
+<script src="lessons.js?v=495f12a671"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -647,8 +660,13 @@ function worldDraw() {
     c.textAlign = "center"; c.fillStyle = "#ffc42e"; c.font = "400 54px Rye,Georgia,serif"; c.shadowColor = "#000"; c.shadowOffsetY = 4; c.shadowBlur = 0;
     c.fillText("OUTLAW RUN", 360, H * .34); c.font = "400 19px Rye,Georgia,serif"; c.fillStyle = "#f2f3ff"; c.fillText("Elliot vs. the Math Gang", 360, H * .34 + 28); c.shadowColor = "transparent"; c.shadowOffsetY = 0;
   }
-  if (U.view === "ride") { c.fillStyle = "rgba(255,196,46,.95)"; c.beginPath(); c.roundRect(10, 8, 170, 66, 12); c.fill(); c.fillStyle = "#2c1a0e"; c.textAlign = "center"; c.font = "400 50px Rye,Georgia,serif"; c.fillText("MAP", 95, 58); }
-  if (W.textT > 0) { W.textT--; c.textAlign = "center"; c.font = "400 34px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.shadowColor = "#000"; c.shadowOffsetY = 3; c.fillText(W.text, 360, 44 + (55 - W.textT) * -.2 + 10); c.shadowColor = "transparent"; c.shadowOffsetY = 0; }
+  if (U.view === "ride") {
+    const text = `$${S.nuggets}`;
+    c.font = "400 62px Rye,Georgia,serif"; const tw = c.measureText(text).width;
+    c.fillStyle = "rgba(44,26,14,.9)"; c.beginPath(); c.roundRect(712 - tw - 40, 6, tw + 40, 72, 18); c.fill();
+    c.fillStyle = "#ffc42e"; c.textAlign = "right"; c.fillText(text, 692, 62);
+  }
+  if (W.textT > 0) { W.textT--; c.textAlign = "center"; c.font = "400 34px Rye,Georgia,serif"; c.fillStyle = "#ffc42e"; c.shadowColor = "#000"; c.shadowOffsetY = 3; c.fillText(W.text, U.view === "ride" ? 260 : 360, 44 + (55 - W.textT) * -.2 + 10); c.shadowColor = "transparent"; c.shadowOffsetY = 0; }
 }
 const ballSprite = new Image();
 ballSprite.src = "data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#222" stroke-width="1.5"/><path fill="#222" d="m12 7.5 4.3 3.100-1.600 5h-5.400l-1.600-5zM12 1.300l-3 2.300 3 2 3-2zM22.500 10.500l-3.500-1.300-1 3.600 3 2.200zM1.500 10.500l3.500-1.300 1 3.600-3 2.200zM6.800 20.500l1.800-3.300h6.800l1.800 3.300-3.300 2h-3.800z"/></svg>');
@@ -986,14 +1004,14 @@ function syncCellDraft(b) {
   U.draft = U.cells.some((v) => v !== undefined) ? text.replace(/^\./, "0.") : "";
 }
 function vertCells(b) {
-  const row = (t) => t.replace(/\s/g, "").split(""), lay = cellLayout(b), top = row(b.top), bot = row(b.bottom);
-  const cols = Math.max(top.length, bot.length + 1, lay.length);
+  const row = (t) => t.replace(/\s/g, "").split(""), lay = cellLayout(b), top = row(b.top), bot = row(b.bottom), mids = (b.mid || []).map(row);
+  const cols = Math.max(top.length, bot.length + 1, lay.length, ...mids.map((m) => m.length));
   const pad = (arr) => [...Array(cols - arr.length).fill(""), ...arr];
   const botRow = pad(bot); const opAt = botRow.findIndex((x) => x !== "") - 1; if (opAt >= 0) botRow[opAt] = b.op; else botRow[0] = b.op;
   const cell = (t) => `<span class="vc">${esc(t)}</span>`;
   const carryRow = pad(top).map((ch, col) => (/\d/.test(ch) ? `<button class="cc ${U.carryAt === col ? "on" : ""}" data-act="carry" data-i="${col}" aria-label="Carry box">${esc(U.carries?.[col] ?? "")}</button>` : `<span class="vc"></span>`)).join("");
   const answer = pad(lay).map((x) => (x === "" ? `<span class="vc"></span>` : typeof x === "number" ? `<button class="ac ${U.cellAt === x ? "on" : ""}" data-act="cell" data-i="${x}" aria-label="Answer box ${x + 1} from the right">${U.cells[x] ?? ""}</button>` : `<span class="vc">${esc(x)}</span>`)).join("");
-  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em)">${carryRow}${pad(top).map(cell).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
+  return `<span class="vgrid" style="grid-template-columns:repeat(${cols},1em)">${carryRow}${pad(top).map(cell).join("")}${mids.map((m) => pad(m).map(cell).join("")).join("")}${botRow.map(cell).join("")}<span class="vrule"></span>${answer}</span>`;
 }
 function bookMath(b, ans, big) {
   const slot = ans !== null ? `<span class="slot ${ans ? "" : "open"}" ${big ? 'id="ans"' : ""}>${ans ? esc(ans) : big ? "?" : ""}</span>` : "";
@@ -1001,7 +1019,7 @@ function bookMath(b, ans, big) {
   if (b.type === "vert" && big && !b.result && cellBook() === b) return vertCells(b);
   if (b.type === "vert") return b.result
     ? `<span class="vert"><span>${esc(b.top)}</span><span class="vb">${esc(b.op)} ${esc(b.bottom)}</span><span>${esc(b.result)}</span></span>${big || ans ? ` <span class="eq">${esc(b.find)} =</span> ${slot}` : ""}`
-    : `<span class="vert"><span>${esc(b.top)}</span><span class="vb">${esc(b.op)} ${esc(b.bottom)}</span>${big || ans ? slot : ""}</span>`;
+    : `<span class="vert"><span>${esc(b.top)}</span>${(b.mid || []).map((m) => `<span>${esc(m)}</span>`).join("")}<span class="vb">${esc(b.op)} ${esc(b.bottom)}</span>${big || ans ? slot : ""}</span>`;
   if (b.type === "frac") return `<span class="fr"><span>${esc(b.top)}</span><span class="frb"></span><span>${esc(b.bottom)}</span></span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
   return `<span class="inl">${esc(b.text)}</span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
 }
@@ -1905,7 +1923,11 @@ function initScratch() {
 function arrange() {
   document.body.dataset.view = U.view === "game" ? `game-${U.game?.kind}` : U.view;
   const top = document.getElementById("topbar"); top.innerHTML = "";
-  if (U.view === "ride") [...app.children].filter((el) => el.matches(".hud,.biscuit,.askbar")).forEach((el) => top.appendChild(el));
+  if (U.view === "ride") {
+    [...app.children].filter((el) => el.matches(".hud,.biscuit,.askbar")).forEach((el) => top.appendChild(el));
+    const hud = top.querySelector(".hud"), status = hud ? [...hud.children].filter((el) => el.matches(".pips,.chip:not(.nug),.combo")) : [];
+    if (status.length) { let bar = top.querySelector(".askbar"); if (!bar) { bar = document.createElement("div"); bar.className = "askbar"; top.appendChild(bar); } bar.prepend(...status); }
+  }
   if (U.view !== "ride") return;
   app.querySelectorAll(":scope > .bookpage, :scope > .console:not(.boardbox)").forEach((box) => {
     const kids = [...box.children];
@@ -1927,7 +1949,6 @@ function render() {
   clearInterval(kickTimer);
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  if (U.view === "ride") canvas.setAttribute("data-act", "leaveRide"); else canvas.removeAttribute("data-act");
   canvas.hidden = ["parent", "home", "town", "move"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
   const views = { title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   try { app.innerHTML = views[U.view](); }
