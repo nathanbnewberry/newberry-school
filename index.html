@@ -414,6 +414,10 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split>.right .choices{gap:4px}.split>.right .choices button{min-height:38px;padding-block:4px}}
 .dealt{display:inline-grid;place-items:center;flex:none;font-style:normal}.dealt.dbag{width:34px;height:32px;border-radius:9px 9px 6px 6px;background:#a9794a;color:#fff;font:800 .85rem var(--body);box-shadow:inset 0 5px 0 #7d5530}.dealt.dpost{width:8px;height:24px;border-radius:2px;background:#7d5530}.dealt.dcoin{width:14px;height:14px;border-radius:50%;background:#e8b52c;box-shadow:inset 0 0 0 2px #b98a12}
 .net:has(.dealt){display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:3px;height:auto;min-height:42px;min-width:82px;padding:4px}.net .dealt{position:static;margin:0;transform:none}.dealt.dbag{width:32px;height:30px}
+.biscuit>.mascot{width:96px;height:96px;margin:-6px 0;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.mbody{animation:mbreathe 3.6s ease-in-out infinite;transform-origin:70px 188px}.mtail{animation:mtail 3.6s ease-in-out infinite;transform-origin:54px 112px}.mmane{animation:mwind 2.8s ease-in-out infinite;transform-origin:126px 30px}.mlid{transform-origin:145px 19px}.mopen{transform-origin:165px 52px}
+.mascot.tip .mbody{animation:mrear .95s ease-in-out}@keyframes mrear{35%,60%{transform:rotate(-9deg) translateY(-3px)}}@keyframes mtail{50%{transform:rotate(5deg)}}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.biscuit>.mascot{width:70px;height:70px;margin:-4px 0}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -947,31 +951,50 @@ function visual(v) {
 /* ---------- screens ---------- */
 const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="leaveRide">Map</button><button class="btn dark small" data-act="goBack">&#9664; Back</button></span>${extra}
   ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-const MASCOT = `<svg class="mascot" viewBox="0 0 112 130" data-act="biscuitTap" role="button" aria-label="Silver"><g class="mbody" stroke="#262b33" stroke-width="1.5" stroke-linejoin="round">
-  <path class="mtail" d="M16 72C0 80-5 102 1 124c4-3 6-7 8-12 1 6 3 9 7 11-1-15 2-29 10-42z" fill="#d5dbe2"/>
-  <path d="M20 94h12l-2 22 2 8H20zM58 96h12l-1 20 2 8H58z" fill="#c5ccd4"/>
-  <path d="M34 94h13l-2 24 2 8H34zM72 94h13l-3 24 2 8H72z" fill="#f4f6f8"/>
-  <path d="M20 120h12v6H20zM58 120h13v6H58zM34 122h13v6H34zM72 122h13v6H72z" fill="#3a4049"/>
-  <ellipse cx="50" cy="79" rx="38" ry="19" fill="#f4f6f8"/><path stroke="none" d="M16 86c14 10 57 12 71-2-6 15-63 16-71 2z" fill="#cfd5dc"/>
-  <path d="M50 82C49 60 57 42 64 31L84 48c5 14 7 30 6 44z" fill="#f4f6f8"/><path stroke="none" d="M51 80c0-3 1-3 2-3l36 12 1 4-38 2z" fill="#f4f6f8"/>
-  <path class="mmane" d="M64 26C46 30 32 48 26 70c7-5 11-4 14 2 2-8 6-11 10-6 1-9 6-14 11-10 0-5 3-9 7-12z" fill="#dfe5ea"/>
-  <path d="M18 62h44l-3 20H22z" fill="#1d3557"/><path stroke="none" d="M18 62h44v3H18zM21 78h38v3H21z" fill="#c8ced6"/>
-  <path d="M22 60c10-9 28-9 37 0l-2 13c-10 4-23 4-33 0z" fill="#15171b"/>
-  <circle cx="30" cy="66" r="2" fill="#c8ced6" stroke="none"/><circle cx="51" cy="66" r="2" fill="#c8ced6" stroke="none"/>
-  <path d="M38 72v18" stroke="#15171b" stroke-width="2.5"/><path d="M34 90h8v5h-8z" fill="#c8ced6"/>
-  <path d="M62 62 92 58 78 84z" fill="#c8202c"/><path d="M61 58l32-4 1 6-32 5z" fill="#e23b45"/>
-  <path d="M63 28 60 12 72 23z" fill="#dfe5ea"/>
-  <path d="M63 30C69 17 85 15 91 24l15 20c5 7 2 15-6 16l-14 1C78 60 71 56 67 49 63 43 61 37 63 30z" fill="#f4f6f8"/>
-  <path stroke="none" d="M92 40l13 5c5 6 2 14-5 15l-12 1c-2-8-1-16 4-21z" fill="#c9cfd6"/>
-  <ellipse cx="102" cy="47" rx="1.8" ry="2.6" fill="#262b33" stroke="none"/>
-  <path class="msmile" d="M89 54c5 2 11 1 16-3" fill="none" stroke-width="2" stroke-linecap="round"/>
-  <ellipse class="mopen" cx="97" cy="55" rx="6" ry="3.6" fill="#4d120f" stroke="none"/>
-  <ellipse cx="80" cy="36" rx="3.8" ry="2.9" fill="#20150c" stroke="none"/><circle cx="81.2" cy="35.2" r=".9" fill="#fff" stroke="none"/>
-  <path d="M73 31l15 2" fill="none" stroke-width="3" stroke-linecap="round"/>
-  <ellipse class="mlid" cx="80" cy="36" rx="5" ry="4" fill="#f4f6f8" stroke="none"/>
-  <path d="M70 19c-3 6-3 12-1 18 3-3 5-8 6-13z" fill="#dfe5ea"/>
-  <g class="mhat"><path d="M61 21C60 7 67 1 76 4c7-3 16 2 15 15z" fill="#fbfbf7"/><path d="M61 16c10 3 21 3 30 0l1 5c-11 3-21 3-31 1z" fill="#15171b"/><path d="M45 24c15-9 47-9 65-3-13 9-50 11-65 3z" fill="#fbfbf7"/></g>
-</g></svg>`;
+const MASCOT = `<svg class="mascot" viewBox="0 0 200 200" data-act="biscuitTap" role="button" aria-label="Silver"><defs>
+  <linearGradient id="mSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16203f"/><stop offset=".5" stop-color="#6d3a5c"/><stop offset=".78" stop-color="#e8743b"/><stop offset="1" stop-color="#f9c063"/></linearGradient>
+  <linearGradient id="mCoat" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#e6eaf0"/><stop offset="1" stop-color="#a7b1bf"/></linearGradient>
+  <linearGradient id="mFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#aeb7c4"/><stop offset="1" stop-color="#737e8f"/></linearGradient>
+  <linearGradient id="mHair" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9aa6b6"/></linearGradient>
+  <linearGradient id="mHat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#c9c4b4"/></linearGradient>
+  <linearGradient id="mLeather" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a3417"/><stop offset="1" stop-color="#1e1109"/></linearGradient>
+  <linearGradient id="mRing" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe59a"/><stop offset=".5" stop-color="#c8922b"/><stop offset="1" stop-color="#ffe08a"/></linearGradient>
+  <clipPath id="mClip"><circle cx="100" cy="100" r="93"/></clipPath></defs>
+  <circle cx="100" cy="100" r="98" fill="url(#mRing)"/>
+  <g clip-path="url(#mClip)"><rect width="200" height="200" fill="url(#mSky)"/><circle cx="60" cy="150" r="30" fill="#ffd98a" opacity=".9"/>
+    <path d="M0 158l24-18 18 10 30-24 26 22 34-16 30 18 38-14v64H0z" fill="#4a2748" opacity=".85"/><path d="M0 180c40-10 130-12 200-2v22H0z" fill="#22121f"/>
+    <ellipse cx="72" cy="181" rx="40" ry="4.5" fill="#000" opacity=".5"/>
+  <g transform="translate(20 36) scale(.76)"><g class="mbody">
+    <path class="mtail" d="M54 112C36 112 22 124 16 146c-3 12-3 24 2 34 2-8 6-14 10-18 0 7 1 12 5 17 2-14 8-26 16-36 6-8 10-16 12-24z" fill="url(#mHair)"/>
+    <path d="M72 128c6 12 13 19 17 27 2 9 2 17 1 25l-4 8 15 1 0-9c2-12 2-22-2-32-4-10-8-18-12-26z" fill="url(#mFar)"/>
+    <path d="M116 66c14-8 32-12 48-8 6 2 7 8 4 12 0 8 0 16 2 22l4 8-12 1-4-7c-1-8-2-16-2-23-12 1-26 5-36 9z" fill="url(#mFar)"/>
+    <path d="M86 188h15l1 3H85z" fill="#2a2c33"/><path d="M162 93l12 7-1 2-12-1z" fill="#2a2c33"/>
+    <path d="M52 122c-4-18 10-34 28-42 12-6 24-14 36-18 10-2 16 8 14 20-2 14-14 24-28 32-10 8-22 20-34 22-10 1-15-6-16-14z" fill="url(#mCoat)"/>
+    <path d="M54 120c-5 14-3 26 2 32-4 8-8 18-10 28l-4 8 14 2v-8c4-12 10-22 14-32 6-10 8-20 6-28-6-6-16-8-22-2z" fill="url(#mCoat)"/>
+    <path d="M56 152c-4 8-8 18-10 28l-4 8 5 1c3-14 7-27 15-38z" fill="#9aa5b4" opacity=".55"/>
+    <path d="M42 188l14 2v2l-15-1z" fill="#2a2c33"/>
+    <path d="M58 130c8 8 22 6 34-4 12-10 26-14 38-34-1 8-12 20-26 28-12 8-22 20-34 18-6 0-10-3-12-8z" fill="#8d99aa" opacity=".42"/>
+    <path d="M70 96c10-4 16-2 20 4-6 0-14 2-18 8-4 4-8 6-10 4 0-6 3-12 8-16z" fill="#fff" opacity=".6"/>
+    <path d="M112 76c12-4 28-4 42 2 6 3 6 10 2 14-2 8-6 16-10 24l4 8-12 2-4-8c4-10 8-18 10-26-12 0-24 2-34 0z" fill="url(#mCoat)"/>
+    <path d="M144 92c-2 8-6 16-10 26l2 5 4-1c0-8 4-20 8-28z" fill="#9aa5b4" opacity=".55"/><path d="M138 126l12-2 1 3-13 1z" fill="#2a2c33"/>
+    <path d="M78 74c10-6 22-10 32-10l6 10c-8 2-12 16-16 26-8 8-18 8-26 2-2-10-1-22 4-28z" fill="#7a2418"/><path d="M78 74c10-6 22-10 32-10l1 3c-10 0-22 4-31 10z" fill="#d8c07a"/>
+    <path d="M78 66c8-8 20-10 30-6 4 2 4 6 2 9-10 2-20 6-30 12-3-5-3-11-2-15z" fill="url(#mLeather)"/><path d="M92 74l6 34" stroke="#1e1109" stroke-width="3"/><path d="M93 108h10l-2 7h-7z" fill="#c9ced6"/>
+    <path d="M108 72c-2-20 4-40 18-52 8-4 18 0 20 8 0 14-6 28-12 40-4 12-10 20-18 20z" fill="url(#mCoat)"/>
+    <path d="M118 88c8-2 12-12 16-20 5-10 9-20 11-30-10 12-14 28-27 50z" fill="#8d99aa" opacity=".4"/>
+    <g class="mmane" fill="url(#mHair)"><path d="M128 18C110 16 92 20 76 36c10-3 18-3 26-1-8 4-14 11-18 20 8-6 16-8 24-8-5 6-8 13-8 22 5-7 11-11 18-13 0-14 4-30 12-38z"/><path d="M122 26c-10 1-20 6-28 14 8-2 14-2 22 0z" fill="#fff"/><path d="M116 40c-8 3-14 9-18 17 6-4 12-5 18-4z" fill="#eef1f5"/></g>
+    <path d="M130 14l-3-14 13 11z" fill="#dfe4ea"/><path d="M131 11l-2-7 6 6z" fill="#b08f8a"/>
+    <path d="M126 20c6-10 18-12 26-6 8 6 16 16 23 26 4 6 3 14-4 16-6 2-13 0-19-6-6-6-12-10-18-12-6-4-10-10-8-18z" fill="url(#mCoat)"/>
+    <path d="M152 42c6 2 14 4 22-2 3 6 2 12-3 15-6 2-13 0-19-6z" fill="#b3bcc8" opacity=".6"/><path d="M134 38c6 2 12 6 18 12 2 2 4 3 6 4-8 0-16-6-24-16z" fill="#8d99aa" opacity=".45"/>
+    <ellipse cx="170" cy="44" rx="2.2" ry="3" transform="rotate(-30 170 44)" fill="#2d3038"/>
+    <path class="msmile" d="M160 54c4 1 9 1 13-2" fill="none" stroke="#3a3e47" stroke-width="1.8" stroke-linecap="round"/>
+    <path class="mopen" d="M158 52c5 7 11 9 16 5-1-3-1-4-1-5-5 2-10 2-15 0z" fill="#4d120f"/>
+    <path d="M139 21c3-2 8-2 11 1-1 4-7 6-11-1z" fill="#1c1a1c"/><circle cx="145" cy="23" r="2.6" fill="#3a2110"/><circle cx="146" cy="22" r=".8" fill="#fff"/><path d="M137 19c5-3 11-2 15 2" fill="none" stroke="#6f7886" stroke-width="2" stroke-linecap="round"/>
+    <path class="mlid" d="M138 20c4-2 9-2 13 2-2 5-9 6-13-2z" fill="#e6eaf0"/>
+    <path d="M130 30c10 6 22 12 34 14M150 16c-4 12-2 26 6 36M164 44l-2 10" fill="none" stroke="#1e1109" stroke-width="1.8"/><circle cx="152" cy="33" r="2.2" fill="#d5dae1"/><circle cx="163" cy="47" r="2" fill="#d5dae1"/>
+    <path d="M162 53C150 70 128 72 112 66" fill="none" stroke="#1e1109" stroke-width="1.6"/>
+    <path d="M112 90l26-6 10 4-20 18z" fill="#a51f28" opacity="0"/>
+    <g class="mhat" transform="rotate(-8 136 12)"><path d="M116 8c0-11 7-15 14-13 3 2 6 2 9 0 7-2 14 4 13 13z" fill="url(#mHat)"/><path d="M116 3c11 3 25 3 36 0l.5 6c-12 3-25 3-37 0z" fill="#1c1a1c"/><path d="M96 10c16-6 62-7 78 0-12 9-64 10-78 0z" fill="url(#mHat)"/><path d="M96 10c14 8 66 8 78 0-14 11-62 12-78 0z" fill="#8f8a7b"/></g>
+  </g></g></g></svg>`;
 const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></span></div></div>`; };
 function titleView() {
