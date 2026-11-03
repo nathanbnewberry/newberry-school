@@ -166,6 +166,9 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .big-tool{min-height:84px;min-width:140px;font-size:1.4rem}
 .arrows{display:grid;justify-items:center;gap:4px}.arrows>div{display:flex;gap:44px}.arrows .btn{min-width:56px;min-height:48px;padding:6px 10px;font-size:1.1rem}
 .match{display:grid;grid-template-columns:1fr 1fr;gap:10px}.match>div{display:grid;gap:10px}.match button{background:var(--panel2);color:var(--moon);font-family:var(--body);font-weight:800;min-height:64px;font-size:1.1rem;box-shadow:0 4px 0 #15183a}.match button.sel{background:var(--gold);color:var(--ink)}.match button.ok{background:var(--green);color:var(--ink);box-shadow:none}
+.askbar{display:grid;gap:8px}.mic-btn{background:var(--ember);color:var(--ink);font-weight:800;min-height:52px;font-size:1.05rem;box-shadow:0 4px 0 #a54a1d}.mic-btn.on{background:var(--red);animation:pulse 1s ease-in-out infinite}
+.askchips{display:flex;flex-wrap:wrap;gap:8px}.askchips button{background:var(--panel2);color:var(--moon);font-size:.92rem;font-weight:600;padding:8px 12px;min-height:44px;border-radius:999px}
+.heard{font-size:.9rem;color:var(--moon-soft);font-style:italic}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -497,7 +500,7 @@ function buildItems(l, r) {
   const lp = LP(l.id), seen = (lp.demoSeen = lp.demoSeen || {});
   return [...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false }); }
 function pageGap(l, r) {
   const lp = LP(l.id);
   if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
@@ -516,7 +519,7 @@ function nextItem() {
 }
 function backToPage() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
-  U.qid = null; resetItem(); W.targetGap = pageGap(l, r);
+  closeTimer(); U.qid = null; resetItem(); W.targetGap = pageGap(l, r);
   if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) return endRide();
   render(); window.scrollTo(0, 0);
 }
@@ -681,7 +684,7 @@ function homeView() {
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn;
   return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">World map</button><span class="chip nug"><i></i>${S.nuggets}</span></div>
-  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then Clue School. Then the whole map opens.")}
+  ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then go to school. Then the whole map opens.")}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
@@ -709,6 +712,14 @@ function pageView(l, r) {
   return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Your book page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
     `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
     <button class="btn dark wide" data-act="leaveRide">Save and go to the map</button>`;
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function askBar(q) {
+  const showDemo = rideOf(curLesson(), U.ride).demos?.length;
+  return `<div class="askbar">
+    ${SR ? `<button class="mic-btn ${U.listening ? "on" : ""}" data-act="askMic">${U.listening ? "Listening..." : "Ask Biscuit out loud"}</button>` : ""}
+    <div class="askchips"><button data-act="askChip" data-t="why was I wrong">Why was I wrong?</button><button data-act="askChip" data-t="how do I start">How do I start?</button><button data-act="askChip" data-t="what does that word mean">What's that word?</button>${showDemo ? `<button data-act="askChip" data-t="show me an example">Show an example</button>` : ""}</div>
+    ${U.heard ? `<p class="heard">You said: "${esc(U.heard)}"</p>` : ""}</div>`;
 }
 function padHtml(extra = []) {
   const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ...extra, "DEL"];
@@ -783,7 +794,10 @@ function solveView(l, q) {
 }
 function rideView() {
   const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i];
-  if (U.qid) return solveView(l, qOf(l, U.qid));
+  if (U.qid) {
+    const q = qOf(l, U.qid), html = solveView(l, q);
+    return U.mode === "solved" || q.match ? html : html.replace('<div class="bookpage', askBar(q) + '<div class="bookpage');
+  }
   if (it.type === "page") return pageView(l, r);
   const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
@@ -794,8 +808,8 @@ function rideView() {
   if (it.type === "demo") return demoView(it.demo, pips);
   if (it.type === "puzzle") return hudRide(pips) + puzzleView(it);
   if (it.type === "match") return hudRide(pips) + bubble(U.msg || it.say, U.msg ? "shake" : "") + `<div class="console">${matchHtml(it.pairs)}</div>`;
-  if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the clues</button></div>`;
-  if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Clue or dust?", U.msg ? "shake" : "") + `<div class="console"><div class="ctx">${esc(it.context)}</div><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">CLUE</button><button class="no" data-act="sort" data-c="0">DUST</button></div></div>`;
+  if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the facts</button></div>`;
+  if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Do you need this fact to answer the question?", U.msg ? "shake" : "") + `<div class="console"><p class="tag">The question</p><div class="ctx">${esc(it.context)}</div><p class="tag">The fact</p><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">NEED IT</button><button class="no" data-act="sort" data-c="0">DON'T NEED IT</button></div></div>`;
   if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<div class="ctx">${esc(it.ask)}</div><div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}</div>`;
   return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
 }
@@ -862,12 +876,13 @@ function gameView() {
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l);
   return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>
-  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">Back to the map</button>`}`;
+  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">Back to the map</button>`}
+  <button class="btn dark wide" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button>`;
 }
 function rewardView() {
   const l = curLesson();
   return `<div class="console center pop"><p class="tag">${esc(l.town)} is clean</p><div class="big">${esc(l.badge?.name || "Badge")}</div><p>+100 nuggets</p>
-    <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn go wide" data-act="view" data-v="home">Back to the world map</button>`;
+    <div class="ctx" style="text-align:left"><strong>True story: ${esc(l.story.title)}.</strong> ${esc(l.story.text)}</div></div><button class="btn dark wide" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button><button class="btn go wide" data-act="view" data-v="home">Back to the world map</button>`;
 }
 const GEAR = [
   { id: "bandana", name: "Red bandana", note: "Outlaws hate it", cost: 300 },
@@ -897,13 +912,26 @@ function statusOf(p) {
   if (p.wrong.length || p.steps) return ["Working on it", "s-work"];
   return ["Not started", "s-none"];
 }
+const fmtTime = (secs) => (!secs ? "" : secs < 60 ? "under 1 min" : `${Math.round(secs / 60)} min`);
 function reportText() {
-  const out = [`Elliot's Math Trail report, ${new Date().toLocaleDateString()}`, `Rank ${RANKS[rankOf(S.xp)][0]}, nuggets ${S.nuggets}`];
+  const out = [`Elliot's math work, ${new Date().toLocaleDateString()}`, `Rank: ${RANKS[rankOf(S.xp)][0]}`];
   LESSONS.forEach((l) => {
-    const lp = LP(l.id);
-    out.push("", `${l.town}: Saxon Lesson ${l.bookLesson}${lp.completed ? " [finished]" : ""}`);
-    l.problems.forEach((q) => { const p = PP(lp, q.id); out.push(`  ${q.id} [${q.skill}] ${statusOf(p)[0]}; coach steps ${p.steps}, step misses ${p.stepMiss || 0}${p.wrong.length ? `; wrong tries: ${p.wrong.join(", ")}` : ""}`); });
+    const lp = LP(l.id), touched = l.problems.filter((q) => { const p = PP(lp, q.id); return p.done || p.wrong.length || p.steps || p.flagged; });
+    if (!touched.length) return;
+    const done = l.problems.filter((q) => PP(lp, q.id).done).length;
+    const review = touched.filter((q) => { const p = PP(lp, q.id); return p.shaky || p.flagged || p.paper; });
+    out.push("", `SAXON LESSON ${l.bookLesson}: ${done} of ${l.problems.length} problems done`);
+    if (review.length) out.push(`Go over together: ${review.map((q) => q.id).join(", ")}`);
+    touched.forEach((q) => {
+      const p = PP(lp, q.id), bits = [statusOf(p)[0]];
+      if (p.wrong.length) bits.push(`wrong tries: ${p.wrong.join(", ")}`);
+      if (p.steps) bits.push(`${p.steps} coaching step${p.steps === 1 ? "" : "s"}`);
+      if (p.stepMiss) bits.push(`${p.stepMiss} missed step${p.stepMiss === 1 ? "" : "s"}`);
+      if (p.secs) bits.push(fmtTime(p.secs));
+      out.push(`#${q.id} ${q.skill}: ${bits.join("; ")}`);
+    });
   });
+  if (out.length === 2) out.push("", "Nothing done yet.");
   return out.join("\n");
 }
 function parentView() {
@@ -917,13 +945,13 @@ function parentView() {
   const rows = Object.entries(skills).sort((a, b) => (b[1].coached + b[1].wrong) / b[1].n - (a[1].coached + a[1].wrong) / a[1].n);
   const lessons = LESSONS.map((l) => {
     const lp = LP(l.id);
-    return `<div class="panel"><h2>${esc(l.town)} · Saxon Lesson ${esc(l.bookLesson)}</h2><div class="tablewrap"><table><thead><tr><th>Book #</th><th>Skill</th><th>Status</th><th>Wrong tries</th><th></th></tr></thead><tbody>${l.problems.map((q) => { const p = PP(lp, q.id), [t, c] = statusOf(p); return `<tr><td>${esc(q.id)}</td><td>${esc(q.skill)}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : "None"}</td><td>${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div></div>`;
+    return `<div class="panel"><h2>${esc(l.town)} · Saxon Lesson ${esc(l.bookLesson)}</h2><div class="tablewrap"><table><thead><tr><th>Book #</th><th>Skill</th><th>Status</th><th>Wrong tries</th><th>Time</th><th></th></tr></thead><tbody>${l.problems.map((q) => { const p = PP(lp, q.id), [t, c] = statusOf(p); return `<tr><td>${esc(q.id)}</td><td>${esc(q.skill)}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : "None"}</td><td>${fmtTime(p.secs)}</td><td>${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div></div>`;
   }).join("");
   return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Syncs to your account" : "Saved on this device"}</span></div><h1>Parent page</h1>
   <div class="panel"><h2>Where Elliot needs you</h2>${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Skill</th><th>Problems</th><th>Solo</th><th>Coached</th><th>Wrong</th></tr></thead><tbody>${rows.map(([k, s]) => `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.solo}</td><td>${s.coached}</td><td>${s.wrong}</td></tr>`).join("")}</tbody></table></div><p class="sub">Most help needed is first. Answers aren't shown here, so you can still work it out with him.</p>` : `<p>Nothing yet. This fills in as soon as he plays.</p>`}</div>
   ${lessons}
   <div class="panel"><h2>Add this week's lessons</h2><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Paste the report below so the coaching targets what he found hard.</li><li>Claude adds a new town to this same link. Elliot refreshes.</li></ol></div>
-  <div class="panel"><h2>Report for Claude</h2><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small" data-act="copy">${U.copied ? "Copied" : "Copy report"}</button></div></div>
+  <div class="panel"><h2>Send this report</h2><p class="sub">Text or email it to Mom, or paste it to Claude with the next lesson.</p><textarea id="report" readonly>${esc(reportText())}</textarea><div class="hud"><button class="btn small" data-act="share">${U.shared ? "Sent" : "Send to Mom"}</button><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy report"}</button></div></div>
   <div class="panel"><h2>Start over</h2><p class="sub">Erases his nuggets, rank, gear and progress.</p>${U.confirmReset ? `<div class="hud"><button class="btn small" style="background:var(--red);box-shadow:none" data-act="resetYes">Yes, erase everything</button><button class="btn small dark" data-act="resetNo">Keep it</button></div>` : `<div><button class="btn small dark" data-act="resetAsk">Erase progress</button></div>`}</div>`;
 }
 
@@ -1011,6 +1039,7 @@ function applyStepRight(val) {
 }
 function stepWrong(choice) {
   const q = curQ(), s = q.coach.steps[U.step], p = PP(LP(U.lesson), q.id);
+  U.lastWrong = choice || U.draft; U.lastWrongFor = q.id; U.lastTrap = s.nudge;
   U.stepWrong++; p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
   if (choice) U.off.push(choice);
   U.msg = `${pick(["Not quite.", "Nope, close.", "Slow down."])} ${s.nudge}`; U.draft = ""; wrongFx(); save(); render();
@@ -1042,6 +1071,7 @@ function checkFinal() {
   if (!p.done && !p.wrong.includes(U.draft)) p.wrong.push(U.draft);
   U.wrongNow++; wrongFx();
   if (q.choices) U.off.push(U.draft);
+  U.lastWrong = U.draft; U.lastWrongFor = q.id; U.lastTrap = q.traps[sealed] || "";
   U.msg = q.traps[sealed] || pick(["Not it. Check your paper one step at a time.", "Missed the target. Go again."]);
   U.draft = ""; save();
   if ((U.wrongNow >= 2 || q.choices) && !U.coachDone && q.coach) { const keep = U.msg; startCoach(); U.msg = null; U.lineFor = null; beep(BLIP); void keep; return; }
@@ -1052,6 +1082,7 @@ function checkProof() {
   if (!val) { U.msg = "Type your answer first, boss."; return render(); }
   if (q.proof.sealed.includes(seal(U.lesson, `${q.id}.proof`, val))) { U.solvedNote = "Proved it! That one's yours now. Write your book answer down."; return finishProblem(false, true); }
   U.proofMiss++; p.proofMiss = (p.proofMiss || 0) + 1; wrongFx();
+  U.lastWrong = U.draft; U.lastWrongFor = q.id; U.lastTrap = q.proof.nudge;
   if (q.proof.choices) U.off.push(U.draft);
   U.draft = "";
   if (U.proofMiss >= 2) { p.shaky = true; U.solvedNote = "This one's still tricky. I told your parents so you can go over it together."; save(); return finishProblem(false, false); }
@@ -1090,6 +1121,107 @@ function pzMoved() {
   if (samePts(absPts(pz.rel, pz.x, pz.y), targetPts(it.target))) { pz.won = true; earn(pz.moves <= it.par ? 15 : 8); correctFx("BRANDED!"); confetti(24); }
   render();
 }
+const GLOSSARY = [
+  [/congruent/, "Congruent means the same shape and the same size, even if one is turned or flipped."],
+  [/transformation/, "A transformation is a way to move a shape: a slide, a turn or a flip."],
+  [/translation|slide/, "A translation is a slide. The shape moves over without turning or flipping."],
+  [/rotation|turn/, "A rotation is a turn. The shape spins around a point, like a wagon wheel."],
+  [/reflection|flip|mirror/, "A reflection is a flip, like your face in a mirror or flipping a pancake."],
+  [/remainder|left ?over/, "The remainder is what's left over when things won't split evenly. It's always smaller than the number you divide by."],
+  [/perimeter/, "Perimeter is the distance around the outside, like walking a fence."],
+  [/area/, "Area is how many squares cover the inside, like the grass in a corral."],
+  [/percent/, "Percent means out of 100. 50 percent is 50 out of 100, which is half."],
+  [/multiple/, "Multiples are the numbers you land on when you skip count."],
+  [/quotient/, "The quotient is the answer to a division problem."],
+  [/product/, "The product is the answer to a multiplication problem."],
+  [/hexagon/, "A hexagon is a shape with six sides."],
+  [/polygon/, "A polygon is a closed shape made of straight sides."],
+  [/obtuse/, "An obtuse angle opens wider than a square corner."],
+  [/right angle/, "A right angle is a square corner, like the corner of your book."],
+  [/segment/, "A segment is a piece of a line with two end points."],
+  [/square root|root/, "The square root is the number that times itself makes the number inside."],
+  [/decimal/, "A decimal uses a dot to show parts of a whole, like cents in a dollar."],
+  [/quart/, "A quart is a smaller unit than a gallon. Quart sounds like quarter, so think about what a quarter of something means."],
+  [/gallon/, "A gallon is a big unit for liquid, like a big jug of milk."],
+  [/millimeter/, "A millimeter is one tiny step on a ruler. Ten of them make one centimeter."],
+  [/centimeter/, "A centimeter is a small length, about as wide as your finger."],
+  [/halfway/, "Halfway means the same distance from both ends."],
+  [/fourth/, "One fourth means split into 4 equal parts and take one."],
+  [/third/, "One third means split into 3 equal parts and take one."]
+];
+const NUM_WORDS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
+function spokenNumber(t) {
+  const words = t.toLowerCase().replace(/[^a-z0-9.:, -]/g, " ").replace(/-/g, " ").trim().split(/\s+/).filter((w) => !["is", "it", "the", "answer", "um", "uh", "i", "think", "maybe", "and"].includes(w));
+  if (!words.length) return null;
+  let total = 0, hit = false, out = "";
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    if (w === "remainder" || w === "r") { out += String(hit ? total : "") + "R"; total = 0; hit = false; continue; }
+    if (/^\d[\d,.:]*$/.test(w)) { total = 0; hit = false; out += w.replace(/,/g, ""); continue; }
+    if (w === "hundred" && hit) { total *= 100; continue; }
+    if (w in NUM_WORDS) { total += NUM_WORDS[w]; hit = true; continue; }
+    return null;
+  }
+  return out + (hit ? total : "");
+}
+function askAnswer(text) {
+  U.heard = text; U.msg = null;
+  const t = text.toLowerCase(), q = curQ(), coach = U.mode === "coach", proofing = U.mode === "proof", s = coach ? q.coach.steps[U.step] : null;
+  const after = (m) => { U.msg = coach ? `${m} ${s.ask}` : m; render(); };
+  const opts = (coach ? s.choices : proofing ? q.proof.choices : q.choices) || [];
+  const said = opts.find((o) => t.includes(o.toLowerCase()));
+  if (said && !/why|how|what/.test(t)) { if (coach) return acts.stepPick({ c: said }); if (proofing) return acts.proofPick({ c: said }); return acts.finalPick({ c: said }); }
+  const n = opts.length ? null : spokenNumber(t);
+  if (n) {
+    U.draft = n;
+    if (coach) return checkStepTyped();
+    return proofing ? checkProof() : checkFinal();
+  }
+  if (/\b(answer|just tell|tell me (it|what)|just give|what is it|give it)\b/.test(t)) {
+    const m = "Nice try, boss. I won't hand you the answer, because then it wouldn't be yours. Let's get it one small step at a time.";
+    if (proofing) return after(`${m} ${q.proof.nudge}`);
+    if (!coach && !U.coachDone && q.coach) { startCoach(); U.msg = m; return render(); }
+    return after(m);
+  }
+  if (/\b(why|wrong|mistake|missed|miss)\b/.test(t)) {
+    if (!U.lastWrong || U.lastWrongFor !== q.id) return after("You haven't missed this one yet. Try it on paper, or ask me how to start.");
+    const m = U.lastTrap || (/divi|remainder|fraction/i.test(q.skill) ? "Multiply your answer back by the number you divided by. Does it land exactly on the number you started with?" : "Look at your paper one step at a time. I'll walk you through finding the spot.");
+    const line = `You put ${U.lastWrong}. ${m}`;
+    if (!coach && !proofing && !U.coachDone && q.coach && !U.lastTrap) { startCoach(); U.msg = line; return render(); }
+    return after(line);
+  }
+  const words = `${t} ${/word|mean/.test(t) ? `${q.prompt} ${q.skill}`.toLowerCase() : ""}`;
+  const term = /word|mean|what is|what's/.test(t) || GLOSSARY.some(([re]) => re.test(t)) ? GLOSSARY.find(([re]) => re.test(words)) : null;
+  if (term) return after(term[1]);
+  if (/word|mean/.test(t)) return after("Which word? Say it to me, like: what does perimeter mean?");
+  if (/\b(example|show me)\b/.test(t)) {
+    if (rideOf(curLesson(), U.ride).demos?.length) { closeTimer(); U.qid = null; return acts.replayDemo(); }
+    if (!coach && !proofing && !U.coachDone && q.coach) return startCoach();
+    return after(proofing ? q.proof.nudge : s ? s.nudge : "Look back at the steps you just did.");
+  }
+  if (/\b(start|first|how|stuck|help|confused|next|understand|get it|hard)\b/.test(t)) {
+    if (proofing) return after(`This one's yours, but here's a nudge. ${q.proof.nudge}`);
+    if (coach) return after(s.nudge);
+    if (U.coachDone) return after(q.coach.end || "You've done all the steps. Look at your work and put it together.");
+    if (q.coach) return startCoach();
+  }
+  if (/\b(again|repeat|what|huh)\b/.test(t)) { lastSaid = ""; return after(coach ? s.say || "Here it is again." : "Read it with me one more time."); }
+  return after("I only know math, boss. Try: why was I wrong, how do I start, or what does that word mean.");
+}
+let rec = null;
+function closeTimer() {
+  if (!U.qid || !U.qStart) return;
+  const p = PP(LP(U.lesson), U.qid);
+  p.secs = (p.secs || 0) + Math.min(1800, Math.round((Date.now() - U.qStart) / 1000));
+  U.qStart = 0;
+}
+function shareReport() {
+  const text = reportText();
+  const done = () => { U.shared = true; render(); };
+  const copy = () => { if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {}); };
+  if (navigator.share) navigator.share({ title: "Elliot's math work", text }).then(done, (e) => { if (e?.name !== "AbortError") copy(); });
+  else copy();
+}
 const acts = {
   start() { U.view = "home"; W.title = false; beep(FANFARE); render(); },
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
@@ -1098,13 +1230,13 @@ const acts = {
   voice() { S.voice = S.voice === false; if (S.voice === false) { try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
   town(d) { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
   ride(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
-  leaveRide() { U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
+  leaveRide() { closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
-  openq(d) { U.qid = d.id; resetItem(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
+  openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
   closeq() { backToPage(); },
   sort(d) {
     const it = curItem();
-    if ((d.c === "1") === it.clue) { earn(2); correctFx(it.clue ? "CLUE!" : "DUST!"); nextItem(); }
+    if ((d.c === "1") === it.clue) { earn(2); correctFx(it.clue ? "NEED IT!" : "TOSS IT!"); nextItem(); }
     else { U.msg = it.why; wrongFx(); render(); }
   },
   learnPick(d) {
@@ -1137,6 +1269,20 @@ const acts = {
     } else { m.miss++; m.sel = null; U.msg = `A ${pair[0].toLowerCase()} isn't called that. Try again.`; wrongFx(); }
     render();
   },
+  askChip(d) { askAnswer(d.t); },
+  askMic() {
+    if (!SR) return;
+    if (U.listening) { try { rec?.stop(); } catch (e) {} return; }
+    try { speechSynthesis?.cancel(); } catch (e) {}
+    lastSaid = "";
+    rec = new SR(); rec.lang = "en-US"; rec.interimResults = false; rec.maxAlternatives = 1;
+    rec.onresult = (e) => { U.listening = false; askAnswer(e.results[0][0].transcript); };
+    rec.onerror = () => { U.listening = false; U.msg = "I couldn't hear that. Try again, or tap a question."; render(); };
+    rec.onend = () => { if (U.listening) { U.listening = false; render(); } };
+    U.listening = true; render();
+    try { rec.start(); } catch (e) { U.listening = false; U.msg = "The microphone isn't available. Tap a question instead."; render(); }
+  },
+  share: shareReport,
   helpTap() { U.helpN++; beep(BLIP); render(); },
   helpDone() { U.helped = true; U.msg = null; render(); },
   mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
