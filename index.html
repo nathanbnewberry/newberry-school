@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Schoolbell&family=Lexend:wght@400;600;800&display=swap">
@@ -191,6 +191,8 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   .split .btn{min-height:50px}
   .pmathbig{padding:4px 0}
   .bookpage{padding:12px}
+  #spad{height:clamp(120px,22vh,260px)}
+  .split .vis svg{max-height:26vh;width:auto}
   .pgrid:not(.cols){grid-template-columns:repeat(2,minmax(0,1fr))}
   .pgrid.cols{grid-template-columns:repeat(3,minmax(0,1fr))}
   .map{width:auto;max-width:100%;height:calc(100vh - 190px);margin:0 auto}
@@ -212,7 +214,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .stbar{height:12px;background:#e6e0cf;border-radius:6px;overflow:hidden}.stbar i{display:block;height:100%;background:var(--green)}
 .party{position:fixed;inset:0;z-index:30;pointer-events:none;overflow:hidden}.party canvas{position:absolute;inset:0;width:100%;height:100%}
 .dancewrap{position:absolute;left:50%;bottom:2vh;transform:translateX(-50%);width:min(22vw,190px);max-width:190px}
-.dancer{display:block;width:100%;height:auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.dancer{display:block;width:100%;height:auto;overflow:visible;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
 .d-body{transform-box:fill-box;transform-origin:center bottom}.d-arm,.d-leg{transform-box:fill-box}
 .d-al{transform-origin:right bottom}.d-ar{transform-origin:left bottom}.d-ll,.d-lr{transform-origin:top center}
 .d-hop .d-body{animation:dhop .42s ease-in-out infinite alternate}.d-hop .d-al{animation:dwaveL .3s ease-in-out infinite alternate}.d-hop .d-ar{animation:dwaveR .3s ease-in-out infinite alternate}.d-hop .d-ll{animation:dkick .42s ease-in-out infinite alternate}.d-hop .d-lr{animation:dkick .42s ease-in-out infinite alternate-reverse}
@@ -244,6 +246,8 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .an-flip{transform-origin:180px 158px;animation:anflip 3.4s ease-in-out infinite}@keyframes anflip{0%,15%{transform:none}55%,88%{transform:scaleX(-1)}100%{transform:none}}
 .an-combo{transform-origin:260px 158px;animation:ancombo 5s ease-in-out infinite}@keyframes ancombo{0%,10%{transform:none}35%,50%{transform:rotate(90deg)}75%,92%{transform:scaleX(-1) rotate(90deg)}100%{transform:none}}
 .boardbox{gap:10px}
+.centered{max-width:760px;width:100%;margin:0 auto}
+.row-btns{display:inline-flex;gap:8px;flex-wrap:wrap;align-items:center}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -259,7 +263,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js"></script>
+<script src="lessons.js?v=1917e80935"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -627,12 +631,12 @@ function currentIdx() {
 }
 function buildItems(l, r) {
   if (r.kind === "facts") return [{ type: "stampede" }];
-  const lp = LP(l.id), doneKeys = !rideDone(l, r) ? lp.itemsDone?.[r.id] || [] : [];
+  const lp = LP(l.id), doneKeys = !rideDone(l, r) ? lp.itemsSeen?.[r.id] || [] : [];
   const left = (items, key) => { const f = items.filter((x) => !doneKeys.includes(x[key])); return f.length ? f : items; };
   if (r.kind === "warmup") return left(l.warmup.map((w, i) => ({ type: "fact", w, i })), "i");
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
   const seen = (lp.demoSeen = lp.demoSeen || {});
-  return [...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
+  return [...(r.teach || []).filter((t) => !seen[t.title]).map((t) => ({ ...t, teachKey: t.title })), ...(r.demos || []).filter((d) => !seen[d.title]).map((demo) => ({ type: "demo", demo })), { type: "page" }];
 }
 function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0 }); }
 function pageGap(l, r) {
@@ -647,7 +651,8 @@ function startRide(l, r) {
 }
 function nextItem() {
   const l = curLesson(), r = rideOf(l, U.ride), cur = U.items[U.i], lp = LP(l.id);
-  if (cur && (r.kind === "warmup" || r.kind === "learn")) { const key = cur.type === "fact" ? cur.i : cur.idx; if (key !== undefined) { lp.itemsDone = lp.itemsDone || {}; (lp.itemsDone[r.id] = lp.itemsDone[r.id] || []).push(key); } }
+  if (cur?.teachKey) { lp.demoSeen = lp.demoSeen || {}; lp.demoSeen[cur.teachKey] = true; }
+  if (cur && (r.kind === "warmup" || r.kind === "learn")) { const key = cur.type === "fact" ? cur.i : cur.idx; if (key !== undefined) { lp.itemsSeen = lp.itemsSeen || {}; (lp.itemsSeen[r.id] = lp.itemsSeen[r.id] || []).push(key); } }
   U.i++; W.targetGap = pageGap(l, r);
   if (U.i >= U.items.length) return endRide();
   resetItem(); render(); window.scrollTo(0, 0);
@@ -711,7 +716,7 @@ function visual(v) {
 }
 
 /* ---------- screens ---------- */
-const hudRide = (extra = "") => `<div class="hud"><button class="btn dark small" data-act="leaveRide">Map</button>${extra}
+const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small" data-act="goBack">&#9664; Back</button><button class="btn dark small" data-act="leaveRide">Map</button></span>${extra}
   ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
 const bubble = (t, extra = "") => { speak(t); U.lastBubble = t; return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><div class="bubtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div></div>`; };
 function titleView() {
@@ -823,8 +828,8 @@ function homeView() {
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 function townView() {
-  const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn;
-  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">World map</button><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
+  return `<div class="hud"><span class="row-btns"><button class="btn dark small" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${bubble(lessonFinished(l) ? "Town's clean. Nice work, boss." : learned ? "Pick any stop on the map. Short rides. Quit whenever." : "Tap the target to warm up, then go to school. Then the whole map opens.")}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
@@ -882,17 +887,17 @@ function pageView(l, r) {
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
       ${p.done ? `<span class="stamp">${p.proved || p.firstTry ? "GOLD" : "DONE"}</span>` : ""}</button>`;
   }).join("");
-  const demoLink = r.demos?.length ? `<button class="link dk" data-act="replayDemo">Watch Biscuit's example</button>` : "";
+  const demoLink = r.demos?.length || r.teach?.length ? `<button class="btn dark wide" data-act="replayDemo" style="font-family:var(--body)">Watch Biscuit explain it</button>` : "";
   return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
     `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
     <button class="btn dark wide" data-act="leaveRide">Save and go to the map</button>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 function askBar(q) {
-  const showDemo = rideOf(curLesson(), U.ride).demos?.length;
+  const rd = rideOf(curLesson(), U.ride), showDemo = rd.demos?.length || rd.teach?.length;
   return `<div class="askbar">
     ${SR ? `<button class="mic-btn ${U.listening ? "on" : ""}" data-act="askMic">${U.listening ? "Listening..." : "Ask Biscuit out loud"}</button>` : ""}
-    <div class="askchips"><button data-act="askChip" data-t="why was I wrong">Why was I wrong?</button><button data-act="askChip" data-t="how do I start">How do I start?</button><button data-act="askChip" data-t="what does that word mean">What's that word?</button>${showDemo ? `<button data-act="askChip" data-t="show me an example">Show an example</button>` : ""}</div>
+    <div class="askchips"><button data-act="askChip" data-t="why was I wrong">Why was I wrong?</button><button data-act="askChip" data-t="how do I start">How do I start?</button><button data-act="askChip" data-t="what does that word mean">What's that word?</button>${showDemo ? `<button data-act="askChip" data-t="show me an example">Explain it on the board</button>` : ""}</div>
     ${U.heard ? `<p class="heard">You said: "${esc(U.heard)}"</p>` : ""}</div>`;
 }
 function scratchHtml() {
@@ -974,15 +979,16 @@ function solveView(l, q) {
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
   }
-  if (q.match) return bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
+  if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
   const stuck = U.wrongNow >= 3;
-  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "If it's nasty, hit Coach me."]));
+  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "If it's nasty, tap Explain it."]));
   if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
-  const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Coach me</button>`;
+  const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Explain it, step by step</button>`;
   const later = `<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button>`;
-  if (q.paper) return bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
-  if (q.choices) return bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
-  return bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
+  const top = hudRide();
+  if (q.paper) return top + bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
+  if (q.choices) return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
+  return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
     ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a box to change it.</p>` : ""}${padHtml(cellBook() ? [] : q.extra || [])}
     <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<span></span>`}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
 }
@@ -1046,6 +1052,7 @@ function chalk(it) {
   if (it.anim === "flip") art = `${shape("ch-ghost", 180, 50)}<path d="M180 30V190" class="ch-mirror"/><text x="190" y="26" class="ch-sm">flip line</text><g class="an-flip">${shape("ch-fill", 180, 50)}</g><path d="M150 122Q180 90 212 122" class="ch-arrow"/>`;
   if (it.anim === "combo") art = `${shape("ch-ghost", 260, 50)}<path d="M260 30V190" class="ch-mirror"/><g class="an-combo">${shape("ch-fill", 260, 50)}</g><text x="60" y="110" class="ch-sm">1. turn</text><text x="60" y="140" class="ch-sm">2. flip</text>`;
   if (it.anim === "table") art = [["Slide", "Translation"], ["Turn", "Rotation"], ["Flip", "Reflection"]].map(([a, b], i) => `<g class="ch-pop" style="--d:${i * .9 + .1}s"><text x="110" y="${72 + i * 56}" class="ch-big">${a}</text><path d="M240 ${63 + i * 56}H320" class="ch-arrow"/><path d="M320 ${63 + i * 56}l-13 -7M320 ${63 + i * 56}l-13 7" class="ch-arrow"/><text x="350" y="${72 + i * 56}" class="ch-big ch-y">${b}</text></g>`).join("");
+  if (it.anim === "lines") art = it.lines.map((t, i) => `<g class="ch-pop" style="--d:${i * 1.5 + .3}s"><text x="320" y="${92 + i * 56}" text-anchor="middle" class="ch-big ${i === it.lines.length - 1 ? "ch-y" : ""}">${esc(t)}</text></g>`).join("");
   if (it.anim === "cross") art = `<text x="320" y="40" text-anchor="middle" class="ch-sm ch-y">${esc(it.title)}</text>` + it.lines.map((t, i) => `<g class="ch-pop" style="--d:${i * .5}s"><text x="130" y="${84 + i * 42}" class="ch-big">${esc(t)}</text></g>${it.crossed.includes(i) ? `<path d="M120 ${76 + i * 42}H${130 + t.length * 15}" class="ch-strike" style="--d:${2.2 + it.crossed.indexOf(i) * .7}s"/>` : ""}`).join("");
   const head = it.anim === "cross" ? "" : `<text x="24" y="34" class="ch-sm ch-y">${esc(it.title)}</text>`;
   return `<svg class="chalkboard" viewBox="0 0 640 270" role="img" aria-label="${esc(it.title)}. ${esc(it.caption || "")}"><rect x="3" y="3" width="634" height="264" rx="8" fill="#23503b" stroke="#7a4a24" stroke-width="7"/>${head}${art}${it.caption ? `<text x="320" y="250" text-anchor="middle" class="ch-cap">${esc(it.caption)}</text>` : ""}</svg>`;
@@ -1453,7 +1460,7 @@ function askAnswer(text) {
   if (term) return after(term[1]);
   if (/word|mean/.test(t)) return after("Which word? Say it to me, like: what does perimeter mean?");
   if (/\b(example|show me)\b/.test(t)) {
-    if (rideOf(curLesson(), U.ride).demos?.length) { closeTimer(); U.qid = null; return acts.replayDemo(); }
+    const rd = rideOf(curLesson(), U.ride); if (rd.demos?.length || rd.teach?.length) { closeTimer(); U.qid = null; return acts.replayDemo(); }
     if (!coach && !proofing && !U.coachDone && q.coach) return startCoach();
     return after(proofing ? q.proof.nudge : s ? s.nudge : "Look back at the steps you just did.");
   }
@@ -1526,7 +1533,7 @@ const acts = {
     U.demoStep++; beep(BLIP); render();
   },
   demoDone() { const lp = LP(U.lesson); lp.demoSeen = lp.demoSeen || {}; lp.demoSeen[curItem().demo.title] = true; save(); nextItem(); },
-  replayDemo() { const l = curLesson(), r = rideOf(l, U.ride); U.items = [...r.demos.map((demo) => ({ type: "demo", demo })), { type: "page" }]; U.i = 0; resetItem(); render(); window.scrollTo(0, 0); },
+  replayDemo() { const l = curLesson(), r = rideOf(l, U.ride); U.items = [...(r.teach || []).map((t) => ({ ...t, teachKey: t.title })), ...(r.demos || []).map((demo) => ({ type: "demo", demo })), { type: "page" }]; U.i = 0; resetItem(); render(); window.scrollTo(0, 0); },
   pzSlide(d) { const pz = U.pz, x = pz.x + +d.dx, y = pz.y + +d.dy; if (x < 3 || x > 6 || y < 3 || y > 4) { W.shake = 3; beep(NOPE); return; } pz.x = x; pz.y = y; pzMoved(); },
   pzTurn() { U.pz.rel = U.pz.rel.map(([x, y]) => [-y, x]); pzMoved(); },
   pzFlip() { U.pz.rel = U.pz.rel.map(([x, y]) => [-x, y]); pzMoved(); },
@@ -1592,6 +1599,11 @@ const acts = {
   },
   moveYes() { S = { ...blank(), ...U.moveData, updatedAt: Date.now() }; U.moveData = null; U.moveMsg = "Done. All his work is on this iPad now."; save(); render(); },
   moveNo() { U.moveData = null; render(); },
+  goBack() {
+    if (U.qid) return backToPage();
+    if (U.i > 0) { U.i--; const l = curLesson(), r = rideOf(l, U.ride); W.targetGap = pageGap(l, r); resetItem(); render(); window.scrollTo(0, 0); return; }
+    acts.leaveRide();
+  },
   helpTap() { U.helpN++; beep(BLIP); render(); },
   helpDone() { U.helped = true; U.msg = null; render(); },
   mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
@@ -1704,6 +1716,7 @@ function arrange() {
   app.querySelectorAll(":scope > .bookpage, :scope > .console:not(.boardbox)").forEach((box) => {
     const kids = [...box.children];
     if (!kids.some((k) => k.matches(ENTRY.replace(",.btn,.link", "") + ",.boardwrap,.scene"))) return;
+    if (kids.every((k) => k.matches(ENTRY))) { box.classList.add("centered"); return; }
     const left = document.createElement("div"), right = document.createElement("div");
     left.className = "left"; right.className = "right";
     kids.forEach((k) => (k.matches(ENTRY) ? right : left).appendChild(k));
