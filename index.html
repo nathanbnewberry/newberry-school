@@ -463,6 +463,10 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .helpwrap .helper{padding:8px 10px;gap:6px}.helpwrap .helper p{margin:0}.helpwrap .btn{min-height:46px}.helpwrap .chips{flex-wrap:wrap}
 .outlawsay{position:absolute;right:6%;top:24%;max-width:32%;background:#fff;color:#1c1712;border:3px solid #2c1a0e;border-radius:14px;padding:8px 12px;font:700 clamp(.9rem,2.2vh,1.1rem)/1.25 var(--body);z-index:6;pointer-events:none}.outlawsay[hidden]{display:none}.outlawsay::after{content:"";position:absolute;left:18px;bottom:-14px;border:7px solid transparent;border-top-color:#2c1a0e}
 @media (orientation:landscape) and (min-width:800px){.left:has(.helpwrap) .board{font-size:clamp(.82rem,2.5vh,1.15rem)}.left:has(.helpwrap){gap:5px}.helpwrap .helper p{font-size:.92rem}}
+.match{position:relative;grid-template-columns:minmax(0,1fr) clamp(110px,18vw,220px) minmax(0,1fr);gap:0;align-items:stretch;max-width:980px;width:100%;margin:12px auto 0}
+.match>.mcol{display:grid;gap:14px;align-content:center}.match button{min-height:clamp(66px,12vh,92px);font-size:1.25rem;border-radius:12px;padding:8px 12px}.match button.sel{box-shadow:0 0 0 4px #ffd23f,0 4px 0 #a97d0f}
+.marrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.match>.mcol:first-child{grid-column:1;grid-row:1}.match>.mcol:last-child{grid-column:3;grid-row:1}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1377,7 +1381,7 @@ function solveView(l, q) {
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
-  if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
+  if (q.match) return hudRide() + bubble(U.msg || "Tap a word on the left, then tap its match on the right. I'll draw the arrow.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
   const stuck = U.wrongNow >= 3;
   const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "Stuck? Tap Explain it."]));
   if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
@@ -1445,8 +1449,27 @@ function puzzleView(it) {
 function matchHtml(pairs) {
   const m = (U.m = U.m || { sel: null, done: [], miss: 0 });
   const right = [...pairs.slice(1), pairs[0]].map((p) => p[1]);
-  return `<div class="match"><div>${pairs.map(([a]) => `<button class="${m.done.includes(a) ? "ok" : m.sel === a ? "sel" : ""}" data-act="matchL" data-c="${esc(a)}" ${m.done.includes(a) ? "disabled" : ""}>${esc(a)}</button>`).join("")}</div><div>${right.map((b) => { const done = pairs.some((p) => p[1] === b && m.done.includes(p[0])); return `<button class="${done ? "ok" : ""}" data-act="matchR" data-c="${esc(b)}" ${done ? "disabled" : ""}>${esc(b)}</button>`; }).join("")}</div></div>`;
+  return `<div class="match" id="matchBox"><div class="mcol">${pairs.map(([a]) => `<button class="${m.done.includes(a) ? "ok" : m.sel === a ? "sel" : ""}" data-act="matchL" data-c="${esc(a)}" ${m.done.includes(a) ? "disabled" : ""}>${esc(a)}</button>`).join("")}</div><svg class="marrows" id="matchArrows" aria-hidden="true"></svg><div class="mcol">${right.map((b) => { const done = pairs.some((p) => p[1] === b && m.done.includes(p[0])); return `<button class="${done ? "ok" : ""}" data-act="matchR" data-c="${esc(b)}" ${done ? "disabled" : ""}>${esc(b)}</button>`; }).join("")}</div></div>`;
 }
+// Draws an arrow from each matched word on the left to its partner on the right.
+function drawMatchArrows() {
+  const box = document.getElementById("matchBox"), svg = document.getElementById("matchArrows");
+  if (!box || !svg || !U.m) return;
+  const pairs = U.qid ? curQ()?.match : curItem()?.pairs; if (!pairs) return;
+  const b = box.getBoundingClientRect();
+  svg.setAttribute("viewBox", `0 0 ${b.width} ${b.height}`);
+  const btn = (act, c) => [...box.querySelectorAll(`[data-act="${act}"]`)].find((el) => el.dataset.c === c);
+  const arrow = (l, r, color, dash) => {
+    if (!l || !r) return "";
+    const a = l.getBoundingClientRect(), z = r.getBoundingClientRect(), x1 = a.right - b.left + 4, y1 = a.top + a.height / 2 - b.top, x2 = z.left - b.left - 6, y2 = z.top + z.height / 2 - b.top;
+    const ang = Math.atan2(y2 - y1, x2 - x1), hx = (t) => x2 - 16 * Math.cos(ang + t), hy = (t) => y2 - 16 * Math.sin(ang + t);
+    return `<line x1="${x1}" y1="${y1}" x2="${x2 - 8 * Math.cos(ang)}" y2="${y2 - 8 * Math.sin(ang)}" stroke="${color}" stroke-width="6" stroke-linecap="round" ${dash ? `stroke-dasharray="4 12"` : ""}/><path d="M${x2} ${y2}L${hx(.5)} ${hy(.5)}L${hx(-.5)} ${hy(-.5)}Z" fill="${color}"/>`;
+  };
+  let out = U.m.done.map((a) => arrow(btn("matchL", a), btn("matchR", pairs.find((p) => p[0] === a)[1]), "#1f9a4f")).join("");
+  if (U.m.wrong) out += arrow(btn("matchL", U.m.wrong[0]), btn("matchR", U.m.wrong[1]), "#d3241f", true);
+  svg.innerHTML = out;
+}
+window.addEventListener("resize", () => drawMatchArrows());
 function chalk(it) {
   const tri = "0,0 0,108 72,108";
   const shape = (cls, x, y, extra = "") => `<g transform="translate(${x} ${y})"><polygon class="${cls}" points="${tri}" ${extra}/></g>`;
@@ -2214,18 +2237,25 @@ const acts = {
   pzSlide(d) { const pz = U.pz, x = pz.x + +d.dx, y = pz.y + +d.dy; if (x < 3 || x > 6 || y < 3 || y > 4) { W.shake = 3; beep(NOPE); return; } pz.x = x; pz.y = y; pzMoved(); },
   pzTurn() { U.pz.rel = U.pz.rel.map(([x, y]) => [-y, x]); pzMoved(); },
   pzFlip() { U.pz.rel = U.pz.rel.map(([x, y]) => [-x, y]); pzMoved(); },
-  matchL(d) { U.m.sel = d.c; U.msg = null; beep(BLIP); render(); },
+  matchL(d) { U.m.sel = d.c; U.m.wrong = null; U.msg = null; beep(BLIP); render(); },
   matchR(d) {
     const pairs = U.qid ? curQ().match : curItem().pairs, m = U.m;
-    if (!m.sel) { U.msg = "Tap a cowboy word first."; return render(); }
+    if (!m.sel) { U.msg = "Tap a word on the left first."; return render(); }
+    m.wrong = null;
     const pair = pairs.find((p) => p[0] === m.sel);
     if (pair[1] === d.c) {
       m.done.push(m.sel); m.sel = null; U.msg = null; correctFx(); earn(2);
       if (m.done.length === pairs.length) {
-        if (U.qid) { const p = PP(LP(U.lesson), U.qid); p.ans = "All matched"; return finishProblem(m.miss === 0, false); }
-        return nextItem();
+        render();
+        const id = U.qid, item = U.i;
+        setTimeout(() => {
+          if (U.view !== "ride" || U.qid !== id || U.i !== item) return;
+          if (id) { const p = PP(LP(U.lesson), id); p.ans = "All matched"; return finishProblem(m.miss === 0, false); }
+          nextItem();
+        }, 1000);
+        return;
       }
-    } else { m.miss++; m.sel = null; U.msg = `A ${pair[0].toLowerCase()} isn't called that. Try again.`; wrongFx(); }
+    } else { m.miss++; m.wrong = [m.sel, d.c]; m.sel = null; U.msg = `A ${pair[0].toLowerCase()} isn't called that. Try again.`; wrongFx(); }
     render();
   },
   askMic() { openAskPanel(); },
@@ -2350,7 +2380,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ---------- draw ---------- */
-const ENTRY = ".helprow,.pad,.actions,.helper,.choices,.tools,.sort,.match,.answer,.btn,.link,.call,.score";
+const ENTRY = ".helprow,.pad,.actions,.helper,.choices,.tools,.sort,.answer,.btn,.link,.call,.score";
 // Keeps the problem on the left and the things he taps on the right when the iPad is sideways.
 function initScratch() {
   const cv = document.getElementById("spad"); if (!cv) return;
@@ -2405,6 +2435,7 @@ function render() {
   try { app.innerHTML = views[U.view](); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
+  drawMatchArrows();
   initScratch();
   markWord();
   if (U.view === "ride" || U.view === "town") save();
