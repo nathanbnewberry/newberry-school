@@ -353,6 +353,57 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   body[data-view="ride"] #app{grid-column:1/-1;grid-row:3}
   .askbar>.chip{white-space:nowrap}.askbar>.pips{flex:none}
 }
+.bookpage{font-family:var(--body)}.bookpage .bh{font-style:normal;font-weight:600}.bookpage .prompt{font-family:var(--body);font-weight:500}
+.ac{font-family:var(--body);font-weight:800}.cc{font-family:var(--body);font-weight:800}.pnum b{font-weight:800}.pbody{font-weight:500}
+.w{border-radius:5px;padding:0 2px;margin:0 -2px;transition:background .08s}.w.on{background:#ffd23f;color:#1c1712;box-shadow:0 0 0 2px #ffd23f}
+.bubtns{display:flex;align-items:center;gap:6px}.micbtn{width:52px;height:52px;border-radius:50%;background:var(--ember);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 3px 0 #a54a1d}.micbtn svg{width:28px;height:28px;color:#fff}.micbtn.on{background:var(--red);animation:pulse 1s ease-in-out infinite}
+.explainbtn{min-height:50px;padding:6px 24px}.actions:has(>:only-child){grid-template-columns:1fr}
+.pmathbig{font-size:clamp(2.4rem,9vw,3.6rem)}.bookpage .prompt{font-size:clamp(1.25rem,4.2vw,1.65rem);line-height:1.5}.pmath .pbody{font-size:1.55rem}.pbody{font-size:1.2rem}
+@media (orientation:landscape) and (min-width:800px){
+  .split.hasScratch .pmathbig{font-size:clamp(2.1rem,4.3vw,3.3rem)}
+  .split.hasScratch .prompt{font-size:clamp(1.15rem,2.1vw,1.5rem)}
+  .split.hasScratch{grid-template-columns:minmax(290px,1.05fr) minmax(0,1.35fr) minmax(250px,.72fr)}
+  body[data-view="ride"] #topbar .askbar{justify-content:flex-start}
+  .biscuit{font-size:1rem}
+}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.micbtn{width:44px;height:44px}.split.hasScratch .pmathbig{font-size:clamp(1.9rem,3.6vw,2.7rem)}}
+.recap{margin:0;padding:0 0 0 1.4em;display:grid;gap:8px;font-size:1.05rem;line-height:1.35}.recap li>span{display:block;color:#5d564b}.recap b{font-weight:700}.recap em{font-style:normal;font-weight:800;color:#1c7a3e;background:#dcf3e2;border-radius:6px;padding:0 7px;margin-left:4px}
+.workedgrid{display:grid;gap:14px}.workedside{display:grid;gap:10px;align-content:start;min-width:0}
+@media (orientation:landscape) and (min-width:800px){
+  .workedpage{overflow:auto;height:100%}.workedgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px}
+  .split.hasScratch{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(250px,.8fr);gap:10px}
+  .split.hasScratch>.left>.scratch{order:0}.split.hasScratch .lcol{order:1}.split.hasScratch>.right{order:2}
+}
+.biscuit>.mascot{width:92px;height:108px;flex:none;overflow:visible;margin:-10px 0 -6px}
+.mbody{animation:mbob 2.4s ease-in-out infinite;transform-origin:50px 125px}.mtail{animation:mtail 1.6s ease-in-out infinite;transform-origin:20px 76px}.mear{animation:mear 5s ease-in-out infinite;transform-origin:70px 24px}
+.mlid{transform:scaleY(0);transform-origin:79px 26px;animation:mblink 4.5s infinite}.mopen{opacity:0}
+body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternate;transform-origin:91px 53px}body.talking .msmile{opacity:0}
+@keyframes mbob{50%{transform:translateY(-3px)}}@keyframes mtail{50%{transform:rotate(9deg)}}@keyframes mear{0%,90%,100%{transform:none}95%{transform:rotate(-12deg)}}@keyframes mblink{0%,94%,100%{transform:scaleY(0)}97%{transform:scaleY(1)}}@keyframes mtalk{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+.saytext{flex:1;min-width:0}
+.bubtns{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;flex:none;max-width:290px}.explainbtn{min-height:52px;padding:6px 16px;font-family:var(--body);font-size:1rem;white-space:nowrap}.smallbtns{display:flex;gap:6px;width:100%;justify-content:flex-end}.smallbtns button{font-size:.78rem}
+.stgame{min-height:0}.stfield{position:relative;min-height:300px;height:100%;border-radius:12px;overflow:hidden;background:linear-gradient(#f6c98a 0 34%,#d8a65f 34% 38%,#c9a15f 38% 100%)}
+.stpen{position:absolute;left:0;top:0;bottom:0;width:150px;background:#a6793f;display:grid;place-items:center;z-index:1}.stdots{display:grid;grid-template-columns:repeat(10,1fr);gap:3px;width:124px}.stdots i{aspect-ratio:1;border-radius:50%;background:rgba(58,36,18,.3)}.stdots i.on{background:#ffd23f;box-shadow:0 0 0 1px #7d4c22}
+.stfence{position:absolute;left:150px;top:0;bottom:0;width:14px;background:repeating-linear-gradient(#5a3517 0 18px,#7d4c22 18px 34px);z-index:2}
+.steer{position:absolute;left:0;bottom:12%;width:220px;z-index:3;animation:strun linear forwards}.steer>svg{width:100%;display:block;animation:stgallop .32s ease-in-out infinite alternate}.steer.gold>svg{filter:sepia(1) saturate(4) brightness(1.2)}
+.stsign{position:absolute;left:50%;top:-62px;transform:translateX(-50%);white-space:nowrap;background:#fbf3df;color:#1c1712;border:3px solid #5a3517;border-radius:10px;padding:4px 14px;font:800 2.1rem var(--body)}.stsign span{color:#b4411a}
+@keyframes strun{from{transform:translateX(calc(100cqw + 10px))}to{transform:translateX(150px)}}@keyframes stgallop{to{transform:translateY(-7px) rotate(-2deg)}}
+.stfield{container-type:inline-size}
+.stfly{position:absolute;bottom:12%;width:170px;z-index:4;animation:stfly .72s ease-in forwards;pointer-events:none}.stfly svg{width:100%}.stfly b{position:absolute;left:0;right:0;top:-34px;text-align:center;font:400 1.7rem var(--display);color:#c8202c}
+@keyframes stfly{0%{transform:none}35%{transform:translateY(-90px) rotate(-30deg)}100%{transform:translate(-60%,-120px) rotate(-200deg) scale(.15);opacity:.2}}
+.stinfo{display:flex;flex-wrap:wrap;gap:6px}.chip.hot{background:#e8541e;color:#fff}.chip.gold{background:#ffd23f;color:#1c1712}
+@media (orientation:landscape) and (min-width:800px){.stgame.split{grid-template-columns:minmax(0,1fr) 300px}.stgame .left{height:100%;grid-template-rows:minmax(0,1fr) auto}.stfield{min-height:0}}
+.biscuit{display:flex!important;align-items:center;gap:10px}
+.pbody{font-size:1.08rem}.pmath .pbody{font-size:1.35rem}
+@media (orientation:landscape) and (min-width:800px){
+  .stgame.split{height:100%;align-items:stretch;grid-template-rows:minmax(0,1fr)}.stgame>.left{min-height:0;gap:6px}.stgame>.right{height:100%;align-content:stretch;grid-template-rows:minmax(0,1fr)}
+  .stgame .pad{height:100%;grid-auto-rows:minmax(0,1fr)}.stgame .pad button{min-height:0;font-size:1.7rem}
+  .steer{width:clamp(170px,22cqw,240px);bottom:10%}
+}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){
+  .biscuit>.mascot{width:62px;height:72px;margin:-6px 0 -4px}.biscuit{font-size:.92rem}.explainbtn{min-height:44px;padding:4px 12px;font-size:.92rem}.smallbtns button{min-height:0;padding:2px 8px}
+  .bookpage{padding:8px}.pcell{min-height:40px;padding:3px 6px}.pmath .pbody{font-size:1.15rem}.pbody{font-size:.98rem}.bh{margin-bottom:0}
+  .split .board{font-size:clamp(1rem,3.6vh,1.6rem)}.split .pad button,.split.hasScratch .pad button{min-height:38px}
+}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -368,7 +419,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=495f12a671"></script>
+<script src="lessons.js?v=0dd2405c13"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -400,7 +451,7 @@ try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } ca
 let dbDoc = null, cloud = "device", saveTimer = 0;
 function save() {
   S.updatedAt = Date.now();
-  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, fills: U.fills, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
+  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, stepLog: U.stepLog, fills: U.fills, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   if (!dbDoc) return;
   clearTimeout(saveTimer);
@@ -476,15 +527,40 @@ function startMusic() {
   music = setInterval(() => { beep([[bass[i % 8], 0, .14, "triangle"], ...(i % 2 ? [[bass[i % 8] * 3, 0, .05]] : [])]); i++; }, 210);
 }
 function stopMusic() { clearInterval(music); music = 0; }
-let lastSaid = "";
+let lastSaid = "", sayText = "", sayIdx = -1, sayTimer = 0;
+const wordsHtml = (t) => String(t).split(/\s+/).map((w) => `<span class="w">${esc(w)}</span>`).join(" ");
+function markWord() {
+  document.querySelectorAll("[data-say]").forEach((el) => {
+    const on = el.dataset.say === sayText;
+    el.querySelectorAll(".w").forEach((w, i) => w.classList.toggle("on", on && i === sayIdx));
+  });
+}
+function endWords() { clearInterval(sayTimer); sayIdx = -1; markWord(); document.body.classList.remove("talking"); }
+function followWords(t) {
+  clearInterval(sayTimer); sayText = t; sayIdx = 0; markWord(); document.body.classList.add("talking");
+  const parts = t.split(/\s+/);
+  const nextWord = () => {
+    sayIdx++;
+    if (sayIdx >= parts.length) return endWords();
+    markWord();
+    clearInterval(sayTimer);
+    sayTimer = setInterval(nextWord, 170 + parts[sayIdx].length * 58);
+  };
+  sayTimer = setInterval(nextWord, 170 + parts[0].length * 58);
+}
 function speak(t, force) {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
   try {
-    if ((!force && (S.voice === false || S.muted)) || !window.speechSynthesis) return;
+    if (!force && (S.voice === false || S.muted)) return;
+    followWords(t);
+    if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(t.replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of "));
-    u.rate = 1.05; u.pitch = 1.1;
+    u.rate = 1.0; u.pitch = 1.1;
+    // Real word timing when the device gives it, otherwise the estimate above keeps going.
+    u.onboundary = (e) => { if (e.name && e.name !== "word") return; clearInterval(sayTimer); sayIdx = u.text.slice(0, e.charIndex).trim().split(/\s+/).filter(Boolean).length; markWord(); };
+    u.onend = endWords;
     speechSynthesis.speak(u);
   } catch (e) {}
 }
@@ -757,8 +833,9 @@ const curLesson = () => LESSONS.find((l) => l.id === U.lesson);
 const rideOf = (l, id) => l.rides.find((r) => r.id === id);
 const qOf = (l, id) => l.problems.find((p) => p.id === id);
 function rideDone(l, r) { return !!LP(l.id).rides[r.id]; }
-function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
-function lessonFinished(l) { return l.rides.every((r) => rideDone(l, r)); }
+const optionalRide = (r) => r.kind === "warmup";
+function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !optionalRide(r) && !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
+function lessonFinished(l) { return l.rides.every((r) => optionalRide(r) || rideDone(l, r)); }
 // The lesson marked current is today's stop. After that, the first lesson still unfinished.
 function currentIdx() {
   const today = LESSONS.findIndex((l) => l.current && !lessonFinished(l));
@@ -860,7 +937,29 @@ function visual(v) {
 /* ---------- screens ---------- */
 const hudRide = (extra = "") => `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="leaveRide">Map</button><button class="btn dark small" data-act="goBack">&#9664; Back</button></span>${extra}
   ${U.combo > 1 ? `<span class="combo pop">${U.combo}x combo</span>` : ""}<span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-const bubble = (t, extra = "") => { speak(t); U.lastBubble = t; return `<div class="biscuit ${extra}"><svg aria-hidden="true"><use href="#horse"/></svg><div>${esc(t)}</div><div class="bubtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></div></div>`; };
+const MASCOT = `<svg class="mascot" viewBox="0 0 110 130" aria-hidden="true"><g class="mbody">
+  <path class="mtail" d="M20 76c-13 2-17 16-13 32 6-5 11-13 15-24z" fill="#4a2b14"/>
+  <rect x="24" y="92" width="10" height="31" rx="4" fill="#9c6029"/><rect x="58" y="92" width="10" height="31" rx="4" fill="#9c6029"/>
+  <rect x="36" y="92" width="10" height="33" rx="4" fill="#b9773a"/><rect x="70" y="92" width="10" height="33" rx="4" fill="#b9773a"/>
+  <path d="M24 118h10v7H24zM58 118h10v7H58zM36 120h10v7H36zM70 120h10v7H70z" fill="#2c1a0e"/>
+  <ellipse cx="51" cy="86" rx="33" ry="20" fill="#b9773a"/><ellipse cx="51" cy="93" rx="22" ry="10" fill="#d09a5c"/>
+  <path d="M60 80 66 42 88 50 82 88z" fill="#b9773a"/>
+  <path d="M63 38c-7 8-8 16-9 24 3-1 4-2 6-3-2 6-2 11-2 17l8-12z" fill="#4a2b14"/>
+  <path d="M62 69l24 3-10 15z" fill="#c8202c"/><path d="M60 67l27 3-1 5-27-3z" fill="#e23b45"/>
+  <path class="mear" d="M66 24l3-13 8 12z" fill="#9c6029"/>
+  <ellipse cx="78" cy="38" rx="19" ry="17" fill="#b9773a"/>
+  <path d="M71 23c-3 3-5 8-4 13 3-2 7-3 9-6z" fill="#4a2b14"/>
+  <ellipse cx="91" cy="47" rx="14" ry="11" fill="#e6c08f"/>
+  <ellipse cx="96" cy="43" rx="2" ry="2.6" fill="#4a2b14"/>
+  <path class="msmile" d="M83 52c4 4 11 4 16-1" fill="none" stroke="#4a2b14" stroke-width="2.4" stroke-linecap="round"/>
+  <ellipse class="mopen" cx="91" cy="53" rx="7" ry="5" fill="#7b1f24"/>
+  <circle cx="79" cy="34" r="7.5" fill="#fff"/><circle cx="81" cy="35" r="4" fill="#20140a"/><circle cx="82.4" cy="33.4" r="1.4" fill="#fff"/>
+  <ellipse class="mlid" cx="79" cy="34" rx="8" ry="8" fill="#9c6029"/>
+  <path d="M70 25c-1-12 2-20 11-20 8 0 11 8 11 18z" fill="#6b3f1b"/><path d="M70 22c7 2 15 2 22-1v4c-7 3-15 3-22 1z" fill="#c8202c"/>
+  <ellipse cx="81" cy="26" rx="27" ry="5.5" fill="#7d4c22"/><path d="M54 26c6 4 42 4 54 0-4 6-48 7-54 0z" fill="#5a3517"/>
+</g></svg>`;
+const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
+const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } const ask = U.view === "ride" && U.qid && U.mode !== "solved" && SR; const explain = U.view === "ride" && U.qid && U.mode === "try" && !U.coachDone && curQ()?.coach && !curQ().match; return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns">${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}${ask ? `<button class="micbtn ${U.listening ? "on" : ""}" data-act="askMic" aria-label="Ask Biscuit out loud">${MIC_ICON}</button>` : ""}<span class="smallbtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></span></div></div>`; };
 function titleView() {
   const res = S.resume?.lesson && LESSONS.find((l) => l.id === S.resume.lesson);
   if (res) return `<div class="console center"><p>Welcome back, Elliot. Everything you did is saved.</p><button class="btn go wide" data-act="resume" style="font-size:1.4rem;min-height:70px">KEEP GOING</button><button class="btn dark wide" data-act="start">Go to the map</button></div>`;
@@ -951,19 +1050,27 @@ function townMapSvg(l) {
     ${riderToken()}</svg>`;
 }
 let tokTimer = 0;
-function placeToken(key, idx, pts) {
-  const el = document.getElementById("token"); if (!el) return;
+function placeToken(key, idx, pts, done) {
+  const el = document.getElementById("token"); if (!el) return done && done();
   clearInterval(tokTimer);
-  const to = pts[idx], offset = [-34, -38], set = (x, y) => el.setAttribute("transform", `translate(${x + offset[0]} ${y + offset[1]})`);
+  const to = pts[idx], offset = [-34, -38], set = (x, y, flip) => el.setAttribute("transform", `translate(${x + offset[0]} ${y + offset[1]})${flip ? " scale(-1 1)" : ""}`);
   const from = U.lastTok[key];
   U.lastTok[key] = idx;
-  if (from == null || from === idx || reduced) return set(to[0], to[1]);
-  const seq = from < idx ? pts.slice(from, idx + 1) : [pts[from], to]; let t = 0;
+  if (from == null || from === idx || reduced) { set(to[0], to[1]); return done && done(); }
+  const seq = from < idx ? pts.slice(from, idx + 1) : pts.slice(idx, from + 1).reverse(); let t = 0;
   tokTimer = setInterval(() => {
     t += .02; const f = Math.min(1, t) * (seq.length - 1), i = Math.min(Math.floor(f), seq.length - 2), k = f - i;
-    set(seq[i][0] + (seq[i + 1][0] - seq[i][0]) * k, seq[i][1] + (seq[i + 1][1] - seq[i][1]) * k);
-    if (t >= 1) { clearInterval(tokTimer); beep(BLIP); }
+    set(seq[i][0] + (seq[i + 1][0] - seq[i][0]) * k, seq[i][1] + (seq[i + 1][1] - seq[i][1]) * k, seq[i + 1][0] < seq[i][0]);
+    if (t >= 1) { clearInterval(tokTimer); beep(BLIP); if (done) setTimeout(done, 160); }
   }, 20);
+}
+const worldSpot = () => { const at = LESSONS.findIndex((l) => l.id === S.atTown); return at >= 0 && !lessonFinished(LESSONS[at]) ? at : Math.min(currentIdx(), WORLD_PTS.length - 1); };
+const townSpot = (l) => { const at = l.rides.find((r) => r.id === S.atRide?.[l.id]); if (at && !rideDone(l, at)) return l.rides.indexOf(at); const nx = nextRide(l); return nx ? l.rides.indexOf(nx) : l.rides.length - 1; };
+// Rides the horse across the map, then opens the place he tapped.
+function trot(key, idx, pts, go) {
+  if (U.trotting) return;
+  U.trotting = true;
+  placeToken(key, idx, pts, () => { U.trotting = false; go(); });
 }
 function homeView() {
   return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>$${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="arcade">Arcade</button><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
@@ -974,7 +1081,7 @@ function homeView() {
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
   return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">World map</button>${prev ? `<button class="btn dark small" data-act="town" data-id="${esc(prev.id)}">&#9664; Lesson ${esc(prev.bookLesson)}</button>` : ""}${nxt ? `<button class="btn dark small" data-act="town" data-id="${esc(nxt.id)}">Lesson ${esc(nxt.bookLesson)} &#9654;</button>` : ""}</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
-  ${(() => { const nx = nextRide(l), n = l.rides.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : `${n} of ${l.rides.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`); })()}
+  ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`); })()}
   ${townMapSvg(l)}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
@@ -1032,19 +1139,12 @@ function pageView(l, r) {
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
       ${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
-  const demoLink = r.demos?.length || r.teach?.length ? `<button class="btn dark wide" data-act="replayDemo" style="font-family:var(--body)">Watch Biscuit explain it</button>` : "";
+  const demoLink = r.demos?.length || r.teach?.length ? `<button class="btn go wide" data-act="replayDemo" style="font-family:var(--body)">Watch Biscuit explain it</button>` : "";
   return hudRide(`<span class="chip">${left} outlaw${left === 1 ? "" : "s"} left</span>`) + bubble(left === r.problems.length ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
     `<div class="bookpage"><div class="bh"><span>Lesson ${esc(l.bookLesson)}</span><span>Page ${esc(r.page || "")}</span></div><h2 class="sect">${esc(r.section || "")}</h2><div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div>${demoLink}</div>
     <button class="btn dark wide" data-act="leaveRide">Back to the map</button>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-function askBar(q) {
-  const rd = rideOf(curLesson(), U.ride), showDemo = rd.demos?.length || rd.teach?.length;
-  return `<div class="askbar">
-    ${SR ? `<button class="mic-btn ${U.listening ? "on" : ""}" data-act="askMic">${U.listening ? "Listening..." : "Ask Biscuit out loud"}</button>` : ""}
-    <div class="askchips"><button data-act="askChip" data-t="why was I wrong">Why was I wrong?</button><button data-act="askChip" data-t="how do I start">How do I start?</button><button data-act="askChip" data-t="what does that word mean">What's that word?</button>${showDemo ? `<button data-act="askChip" data-t="show me an example">Explain it on the board</button>` : ""}</div>
-    ${U.heard ? `<p class="heard">You said: "${esc(U.heard)}"</p>` : ""}</div>`;
-}
 function spadPrompt() {
   const q = curQ(), it = curItem();
   if (q) return U.mode === "proof" ? q.proof.prompt : q.prompt;
@@ -1063,12 +1163,33 @@ function factsState() {
   }
   return lp.facts;
 }
+const STEER = `<svg viewBox="0 0 120 86" aria-hidden="true"><path d="M104 28c7 2 11 7 12 15" fill="none" stroke="#3a2412" stroke-width="4"/><g class="stlegs"><rect x="28" y="56" width="9" height="28" rx="3" fill="#5a3517"/><rect x="42" y="56" width="9" height="28" rx="3" fill="#7d4c22"/><rect x="74" y="56" width="9" height="28" rx="3" fill="#5a3517"/><rect x="88" y="56" width="9" height="28" rx="3" fill="#7d4c22"/></g><ellipse cx="64" cy="44" rx="42" ry="24" fill="#8a5a2b"/><ellipse cx="72" cy="38" rx="12" ry="9" fill="#f1e2c6"/><ellipse cx="24" cy="36" rx="19" ry="17" fill="#7d4c22"/><path d="M12 24C2 22-1 13 3 6c1 8 6 10 14 11zM33 22c9-3 12-11 8-18-1 8-6 9-13 12z" fill="#f1e2c6"/><ellipse cx="13" cy="44" rx="9" ry="7" fill="#d9a98a"/><circle cx="20" cy="31" r="3.4" fill="#20140a"/></svg>`;
+let stTimer = 0;
+const stDuration = () => Math.max(6500, 12000 - (U.stStreak || 0) * 250);
+function stEscape() {
+  if (U.view !== "ride" || U.qid || U.stBreak || curItem()?.type !== "stampede") return;
+  const f = factsState();
+  if (f.i < f.order.length - 1) f.order.push(f.order.splice(f.i, 1)[0]);
+  U.stStreak = 0; U.stBorn = 0; U.draft = ""; U.stepWrong = 0; U.msg = "He got past the fence! He'll come back around, so rope him next time."; beep(NOPE); W.shake = 8; save(); render();
+}
 function stampedeView(pips) {
   const f = factsState();
-  if (U.stBreak) return hudRide() + bubble(`${f.i} down, ${100 - f.i} to go. Take a breath, shake out your hands.`) + `<div class="console center pop"><div class="big">${f.i} of 100</div><button class="btn go wide" data-act="stGo">KEEP GOING</button><button class="btn dark wide" data-act="leaveRide">Back to the map</button></div>`;
-  const [a, b] = f.order[f.i];
-  U.factT = U.factT || Date.now();
-  return hudRide(`<span class="chip">Fact ${f.i + 1} of 100</span>`) + bubble(U.msg || "100 facts. Just you against your own best.", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Facts Stampede</span></div><div class="stbar"><i style="width:${f.i}%"></i></div><div class="pmathbig">${bookMath({ type: "inline", text: `${a} × ${b}` }, U.draft, true)}</div>${padHtml()}<button class="btn dark wide skipbtn" data-act="stSkip">Skip, come back later</button></div>`;
+  clearTimeout(stTimer);
+  if (U.stBreak) return hudRide() + bubble(`${f.i} steers in the pen, ${100 - f.i} to go. Shake out your hands.`) + `<div class="console center pop"><div class="big">${f.i} of 100</div><button class="btn go wide" data-act="stGo">KEEP GOING</button></div>`;
+  const [a, b] = f.order[f.i], key = `${f.i}|${a}|${b}`, now = Date.now();
+  if (U.stKey !== key || !U.stBorn || now - U.stBorn >= U.stDur) { U.stKey = key; U.stBorn = now; U.stDur = stDuration(); }
+  stTimer = setTimeout(stEscape, U.stBorn + U.stDur - now);
+  U.factT = U.factT || now;
+  const gold = (f.i + 1) % 10 === 0, streak = U.stStreak || 0, last = LP(U.lesson).factsResult;
+  const dots = Array.from({ length: 100 }, (_, i) => `<i class="${i < f.i ? "on" : ""}"></i>`).join("");
+  return hudRide(`<span class="chip">${f.i} of 100 roped</span>`) + bubble(U.msg || "Type the answer to rope him before he hits the fence!", U.msg ? "shake" : "", !U.msg) +
+    `<div class="bookpage stgame"><div class="stfield" id="stfield"><div class="stpen"><div class="stdots">${dots}</div></div><div class="stfence"></div><div class="steer ${gold ? "gold" : ""}" id="steer" style="animation-duration:${U.stDur}ms;animation-delay:-${now - U.stBorn}ms">${STEER}<div class="stsign">${a} × ${b} = <span>${esc(U.draft) || "?"}</span></div></div></div><div class="stinfo"><span class="chip ${streak >= 5 ? "hot" : ""}">Rope streak ${streak}</span>${gold ? `<span class="chip gold">Gold steer: +$3</span>` : ""}${last ? `<span class="chip">Last time ${fmtTime(last.secs)}</span>` : ""}</div>${padHtml()}</div>`;
+}
+// The caught steer flies over to the pen; drawn on top so it survives the next screen.
+function stCaught(box) {
+  const field = document.getElementById("stfield"); if (!field || !box) return;
+  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "SIUUU!"])}</b>`;
+  field.appendChild(el); setTimeout(() => el.remove(), 750);
 }
 function padHtml(extra = []) {
   // Laid out like a calculator: 7 8 9 on top, 0 on the bottom.
@@ -1108,7 +1229,7 @@ function boardHtml(c, stepIdx, finished) {
 }
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
-  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span></div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt">${esc(q.prompt)}</p>`}`;
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span></div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}`;
 }
 function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
@@ -1116,11 +1237,17 @@ function solveView(l, q) {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
       `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide" data-act="closeq">BACK TO THE PAGE</button>`;
   }
+  if (U.mode === "worked") {
+    const more = q.proof && !p.done, log = U.stepLog || [];
+    const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
+    return hudRide(`<span class="chip">Worked out</span>`) + bubble("You did every step with me, so the work is done. Here's how it all came out.") +
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside"><div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${more ? "NOW TRY ONE ALONE" : "BACK TO THE PAGE"}</button></div></div></div>`;
+  }
   if (U.mode === "proof") {
     const pr = q.proof;
-    return hudRide(`<span class="chip">Prove it</span>`) + bubble(U.msg || "You got it! Now here's a new problem with different numbers, to show you can do it alone.", U.msg ? "shake" : "") +
-      `<div class="bookpage"><div class="bh"><span>Prove it: a new problem, same idea</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt">${esc(pr.prompt)}</p>`}${scratchHtml()}
-      ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
+    return hudRide(`<span class="chip">Prove it</span>`) + (() => { const quiet = !U.msg && !pr.book; const html = bubble(U.msg || "You got it! Now here's a new problem with different numbers, to show you can do it alone.", U.msg ? "shake" : "", quiet); if (quiet) { U.lastBubble = pr.prompt; speak(pr.prompt); } return html; })() +
+      `<div class="bookpage"><div class="bh"><span>Prove it: a new problem, same idea</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}
+      ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}</div>`;
   }
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), locked = U.stepWrong >= 2 && !U.helped && !s.choices;
@@ -1128,33 +1255,35 @@ function solveView(l, q) {
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span></div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}`}
-      ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
+      ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
-  if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button></div>`;
+  if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
   const stuck = U.wrongNow >= 3;
-  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "If it's nasty, tap Explain it."]));
+  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "Stuck? Tap Explain it."]));
   if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
-  const help = U.coachDone ? (stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "") : `<button class="btn dark" data-act="coach">Explain it, step by step</button>`;
-  const later = `<button class="btn dark wide skipbtn" data-act="closeq">Skip, come back later</button>`;
+  const help = U.coachDone && stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "";
+  const later = "";
   const top = hudRide();
+  const readIt = !q.book && !U.msg && !U.coachDone;
+  const say = (t, cls) => { const html = bubble(t, cls, readIt); if (readIt) { U.lastBubble = q.prompt; speak(q.prompt); } return html; };
   if (q.paper) return top + bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
-  if (q.choices) return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
-  return top + bubble(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
+  if (q.choices) return top + say(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
+  return top + say(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
     ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : q.extra || [])}
-    <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help || `<span></span>`}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
+    <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
 }
 function rideView() {
   const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i];
   if (U.qid) {
     const q = qOf(l, U.qid), html = solveView(l, q);
-    return U.mode === "solved" || q.match ? html : html.replace('<div class="bookpage', askBar(q) + '<div class="bookpage');
+    return html;
   }
   if (it.type === "page") return pageView(l, r);
   const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
   if (it.type === "fact") {
     if (!U.drawT) U.drawT = Date.now();
-    return hudRide(pips) + bubble(U.msg || `Warm-up ${it.w.label}. Do it in your head.`, U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Mental Math ${esc(it.w.label)}</span></div>${it.w.word ? `<p class="prompt">${esc(it.w.prompt)}</p>${scratchHtml()}<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>` : `<div class="pmathbig">${bookMath({ type: "inline", text: it.w.prompt }, U.draft, true)}</div>`}${padHtml(it.w.extra || [])}<button class="btn dark wide skipbtn" data-act="skipItem">Skip, come back later</button></div>`;
+    return hudRide(pips) + bubble(U.msg || `Warm-up ${it.w.label}. Do it in your head.`, U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Mental Math ${esc(it.w.label)}</span></div>${it.w.word ? `<p class="prompt">${esc(it.w.prompt)}</p>${scratchHtml()}<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>` : `<div class="pmathbig">${bookMath({ type: "inline", text: it.w.prompt }, U.draft, true)}</div>`}${padHtml(it.w.extra || [])}</div>`;
   }
   if (it.type === "stampede") return stampedeView(pips);
   if (it.type === "board") return hudRide(pips) + bubble(it.say) + `<div class="console boardbox">${chalk(it)}<div class="actions"><button class="btn dark" data-act="boardAgain">Show me again</button><button class="btn go" data-act="next">Got it</button></div></div>`;
@@ -1163,8 +1292,8 @@ function rideView() {
   if (it.type === "match") return hudRide(pips) + bubble(U.msg || it.say, U.msg ? "shake" : "") + `<div class="console">${matchHtml(it.pairs)}</div>`;
   if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the facts</button></div>`;
   if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Do you need this fact to answer the question?", U.msg ? "shake" : "") + `<div class="console"><p class="tag">The question</p><div class="ctx">${esc(it.context)}</div><p class="tag">The fact</p><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">NEED IT</button><button class="no" data-act="sort" data-c="0">DON'T NEED IT</button></div></div>`;
-  if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<div class="ctx">${esc(it.ask)}</div>${scratchHtml()}<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}<button class="btn dark wide skipbtn" data-act="skipItem">Skip, come back later</button></div>`;
-  return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div><button class="btn dark wide skipbtn" data-act="skipItem">Skip, come back later</button></div>`;
+  if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<div class="ctx">${esc(it.ask)}</div>${scratchHtml()}<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml()}</div>`;
+  return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
 }
 const BRAND = [[0, 0], [3, 0], [0, 2]];
 const absPts = (rel, ax, ay) => rel.map(([x, y]) => [x + ax, y + ay]);
@@ -1185,7 +1314,7 @@ function puzzleView(it) {
     : t === "turn" ? `<button class="btn big-tool" data-act="pzTurn">&#8635; TURN</button>` : `<button class="btn big-tool" data-act="pzFlip">&#8644; FLIP</button>`;
   const stars = pz.moves <= it.par ? "Perfect! Fewest moves." : `Done in ${pz.moves} moves. Best is ${it.par}.`;
   return bubble(pz.won ? it.win : it.say) + `<div class="console"><svg class="pzboard" viewBox="-2 -2 404 324" role="img" aria-label="A grid with a brand shape and its shadow"><rect width="400" height="320" fill="#e8cf9a"/><g stroke="#7a5a30" stroke-opacity=".25">${grid}</g><polygon points="${poly(tgt)}" fill="#3a2412" fill-opacity=".18" stroke="#3a2412" stroke-width="3" stroke-dasharray="8 7"/><polygon class="${pz.won ? "pzwon" : ""}" points="${poly(cur)}" fill="${pz.won ? "#39d07a" : "#c8602c"}" stroke="#2c1a0e" stroke-width="3"/></svg>
-    ${pz.won ? `<p class="center"><strong>${stars}</strong></p><button class="btn go wide" data-act="next">NEXT</button>` : `<div class="tools">${it.tools.map(tool).join("")}</div><p class="center sub">Moves: ${pz.moves}. Best is ${it.par}.</p><button class="btn dark wide skipbtn" data-act="skipItem">Skip, come back later</button>`}</div>`;
+    ${pz.won ? `<p class="center"><strong>${stars}</strong></p><button class="btn go wide" data-act="next">NEXT</button>` : `<div class="tools">${it.tools.map(tool).join("")}</div><p class="center sub">Moves: ${pz.moves}. Best is ${it.par}.</p>`}</div>`;
 }
 function matchHtml(pairs) {
   const m = (U.m = U.m || { sel: null, done: [], miss: 0 });
@@ -1233,6 +1362,7 @@ function rideEndView() {
   <p class="tag">Spend your money</p>${shopRow()}
   <p class="tag">Or play a game</p>
   <div class="games">
+    <button class="game" data-act="stPlay"><h3>Facts Stampede</h3><span class="sub">Rope 100 steers. Beat your time.</span></button>
     <button class="game" data-act="game" data-g="run" data-n="${shots}"><h3>Boost Run</h3><span class="sub">3 lives. Land on guys, win a prize.</span></button>
     <button class="game" data-act="game" data-g="kick" data-n="${shots}"><h3>Penalty Kicks</h3><span class="sub">Beat the keeper.</span></button>
     <button class="game" data-act="game" data-g="duel" data-n="${shots}"><h3>High Noon</h3><span class="sub">Duel an outlaw.</span></button>
@@ -1468,15 +1598,21 @@ const curItem = () => U.items[U.i];
 function startCoach() {
   const q = curQ(), p = PP(LP(U.lesson), q.id);
   if (!q.coach) return;
-  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; save(); render();
+  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
 }
+const unseal = (key, code) => (code.match(/.{4}/g) || []).map((h, i) => String.fromCharCode(parseInt(h, 16) ^ key.charCodeAt(i % key.length))).join("");
 function applyStepRight(val) {
   const q = curQ(), c = q.coach, s = c.steps[U.step], p = PP(LP(U.lesson), q.id);
   if (s.put) { const ds = String(val).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`${s.board || 0}:${id}`] = ds[i]; }); }
   p.steps++;
+  (U.stepLog = U.stepLog || [])[U.step] = String(val);
   if (U.stepWrong === 0) { earn(1); coinPop(); correctFx(); } else beep(BLIP);
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
-  if (U.step >= c.steps.length) { U.mode = "try"; U.cells = []; U.cellAt = 0; U.coachDone = true; U.step = c.steps.length - 1; U.wrongNow = 0; }
+  if (U.step >= c.steps.length) {
+    U.step = c.steps.length - 1; U.cells = []; U.cellAt = 0; U.wrongNow = 0;
+    if (c.reveal) { U.mode = "worked"; p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); }
+    else { U.mode = "try"; U.coachDone = true; }
+  }
   save(); render();
 }
 function stepWrong(choice) {
@@ -1546,17 +1682,19 @@ function checkStampede() {
   const f = factsState(), [a, b] = f.order[f.i];
   if (U.draft === String(a * b)) {
     f.secs += Math.min(30, Math.round((Date.now() - (U.factT || Date.now())) / 1000)); U.factT = Date.now();
-    if (!U.stepWrong) { earn(1); coinPop(); }
-    f.i++; U.draft = ""; U.msg = null; U.stepWrong = 0; beep(BLIP); W.boost = 8; W.targetGap = Math.max(.02, .9 * (1 - f.i / 100));
+    const field = document.getElementById("stfield")?.getBoundingClientRect(), steer = document.getElementById("steer")?.getBoundingClientRect();
+    const box = field && steer ? { left: steer.left - field.left } : null, gold = (f.i + 1) % 10 === 0;
+    if (!U.stepWrong) { U.stStreak = (U.stStreak || 0) + 1; earn(gold ? 4 : 1); coinPop(); }
+    f.i++; U.draft = ""; U.msg = null; U.stepWrong = 0; U.stBorn = 0; beep(BLIP); W.boost = 8; W.shake = 3; W.targetGap = Math.max(.02, .9 * (1 - f.i / 100));
     if (f.i >= f.order.length) {
       f.done = true; LP(U.lesson).factsResult = { miss: f.miss, secs: f.secs }; U.solvedRun = 6; earn(25); celebrate(25, true); save(); return nextItem();
     }
     if (f.i % 25 === 0) { U.stBreak = true; earn(10); celebrate(10, true); }
-    save(); return render();
+    else if (U.stStreak % 10 === 0 && U.stStreak) { W.text = `${U.stStreak} IN A ROW!`; W.textT = 40; }
+    save(); render(); return stCaught(box);
   }
-  f.miss++; U.stepWrong++; wrongFx(); U.draft = "";
+  f.miss++; U.stepWrong++; U.stStreak = 0; wrongFx(); U.draft = "";
   U.msg = a === 0 || b === 0 ? "Anything times zero stays at the same number every time: zero groups means nothing." : b === 1 || a === 1 ? "Times one keeps the number the same." : `${a} × ${b} means ${a} jumps of ${b}. Count them.`;
-  if (U.stepWrong >= 2) { f.order.push(f.order.splice(f.i, 1)[0]); U.stepWrong = 0; U.msg = "We'll come back to that one. Next!"; }
   save(); render();
 }
 function checkFact() {
@@ -1719,12 +1857,26 @@ const acts = {
   leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
   mute() { S.muted = !S.muted; if (S.muted) { stopMusic(); try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
   voice() { S.voice = S.voice === false; if (S.voice === false) { try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
-  town(d) { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
-  ride(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
+  town(d) {
+    const go = () => { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); }, idx = LESSONS.findIndex((l) => l.id === d.id);
+    S.atTown = d.id; save();
+    if (U.view === "home" && idx >= 0 && idx < WORLD_PTS.length) return trot("world", idx, WORLD_PTS, go);
+    go();
+  },
+  ride(d) {
+    const l = curLesson(), r = rideOf(l, d.id);
+    S.atRide = { ...S.atRide, [l.id]: r.id }; save();
+    trot(`town:${l.id}`, l.rides.indexOf(r), TOWN_PTS, () => startRide(l, r));
+  },
   leaveRide() { closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
   openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
   closeq() { backToPage(); },
+  workedNext() {
+    const q = curQ(), p = PP(LP(U.lesson), q.id);
+    if (!q.proof || p.done) return finishProblem(false, false);
+    U.mode = "proof"; U.strokes = []; U.cells = []; U.cellAt = 0; U.carries = {}; U.carryAt = null; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); render();
+  },
   sort(d) {
     const it = curItem();
     if ((d.c === "1") === it.clue) { earn(2); celebrate(2, false); correctFx(it.clue ? "NEED IT!" : "TOSS IT!"); nextItem(); }
@@ -1778,14 +1930,8 @@ const acts = {
     speak(U.lastBubble, true);
     const b = el.closest(".biscuit"); if (b) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
   },
-  stGo() { U.stBreak = false; U.factT = Date.now(); render(); },
-  stSkip() { const f = factsState(); if (f.i < f.order.length - 1) { f.order.push(f.order.splice(f.i, 1)[0]); } U.draft = ""; U.msg = null; U.stepWrong = 0; save(); render(); },
-  skipItem() {
-    const rest = U.items.length - U.i;
-    if (rest <= 1) { U.msg = "This is the last one left, boss. Give it a shot, or head to the map and come back."; return render(); }
-    const [it] = U.items.splice(U.i, 1); U.items.push(it);
-    U.combo = 0; resetItem(); beep(BLIP); render(); window.scrollTo(0, 0);
-  },
+  stGo() { U.stBreak = false; U.factT = Date.now(); U.stBorn = 0; render(); },
+  stPlay() { const l = curLesson(); startRide(l, l.rides.find((r) => r.kind === "facts")); },
   spTool(d, el) { U.spTool = d.t; el.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.t === d.t)); },
   spClear() { U.strokes = []; initScratch(); },
   cell(d) { U.cellAt = +d.i; U.carryAt = null; render(); },
@@ -1955,10 +2101,11 @@ function render() {
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Biscuit tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
   initScratch();
+  markWord();
   if (U.view === "ride" || U.view === "town") save();
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
-  if (U.view === "home" && document.getElementById("token")) placeToken("world", Math.min(currentIdx(), WORLD_PTS.length - 1), WORLD_PTS);
-  if (U.view === "town" && document.getElementById("token")) { const l = curLesson(), nx = nextRide(l), idx = nx ? l.rides.indexOf(nx) : l.rides.length - 1; placeToken(`town:${l.id}`, idx, TOWN_PTS); }
+  if (U.view === "home" && document.getElementById("token")) placeToken("world", worldSpot(), WORLD_PTS);
+  if (U.view === "town" && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), TOWN_PTS); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
