@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Outlaw Run"><link rel="manifest" href="manifest.webmanifest"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Schoolbell&family=Lexend:wght@400;600;800&display=swap">
@@ -445,6 +445,21 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 .problempage .pword .pbody{padding-right:34px}
 @media (orientation:landscape) and (min-width:800px){.problempage{height:calc(100% - 4px)}}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.problempage .pcell.pmath{padding-block:2px}.problempage .pmath .pbody{font-size:1.15rem;line-height:1.15}}
+.fdots{display:inline-flex;gap:4px;align-items:center}.fdots i{width:14px;height:6px;border-radius:3px;background:#ddd5c2}.fdots i.on{background:#1f9a4f}.fdots i.now{background:#e8a317}
+.remember{margin:0;background:#fff4cf;border-left:5px solid #e8a317;border-radius:6px;padding:10px 12px;font-size:1.1rem;font-weight:600;line-height:1.35;color:#1c1712}.remember b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#8a5f00}
+.nextbtn{min-height:68px;font-size:1.3rem}
+.attn{animation:attn 1s ease-in-out infinite}@keyframes attn{50%{transform:scale(1.04);box-shadow:0 0 0 5px #ffd23f}}
+.breakbox{position:fixed;inset:0;z-index:70;background:#fbf3df;color:#1c1712;display:grid;place-content:center;justify-items:center;gap:12px;text-align:center;padding:24px;font-family:var(--body)}.breakbox .mascot{width:170px;height:200px}.breakbox h2{margin:0;font:400 2.2rem var(--display)}.breakbox p{margin:0;font-size:1.5rem;font-weight:600;max-width:560px}.breakbox .btn{min-width:240px;min-height:64px;font-size:1.25rem}
+@media (orientation:landscape) and (min-width:800px){
+  .split.hasScratch{grid-template-columns:minmax(0,.82fr) minmax(0,1fr) minmax(330px,1.05fr);gap:10px}
+  .split>.right .pad,.split.hasScratch .pad{gap:7px}
+  .split .pad button,.split.hasScratch .pad button{min-height:clamp(58px,10.5vh,84px);font-size:clamp(1.5rem,3.6vh,2rem)}
+  .split>.right .btn[data-act="check"],.split>.right .btn[data-act="checkStep"],.split>.right .btn[data-act="checkProof"],.split>.right .btn[data-act="recallCheck"]{min-height:62px;font-size:1.2rem}
+  .split>.right .choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+  .split>.right .choices button{min-height:clamp(64px,11vh,88px);font-size:1.2rem;padding:8px 10px;line-height:1.25}
+}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split>.right .choices button{min-height:58px;padding-block:6px;font-size:1.08rem}.split>.right .btn[data-act="check"],.split>.right .btn[data-act="checkStep"],.split>.right .btn[data-act="checkProof"],.split>.right .btn[data-act="recallCheck"]{min-height:50px}}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split .pad button,.split.hasScratch .pad button{min-height:54px}.split>.right .pad,.split.hasScratch .pad{gap:5px}.split>.right{gap:5px}.split>.right .answer{min-height:0;padding-block:2px}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -460,7 +475,7 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=8e5b8d46a1"></script>
+<script src="lessons.js?v=89de7ab773"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -593,7 +608,6 @@ function speak(t, force) {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
   try {
-    if (!force && (S.voice === false || S.muted)) return;
     followWords(t);
     if (!window.speechSynthesis) return;
     speechSynthesis.cancel();
@@ -891,7 +905,8 @@ function buildItems(l, r) {
   const left = (items, key) => { const f = items.filter((x) => !doneKeys.includes(x[key])); return f.length ? f : items; };
   if (r.kind === "warmup") return left(l.warmup.map((w, i) => ({ type: "fact", w, i })), "i");
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
-  return [{ type: "page" }];
+  const recall = l.problems.find((q) => { const p = lp.problems?.[q.id]; return p?.done && !p.recalled && q.proof && !r.problems.includes(q.id) && (p.coached || p.wrong?.length || p.stepMiss || p.shaky); });
+  return [...(recall ? [{ type: "recall", id: recall.id }] : []), { type: "page" }];
 }
 function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false }); }
 function pageGap(l, r) {
@@ -949,7 +964,10 @@ function visual(v) {
   if (v.type === "crossTri") return `<div class="vis"><svg viewBox="0 0 220 190" width="240" role="img" aria-label="Two right triangles sharing corner C. Triangle ABC goes left and down, triangle DEC goes up and right."><path d="M30 80H120V170Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M120 80V10H190" fill="none"/><path d="M120 80V-10" fill="none"/><path d="M120 80V10L190 80Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="12" y="84">A</text><text x="126" y="182">B</text><text x="126" y="72">C</text><text x="108" y="16">D</text><text x="196" y="86">E</text></g></svg></div>`;
   if (v.type === "kite") return `<div class="vis"><svg viewBox="0 0 220 170" width="230" role="img" aria-label="A tall triangle split down the middle by a line from A to B, with D on the left and C on the right."><path d="M110 18L40 138H110Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><path d="M110 18L180 138H110Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M110 138v-12h12v12" fill="none" stroke="#2c1a0e"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="104" y="14">A</text><text x="104" y="158">B</text><text x="186" y="150">C</text><text x="22" y="150">D</text></g></svg></div>`;
   if (v.type === "segment") return `<div class="vis"><svg viewBox="0 0 340 74" style="width:100%;max-width:420px" role="img" aria-label="A line with points A, B and C. AB is 2.3 centimeters and BC is 3.5 centimeters."><path d="M20 34H320" stroke="#2c1a0e" stroke-width="3"/><g fill="#2c1a0e"><circle cx="20" cy="34" r="5"/><circle cx="139" cy="34" r="5"/><circle cx="320" cy="34" r="5"/></g><g font-size="16" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="20" y="62">A</text><text x="139" y="62">B</text><text x="320" y="62">C</text></g><g font-size="14" fill="#1c5a8f" font-weight="700" text-anchor="middle"><text x="80" y="24">2.3 cm</text><text x="230" y="24">3.5 cm</text></g></svg></div>`;
-  if (v.type === "hexruler") return `<div class="vis"><svg viewBox="0 -10 260 160" width="260" role="img" aria-label="A regular hexagon above a centimeter ruler. Its bottom side runs from the start of the ruler to the 1 centimeter mark."><path d="M42 94L72 42H132L162 94 132 146H72Z" transform="translate(0 -46)" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><rect x="10" y="100" width="240" height="46" fill="#fff" stroke="#2c1a0e" stroke-width="2"/><g stroke="#2c1a0e" stroke-width="2"><path d="M42 100v16M102 100v16M162 100v16M222 100v16"/></g><g font-size="14" font-weight="700" fill="#2c1a0e" text-anchor="middle"><text x="26" y="136">cm</text><text x="102" y="136">1</text><text x="162" y="136">2</text><text x="222" y="136">3</text></g></svg></div>`;
+  if (v.type === "hexruler") {
+    const ticks = Array.from({ length: 31 }, (_, n) => { const x = 42 + n * 6, h = n % 10 === 0 ? 18 : n % 5 === 0 ? 12 : 7; return `<path d="M${x} 100v${h}"/>`; }).join("");
+    return `<div class="vis"><svg viewBox="0 -8 260 150" style="width:100%;max-width:360px" role="img" aria-label="A hexagon sitting on a ruler marked in centimeters and millimeters. Its red bottom side starts at the zero mark."><path d="M12 48L42 -4H102L132 48 102 100H42Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="2.5"/><text x="72" y="88" font-size="12" font-weight="700" fill="#b4231f" text-anchor="middle">this side</text><path d="M42 100H102" stroke="#d3241f" stroke-width="5" stroke-linecap="round"/><rect x="28" y="100" width="212" height="40" fill="#fff" stroke="#2c1a0e" stroke-width="1.5"/><g stroke="#2c1a0e" stroke-width="1.2">${ticks}</g><g font-size="13" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="42" y="134">0</text><text x="102" y="134">1</text><text x="162" y="134">2</text><text x="222" y="134">3 cm</text></g></svg></div>`;
+  }
   if (v.type === "canteen") return `<div class="vis"><svg viewBox="0 0 240 120" width="260" role="img" aria-label="A one gallon jug next to a much smaller one quart canteen."><path d="M30 104V36c0-12 8-16 18-16h4v-8h20v8h6c10 0 18 4 18 16v68Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><text x="63" y="70" text-anchor="middle" font-size="15" font-weight="800" fill="#2c1a0e">1 gal</text><path d="M160 104V64c0-8 5-11 10-12v-8h14v8c5 1 10 4 10 12v40Z" fill="#8a6a44" stroke="#2c1a0e" stroke-width="3"/><text x="177" y="118" text-anchor="middle" font-size="14" font-weight="800" fill="#2c1a0e">1 qt</text></svg></div>`;
   if (v.type === "congruentPick") {
     const shape = "M0 0H60L40 39H0Z", item = (x, tr, d, lab) => `<g transform="translate(${x} 70)"><path d="${d}" transform="${tr}" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><text x="30" y="82" text-anchor="middle" font-size="18" font-weight="800" fill="#2c1a0e">${lab}</text></g>`;
@@ -998,7 +1016,7 @@ const MASCOT = `<svg class="mascot" viewBox="0 0 110 130" data-act="biscuitTap" 
   <ellipse class="mlid" cx="79" cy="34" rx="8" ry="8" fill="#c6ced8"/>
 </g></svg>`;
 const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again">Say it again</button><button class="mic" data-act="voice">${S.voice === false ? "Voice on" : "Voice off"}</button></span></div></div>`; };
+const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again">Say it again</button></span></div></div>`; };
 function titleView() {
   const res = S.resume?.lesson && LESSONS.find((l) => l.id === S.resume.lesson);
   if (res) return `<div class="console center"><p>Welcome back, Elliot. Everything you did is saved.</p><button class="btn go wide" data-act="resume" style="font-size:1.4rem;min-height:70px">KEEP GOING</button><button class="btn dark wide" data-act="start">Go to the map</button></div>`;
@@ -1087,6 +1105,7 @@ function townMapSvg(l) {
     <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
     ${compass(60, 80)}
     <g class="stop" data-act="view" data-v="arcade" role="button" tabindex="0" aria-label="Saloon Games"><g transform="translate(930 205)"><circle r="52" fill="transparent"/><g transform="scale(1.35)">${placeIcon.saloon}</g><g transform="translate(0 46)"><rect x="-74" y="-14" width="148" height="28" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#ffe7a8">Saloon Games</text></g></g></g>
+    <g class="stop" data-act="view" data-v="store" role="button" tabindex="0" aria-label="General Store"><g transform="translate(1030 495)"><circle r="52" fill="transparent"/><g transform="scale(1.35)">${placeIcon.ranch}</g><g transform="translate(0 46)"><rect x="-74" y="-14" width="148" height="28" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#ffe7a8">General Store</text></g></g></g>
     ${riderToken()}</svg>`;
 }
 let tokTimer = 0;
@@ -1113,10 +1132,10 @@ function trot(key, idx, pts, go) {
   placeToken(key, idx, pts, () => { U.trotting = false; go(); });
 }
 function homeView() {
-  return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>$${S.nuggets}</span><button class="btn dark small" data-act="view" data-v="arcade">Saloon Games</button><button class="btn dark small" data-act="view" data-v="store">Store</button></div>
+  return `<div class="hud">${rankHud()}<span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
   ${worldMapSvg()}
-  <div class="hud"><button class="link" data-act="mute">${S.muted ? "Sound on" : "Sound off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
@@ -1274,21 +1293,67 @@ function boardHtml(c, stepIdx, finished) {
   });
   return `<div class="boardwrap"><div class="board" style="grid-template-columns:repeat(${b.cols},auto)">${out.join("")}</div></div>`;
 }
+function focusDots(q) {
+  const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
+  if (!r?.problems || !r.problems.includes(q.id)) return "";
+  return `<span class="fdots" aria-label="Progress in this section">${r.problems.map((id) => `<i class="${PP(lp, id).done ? "on" : id === q.id ? "now" : ""}"></i>`).join("")}</span>`;
+}
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
-  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span></div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}`;
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}`;
+}
+const REMEMBER = {
+  "Finding information": "Find the numbers the question asks about. Ignore the rest.",
+  "Equal groups word problems": "The same amount in every group means multiply.",
+  "Units: feet and inches": "Change to the same unit before you do the math.",
+  "Dividing by one digit": "Splitting into equal groups means divide.",
+  "Elapsed time": "Add the hours, then add the minutes.",
+  "Fractions of a group": "The bottom number tells you how many equal groups to make.",
+  "Perimeter": "Perimeter is the fence all the way around. Add every side.",
+  "Area": "Area is the grass inside. Multiply the rows by the columns.",
+  "Metric units": "10 millimeters make 1 centimeter.",
+  "Reading a calendar": "Find the date, then read straight up to its day.",
+  "Percent": "The whole thing is always 100 percent.",
+  "Perimeter and units": "Change the units first, then add every side.",
+  "Multiples": "Multiples are just skip counting.",
+  "Adding money": "Line up the dots, then add from the right.",
+  "Adding decimals": "Line up the dots, then add from the right.",
+  "Order of operations with money": "Parentheses always go first.",
+  "Multiplying three numbers": "You can multiply in any order. Pick the easy pair first.",
+  "Multiplying by tens": "Drop the zero down first, then multiply.",
+  "Division with remainders": "Divide, multiply, subtract, bring down. What's left over is the remainder.",
+  "Dividing with zeros": "Keep doing the four moves, even when a zero shows up.",
+  "Fraction bar means divide": "A number over a number means divide.",
+  "Square roots": "A square root is the number that times itself makes the big number.",
+  "Finding a missing number": "Do the opposite move to find the hidden number.",
+  "Angles": "Obtuse means wider than a square corner.",
+  "Congruent shapes": "Congruent means the same shape and the same size.",
+  "Transformation names": "Slide, turn, flip. Those are the three moves.",
+  "Identifying transformations": "A flip makes a mirror image.",
+  "Subtracting money": "Line up the dots, and borrow when the top is too small.",
+  "Half of a group": "Half means 2 equal groups.",
+  "Liquid measure": "4 quarts make 1 gallon.",
+  "Subtracting big numbers": "Start on the right, and borrow when the top is too small.",
+  "Number lines": "Halfway means half the distance, added to the start.",
+  "Subtracting decimals": "Line up the dots, and borrow when the top is too small.",
+  "Multiplying money": "Multiply first, then put the dot back 2 places from the right.",
+  "Square roots and missing numbers": "Do the square root first, then undo the times.",
+};
+function nextProblemId() {
+  const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id), at = r.problems.indexOf(U.qid);
+  return [...r.problems.slice(at + 1), ...r.problems.slice(0, at)].find((id) => !PP(lp, id).done) || null;
 }
 function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
-      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide" data-act="closeq">BACK TO THE PAGE</button>`;
+      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
     const more = q.proof && !p.done, log = U.stepLog || [];
     const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
-    return hudRide(`<span class="chip">Worked out</span>`) + bubble("You did every step with me, so the work is done. Here's how it all came out.") +
-      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside"><div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${more ? "NOW TRY ONE ALONE" : "BACK TO THE PAGE"}</button></div></div></div>`;
+    return hudRide(`<span class="chip">Worked out</span>`) + bubble(REMEMBER[q.skill] ? `You did every step with me. Remember this: ${REMEMBER[q.skill]}` : "You did every step with me, so the work is done.") +
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside">${REMEMBER[q.skill] ? `<p class="remember"><b>Remember</b> ${esc(REMEMBER[q.skill])}</p>` : ""}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${more ? "NOW TRY ONE ALONE" : "BACK TO THE PAGE"}</button></div></div></div>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
@@ -1299,9 +1364,9 @@ function solveView(l, q) {
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), locked = U.stepWrong >= 2 && !U.helped && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg ? "shake" : "") +
-      `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span></div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
+      `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
-      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}`}
+      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
   if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
@@ -1328,6 +1393,10 @@ function rideView() {
     return html.slice(0, end) + helpRow(q) + html.slice(end);
   }
   if (it.type === "page") return pageView(l, r);
+  if (it.type === "recall") {
+    const pr = qOf(l, it.id).proof;
+    return hudRide() + bubble(U.msg || "Quick one before we ride. Do you remember how to do this?", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Remember this?</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="recallPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(pr.extra || [])}<button class="btn go wide" data-act="recallCheck">SHOOT</button>`}</div>`;
+  }
   const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
   if (it.type === "fact") {
@@ -1499,7 +1568,7 @@ function storeView() {
     const own = S.owned.includes(g.id), on = S.worn[g.id];
     return `<div class="item"><div><b>${esc(g.name)}</b><span class="sub">${esc(g.note)}</span></div>${own ? `<button class="btn small dark" data-act="wear" data-id="${g.id}">${on ? "Take off" : "Put on"}</button>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
-  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><p class="sub center">Your gear shows up on your rider above.</p><div class="shop">${items}</div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
+  return `<div class="hud"><button class="btn dark small" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>Map</button><h2>Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><p class="sub center">Your gear shows up on your rider above.</p><div class="shop">${items}</div>${(S.prizes || []).length ? `<h2>Trophy case</h2><div class="askchips">${S.prizes.map((p) => `<span class="badge">${esc(p)}</span>`).join("")}</div>` : ""}`;
 }
 
 /* ---------- parents ---------- */
@@ -1719,7 +1788,6 @@ function checkProof() {
 function checkEntryAuto() {
   const it = curItem();
   if (U.qid) {
-    if (U.mode === "coach") { const s = curQ().coach.steps[U.step]; if (s.len && U.draft.length >= s.len) { checkStepTyped(); return true; } }
     return false;
   }
   if (it.type === "stampede") { const f = factsState(), [a, b] = f.order[f.i]; if (U.draft.length >= String(a * b).length) { checkStampede(); return true; } return false; }
@@ -1918,6 +1986,47 @@ function askAnswer(text) {
   return explainBetter("I'm not sure I caught that, so let me try this.");
 }
 let rec = null;
+// Browsers that support it hide their own bars after the first tap. Home Screen installs already run full screen.
+function goFullscreen() {
+  if (document.fullscreenElement || document.webkitFullscreenElement || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone) return;
+  const el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
+  try { const p = ask?.call(el); p?.catch?.(() => {}); } catch (e) {}
+}
+document.addEventListener("pointerup", goFullscreen, { once: true });
+let lastActive = Date.now(), driftStage = 0;
+["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, () => { lastActive = Date.now(); driftStage = 0; document.querySelectorAll(".attn").forEach((el) => el.classList.remove("attn")); }, true));
+function sayNow(t) {
+  const box = document.querySelector(".biscuit .saytext");
+  if (box) { box.dataset.say = t; box.innerHTML = wordsHtml(t); }
+  lastSaid = ""; speak(t);
+}
+function driftNudge() {
+  const q = curQ();
+  if (!q) { sayNow("Still with me? Your next problem has the gold border. Tap it."); document.querySelector(".pnext")?.classList.add("attn"); return; }
+  if (U.mode === "coach") { const st = q.coach.steps[U.step]; return sayNow(`Still with me, partner? ${tutorLine(st, q, 0)}`); }
+  if (U.mode === "proof") return sayNow(`Still with me, partner? ${q.proof.nudge}`);
+  sayNow("Still with me, partner? Try the first part, or tap Explain and we'll do it together.");
+  document.querySelector(".explainbtn")?.classList.add("attn");
+}
+function driftTick() {
+  if (document.hidden || U.view !== "ride" || document.getElementById("askpanel") || document.getElementById("breakbox")) return;
+  const it = curItem();
+  if (!(U.qid ? ["try", "coach", "proof"].includes(U.mode) : it?.type === "page")) return;
+  const idle = Date.now() - lastActive;
+  if (driftStage === 0 && idle >= 30000) { driftStage = 1; driftNudge(); }
+  else if (driftStage === 1 && idle >= 75000) { driftStage = 2; movementBreak(() => {}); }
+}
+setInterval(driftTick, 5000);
+const MOVES_BREAK = ["Stand up and do 5 jumping jacks.", "Do 5 Ronaldo kicks in the air.", "Touch your toes 5 times.", "Shake out your hands, then roll your shoulders.", "Take 3 big, slow breaths."];
+function movementBreak(after) {
+  document.getElementById("breakbox")?.remove();
+  const t = pick(MOVES_BREAK), box = document.createElement("div");
+  box.id = "breakbox"; box.className = "breakbox"; box.setAttribute("role", "dialog");
+  box.innerHTML = `${MASCOT}<h2>Saddle break</h2><p>${esc(t)}</p><button class="btn go">I'm back</button>`;
+  box.querySelector(".btn").onclick = () => { box.remove(); lastActive = Date.now(); driftStage = 0; after(); };
+  document.body.appendChild(box);
+  lastSaid = ""; speak(t);
+}
 function openAskPanel() {
   document.getElementById("askpanel")?.remove();
   try { speechSynthesis?.cancel(); } catch (e) {}
@@ -1995,8 +2104,7 @@ const acts = {
   start() { U.view = "home"; W.title = false; beep(FANFARE); render(); },
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
   leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
-  mute() { S.muted = !S.muted; if (S.muted) { stopMusic(); try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
-  voice() { S.voice = S.voice === false; if (S.voice === false) { try { speechSynthesis.cancel(); } catch (e) {} } save(); render(); },
+  mute() { S.muted = !S.muted; if (S.muted) stopMusic(); save(); render(); },
   town(d) {
     const go = () => { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); }, idx = LESSONS.findIndex((l) => l.id === d.id);
     S.atTown = d.id; save();
@@ -2011,12 +2119,28 @@ const acts = {
   leaveRide() { closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
   openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
+  recallPick(d) { U.draft = d.c; acts.recallCheck(); },
+  recallCheck() {
+    const it = curItem(), q = qOf(curLesson(), it.id), p = PP(LP(U.lesson), q.id);
+    if (!norm(U.draft)) { U.msg = "Type your answer first, boss."; return render(); }
+    if (q.proof.sealed.includes(seal(U.lesson, `${q.id}.proof`, U.draft))) { p.recalled = true; earn(5); correctFx("YOU REMEMBERED!"); save(); return nextItem(); }
+    U.stepWrong++; wrongFx(); if (q.proof.choices) U.off.push(U.draft); U.draft = "";
+    if (U.stepWrong >= 2) { p.recalled = true; save(); return nextItem(); }
+    U.msg = `Not yet. ${q.proof.nudge}`; render();
+  },
   closeq() { backToPage(); },
+  nextProblem() {
+    const id = nextProblemId();
+    if (!id) return backToPage();
+    closeTimer(); U.sinceBreak = (U.sinceBreak || 0) + 1;
+    const go = () => acts.openq({ id });
+    if (U.sinceBreak >= 5) { U.sinceBreak = 0; return movementBreak(go); }
+    go();
+  },
   biscuitTap() {
-    const t = pick(["Ride on, partner.", "Aim true.", "Slow is smooth. Smooth is fast.", "A good rider never quits.", "Numbers don't scare you.", "Saddle up. We've got work to do.", "Steady hands. Clear head."]), box = document.querySelector(".biscuit .saytext"), m = document.querySelector(".biscuit .mascot");
-    if (box) { box.dataset.say = t; box.innerHTML = wordsHtml(t); }
+    const t = pick(["Ride on, partner.", "Aim true.", "Slow is smooth. Smooth is fast.", "A good rider never quits.", "Numbers don't scare you.", "Saddle up. We've got work to do.", "Steady hands. Clear head."]), m = document.querySelector(".biscuit .mascot");
     if (m) { m.classList.remove("tip"); void m.getBoundingClientRect(); m.classList.add("tip"); }
-    lastSaid = ""; beep(BLIP); speak(t);
+    beep(BLIP); sayNow(t);
   },
   workedNext() {
     const q = curQ(), p = PP(LP(U.lesson), q.id);
@@ -2102,6 +2226,7 @@ const acts = {
   key(d) { pressKey(d.k); },
   check: checkFinal,
   checkProof,
+  checkStep() { if (!norm(U.draft)) { U.msg = "Type your answer first, boss."; return render(); } checkStepTyped(); },
   coach: startCoach,
   stepPick(d) {
     const q = curQ(), s = q.coach.steps[U.step];
