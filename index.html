@@ -460,6 +460,9 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
 }
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split>.right .choices button{min-height:58px;padding-block:6px;font-size:1.08rem}.split>.right .btn[data-act="check"],.split>.right .btn[data-act="checkStep"],.split>.right .btn[data-act="checkProof"],.split>.right .btn[data-act="recallCheck"]{min-height:50px}}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.split .pad button,.split.hasScratch .pad button{min-height:54px}.split>.right .pad,.split.hasScratch .pad{gap:5px}.split>.right{gap:5px}.split>.right .answer{min-height:0;padding-block:2px}}
+.helpwrap .helper{padding:8px 10px;gap:6px}.helpwrap .helper p{margin:0}.helpwrap .btn{min-height:46px}.helpwrap .chips{flex-wrap:wrap}
+.outlawsay{position:absolute;right:6%;top:24%;max-width:32%;background:#fff;color:#1c1712;border:3px solid #2c1a0e;border-radius:14px;padding:8px 12px;font:700 clamp(.9rem,2.2vh,1.1rem)/1.25 var(--body);z-index:6;pointer-events:none}.outlawsay[hidden]{display:none}.outlawsay::after{content:"";position:absolute;left:18px;bottom:-14px;border:7px solid transparent;border-top-color:#2c1a0e}
+@media (orientation:landscape) and (min-width:800px){.left:has(.helpwrap) .board{font-size:clamp(.82rem,2.5vh,1.15rem)}.left:has(.helpwrap){gap:5px}.helpwrap .helper p{font-size:.92rem}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1265,14 +1268,14 @@ function padHtml(extra = []) {
 function helperHtml(s) {
   const h = s.help;
   if (h?.type === "skip") {
-    const vals = Array.from({ length: U.helpN }, (_, i) => (i + 1) * h.by);
-    return `<div class="helper"><p>Skip count by ${h.by}. Tap until you land on or just under ${h.to}. Count your taps.</p><div class="chips">${vals.map((v) => `<b class="${v > h.to ? "over" : ""}">${v}</b>`).join("") || "<span class='sub'>Nothing yet</span>"}</div><div class="actions"><button class="btn" data-act="helpTap">+ ${h.by}</button><button class="btn go" data-act="helpDone" ${U.helpN ? "" : "disabled"}>I've got it</button></div></div>`;
+    const vals = Array.from({ length: U.helpN }, (_, i) => (i + 1) * h.by), times = /×/.test(String(s.ask));
+    return `<div class="helpwrap"><div class="helper"><p>${times ? `Skip count by ${h.by}. Tap once for each group.` : `Skip count by ${h.by}. Tap until you land on or just under ${h.to}. Count your taps.`}</p><div class="chips">${vals.map((v) => `<b>${v}</b>`).join("") || "<span class='sub'>Nothing yet</span>"}</div><button class="btn" data-act="helpTap">+ ${h.by}</button></div></div>`;
   }
   if (h?.type === "count") {
     const at = Math.min(h.from + U.helpN, h.to);
-    return `<div class="helper"><p>Start at ${h.from} and count up to ${h.to}. Every tap is one finger.</p><div class="chips"><b>${at}</b></div><div class="fingers">${"<i></i>".repeat(Math.min(U.helpN, h.to - h.from))}</div><div class="actions"><button class="btn" data-act="helpTap" ${at >= h.to ? "disabled" : ""}>Count 1 more</button><button class="btn go" data-act="helpDone" ${at >= h.to ? "" : "disabled"}>I've got it</button></div></div>`;
+    return `<div class="helpwrap"><div class="helper"><p>Start at ${h.from} and count up to ${h.to}. Every tap is one finger.</p><div class="chips"><b>${at}</b></div><div class="fingers">${"<i></i>".repeat(Math.min(U.helpN, h.to - h.from))}</div><button class="btn" data-act="helpTap" ${at >= h.to ? "disabled" : ""}>Count 1 more</button></div></div>`;
   }
-  return `<div class="helper"><p>${esc(s.nudge)} Use the scratch pad, one number at a time.</p>${scratchHtml()}<button class="btn go wide" data-act="helpDone">I worked it out</button></div>`;
+  return "";
 }
 function boardHtml(c, stepIdx, finished) {
   const s = c.steps[Math.min(stepIdx, c.steps.length - 1)], bi = s.board || 0, b = c.boards[bi];
@@ -1362,11 +1365,11 @@ function solveView(l, q) {
       ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}</div>`;
   }
   if (U.mode === "coach") {
-    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), locked = U.stepWrong >= 2 && !U.helped && !s.choices;
+    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
-      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : locked ? helperHtml(s) : `<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
+      ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
   if (q.match) return hudRide() + bubble(U.msg || "Tap a cowboy word, then its math word.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
@@ -1503,21 +1506,21 @@ function gameView() {
       <path d="M-9 76L-14 124M9 76L14 124" stroke="#2f3a55" stroke-width="12" stroke-linecap="round"/><path d="M-22 128h16v-8h-12zM22 128H6v-8h12z" fill="#4a2b12"/>
       <rect x="-17" y="18" width="34" height="60" rx="8" fill="${shirt}"/>
       <path d="M-14 28L-24 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/>
-      <g class="gunarm"><path d="M14 28L26 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/><g fill="${name === "f-you" && S.worn.goldgun ? "#ffc42e" : "#23222a"}"><rect x="22" y="60" width="38" height="9" rx="2"/><rect x="24" y="60" width="16" height="13" rx="2"/><path d="M24 70h11l-4 18H21z"/></g><path class="flash" d="M64 64l14-8-6 9 14 1-14 4 6 9-14-8-6 8 2-11-6-3z" fill="#ffb31a" stroke="#ff5a1a"/></g>
-      <circle cy="4" r="17" fill="${skin}"/><path d="M-16 4c-2-13 7-18 16-18s18 5 16 18c-4-5-9-7-16-7s-12 2-16 7z" fill="${hair}"/><circle cx="7" cy="5" r="2.200" fill="#27354f"/>
-      <g class="dhat"><ellipse cy="-14" rx="29" ry="5" fill="${hat}"/><rect x="-14" y="-32" width="28" height="18" rx="6" fill="${hat}"/></g>
+      <g class="gunarm"><path d="M14 28L26 66" stroke="${shirt}" stroke-width="10" stroke-linecap="round"/>${(() => { const gold = name === "f-you" && S.worn.goldgun, steel = gold ? "#ffc42e" : "#6d7580", dark = gold ? "#b98a12" : "#343a43", shine = gold ? "#ffe9a0" : "#aab2bd"; return `<path d="M25 67c-3 6-5 13-7 21 5 3 11 3 14 0 1-6 3-11 7-16z" fill="#5a3417"/><path d="M23 79c1-3 2-5 3-7l6 3-2 7zM21 85l1-3 7 2-1 3z" fill="#3c220e"/><path d="M36 73c-1 8 9 8 10 0" fill="none" stroke="${dark}" stroke-width="1.8"/><path d="M41 73l-1 5" stroke="${dark}" stroke-width="1.6"/><path d="M26 60l-6-7 4-2 7 8z" fill="${dark}"/><path d="M24 60h24v13H31c-4 0-7-2-7-6z" fill="${dark}"/><rect x="48" y="60" width="44" height="6" rx="1" fill="${steel}"/><rect x="48" y="60.500" width="44" height="1.500" fill="${shine}"/><rect x="50" y="66" width="27" height="3" rx="1" fill="${dark}"/><path d="M88 60l1-3h2l1 3z" fill="${dark}"/><rect x="36" y="58" width="15" height="14" rx="2.500" fill="${steel}"/><path d="M39 58v14M43.500 58v14M48 58v14" stroke="${dark}" stroke-width="1.100"/><rect x="36" y="59" width="15" height="2" fill="${shine}"/>`; })()}</g><g transform="translate(29 -2)"><path class="flash" d="M64 64l14-8-6 9 14 1-14 4 6 9-14-8-6 8 2-11-6-3z" fill="#ffb31a" stroke="#ff5a1a"/></g>
+      <circle cy="4" r="17" fill="${skin}"/><path d="M-16 4c-2-13 7-18 16-18s18 5 16 18c-4-5-9-7-16-7s-12 2-16 7z" fill="${hair}"/>${name === "f-you" ? `<path d="M-12 18h24l-12 13z" fill="#c8202c"/><rect x="-17" y="-3" width="34" height="11" rx="3" fill="#15171b"/><circle cx="7" cy="3" r="3.600" fill="#f4cda8"/>` : ""}<circle cx="7" cy="${name === "f-you" ? 3 : 5}" r="2.200" fill="#27354f"/>
+      <g class="dhat"><ellipse cy="-14" rx="29" ry="5" fill="${hat}" ${name === "f-you" ? `stroke="#3a3f4a" stroke-width="1.200"` : ""}/><rect x="-14" y="-32" width="28" height="18" rx="6" fill="${hat}" ${name === "f-you" ? `stroke="#3a3f4a" stroke-width="1.200"` : ""}/>${name === "f-you" ? `<rect x="-14" y="-20" width="28" height="5" fill="#15171b"/>` : ""}</g>
       <path class="blood" d="M0 30l5 9 9-5-4 10 10 3-10 4 5 10-10-5-5 10-4-10-10 4 5-10-9-5 10-2-2-11z" fill="#d11a2a"/>
     </g></g>`;
   return `<div class="kickgame duelgame" data-act="fire"><div class="scene"><svg id="duelScene" class="st-intro" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Elliot and an outlaw face each other on a dusty street">
       <rect width="640" height="300" fill="#8ec9e8"/><circle cx="320" cy="44" r="30" fill="#ffe27a"/>
       <path d="M0 215H640V300H0Z" fill="#d9b071"/><path d="M0 150h110v65H0zM530 140h110v75H530z" fill="#a8703a"/><path d="M15 165h30v30H15zM60 165h30v30H60zM548 155h30v30h-30zM592 155h30v30h-30z" fill="#3a2412"/><path d="M-6 150h122l-8-14H2zM524 140h122l-8-14H532z" fill="#6b3f1d"/>
-      ${fighter(195, 1, S.worn.jersey ? "#c8202c" : "#3f6fb0", S.worn.blackhat ? "#23222a" : "#b98a4e", "#f2d262", "#f4cda8", "f-you")}
+      ${fighter(195, 1, S.worn.jersey ? "#c8202c" : "#8fb7dc", S.worn.blackhat ? "#23222a" : "#fbfbf7", "#3a2415", "#f4cda8", "f-you")}
       ${fighter(405, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
       <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text>
       <g id="flash"><path d="M0 0" /></g>
       <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
     </svg></div>
-    <div class="duelhud"><div class="big" id="duelCall">High Noon</div>
+    <div class="outlawsay" id="outlawSay" hidden></div><div class="duelhud"><div class="big" id="duelCall">High Noon</div>
     <p id="duelSub">When you see <strong>DRAW!</strong>, tap the screen before his red bar fills up. Too early and you lose the round. <strong>Tap anywhere to start.</strong></p>
     <div class="score" id="dscore"></div></div></div>`;
 }
@@ -1668,6 +1671,46 @@ function shoot() {
   }, 16);
 }
 function finishKick() { clearInterval(kickTimer); const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
+function gunshot(vol = 1, ricochet = false) {
+  if (S.muted) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    const t = ac.currentTime, len = Math.floor(ac.sampleRate * .45), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * .055));
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    n.buffer = buf; f.type = "lowpass"; f.frequency.setValueAtTime(5200, t); f.frequency.exponentialRampToValueAtTime(420, t + .32);
+    g.gain.setValueAtTime(.9 * vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .45);
+    n.connect(f).connect(g).connect(ac.destination); n.start(t);
+    const o = ac.createOscillator(), og = ac.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(38, t + .22);
+    og.gain.setValueAtTime(.8 * vol, t); og.gain.exponentialRampToValueAtTime(.001, t + .26);
+    o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .28);
+    if (ricochet) {
+      const w = ac.createOscillator(), wg = ac.createGain();
+      w.type = "sawtooth"; w.frequency.setValueAtTime(2600, t + .12); w.frequency.exponentialRampToValueAtTime(700, t + .42);
+      wg.gain.setValueAtTime(.0001, t); wg.gain.setValueAtTime(.09, t + .12); wg.gain.exponentialRampToValueAtTime(.001, t + .44);
+      w.connect(wg).connect(ac.destination); w.start(t + .12); w.stop(t + .46);
+    }
+  } catch (e) {}
+}
+// The outlaw talks in a lower voice, in a speech bubble over the street.
+const OUTLAW_LINES = {
+  start: ["This town ain't big enough for the both of us.", "You got guts, stranger. I'll give you that.", "Reach for it, partner, if you dare.", "You feelin' quick today, stranger?", "I've outdrawn better than you before breakfast.", "Last chance to ride on out of town."],
+  win: ["Too slow, partner.", "Better go find your hat, stranger.", "Keep practicin', kid. You'll get there."],
+  early: ["Easy there! Nobody said draw yet.", "Ha! Jumped the gun, did ya?"],
+  lose: ["Ya got me, stranger.", "Well, I'll be. That was quick.", "Aw, shucks. Never saw it comin'."],
+};
+function outlawSay(kind) {
+  const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay");
+  if (el) { el.textContent = t; el.hidden = false; clearTimeout(el.hideT); el.hideT = setTimeout(() => { el.hidden = true; }, 2600); }
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t), deep = speechSynthesis.getVoices().find((v) => /^en/i.test(v.lang) && /daniel|fred|aaron|arthur|alex|gordon|rishi|male/i.test(v.name) && !/female/i.test(v.name));
+    if (deep) u.voice = deep;
+    u.pitch = .55; u.rate = .92; speechSynthesis.speak(u);
+  } catch (e) {}
+}
 function duelState(st) { const sc = document.getElementById("duelScene"); if (sc) sc.setAttribute("class", `st-${st}`); }
 function duelRound() {
   const call = document.getElementById("duelCall"), sub = document.getElementById("duelSub"), btn = document.getElementById("dbtn");
@@ -1678,8 +1721,11 @@ function duelRound() {
   sub.textContent = `Round ${duel.shots.length + 1} of ${duel.n}. Don't tap yet!`;
   if (btn) { btn.textContent = "FIRE"; btn.disabled = false; }
   document.getElementById("drawBar")?.setAttribute("opacity", "0"); document.getElementById("drawFill")?.setAttribute("width", "0");
+  outlawSay("start");
   duel.timer = setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    document.getElementById("outlawSay")?.setAttribute("hidden", "");
     duel.state = "draw"; duel.at = performance.now(); duelState("draw");
     call.textContent = "DRAW!"; call.style.color = "var(--red)"; sub.textContent = "Tap the screen now!"; beep(BLIP);
     duel.limit = 800 + Math.random() * 400;
@@ -1689,7 +1735,7 @@ function duelRound() {
       document.getElementById("drawFill")?.setAttribute("width", String(194 * k));
       if (k >= 1 && duel.state === "draw") duelResult(false, "He was faster. He knocked your hat off.");
     }, 30);
-  }, reduced ? 900 : 1100 + Math.random() * 2400);
+  }, reduced ? 2000 : 2600 + Math.random() * 2400);
 }
 function duelResult(win, line, early) {
   duel.state = "done"; clearTimeout(duel.timer); clearInterval(duel.bar);
@@ -1700,12 +1746,12 @@ function duelResult(win, line, early) {
   if (sub) sub.textContent = line;
   if (call) { call.textContent = win ? "You got him!" : early ? "Too early!" : "Too slow!"; call.style.color = ""; }
   if (btn) btn.disabled = true;
-  if (win) { S.wins++; if (!U.game?.free) earn(8); beep(BANG); confetti(14); save(); } else beep(NOPE);
+  if (win) { S.wins++; if (!U.game?.free) earn(8); gunshot(); outlawSay("lose"); confetti(14); save(); } else if (early) { beep(NOPE); outlawSay("early"); } else { gunshot(1, true); outlawSay("win"); }
   setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
     if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; U.gameEnd = { title: w === duel.n ? "Fastest in the West!" : w ? `You won ${w} duel${w === 1 ? "" : "s"}` : "He got you this time", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`}` }; U.view = "gameEnd"; render(); return; }
     duelRound();
-  }, 1700);
+  }, 2400);
 }
 
 /* ---------- actions ---------- */
@@ -1942,7 +1988,7 @@ function explainBetter(lead) {
   if (U.tutorKey !== key) { U.tutorKey = key; U.tutorN = 0; }
   const level = U.tutorN++;
   if (level >= 3) { if (!st.choices) U.stepWrong = Math.max(U.stepWrong, 3); U.msg = `This one's a tough one, and that's okay. Try the tool, or tap Get a parent. ${st.ask}`; return render(); }
-  if (level === 2 && !st.choices) { U.stepWrong = Math.max(U.stepWrong, 2); U.helped = false; U.helpN = 0; U.msg = `${opener} Let's work it with your hands this time. ${st.ask}`; return render(); }
+  if (level === 2 && st.help) { U.stepWrong = Math.max(U.stepWrong, 2); U.helped = false; U.helpN = 0; U.msg = `${opener} Let's work it with your hands this time. ${st.ask}`; return render(); }
   U.msg = `${opener} ${tutorLine(st, q, level > 1 ? 1 : level)}`; render();
 }
 function askAnswer(text) {
@@ -2220,7 +2266,6 @@ const acts = {
     acts.leaveRide();
   },
   helpTap() { U.helpN++; beep(BLIP); render(); },
-  helpDone() { U.helped = true; U.msg = null; render(); },
   mow() { U.mow++; W.shake = 2; beep(THUD); render(); },
   deal(d) { U.deal = Math.min(+d.t, U.deal + +d.g); beep(BLIP); render(); },
   key(d) { pressKey(d.k); },
@@ -2295,7 +2340,7 @@ document.addEventListener("keydown", (e) => {
   if (U.view !== "ride") return;
   const q = curQ(), it = curItem();
   const typing = q
-    ? (U.mode === "coach" ? !q.coach.steps[U.step].choices && !(U.stepWrong >= 2 && !U.helped) : U.mode === "proof" ? !q.proof.choices : U.mode === "try" && !q.choices && !q.paper)
+    ? (U.mode === "coach" ? !q.coach.steps[U.step].choices : U.mode === "proof" ? !q.proof.choices : U.mode === "try" && !q.choices && !q.paper)
     : it && (it.type === "fact" || it.type === "num" || (it.type === "stampede" && !U.stBreak));
   if (!typing) return;
   if (/^[0-9/.:,]$/.test(e.key)) pressKey(e.key);
