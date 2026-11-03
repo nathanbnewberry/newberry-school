@@ -478,7 +478,7 @@ body.talking .mopen{opacity:1;animation:mtalk .28s ease-in-out infinite alternat
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=89de7ab773"></script>
+<script src="lessons.js?v=82fbf9c006"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -538,9 +538,14 @@ async function pull() {
 // Saves from older versions can be missing fields, so fill them in place.
 const LP = (id) => {
   const lp = (S.lessons[id] = S.lessons[id] || {});
-  lp.completed = !!lp.completed; lp.problems = lp.problems || {}; lp.rides = lp.rides || {}; lp.drawBest = lp.drawBest ?? null;
+  lp.completed = !!lp.completed; lp.problems = lp.problems || {}; lp.rides = lp.rides || {}; { const gl = typeof LESSONS !== "undefined" && LESSONS.find((x) => x.id === id); if (gl) applyGiven(gl, lp); } lp.drawBest = lp.drawBest ?? null;
   return lp;
 };
+// Problems a parent says were already done count as finished without him working them here.
+function applyGiven(l, lp) {
+  (l.problems || []).filter((q) => q.given).forEach((q) => { const p = (lp.problems[q.id] = lp.problems[q.id] || {}); p.done = true; p.given = true; });
+  (l.rides || []).filter((r) => r.problems?.length && r.problems.every((id) => lp.problems[id]?.given)).forEach((r) => { lp.rides[r.id] = true; });
+}
 const PP = (lp, id) => {
   const p = (lp.problems[id] = lp.problems[id] || {});
   p.done = !!p.done; p.firstTry = !!p.firstTry; p.wrong = p.wrong || []; p.coached = !!p.coached; p.steps = p.steps || 0; p.flagged = !!p.flagged; p.accepted = !!p.accepted;
@@ -1353,10 +1358,10 @@ function solveView(l, q) {
       `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div><button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
-    const more = q.proof && !p.done, log = U.stepLog || [];
+    const log = U.stepLog || [];
     const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
     return hudRide(`<span class="chip">Worked out</span>`) + bubble(REMEMBER[q.skill] ? `You did every step with me. Remember this: ${REMEMBER[q.skill]}` : "You did every step with me, so the work is done.") +
-      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside">${REMEMBER[q.skill] ? `<p class="remember"><b>Remember</b> ${esc(REMEMBER[q.skill])}</p>` : ""}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${more ? "NOW TRY ONE ALONE" : "BACK TO THE PAGE"}</button></div></div></div>`;
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}</div><div class="workedside">${REMEMBER[q.skill] ? `<p class="remember"><b>Remember</b> ${esc(REMEMBER[q.skill])}</p>` : ""}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol><button class="btn go wide" data-act="workedNext">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button></div></div></div>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
@@ -1808,7 +1813,6 @@ function checkFinal() {
   if (q.sealed.includes(sealed)) {
     p.ans = U.draft;
     const clean = !p.wrong.length && !p.coached && !p.stepMiss;
-    if (!clean && q.proof && !p.done) { U.mode = "proof"; U.strokes = []; U.cells = []; U.cellAt = 0; U.carries = {}; U.carryAt = null; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); return render(); }
     return finishProblem(clean, false);
   }
   if (!p.done && !p.wrong.includes(U.draft)) p.wrong.push(U.draft);
@@ -2188,11 +2192,7 @@ const acts = {
     if (m) { m.classList.remove("tip"); void m.getBoundingClientRect(); m.classList.add("tip"); }
     beep(BLIP); sayNow(t);
   },
-  workedNext() {
-    const q = curQ(), p = PP(LP(U.lesson), q.id);
-    if (!q.proof || p.done) return finishProblem(false, false);
-    U.mode = "proof"; U.strokes = []; U.cells = []; U.cellAt = 0; U.carries = {}; U.carryAt = null; U.draft = ""; U.msg = null; U.off = []; U.proofMiss = 0; beep(CHIME); worldBoost("ONE MORE!"); save(); render();
-  },
+  workedNext() { finishProblem(false, false); acts.nextProblem(); },
   sort(d) {
     const it = curItem();
     if ((d.c === "1") === it.clue) { earn(2); celebrate(2, false); correctFx(it.clue ? "NEED IT!" : "TOSS IT!"); nextItem(); }
