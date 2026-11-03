@@ -327,6 +327,7 @@ ol{margin:0;padding-left:1.3em;display:grid;gap:6px}
 .duelhud{position:absolute;left:0;right:0;top:10px;display:grid;gap:4px;justify-items:center;text-align:center;pointer-events:none;padding-inline:16px}.duelhud .big{font-size:clamp(2.2rem,6vw,3.4rem);min-height:1.1em}.duelhud p{background:rgba(18,20,43,.78);color:#fff;padding:6px 16px;border-radius:12px;max-width:760px;font-size:1.05rem}
 .duelgame #duelScene{max-height:none!important}
 @media (orientation:landscape) and (min-width:800px){body[data-view="game-duel"] #app{overflow:hidden}}
+.pad:not(.pin),.split.hasScratch .pad:not(.pin){grid-template-columns:repeat(3,minmax(0,1fr))}.pad .wide0{grid-column:span 2}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1040,8 +1041,9 @@ function stampedeView(pips) {
   return hudRide(`<span class="chip">Fact ${f.i + 1} of 100</span>`) + bubble(U.msg || "100 facts. Just you against your own best.", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Facts Stampede</span></div><div class="stbar"><i style="width:${f.i}%"></i></div><div class="pmathbig">${bookMath({ type: "inline", text: `${a} × ${b}` }, U.draft, true)}</div>${padHtml()}<button class="btn dark wide skipbtn" data-act="stSkip">Skip, come back later</button></div>`;
 }
 function padHtml(extra = []) {
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ...extra, "DEL"];
-  return `<div class="pad">${keys.map((k) => `<button data-act="key" data-k="${k}" aria-label="${k === "DEL" ? "Delete" : k === "R" ? "Remainder" : k}">${k === "DEL" ? "&#9003;" : k}</button>`).join("")}</div>`;
+  // Laid out like a calculator: 7 8 9 on top, 0 on the bottom.
+  const keys = ["7", "8", "9", "4", "5", "6", "1", "2", "3", ...extra, "0", "DEL"];
+  return `<div class="pad">${keys.map((k) => `<button class="${k === "0" && !extra.length ? "wide0" : ""}" data-act="key" data-k="${k}" aria-label="${k === "DEL" ? "Delete" : k === "R" ? "Remainder" : k}">${k === "DEL" ? "&#9003;" : k}</button>`).join("")}</div>`;
 }
 function helperHtml(s) {
   const h = s.help;
@@ -1331,7 +1333,7 @@ function parentView() {
   if (!U.parentOk) {
     const creating = !S.pin;
     return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button></div><div class="console center"><h2>Parents only</h2><p class="sub">${creating ? "Choose a 4-digit PIN. Set this before Elliot plays." : "Enter your 4-digit PIN."}</p>
-      <div class="answer">${U.pin ? "&#9679;".repeat(U.pin.length) : `<span class="empty">PIN</span>`}</div><div class="pad pin">${["1", "2", "3", "4", "5", "6", "7", "8", "9", "CLR", "0", "OK"].map((k) => `<button data-act="pin" data-k="${k}">${k === "CLR" ? "C" : k}</button>`).join("")}</div>${U.pinMsg ? `<p>${esc(U.pinMsg)}</p>` : ""}${creating ? "" : `<p class="sub">Forgot it? Tell Claude and a reset can be added.</p>`}</div>`;
+      <div class="answer">${U.pin ? "&#9679;".repeat(U.pin.length) : `<span class="empty">PIN</span>`}</div><div class="pad pin">${["7", "8", "9", "4", "5", "6", "1", "2", "3", "CLR", "0", "OK"].map((k) => `<button data-act="pin" data-k="${k}">${k === "CLR" ? "C" : k}</button>`).join("")}</div>${U.pinMsg ? `<p>${esc(U.pinMsg)}</p>` : ""}${creating ? "" : `<p class="sub">Forgot it? Tell Claude and a reset can be added.</p>`}</div>`;
   }
   const skills = {};
   LESSONS.forEach((l) => { const lp = LP(l.id); l.problems.forEach((q) => { const p = PP(lp, q.id); if (!p.done && !p.steps && !p.wrong.length && !p.flagged) return; const s = (skills[q.skill] = skills[q.skill] || { n: 0, coached: 0, wrong: 0, solo: 0 }); s.n++; s.coached += p.coached ? 1 : 0; s.wrong += p.wrong.length; s.solo += p.firstTry ? 1 : 0; }); });
