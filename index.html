@@ -510,6 +510,9 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .ranchwrap{position:relative}.ranchwrap .ranch{cursor:pointer;touch-action:manipulation}.norasay{position:absolute;left:8px;right:8px;top:8px;margin:0;background:#fff;color:#1c1712;border:2px solid #2f7f96;border-radius:12px;padding:6px 12px;font-weight:700;font-size:1rem;text-align:center;pointer-events:none}.norasay[hidden]{display:none}
 #ranchNora.happy .norabody{animation:norajump .4s ease-in-out 4}@keyframes norajump{50%{transform:translateY(-14px)}}#ranchNora.happy .noraarms{d:path("M-3-25l-6-9M3-25l6-9")}
 @media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}.storewrap .shop{grid-template-columns:1fr}.storewrap .item{padding-block:6px}}
+.pnote{margin:0;text-align:center;font-size:clamp(1.05rem,2.6vh,1.3rem);font-weight:700;color:#1c5a8f}
+.eqwrap{display:inline-grid;justify-items:center;gap:8px}.eqfind{display:inline-flex;align-items:center;gap:10px}
+.mysteryvis{font-size:clamp(1.5rem,4vh,2.1rem);font-weight:800;text-align:center;padding:12px}.mletter{display:inline-grid;place-items:center;min-width:1.5em;height:1.5em;background:#ffd23f;border:2px dashed #8a5f00;border-radius:8px;margin:0 3px}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -525,7 +528,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=3e82d9a1f2"></script>
+<script src="lessons.js?v=31cc916655"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -981,19 +984,10 @@ function nextItem() {
   if (U.i >= U.items.length) return endRide();
   resetItem(); render(); window.scrollTo(0, 0);
 }
-// One earlier problem he needed help with comes back once, right after he finishes a section.
-function recallFor(l, r) {
-  const lp = LP(l.id);
-  return l.problems.find((q) => { const p = lp.problems?.[q.id]; return p?.done && !p.given && !p.recalled && q.proof && !r.problems.includes(q.id) && (p.coached || p.wrong?.length || p.stepMiss || p.shaky); });
-}
 function backToPage() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id);
   closeTimer(); U.qid = null; resetItem(); W.targetGap = pageGap(l, r);
-  if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) {
-    const recall = recallFor(l, r);
-    if (!recall) return endRide();
-    U.items = [{ type: "page" }, { type: "recall", id: recall.id }]; U.i = 1; resetItem(); render(); window.scrollTo(0, 0); return;
-  }
+  if (!lp.rides[r.id] && r.problems.every((id) => PP(lp, id).done)) return endRide();
   render(); window.scrollTo(0, 0);
 }
 function endRide() {
@@ -1027,6 +1021,7 @@ function visual(v) {
   if (v.type === "crossTri") return `<div class="vis"><svg viewBox="0 0 220 190" width="240" role="img" aria-label="Two right triangles sharing corner C. Triangle ABC goes left and down, triangle DEC goes up and right."><path d="M30 80H120V170Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M120 80V10H190" fill="none"/><path d="M120 80V-10" fill="none"/><path d="M120 80V10L190 80Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="12" y="84">A</text><text x="126" y="182">B</text><text x="126" y="72">C</text><text x="108" y="16">D</text><text x="196" y="86">E</text></g></svg></div>`;
   if (v.type === "kite") return `<div class="vis"><svg viewBox="0 0 220 170" width="230" role="img" aria-label="A tall triangle split down the middle by a line from A to B, with D on the left and C on the right."><path d="M110 18L40 138H110Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><path d="M110 18L180 138H110Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M110 138v-12h12v12" fill="none" stroke="#2c1a0e"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="104" y="14">A</text><text x="104" y="158">B</text><text x="186" y="150">C</text><text x="22" y="150">D</text></g></svg></div>`;
   if (v.type === "segment") return `<div class="vis"><svg viewBox="0 0 340 74" style="width:100%;max-width:420px" role="img" aria-label="A line with points A, B and C. AB is 2.3 centimeters and BC is 3.5 centimeters."><path d="M20 34H320" stroke="#2c1a0e" stroke-width="3"/><g fill="#2c1a0e"><circle cx="20" cy="34" r="5"/><circle cx="139" cy="34" r="5"/><circle cx="320" cy="34" r="5"/></g><g font-size="16" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="20" y="62">A</text><text x="139" y="62">B</text><text x="320" y="62">C</text></g><g font-size="14" fill="#1c5a8f" font-weight="700" text-anchor="middle"><text x="80" y="24">2.3 cm</text><text x="230" y="24">3.5 cm</text></g></svg></div>`;
+  if (v.type === "mystery") return `<div class="vis mysteryvis">${esc(v.text).split(v.letter).join(`<b class="mletter">${esc(v.letter)}</b>`)}</div>`;
   if (v.type === "hexruler") {
     const ticks = Array.from({ length: 31 }, (_, n) => { const x = 42 + n * 6, h = n % 10 === 0 ? 18 : n % 5 === 0 ? 12 : 7; return `<path d="M${x} 100v${h}"/>`; }).join("");
     return `<div class="vis"><svg viewBox="0 -8 260 150" style="width:100%;max-width:360px" role="img" aria-label="A hexagon sitting on a ruler marked in centimeters and millimeters. Its red bottom side starts at the zero mark."><path d="M12 48L42 -4H102L132 48 102 100H42Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="2.5"/><text x="72" y="88" font-size="12" font-weight="700" fill="#b4231f" text-anchor="middle">this side</text><path d="M42 100H102" stroke="#d3241f" stroke-width="5" stroke-linecap="round"/><rect x="28" y="100" width="212" height="40" fill="#fff" stroke="#2c1a0e" stroke-width="1.5"/><g stroke="#2c1a0e" stroke-width="1.2">${ticks}</g><g font-size="13" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="42" y="134">0</text><text x="102" y="134">1</text><text x="162" y="134">2</text><text x="222" y="134">3 cm</text></g></svg></div>`;
@@ -1168,7 +1163,7 @@ function townMapSvg(l) {
     ${stops}
     <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#ffe7a8">${esc(l.town)}</text></g>
     ${compass(60, 80)}
-    ${ranchStop(860, 118, 150)}
+    ${ranchStop(1045, 122, 122)}
     ${riderToken()}</svg>`;
 }
 let tokTimer = 0;
@@ -1251,6 +1246,7 @@ function bookMath(b, ans, big) {
   if (b.type === "vert") return b.result
     ? `<span class="vert"><span>${esc(b.top)}</span><span class="vb">${esc(b.op)} ${esc(b.bottom)}</span><span>${esc(b.result)}</span></span>${big || ans ? ` <span class="eq">${esc(b.find)} =</span> ${slot}` : ""}`
     : `<span class="vert"><span>${esc(b.top)}</span>${(b.mid || []).map((m) => `<span>${esc(m)}</span>`).join("")}<span class="vb">${esc(b.op)} ${esc(b.bottom)}</span>${big || ans ? slot : ""}</span>`;
+  if (b.type === "eq") return `<span class="eqwrap"><span class="inl">${esc(b.text)}</span>${big || ans ? `<span class="eqfind"><span class="eq">${esc(b.letter)} =</span> ${slot}</span>` : ""}</span>`;
   if (b.type === "frac") return `<span class="fr"><span>${esc(b.top)}</span><span class="frb"></span><span>${esc(b.bottom)}</span></span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
   return `<span class="inl">${esc(b.text)}</span>${big || ans ? ` <span class="eq">=</span> ${slot}` : ""}`;
 }
@@ -1365,7 +1361,7 @@ function focusDots(q) {
 }
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
-  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}`;
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}${q.note ? `<p class="pnote">${esc(q.note)}</p>` : ""}`;
 }
 const REMEMBER = {
   "Finding information": "Find the numbers the question asks about. Ignore the rest.",
@@ -1458,10 +1454,6 @@ function rideView() {
     return html.slice(0, end) + helpRow(q) + html.slice(end);
   }
   if (it.type === "page") return pageView(l, r);
-  if (it.type === "recall") {
-    const pr = qOf(l, it.id).proof;
-    return hudRide() + bubble(U.msg || "One more from earlier before you finish. Do you remember how to do this?", U.msg ? "shake" : "") + `<div class="bookpage"><div class="bh"><span>Remember this?</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="recallPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? esc(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(pr.extra || [])}<button class="btn go wide" data-act="recallCheck">SHOOT</button>`}</div>`;
-  }
   const pips = `<span class="pips">${U.items.length <= 20 ? U.items.map((_, i) => `<b class="${i < U.i ? "on" : i === U.i ? "now" : ""}"></b>`).join("") : ""}</span>`;
   if (it.type === "paperFirst") return hudRide(pips) + bubble(it.text) + `<button class="btn go wide" data-act="next">Done, let's draw</button>`;
   if (it.type === "fact") {
@@ -2348,15 +2340,6 @@ const acts = {
   leaveRide() { closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
   openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
-  recallPick(d) { U.draft = d.c; acts.recallCheck(); },
-  recallCheck() {
-    const it = curItem(), q = qOf(curLesson(), it.id), p = PP(LP(U.lesson), q.id);
-    if (!norm(U.draft)) { U.msg = "Type your answer first, boss."; return render(); }
-    if (q.proof.sealed.includes(seal(U.lesson, `${q.id}.proof`, U.draft))) { p.recalled = true; earn(5); correctFx("YOU REMEMBERED!"); save(); return nextItem(); }
-    U.stepWrong++; wrongFx(); if (q.proof.choices) U.off.push(U.draft); U.draft = "";
-    if (U.stepWrong >= 2) { p.recalled = true; save(); return nextItem(); }
-    U.msg = `Not yet. ${q.proof.nudge}`; render();
-  },
   closeq() { backToPage(); },
   nextProblem() {
     const id = nextProblemId();
