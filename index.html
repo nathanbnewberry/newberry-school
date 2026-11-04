@@ -610,6 +610,14 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
 .trailbar .ptrail{padding-left:26px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.storewrap .shop{gap:4px}.storewrap .item{padding:2px 6px}.storewrap .itempic{width:44px;height:34px}.storewrap .item .btn{min-height:34px;padding:2px 8px;font-size:.8rem}.storewrap .itemtext b{font-size:.85rem;line-height:1.1}.storehud .mapbig{min-height:46px}.storehud .trophybtn{min-height:42px}}
 .pad button.rkey,.bookpage .pad button.rkey{background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--gold-deep);display:grid;place-content:center;line-height:1.05}.rkey b{font-size:1.3rem}.rkey small{font-size:.8rem;font-weight:800}
+.ranch.deep{touch-action:none;cursor:grab;display:block}
+.dboard{position:absolute;left:calc(12px + env(safe-area-inset-left));bottom:12px;z-index:7;display:grid;justify-items:center;gap:3px;background:rgba(18,20,43,.88);color:#fff;border:2px solid #ffd23f;border-radius:12px;padding:6px 12px;pointer-events:none}.dboard small{font-weight:800;font-size:.85rem}.dboard .score{margin:0}
+.duelgame .outlawsay{top:32%;left:34%;right:auto;max-width:27%}.duelgame .norasaybub{left:auto;right:1.5%;top:26%;max-width:21%;background:#fff3d9}.duelgame .norasaybub::after{left:auto;right:30px}
+.endhead{text-align:center;padding:4px 8px}.endhead p{margin:4px auto 0;max-width:760px;font-size:1.05rem;font-weight:600}
+.endcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px}.endcard{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;background:var(--panel2);border:3px solid transparent;border-radius:16px;box-shadow:0 6px 0 #15183a;color:#fff;cursor:pointer}.endcard:active{transform:translateY(4px);box-shadow:0 2px 0 #15183a}.endcard.first{border-color:var(--gold);background:#2f8f55;box-shadow:0 6px 0 #1b6438}.endcard b{font-size:clamp(1.15rem,3.2vh,1.5rem);padding:10px 8px;text-align:center}.endart{display:block;aspect-ratio:200/110;overflow:hidden}.endart svg{width:100%;height:100%;display:block}.endtiles{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:2px}.endtiles svg{min-height:0}.endshare{display:block;width:auto;margin:12px auto 0}
+.shareout{display:grid;gap:10px;padding:12px;justify-items:center;text-align:center}.soeq{margin:0;font-weight:800;font-size:1.2rem}.sorow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sorider{display:grid;justify-items:center;gap:2px}.sorider svg{width:30px;height:36px}.sobag{display:inline-grid;place-items:center;min-width:40px;height:34px;padding:0 4px;border-radius:10px 10px 6px 6px;background:#a9794a;box-shadow:inset 0 5px 0 #7d5530;color:#fff;font:800 1rem var(--body);font-style:normal}.sokey{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 20px;font-weight:700;font-size:1.05rem}.sokey>span{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.soleft .dcoin{width:20px;height:20px}
+.bookpage:has(.vis.notenough) .move{display:none}.vis.notenough{padding:4px 12px;gap:2px 4px}
+@media (orientation:landscape) and (min-width:800px) and (max-height:780px){.vis.notenough .nespot{min-height:22px}.vis.notenough .nespot svg{width:18px;height:22px}.vis.notenough .dcoin,.vis.notenough .neempty{width:18px;height:18px}.bookpage:has(.vis.notenough) .bboard,.bookpage:has(.vis.notenough) .board{font-size:.82em}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -625,7 +633,7 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=607c74381f"></script>
+<script src="lessons.js?v=ce4f269f6c"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 const KEY = "elliot-trail-v1";
@@ -991,7 +999,7 @@ function runStep() {
     if (r.dash > 0 || (r.vy < 0 && r.y > 10)) {
       o.down = 1; r.stomps++; r.score += 3; (r.pops = r.pops || []).push({ x: o.x, y: 150, life: 34, t: "+3" }); for (let i = 0; i < 14; i++) (r.sparks = r.sparks || []).push({ x: o.x + 14, y: W.H - 80, vx: (Math.random() - .5) * 9, vy: -Math.random() * 7, life: 24, col: ["#ffc42e", "#fff", "#ff7a3c"][i % 3] }); if (r.dash <= 0) r.vy = 11; W.shake = 6; beep(THUD); W.text = pick(["SQUASHED!", "WAAAH!", "GOT HIM!"]); W.textT = 26;
     } else if (r.safe <= 0) {
-      r.lives--; r.safe = 45; r.flash = 45; W.shake = 12; beep(NOPE); o.bumped = true;
+      r.lives--; r.safe = 45; r.flash = 45; W.shake = 12; bumpSound(); W.text = "OW!"; W.textT = 30; sayOw(); o.bumped = true;
       if (r.lives <= 0) finishRun(false);
     }
   });
@@ -1130,6 +1138,7 @@ function visual(v) {
   if (v.type === "crossTri") return `<div class="vis"><svg viewBox="0 0 220 190" width="240" role="img" aria-label="Two right triangles sharing corner C. Triangle ABC goes left and down, triangle DEC goes up and right."><path d="M30 80H120V170Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M120 80V10H190" fill="none"/><path d="M120 80V-10" fill="none"/><path d="M120 80V10L190 80Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="12" y="84">A</text><text x="126" y="182">B</text><text x="126" y="72">C</text><text x="108" y="16">D</text><text x="196" y="86">E</text></g></svg></div>`;
   if (v.type === "kite") return `<div class="vis"><svg viewBox="0 0 220 170" width="230" role="img" aria-label="A tall triangle split down the middle by a line from A to B, with D on the left and C on the right."><path d="M110 18L40 138H110Z" fill="#cfe8f5" stroke="#2c1a0e" stroke-width="3"/><path d="M110 18L180 138H110Z" fill="#ffe7a8" stroke="#2c1a0e" stroke-width="3"/><path d="M110 138v-12h12v12" fill="none" stroke="#2c1a0e"/><g font-size="17" font-weight="800" fill="#2c1a0e"><text x="104" y="14">A</text><text x="104" y="158">B</text><text x="186" y="150">C</text><text x="22" y="150">D</text></g></svg></div>`;
   if (v.type === "segment") return `<div class="vis"><svg viewBox="0 0 340 74" style="width:100%;max-width:420px" role="img" aria-label="A line with points A, B and C. AB is 2.3 centimeters and BC is 3.5 centimeters."><path d="M20 34H320" stroke="#2c1a0e" stroke-width="3"/><g fill="#2c1a0e"><circle cx="20" cy="34" r="5"/><circle cx="139" cy="34" r="5"/><circle cx="320" cy="34" r="5"/></g><g font-size="16" font-weight="800" fill="#2c1a0e" text-anchor="middle"><text x="20" y="62">A</text><text x="139" y="62">B</text><text x="320" y="62">C</text></g><g font-size="14" fill="#1c5a8f" font-weight="700" text-anchor="middle"><text x="80" y="24">2.3 cm</text><text x="230" y="24">3.5 cm</text></g></svg></div>`;
+  if (v.type === "shareout") { const rider = `<svg viewBox="-6 -14 12 16" aria-hidden="true"><circle cy="-10" r="3" fill="#f0c9a4"/><path d="M-4-7h8l1 8H-5z" fill="#8fb7dc"/><path d="M-5-13h10M-2.500-13v-1.500h5v1.500" stroke="#3a2412" stroke-width="1.200" fill="none"/></svg>`; return `<div class="vis shareout"><p class="soeq">${esc(v.total)} coins shared by ${esc(v.riders)} riders</p><div class="sorow">${Array.from({ length: v.riders }, () => `<span class="sorider"><i class="sobag">${esc(v.each)}</i>${rider}</span>`).join("")}</div><div class="sokey"><span><i class="sobag">${esc(v.each)}</i> coins in each bag</span><span class="soleft">${Array.from({ length: v.left }, () => `<i class="dealt dcoin"></i>`).join("")} ${esc(v.left)} left over</span></div></div>`; }
   if (v.type === "notenough") { const rider = `<svg viewBox="-6 -14 12 16" aria-hidden="true"><circle cy="-10" r="3" fill="#f0c9a4"/><path d="M-4-7h8l1 8H-5z" fill="#8fb7dc"/><path d="M-5-13h10M-2.500-13v-1.500h5v1.500" stroke="#3a2412" stroke-width="1.200" fill="none"/></svg>`; const n = Array.from({ length: v.riders }, (_, i) => i); return `<div class="vis notenough" style="--n:${v.riders}"><b>${v.coins} ${v.coins === 1 ? "coin" : "coins"}</b>${n.map((i) => `<span class="nespot">${i < v.coins ? `<i class="dealt dcoin"></i>` : `<i class="neempty"></i>`}</span>`).join("")}<b>${v.riders} riders</b>${n.map(() => `<span class="nespot">${rider}</span>`).join("")}</div>`; }
   if (v.type === "mystery") return `<div class="vis mysteryvis">${esc(v.text).split(v.letter).join(`<b class="mletter">${esc(v.letter)}</b>`)}</div>`;
   if (v.type === "hexruler") {
@@ -1517,7 +1526,7 @@ function progressTrail(r, lp) {
 function focusDots() { return ""; }
 function problemHead(q, inBig) {
   const label = q.refs ? `<i>(${esc(q.refs)})</i>` : "";
-  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}${q.note ? `<p class="pnote">${esc(q.note)}</p>` : q.extra?.includes("R") ? `<p class="pnote">Some left over? Type your answer, tap R, then type what's left over.</p>` : ""}`;
+  return `<div class="bh"><span>Problem ${esc(q.id)} ${label}</span>${focusDots(q)}</div>${q.book ? `<div class="pmathbig">${bookMath(q.book, inBig, true)}</div>` : `<p class="prompt" data-say="${esc(q.prompt)}">${wordsHtml(q.prompt)}</p>`}${q.note ? `<p class="pnote">${esc(q.note)}</p>` : q.extra?.includes("R") ? `<p class="pnote">R stands for remainder, the coins left over after sharing equally. Stuck? Tap Explain.</p>` : ""}`;
 }
 function nextProblemId() {
   const l = curLesson(), r = rideOf(l, U.ride), lp = LP(l.id), at = r.problems.indexOf(U.qid);
@@ -1614,7 +1623,7 @@ function solveView(l, q) {
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg ? "shake" : "") +
-      `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${boardHtml(c, U.step)}${visual(s.visual)}
+      `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
@@ -1851,18 +1860,19 @@ function gameView() {
       <rect class="camflash" width="640" height="300" fill="#fff"/>
       <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
     </svg></div>
-    <div class="outlawsay" id="outlawSay" hidden></div><div class="duelhud"><div class="big" id="duelCall">High Noon</div>
-    <p id="duelSub">The outlaw took Nora! When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p>
-    <div class="score" id="dscore"></div></div></div>`;
+    <div class="outlawsay" id="outlawSay" hidden></div><div class="outlawsay norasaybub" id="noraBub" hidden></div><div class="dboard"><small>Shots</small><div class="score" id="dscore"></div></div><div class="duelhud"><div class="big" id="duelCall">High Noon</div>
+    <p id="duelSub">The outlaw took Nora! When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p></div></div>`;
 }
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
-  const ranchBtn = e.saved ? `<button class="btn go wide" data-act="view" data-v="store">Build the family ranch</button>` : "";
-  if (g?.free) return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>${ranchBtn}<button class="btn go wide" data-act="game" data-g="${g.kind}" data-n="5" data-free="1">PLAY AGAIN</button><button class="btn dark wide" data-act="view" data-v="arcade">Pick another game</button><button class="btn dark wide" data-act="view" data-v="home">Back to the map</button>`;
-  return `<div class="console center pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div>${ranchBtn}
-  ${g ? `<button class="btn dark wide" data-act="game" data-g="${g.kind}" data-n="5" data-free="1">PLAY AGAIN</button>` : ""}
-  ${done && !LP(l.id).completed ? `<button class="btn go wide" data-act="reward">Claim your badge</button>` : `<button class="btn go wide" data-act="backTown">Back to the map</button>`}
-  <button class="btn dark wide" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button>`;
+  const card = (art, attrs, label, cls = "") => `<button class="endcard ${cls}" ${attrs}><span class="endart">${art}</span><b>${label}</b></button>`;
+  const tiles = `<span class="endtiles">${["run", "kick", "duel", "stampede"].map((k) => gameArt[k]).join("")}</span>`;
+  const mapArt = `<svg class="gameart" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="200" height="110" fill="#e9d6a6"/><path d="M0 84c30-22 58 12 90-8s54-44 110-36" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="10 8"/><path d="M34 40l14-22 14 22zM54 44l12-18 12 18z" fill="#8c6b8f"/><circle cx="150" cy="74" r="14" fill="#6d8c3c"/><path d="M162 20l14 14M176 20l-14 14" stroke="#c8202c" stroke-width="6" stroke-linecap="round"/></svg>`;
+  const ranch = e.saved ? card(ranchSvg(), 'data-act="view" data-v="store"', "Build the ranch", "first") : "";
+  const again = g ? card(gameArt[g.kind] || tiles, `data-act="game" data-g="${g.kind}" data-n="5" data-free="1"`, "Play again", e.saved ? "" : "first") : "";
+  const another = card(tiles, 'data-act="view" data-v="arcade"', "Pick a new game");
+  const onward = g?.free ? card(mapArt, 'data-act="view" data-v="home"', "Back to the map") : done && !LP(l.id).completed ? card(mapArt, 'data-act="reward"', "Claim your badge", "first") : card(mapArt, 'data-act="backTown"', "Back to the map");
+  return `<div class="endhead pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div><div class="endcards">${ranch}${again}${another}${onward}</div>${g?.free ? "" : `<button class="btn dark small endshare" data-act="share">${U.shared ? "Sent to Mom" : "Send my work to Mom"}</button>`}`;
 }
 const saveCode = () => { const { resume, ...rest } = S; return "OUTLAW1:" + btoa(unescape(encodeURIComponent(JSON.stringify(rest)))); };
 function moveView() {
@@ -1919,7 +1929,7 @@ function ranchUnlocked() {
 let ranchWalk = 0;
 function ranchFigures() {
   const r = (U.ranch = U.ranch || { x: 200, y: 200, tx: 200, ty: 200, nx: 165, ny: 196, flip: false });
-  return `<g id="ranchNora" class="${U.noraHappy ? "happy" : ""}" transform="translate(${r.nx} ${r.ny})"><g class="norabody"><ellipse cy="1" rx="9" ry="2.500" fill="rgba(0,0,0,.25)"/><path d="M-3.500-27l7 0 3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="noraarms" d="M-3-25l-6 7M3-25l6 7" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></g></g><g id="ranchRider" transform="translate(${r.x} ${r.y})${r.flip ? " scale(-1 1)" : ""}">${riderToken().replace('id="token"', "")}</g>`;
+  return `<g id="ranchNora" class="${U.noraHappy ? "happy" : ""}" transform="translate(${r.nx} ${r.ny}) scale(${ranchDepth(r.ny).toFixed(3)})"><g class="norabody"><ellipse cy="1" rx="9" ry="2.500" fill="rgba(0,0,0,.25)"/><path d="M-3.500-27l7 0 3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="noraarms" d="M-3-25l-6 7M3-25l6 7" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></g></g><g id="ranchRider" transform="translate(${r.x} ${r.y}) scale(${(r.flip ? -1 : 1) * ranchDepth(r.y)} ${ranchDepth(r.y)})">${riderToken().replace('id="token"', "")}</g>`;
 }
 function ranchStep(prev, now) {
   const r = U.ranch, rider = document.getElementById("ranchRider"), nora = document.getElementById("ranchNora");
@@ -1928,7 +1938,7 @@ function ranchStep(prev, now) {
   if (d > 1) { r.x += d <= step ? dx : dx / d * step; r.y += d <= step ? dy : dy / d * step; r.flip = dx < -1 ? true : dx > 1 ? false : r.flip; }
   const fx = r.x + (r.flip ? 34 : -34), fy = r.y - 3, nd = Math.hypot(fx - r.nx, fy - r.ny), ns = 85 * dt;
   if (nd > 1.5) { r.nx += (fx - r.nx) / nd * Math.min(ns, nd); r.ny += (fy - r.ny) / nd * Math.min(ns, nd); }
-  rider.setAttribute("transform", `translate(${r.x} ${r.y})${r.flip ? " scale(-1 1)" : ""}`); nora.setAttribute("transform", `translate(${r.nx} ${r.ny})`);
+  const rk = ranchDepth(r.y); rider.setAttribute("transform", `translate(${r.x} ${r.y}) scale(${(r.flip ? -1 : 1) * rk} ${rk})`); nora.setAttribute("transform", `translate(${r.nx} ${r.ny}) scale(${ranchDepth(r.ny)})`);
   if (d <= 1 && r.enter) { const id = r.enter; r.enter = null; ranchWalk = 0; return openRoom(id); }
   if (d > 1 || nd > 1.5) ranchWalk = requestAnimationFrame((t) => ranchStep(now, t)); else ranchWalk = 0;
 }
@@ -1994,6 +2004,54 @@ const RANCH_ART = {
 };
 const ranchPiece = (id) => { const a = RANCH_ART[id]; return `<g transform="${a.at}">${a.draw()}</g>`; };
 const ranchPic = (id) => { const a = RANCH_ART[id]; return `<svg class="itempic" viewBox="${a.view}" aria-hidden="true">${a.draw()}</svg>`; };
+const RANCH_FLAT = { pond: 1 };
+const ranchDepth = (y) => .55 + (y - 130) * .0065;
+function ranchDeepSvg() {
+  const has = (id) => (S.owned || []).includes(id);
+  const piece = (id) => has(id) ? `<g class="rz" data-y="${RANCH_FLAT[id] ? 0 : RANCH_SPOTS[id][1] - 1}"><ellipse cx="${RANCH_SPOTS[id][0]}" cy="${RANCH_SPOTS[id][1] - 3}" rx="${id === "barn" || id === "cabin" ? 46 : 24}" ry="6" fill="rgba(40,50,15,.28)"/>${ranchPiece(id)}</g>` : "";
+  const tufts = Array.from({ length: 70 }, (_, n) => { const x = -300 + (n * 137) % 1000, y = 142 + (n * 47) % 110, k = ranchDepth(y) * 1.5; return `<path d="M${x} ${y}l${-2 * k}${-5 * k}M${x} ${y}l0 ${-6 * k}M${x} ${y}l${2 * k} ${-5 * k}" stroke="#55752f" stroke-width="${1.2 * k}" fill="none"/>`; }).join("");
+  const bush = (x, y, r) => `<g fill="#3f5c22"><circle cx="${x}" cy="${y}" r="${r}"/><circle cx="${x + r}" cy="${y + 6}" r="${r * .8}"/><circle cx="${x - r}" cy="${y + 7}" r="${r * .75}"/></g><circle cx="${x - r * .2}" cy="${y - r * .3}" r="${r * .5}" fill="#587c30"/>`;
+  return `<svg class="ranch deep" id="ranchLive" data-act="ranchTap" viewBox="0 0 400 240" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The family ranch. Drag to look around, tap to ride."><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5d9bd0"/><stop offset=".62" stop-color="#ffdca6"/></linearGradient><linearGradient id="rLand" gradientUnits="userSpaceOnUse" x1="0" y1="132" x2="0" y2="250"><stop offset="0" stop-color="#b5c777"/><stop offset=".4" stop-color="#8fae50"/><stop offset="1" stop-color="#5f8033"/></linearGradient></defs>
+    <rect width="400" height="240" fill="url(#rSky)"/>
+    <g class="rl" data-d=".06"><circle cx="330" cy="50" r="22" fill="#ffe59a"/><g class="rcloud"><ellipse cx="0" cy="34" rx="30" ry="10" fill="#fff" opacity=".85"/><ellipse cx="22" cy="28" rx="20" ry="9" fill="#fff" opacity=".85"/></g><g class="rcloud c2"><ellipse cx="0" cy="62" rx="24" ry="8" fill="#fff" opacity=".7"/></g></g>
+    <g class="rl" data-d=".2"><path d="M-400 136l80-46 70 30 70-52 70 44 60-54 62 52 54-44 66 48 64-40 76 50 80-44 90 56v220H-400z" fill="#a593b0" opacity=".75"/><path d="M-20 74l18-13 16 10-10 6-8-5-8 6zM136 68l14-10 14 9-9 4-5-4-6 5z" fill="#f4f1ee" opacity=".8"/></g>
+    <g class="rl" data-d=".45"><path d="M-500 134c60-26 130-26 190-6s130 8 190-8 130-14 200 2 130 18 190 4 140-16 230 8V400H-500z" fill="#7b9169"/><g fill="#55704a">${Array.from({ length: 16 }, (_, n) => `<path d="M${-420 + n * 73} ${130 - (n % 3) * 3}l5-14 5 14z"/>`).join("")}</g></g>
+    <g class="rl" id="rWorld" data-d="1"><path d="M-600 138c160-12 400-10 700-4s600 0 900 4V600H-600z" fill="url(#rLand)"/><path d="M198 137h4c6 22 18 44 42 66 18 16 38 30 60 42H128c28-16 48-34 60-56 8-16 10-34 10-52z" fill="#c9a66b"/><path d="M200 140c-2 30-16 66-38 104M206 160c10 28 30 56 62 84" stroke="#b38f55" stroke-width="1.500" fill="none" opacity=".7"/>${tufts}
+      ${["appletree", "windmill", "coop", "barn", "cabin"].map(piece).join("")}${has("cabin") ? `<g class="rsmoke"><circle cx="135" cy="102" r="4" fill="#e8e6e0"/><circle class="s2" cx="137" cy="102" r="5" fill="#d8d6d0"/></g>` : ""}${["porch", "well", "pond", "doghouse", "garden", "corral"].map(piece).join("")}${has("garden") ? `<g class="butterfly"><path d="M0 0c-4-5-8-3-6 1 1 2 4 1 6-1 4-5 8-3 6 1-1 2-4 1-6-1z" fill="#ff8a3c"/></g>` : ""}${has("barn") ? `<g class="chicken"><ellipse rx="6" ry="4.500" fill="#fff" stroke="#9a9184"/><circle cx="6" cy="-4" r="2.800" fill="#fff" stroke="#9a9184"/><path d="M8-4l3 1-3 1z" fill="#e8a317"/><path d="M5-7l1-2 1 2z" fill="#c8202c"/><path d="M-1 4v3M2 4v3" stroke="#e8a317"/></g>` : ""}${has("fence") ? `<g class="rz" data-y="232"><path d="M-400 234H800M-400 244H800" stroke="#7d5530" stroke-width="3.500"/>${Array.from({ length: 31 }, (_, n) => `<path d="M${-400 + n * 40} 226V252" stroke="#5a3a1e" stroke-width="5"/>`).join("")}</g>` : ""}
+      ${ranchFigures()}</g>
+    <g class="rl" data-d="1.6">${bush(-30, 262, 22)}${bush(46, 278, 20)}${bush(352, 276, 22)}${bush(440, 262, 24)}</g>
+  </svg>`;
+}
+let ranchCamOn = false;
+function ranchCam(prev, now) {
+  const svg = document.getElementById("ranchLive"), r = U.ranch;
+  if (!svg || !r || !svg.classList.contains("deep")) { ranchCamOn = false; return; }
+  const dt = Math.min(60, now - prev) / 1000, drift = reduced ? 0 : Math.sin(now / 2600) * 7;
+  if (r.camx == null) { r.camx = r.x; r.camy = 160; r.lx = 0; r.ly = 0; }
+  if (!r.drag) { const fade = Math.exp(-dt * .45); r.lx *= fade; r.ly *= fade; }
+  const tx = Math.max(70, Math.min(330, r.x + r.lx + drift)), ty = Math.max(112, Math.min(190, 118 + (r.y - 130) * .55 + r.ly)), ease = 1 - Math.exp(-dt * 3);
+  r.camx += (tx - r.camx) * ease; r.camy += (ty - r.camy) * ease;
+  const z = 1.25 + Math.max(0, Math.min(1, (r.y - 150) / 75)) * .3;
+  svg.querySelectorAll(".rl").forEach((g) => { const d = +g.dataset.d, zl = 1 + (z - 1) * d; g.setAttribute("transform", `translate(${(200 - (200 + (r.camx - 200) * d) * zl).toFixed(2)} ${(130 - (130 + (r.camy - 130) * d) * zl).toFixed(2)}) scale(${zl.toFixed(3)})`); });
+  ranchLayer();
+  requestAnimationFrame((t) => ranchCam(now, t));
+}
+// Draws him behind anything standing nearer to the camera, so he can ride around the buildings.
+function ranchLayer() {
+  const r = U.ranch, world = document.getElementById("rWorld"), rider = document.getElementById("ranchRider"), nora = document.getElementById("ranchNora"); if (!world || !rider || !nora) return;
+  const front = (y) => [...world.querySelectorAll(":scope>.rz")].find((g) => +g.dataset.y > y) || null, rf = front(r.y), nf = front(r.ny);
+  if (rider.nextElementSibling !== rf && !(rf && rider.nextElementSibling === nora && nora.nextElementSibling === rf)) world.insertBefore(rider, rf);
+  if (nora.nextElementSibling !== nf && !(nf && nora.nextElementSibling === rider && rider.nextElementSibling === nf)) world.insertBefore(nora, nf);
+}
+function startRanchCam() {
+  const svg = document.getElementById("ranchLive"); if (!svg || !svg.classList.contains("deep")) return;
+  let from = null;
+  svg.addEventListener("pointerdown", (e) => { from = [e.clientX, e.clientY]; const r = U.ranch; if (r) r.drag = false; });
+  svg.addEventListener("pointermove", (e) => { const r = U.ranch; if (!from || !r) return; const dx = e.clientX - from[0], dy = e.clientY - from[1]; if (!r.drag && Math.hypot(dx, dy) < 10) return; r.drag = true; from = [e.clientX, e.clientY]; const k = 400 / svg.clientWidth / 1.3; r.lx = Math.max(-150, Math.min(150, (r.lx || 0) - dx * k)); r.ly = Math.max(-40, Math.min(40, (r.ly || 0) - dy * k)); });
+  const up = () => { const r = U.ranch; from = null; if (r && r.drag) { r.dragEnd = performance.now(); r.drag = false; } };
+  svg.addEventListener("pointerup", up); svg.addEventListener("pointercancel", up);
+  if (!ranchCamOn) { ranchCamOn = true; const t0 = performance.now(); requestAnimationFrame((t) => ranchCam(t0, t)); }
+}
 function ranchSvg(place = "", live = false) {
   const has = (id) => (S.owned || []).includes(id), count = (S.owned || []).length;
   return `<svg class="ranch" ${live ? `id="ranchLive" data-act="ranchTap"` : ""} ${place} viewBox="0 0 400 240" role="img" aria-label="The family ranch with ${count} things built"><defs><linearGradient id="rSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fa8d6"/><stop offset=".7" stop-color="#ffd9a0"/></linearGradient><linearGradient id="rLand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9dbb5c"/><stop offset="1" stop-color="#6d8c3c"/></linearGradient></defs>
@@ -2039,7 +2097,7 @@ function trophiesView() {
   return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="store">&#9664; Store</button><h2>Trophy Case</h2><span class="chip">${won.length} of ${PRIZES.length} won</span></div><p class="center trophyhint">Win a Boost Run in Saloon Games and a new trophy lands on your shelf.</p><div class="tcase">${rows}</div><button class="btn go wide" data-act="view" data-v="arcade">Play Boost Run in Saloon Games</button>`;
 }
 function ranchView() {
-  return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || "Tap anywhere to ride around our ranch, Elliot!")}</p>${ranchSvg("", true)}<p class="ranchhint">Tap a building to go inside</p></div>`;
+  return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || "Tap anywhere to ride around our ranch, Elliot!")}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
 }
 function storeView() {
   const open = ranchUnlocked();
@@ -2200,6 +2258,8 @@ function playNotes(notes, vol = .16) {
     notes.forEach(([f, at, len, type]) => { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + at; o.type = type || "triangle"; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + len); });
   } catch (e) {}
 }
+const bumpSound = () => playNotes([[110, 0, .12, "square"], [70, .04, .22, "square"], [45, .1, .28]], .3);
+function sayOw() { try { if (S.voice === false || S.muted) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Ow!"); u.rate = 1.15; u.pitch = .85; speechSynthesis.speak(u); } catch (e) {} }
 const chaChing = () => playNotes([[1319, 0, .07, "square"], [1760, .07, .07, "square"], [2637, .14, .32], [3520, .14, .32]], .13);
 const duDunDun = () => playNotes([[196, 0, .34, "sawtooth"], [98, 0, .34, "triangle"], [185, .42, .34, "sawtooth"], [92, .42, .34, "triangle"], [147, .84, 1, "sawtooth"], [73, .84, 1, "triangle"]], .2);
 function bellToll() {
@@ -2240,10 +2300,20 @@ const OUTLAW_LINES = {
   early: ["Easy there! Nobody said draw yet.", "Ha! Jumped the gun, did ya?"],
   lose: ["Ya got me. Nora's free to go.", "Ya got me, stranger.", "Well, I'll be. That was quick.", "Aw, shucks. Never saw it comin'."],
 };
+const NORA_LINES = {
+  start: ["Oh no! Save me, Elliot!", "Help! Please save me!", "Oh no! Don't let him take me!", "Elliot, help me!"],
+  win: ["Oh no! Please, try again!", "Oh no! Don't give up, save me!"],
+  early: ["Not yet! Wait for the bell!"],
+  lose: ["You got him, Elliot!", "Yes! You're so brave!", "You did it! Keep going!"],
+};
 function outlawSay(kind) {
-  const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay");
-  if (el) { el.textContent = t; el.hidden = false; clearTimeout(el.hideT); el.hideT = setTimeout(() => { el.hidden = true; }, 2600); }
-  try { speechSynthesis.cancel(); } catch (e) {}
+  const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay"), n = pick(NORA_LINES[kind]), nel = document.getElementById("noraBub");
+  [[el, t], [nel, n]].forEach(([b, text]) => { if (b) { b.textContent = text; b.hidden = false; clearTimeout(b.hideT); b.hideT = setTimeout(() => { b.hidden = true; }, 2600); } });
+  try {
+    speechSynthesis.cancel();
+    if (S.voice === false || S.muted) return;
+    const u = new SpeechSynthesisUtterance(n); u.pitch = 1.5; u.rate = 1.05; speechSynthesis.speak(u);
+  } catch (e) {}
 }
 function duelState(st) { const sc = document.getElementById("duelScene"); if (sc) sc.setAttribute("class", `st-${st}`); }
 function duelRound() {
@@ -2260,7 +2330,7 @@ function duelRound() {
   duel.timer = setTimeout(() => {
     clearInterval(duel.beat); bellToll();
     if (!document.getElementById("duelCall")) return;
-    document.getElementById("outlawSay")?.setAttribute("hidden", "");
+    document.getElementById("outlawSay")?.setAttribute("hidden", ""); document.getElementById("noraBub")?.setAttribute("hidden", "");
     duel.state = "draw"; duel.at = performance.now(); duelState("draw");
     call.textContent = "DRAW!"; call.style.color = "var(--red)"; sub.textContent = "Tap the screen now!"; beep(BLIP);
     duel.limit = 800 + Math.random() * 400;
@@ -2847,10 +2917,10 @@ const acts = {
   buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !S.owned.includes(g.id)) { S.nuggets -= g.cost; S.owned.push(g.id); beep(CHIME); save(); const all = RANCH.every((x) => S.owned.includes(x.id)); U.noraLine = all ? "You got us everything, Elliot! This is the best ranch in the West!" : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
   roomOpen(d) { beep(BLIP); openRoom(d.id); },
   ranchTap() {
-    const svg = document.getElementById("ranchLive"), r = U.ranch; if (!svg || !r || !kickTap) return;
-    const p = svg.createSVGPoint(); p.x = kickTap[0]; p.y = kickTap[1]; const g = p.matrixTransform(svg.getScreenCTM().inverse());
+    const svg = document.getElementById("ranchLive"), r = U.ranch; if (!svg || !r || !kickTap || performance.now() - (r.dragEnd || -999) < 250) return;
+    const p = svg.createSVGPoint(); p.x = kickTap[0]; p.y = kickTap[1]; const g = p.matrixTransform(document.getElementById("rWorld").getScreenCTM().inverse()); r.lx = 0; r.ly = 0;
     const owned = RANCH.filter((x) => S.owned.includes(x.id) && x.id !== "fence").map((x) => ({ x, d: Math.hypot(RANCH_SPOTS[x.id][0] - g.x, RANCH_SPOTS[x.id][1] - g.y) })).sort((a, b) => a.d - b.d)[0];
-    r.tx = Math.max(24, Math.min(376, g.x)); r.ty = Math.max(160, Math.min(226, g.y)); beep(BLIP);
+    r.tx = Math.max(10, Math.min(390, g.x)); r.ty = Math.max(146, Math.min(228, g.y)); beep(BLIP);
     r.enter = null;
     if (owned && owned.d < 42) { U.noraLine = "Let's go inside!"; noraSays(U.noraLine); r.enter = owned.x.id; }
     if (!ranchWalk) { const t0 = performance.now(); ranchWalk = requestAnimationFrame((t) => ranchStep(t0, t)); }
@@ -2956,6 +3026,7 @@ function render() {
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
+  startRanchCam();
   drawMatchArrows();
   initScratch();
   markWord();
