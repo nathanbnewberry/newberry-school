@@ -1,0 +1,1340 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Cannon Math Pirates</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;600;700&display=swap">
+<style>
+  :root { --ink: #1a120b; --wood: #3a2412; --wood-lt: #6b4423; --parch: #f2dfb6; --parch-dk: #d9be86; --gold: #f5b301; --red: #b3161c; --green: #2a9d4a; --sea: #0e4f7a; --sky: #8fd0f5; --cream: #fff6e0; color-scheme: dark; }
+  html, body { height: 100%; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--sea); color: var(--cream); font-family: 'Pixelify Sans', 'Trebuchet MS', sans-serif; overflow: hidden; }
+  #app { position: fixed; inset: 0; }
+  #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .px { font-family: 'Press Start 2P', 'Courier New', monospace; }
+  button { font-family: inherit; }
+  .hbtn { pointer-events: auto; appearance: none; cursor: pointer; min-height: 42px; padding: 0 14px; font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--cream); background: var(--wood); border: 3px solid var(--ink); box-shadow: 4px 4px 0 rgba(0,0,0,.45); }
+  .hbtn:hover, .hbtn:focus-visible { background: var(--wood-lt); outline: 3px solid var(--gold); outline-offset: 1px; }
+  .hbtn.gold { background: var(--gold); color: var(--ink); }
+  .hbtn.red { background: var(--red); }
+  .hbtn.green { background: var(--green); }
+  .hbtn:disabled { opacity: .45; cursor: default; }
+
+  /* HUD */
+  #hud { position: absolute; left: 0; right: 0; top: 0; padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 0; display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: start; pointer-events: none; }
+  .hud-left { display: flex; flex-direction: column; gap: 8px; }
+  .hud-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .hud-center { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 200px; }
+  .lives { display: flex; gap: 5px; align-items: center; padding: 6px 8px; background: rgba(26,18,11,.8); border: 3px solid var(--ink); }
+  .lives .lbl { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--parch); margin-right: 4px; }
+  .lives svg { width: 30px; height: 26px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,.5)); }
+  .lives svg.gone { opacity: .25; filter: grayscale(1); }
+  #purse { display: flex; gap: 12px; align-items: center; font-family: 'Press Start 2P', monospace; font-size: 11px; color: #ffe08a; text-shadow: 2px 2px 0 var(--ink); flex-wrap: wrap; }
+  #purse span { display: inline-flex; align-items: center; gap: 6px; transition: transform .12s; }
+  #purse span.bump { transform: scale(1.3); }
+  #purse svg { width: 20px; height: 20px; filter: drop-shadow(2px 2px 0 rgba(0,0,0,.5)); }
+  #pname { font-size: 12px; text-shadow: 2px 2px 0 var(--ink); letter-spacing: 1px; color: var(--parch); }
+  #enemy-name { font-family: 'Press Start 2P', monospace; font-size: 10px; color: #ffd2d2; text-shadow: 2px 2px 0 var(--ink); text-align: center; }
+  #timer { width: 60px; height: 60px; display: grid; place-items: center; font-family: 'Press Start 2P', monospace; font-size: 24px; color: var(--gold); background: rgba(26,18,11,.85); border: 4px solid var(--gold); box-shadow: 4px 4px 0 rgba(0,0,0,.45); }
+  #timer.hot { color: #ff5a1a; border-color: #ff5a1a; }
+  #timer-bar { width: 110px; height: 12px; background: rgba(26,18,11,.85); border: 3px solid var(--ink); }
+  #timer-fill { height: 100%; width: 100%; background: var(--gold); transition: width .1s linear; }
+  #island-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; pointer-events: auto; }
+  #mute { width: 42px; padding: 0; }
+
+  /* question panel */
+  #qpanel { position: absolute; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: min(96vw, 640px); background: var(--parch); color: var(--ink); border: 4px solid var(--ink); box-shadow: 6px 6px 0 rgba(0,0,0,.5); padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
+  #qpanel::before { content: ''; position: absolute; inset: 4px; border: 2px dashed rgba(58,36,18,.35); pointer-events: none; }
+  #qprompt { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--wood); text-align: center; letter-spacing: 1px; }
+  #qtext { font-family: 'Press Start 2P', monospace; font-size: clamp(22px, 5vw, 36px); text-align: center; letter-spacing: 2px; line-height: 1.3; }
+  #qtext .blank { display: inline-block; min-width: 1.4em; border-bottom: 5px solid var(--red); color: var(--red); }
+  #choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .choice { appearance: none; cursor: pointer; min-height: 62px; font-family: 'Press Start 2P', monospace; font-size: clamp(18px, 4vw, 26px); color: var(--cream); background: var(--wood); border: 4px solid var(--ink); box-shadow: 4px 4px 0 rgba(0,0,0,.45); }
+  .choice:hover, .choice:focus-visible { background: var(--wood-lt); outline: 3px solid var(--gold); }
+  .choice.right { background: var(--green); }
+  .choice.wrong { background: var(--red); }
+  .choice:disabled { cursor: default; }
+  #qwhy { font-size: 16px; text-align: center; min-height: 20px; font-weight: 600; }
+  #qwhy.bad { color: var(--red); }
+  #qwhy.good { color: #1b6b32; }
+
+  /* banners */
+  #banner { position: absolute; left: 50%; top: 32%; transform: translate(-50%, -50%); font-family: 'Press Start 2P', monospace; font-size: clamp(18px, 4.5vw, 40px); color: var(--gold); text-shadow: 4px 4px 0 var(--ink), -2px -2px 0 var(--ink); text-align: center; pointer-events: none; opacity: 0; transition: opacity .25s, transform .25s; letter-spacing: 2px; line-height: 1.4; padding: 0 16px; }
+  #banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+  #banner.red { color: #ff5a4a; }
+  #banner.white { color: var(--cream); }
+  #toast { position: absolute; left: 50%; top: calc(110px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); background: rgba(26,18,11,.9); color: var(--parch); border: 3px solid var(--gold); padding: 8px 14px; font-size: 15px; max-width: 80vw; text-align: center; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+
+  /* overlays */
+  .overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(6,20,32,.78); padding: 16px; overflow: auto; }
+  .card { width: min(94vw, 560px); background: var(--parch); color: var(--ink); border: 4px solid var(--ink); box-shadow: 8px 8px 0 rgba(0,0,0,.55); padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 14px; position: relative; }
+  .card::before { content: ''; position: absolute; inset: 5px; border: 2px dashed rgba(58,36,18,.35); pointer-events: none; }
+  .card h1, .card h2 { font-family: 'Press Start 2P', monospace; margin: 0; text-align: center; text-wrap: balance; line-height: 1.5; }
+  .card h1 { font-size: clamp(16px, 4vw, 24px); color: var(--red); text-shadow: 3px 3px 0 rgba(0,0,0,.2); }
+  .card h2 { font-size: 14px; color: var(--wood); }
+  .card p { margin: 0; font-size: 17px; line-height: 1.45; text-align: center; }
+  .card label { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--wood); letter-spacing: 1px; }
+  .card input[type=text] { width: 100%; box-sizing: border-box; font-family: 'Pixelify Sans', sans-serif; font-size: 22px; padding: 10px 12px; border: 3px solid var(--ink); background: var(--cream); color: var(--ink); }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .row > .hbtn { flex: 1 1 140px; }
+  .modes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .modes .hbtn { min-height: 46px; font-size: 9px; }
+  .modes .hbtn.on { background: var(--gold); color: var(--ink); }
+  .stat { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; font-size: 17px; font-variant-numeric: tabular-nums; }
+  .stat b { font-family: 'Press Start 2P', monospace; font-size: 12px; color: var(--wood); }
+  .loot { display: flex; gap: 18px; justify-content: center; font-family: 'Press Start 2P', monospace; font-size: 14px; }
+  .loot span { display: inline-flex; gap: 8px; align-items: center; }
+  .loot svg { width: 26px; height: 26px; }
+  .skull { font-size: 40px; text-align: center; line-height: 1; }
+  .small { font-size: 14px; opacity: .8; }
+  /* build menu */
+  .builds { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .bcard { border: 3px solid var(--ink); background: var(--cream); padding: 10px; display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer; font-family: inherit; color: var(--ink); }
+  .bcard:hover, .bcard:focus-visible { outline: 3px solid var(--gold); }
+  .bcard:disabled { opacity: .5; cursor: default; }
+  .bcard .nm { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--wood); }
+  .bcard .cost { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .bcard .eff { font-size: 13px; color: #3d2b1a; }
+  .missed { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .missed span { background: var(--cream); border: 2px solid var(--ink); padding: 4px 8px; font-family: 'Press Start 2P', monospace; font-size: 11px; }
+  .raids { display: flex; flex-direction: column; gap: 8px; }
+  .raid { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; background: var(--cream); border: 3px solid var(--ink); padding: 10px 12px; text-align: left; font-family: inherit; color: var(--ink); cursor: pointer; }
+  .raid:hover, .raid:focus-visible { outline: 3px solid var(--gold); }
+  .raid .nm { font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--wood); }
+  .raid .dsc { font-size: 14px; }
+  .raid .lv { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--red); text-align: right; }
+  @media (max-width: 600px) { #hud { grid-template-columns: 1fr 1fr; } .hud-center { grid-column: 1 / -1; order: 3; min-width: 0; } .lives svg { width: 22px; height: 20px; } #timer { width: 48px; height: 48px; font-size: 18px; } #timer-bar { width: 80px; } }
+  @media (prefers-reduced-motion: reduce) { #banner, #toast, .choice, .hbtn { transition: none; } }
+</style>
+<div id="app">
+  <canvas id="scene"></canvas>
+  <div id="hud" hidden>
+    <div class="hud-left">
+      <div id="pname"></div>
+      <div class="lives" id="our-lives"><span class="lbl">SHIP</span></div>
+      <div id="purse">
+        <span id="gold-w"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#f5b301" stroke="#7a4a00" stroke-width="1.5"/><circle cx="8" cy="8" r="4" fill="none" stroke="#7a4a00" stroke-width="1.2"/></svg><b id="gold">0</b></span>
+        <span id="wood-w"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="5" width="14" height="6" fill="#8a5a2b" stroke="#3a2412" stroke-width="1.5"/><circle cx="14" cy="8" r="2.4" fill="#d9a066" stroke="#3a2412" stroke-width="1"/></svg><b id="wood">0</b></span>
+        <span id="crew-w"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3.5" fill="#f1c27d" stroke="#3a2412" stroke-width="1.2"/><rect x="3" y="9" width="10" height="6" fill="#b3161c" stroke="#3a2412" stroke-width="1.2"/><rect x="4" y="1.5" width="8" height="2.5" fill="#1a120b"/></svg><b id="crew">0</b></span>
+        <span id="coin-w" hidden title="The Golden Curse Coin"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7" fill="#f5b301" stroke="#7a4a00" stroke-width="1.5"/><circle cx="6" cy="7" r="1.2" fill="#1a120b"/><circle cx="10" cy="7" r="1.2" fill="#1a120b"/><rect x="6" y="9.5" width="4" height="1.5" fill="#1a120b"/></svg><b>CURSE COIN</b></span>
+      </div>
+    </div>
+    <div class="hud-center">
+      <div id="enemy-name"></div>
+      <div class="lives" id="enemy-lives" hidden><span class="lbl">ENEMY</span></div>
+    </div>
+    <div class="hud-right">
+      <div id="timer-w"><div id="timer" class="px">15</div><div id="timer-bar"><div id="timer-fill"></div></div></div>
+      <div id="island-btns" hidden>
+        <button class="hbtn gold" id="btn-build">BUILD</button>
+        <button class="hbtn red" id="btn-sail">SAIL &amp; FIGHT</button>
+        <button class="hbtn" id="btn-raid">RAID</button>
+        <button class="hbtn" id="btn-dive" style="background:#0e4f7a">DIVE</button>
+        <button class="hbtn" id="btn-myship">MY SHIP</button>
+        <button class="hbtn" id="btn-menu">MENU</button>
+      </div>
+      <button class="hbtn" id="btn-inside" hidden>GO BELOW DECK</button>
+      <button class="hbtn" id="mute" aria-label="Sound on or off">🔊</button>
+    </div>
+  </div>
+  <div id="banner" class="px"></div>
+  <div id="toast"></div>
+  <div id="qpanel" hidden>
+    <div id="qprompt">LOAD THE CANNON. ANSWER TO FIRE!</div>
+    <div id="qtext"></div>
+    <div id="choices"></div>
+    <div id="qwhy"></div>
+  </div>
+  <div id="leave-w" hidden style="position:absolute;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)"><button class="hbtn gold" id="btn-leave">LEAVE HOUSE</button></div>
+  <div id="deck-w" hidden style="position:absolute;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%)"><button class="hbtn gold" id="btn-deck">BACK ON DECK</button></div>
+  <div id="hint" class="px" style="position:absolute;left:50%;bottom:calc(6px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);font-size:9px;color:#ffe08a;text-shadow:2px 2px 0 #1a120b;pointer-events:none" hidden>DRAG TO LOOK AROUND</div>
+
+  <div class="overlay" id="ov-title">
+    <div class="card">
+      <div class="skull" aria-hidden="true">🏴‍☠️</div>
+      <h1>CANNON MATH PIRATES</h1>
+      <p>Load the cannon by answering the math. Hit the enemy ship 5 times to sink it. Get it wrong and their cannons hit you. Win gold and wood, build your pirate island, and hold it against the British.</p>
+      <label for="name-in">CAPTAIN'S NAME</label>
+      <input type="text" id="name-in" maxlength="16" placeholder="Type your name" autocomplete="off">
+      <label>WHAT MATH?</label>
+      <div class="modes" id="modes">
+        <button class="hbtn on" data-mode="add">ADDING</button>
+        <button class="hbtn" data-mode="sub">TAKING AWAY</button>
+        <button class="hbtn" data-mode="addsub">ADD + TAKE AWAY</button>
+        <button class="hbtn" data-mode="mul">TIMES</button>
+        <button class="hbtn" data-mode="div">DIVIDE</button>
+        <button class="hbtn" data-mode="muldiv">TIMES + DIVIDE</button>
+      </div>
+      <div class="row"><button class="hbtn gold" id="btn-start">SET SAIL</button></div>
+      <p class="small" id="saves"></p>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-win" hidden>
+    <div class="card">
+      <h1>SHIP SUNK!</h1>
+      <p id="win-text"></p>
+      <div class="loot" id="win-loot"></div>
+      <div class="row"><button class="hbtn gold" id="btn-to-island">GO TO MY ISLAND</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-lose" hidden>
+    <div class="card">
+      <h1>YOUR SHIP WENT DOWN</h1>
+      <p id="lose-text">Your crew swam to shore. Your island is safe. Try that fight again!</p>
+      <div class="missed" id="lose-missed"></div>
+      <div class="row"><button class="hbtn gold" id="btn-retry">FIGHT AGAIN</button><button class="hbtn" id="btn-lose-island">BACK TO ISLAND</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-build" hidden>
+    <div class="card">
+      <h2>BUILD YOUR ISLAND</h2>
+      <p class="small">Gold and wood come from sinking ships. More guys let you build more. Every 3 buildings the island grows.</p>
+      <div class="builds" id="build-list"></div>
+      <div class="row"><button class="hbtn" id="btn-build-close">CLOSE</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-raid" hidden>
+    <div class="card">
+      <h2>RAID A CITY</h2>
+      <p class="small">Pick a rival captain's city. Sink their ship and you take their gold and wood. Careful: they get harder, and they come for your island too.</p>
+      <div class="raids" id="raid-list"></div>
+      <div class="row"><button class="hbtn" id="btn-raid-close">CLOSE</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-menu" hidden>
+    <div class="card">
+      <h2>CAPTAIN'S LOG</h2>
+      <div class="stat" id="menu-stats"></div>
+      <label>FACTS MISSED MOST (for parents)</label>
+      <div class="missed" id="menu-missed"></div>
+      <div class="row"><button class="hbtn" id="btn-menu-close">BACK</button><button class="hbtn red" id="btn-british">TEST: BRITISH ATTACK</button><button class="hbtn red" id="btn-erupt">TEST: VOLCANO</button><button class="hbtn" id="btn-switch">SWITCH CAPTAIN</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-defend" hidden>
+    <div class="card">
+      <h1 id="defend-title">YOU HELD THE ISLAND!</h1>
+      <p id="defend-text"></p>
+      <div class="loot" id="defend-loot"></div>
+      <div class="row"><button class="hbtn gold" id="btn-defend-ok">BACK TO ISLAND</button></div>
+    </div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SEA_Y = 0;
+
+  /* ---------- renderer / scene / sky ---------- */
+  const canvas = $('#scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  const TOUCH = (navigator.maxTouchPoints || 0) > 1;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, TOUCH ? 1.5 : 2));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.Fog(0xa7d8f7, 40, 120);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 400);
+  const camLook = new THREE.Vector3(0, 2, -10);
+  const hemi = new THREE.HemisphereLight(0xdff2ff, 0x2a5a7a, 0.7); scene.add(hemi);
+  const sun = new THREE.DirectionalLight(0xfff0d0, 1.35); sun.position.set(-18, 26, 12); sun.castShadow = true;
+  sun.shadow.mapSize.set(TOUCH ? 1024 : 2048, TOUCH ? 1024 : 2048);
+  sun.shadow.camera.left = -40; sun.shadow.camera.right = 40; sun.shadow.camera.top = 40; sun.shadow.camera.bottom = -40; sun.shadow.camera.near = 1; sun.shadow.camera.far = 120; sun.shadow.bias = -0.0005;
+  scene.add(sun); scene.add(sun.target);
+  const rim = new THREE.DirectionalLight(0x9fc4ff, 0.3); rim.position.set(20, 8, -30); scene.add(rim);
+  const skyMat = new THREE.ShaderMaterial({
+    uniforms: { top: { value: new THREE.Color(0x2f7fd1) }, mid: { value: new THREE.Color(0x8fd0f5) }, bottom: { value: new THREE.Color(0xe8f3fb) } },
+    vertexShader: 'varying vec3 vP; void main(){ vP = (modelMatrix * vec4(position, 1.0)).xyz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: 'uniform vec3 top; uniform vec3 mid; uniform vec3 bottom; varying vec3 vP; void main(){ float h = clamp(vP.y / 120.0, 0.0, 1.0); vec3 c = h < 0.2 ? mix(bottom, mid, h / 0.2) : mix(mid, top, (h - 0.2) / 0.8); gl_FragColor = vec4(c, 1.0); }',
+    side: THREE.BackSide, depthWrite: false, fog: false
+  });
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(300, 24, 16), skyMat));
+  // sun disc + a few clouds
+  const sunDisc = new THREE.Mesh(new THREE.CircleGeometry(9, 24), new THREE.MeshBasicMaterial({ color: 0xfff4c2, fog: false })); sunDisc.position.set(-90, 110, -180); sunDisc.lookAt(0, 0, 0); scene.add(sunDisc);
+
+  /* ---------- textures ---------- */
+  function tex(size, draw) { const c = document.createElement('canvas'); c.width = c.height = size; const g = c.getContext('2d'); draw(g, size); const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }
+  const px = (g, x, y, v) => { g.fillStyle = `rgb(${v},${v},${v})`; g.fillRect(x, y, 1, 1); };
+  const radial = (inner, mid) => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const r = g.createRadialGradient(32, 32, 0, 32, 32, 32); r.addColorStop(0, inner); r.addColorStop(0.35, mid); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); };
+  const T = {
+    plank: tex(16, (g, s) => { for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) px(g, x, y, 200 + Math.floor(Math.random() * 40) - (y % 4 === 0 ? 60 : 0)); }),
+    sand: tex(16, (g, s) => { for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) px(g, x, y, 215 + Math.floor(Math.random() * 40)); }),
+    grass: tex(16, (g, s) => { for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) { const v = 205 + Math.floor(Math.random() * 50); px(g, x, y, (x * 7 + y * 3) % 5 === 0 ? v - 35 : v); } }),
+    metal: tex(8, (g, s) => { for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) px(g, x, y, 225 + Math.floor(Math.random() * 30)); px(g, 1, 1, 255); px(g, 5, 4, 255); }),
+    lava: tex(32, (g, s) => { for (let y = 0; y < s; y++) for (let x = 0; x < s; x++) { const v = Math.sin(x * 0.7) * Math.cos(y * 0.5) + Math.sin((x + y) * 0.3); const k = (v + 2) / 4; g.fillStyle = k > 0.62 ? '#ffe066' : k > 0.4 ? '#ff8a1a' : k > 0.2 ? '#e0440f' : '#7a1d0c'; g.fillRect(x, y, 1, 1); } }),
+    glow: radial('rgba(255,255,255,1)', 'rgba(255,255,255,0.45)'),
+    puff: radial('rgba(255,255,255,0.95)', 'rgba(255,255,255,0.6)')
+  };
+
+  /* ---------- shape helpers ---------- */
+  const geoCache = {};
+  function geo(w, h, d) { const k = 'b' + w + ',' + h + ',' + d; return geoCache[k] || (geoCache[k] = new THREE.BoxGeometry(w, h, d)); }
+  function mat(color, o) { o = o || {}; const base = { color, emissive: o.emissive || 0x000000, emissiveIntensity: o.ei == null ? 1 : o.ei, transparent: !!o.transparent, opacity: o.opacity == null ? 1 : o.opacity }; if (o.map) base.map = o.map; return o.metal != null ? new THREE.MeshStandardMaterial(Object.assign(base, { metalness: o.metal, roughness: o.rough == null ? 0.4 : o.rough, map: o.map || (o.metal > 0.3 ? T.metal : null) })) : new THREE.MeshLambertMaterial(base); }
+  function place(parent, mesh, x, y, z, o) { mesh.position.set(x, y, z); mesh.castShadow = !(o && o.noShadow); mesh.receiveShadow = true; parent.add(mesh); return mesh; }
+  function box(parent, w, h, d, x, y, z, color, o) { return place(parent, new THREE.Mesh(geo(w, h, d), mat(color, o)), x, y, z, o); }
+  function sph(parent, r, x, y, z, color, o) { const k = 's' + r; const g = geoCache[k] || (geoCache[k] = new THREE.IcosahedronGeometry(r, 1)); return place(parent, new THREE.Mesh(g, mat(color, o)), x, y, z, o); }
+  function rock(parent, r, x, y, z, color, o) { const k = 'r' + r; const g = geoCache[k] || (geoCache[k] = new THREE.IcosahedronGeometry(r, 0)); const m = place(parent, new THREE.Mesh(g, mat(color, o)), x, y, z, o); m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random()); m.scale.set(1 + Math.random() * 0.4, 0.6 + Math.random() * 0.5, 1 + Math.random() * 0.4); return m; }
+  function cyl(parent, rt, rb, h, x, y, z, color, o, segs) { const k = 'c' + rt + ',' + rb + ',' + h + ',' + (segs || 8); const g = geoCache[k] || (geoCache[k] = new THREE.CylinderGeometry(rt, rb, h, segs || 8)); return place(parent, new THREE.Mesh(g, mat(color, o)), x, y, z, o); }
+  function cone(parent, r, h, x, y, z, color, o, segs) { return cyl(parent, 0.001, r, h, x, y, z, color, o, segs || 8); }
+  function glow(parent, x, y, z, color, size, opacity) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color, transparent: true, opacity: opacity == null ? 0.8 : opacity, blending: THREE.AdditiveBlending, depthWrite: false })); s.position.set(x, y, z); s.scale.set(size, size, 1); parent.add(s); return s; }
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  function hash(x, z) { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }
+  const wpos = (obj) => { const v = new THREE.Vector3(); obj.getWorldPosition(v); return v; };
+
+  /* ---------- sea: one big plane with rolling waves ---------- */
+  const seaGeo = new THREE.PlaneGeometry(420, 420, 90, 90); seaGeo.rotateX(-Math.PI / 2);
+  const seaBase = seaGeo.attributes.position.array.slice();
+  const seaMat = new THREE.MeshStandardMaterial({ color: 0x1b6fa8, roughness: 0.35, metalness: 0.15, transparent: true, opacity: 0.94 });
+  const sea = new THREE.Mesh(seaGeo, seaMat); sea.receiveShadow = true; sea.position.y = SEA_Y; scene.add(sea);
+  function waveAt(x, z, t) { return Math.sin(x * 0.25 + t * 1.3) * 0.28 + Math.cos(z * 0.2 + t * 0.9) * 0.24 + Math.sin((x + z) * 0.12 + t * 0.6) * 0.18; }
+  function stepSea(t) {
+    const p = seaGeo.attributes.position.array;
+    for (let i = 0; i < p.length; i += 3) { p[i + 1] = seaBase[i + 1] + waveAt(seaBase[i], seaBase[i + 2], t); }
+    seaGeo.attributes.position.needsUpdate = true; seaGeo.computeVertexNormals();
+  }
+  function floatOn(obj, t, amp, ph) { const x = obj.position.x, z = obj.position.z; obj.position.y = (obj.userData.baseY || 0) + waveAt(x, z, t) * (amp == null ? 0.7 : amp); obj.rotation.z = (obj.userData.baseRZ || 0) + Math.sin(t * 0.9 + (ph || 0)) * 0.025; obj.rotation.x = (obj.userData.baseRX || 0) + Math.cos(t * 0.7 + (ph || 0)) * 0.015; }
+
+  /* ---------- particles (cubes) and puffs (sprites) ---------- */
+  const PMAT = {}; const pool = []; const pGeo = geo(0.22, 0.22, 0.22);
+  for (let i = 0; i < 500; i++) { const m = new THREE.Mesh(pGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })); m.visible = false; scene.add(m); pool.push({ m, life: 0, max: 1, v: new THREE.Vector3(), g: 0, size: 1 }); }
+  function emit(pos, vel, spread, life, cols, gravity, count, size) {
+    for (let n = 0; n < count; n++) {
+      const p = pool.find(q => q.life <= 0); if (!p) return;
+      const h = cols[Math.floor(Math.random() * cols.length)]; p.m.material = PMAT[h] || (PMAT[h] = new THREE.MeshBasicMaterial({ color: parseInt(h, 16) }));
+      p.m.position.set(pos.x + (Math.random() - .5) * 0.4, pos.y + (Math.random() - .5) * 0.4, pos.z + (Math.random() - .5) * 0.4);
+      p.v.set(vel.x + (Math.random() - .5) * spread, vel.y + (Math.random() - .5) * spread, vel.z + (Math.random() - .5) * spread);
+      p.life = p.max = life * (0.7 + Math.random() * 0.6); p.g = gravity; p.size = size || 1; p.m.visible = true; p.m.scale.setScalar(p.size);
+    }
+  }
+  const puffs = [];
+  for (let i = 0; i < 140; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.puff, color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false })); s.visible = false; scene.add(s); puffs.push({ s, life: 0, max: 1, v: new THREE.Vector3(), grow: 1 }); }
+  function puff(pos, vel, spread, life, color, size, count, grow) {
+    for (let n = 0; n < (count || 1); n++) {
+      const p = puffs.find(q => q.life <= 0); if (!p) return;
+      p.s.material.color.setHex(color); p.s.position.set(pos.x + (Math.random() - .5) * 0.4, pos.y + (Math.random() - .5) * 0.4, pos.z + (Math.random() - .5) * 0.4);
+      p.v.set(vel.x + (Math.random() - .5) * spread, vel.y + (Math.random() - .5) * spread, vel.z + (Math.random() - .5) * spread);
+      p.life = p.max = life * (0.7 + Math.random() * 0.6); p.size = size; p.grow = grow || 1.6; p.s.visible = true; p.s.scale.set(size, size, 1); p.s.material.opacity = 0.75;
+    }
+  }
+  function stepParticles(dt) {
+    for (const p of pool) { if (p.life <= 0) continue; p.life -= dt; if (p.life <= 0) { p.m.visible = false; continue; } p.v.y -= p.g * dt; p.m.position.addScaledVector(p.v, dt); if (p.m.position.y < SEA_Y + 0.1 && p.g > 0) { p.m.position.y = SEA_Y + 0.1; p.v.y *= -0.2; p.v.x *= 0.6; p.v.z *= 0.6; } const k = p.life / p.max; p.m.scale.setScalar(p.size * (0.3 + 0.7 * k)); }
+    for (const p of puffs) { if (p.life <= 0) continue; p.life -= dt; if (p.life <= 0) { p.s.visible = false; continue; } p.s.position.addScaledVector(p.v, dt); p.v.multiplyScalar(1 - dt * 0.8); const k = 1 - p.life / p.max; const sc = p.size * (1 + k * p.grow); p.s.scale.set(sc, sc, 1); p.s.material.opacity = 0.75 * (1 - k) * (1 - k); }
+  }
+  // stock effects
+  const smoke = (at, n, big) => puff(at, new THREE.Vector3(0, 1.4, 0), 0.8, big ? 2.2 : 1.4, pick([0x3a3a3a, 0x555555, 0x6e6e6e]), big ? 1.6 : 0.9, n || 1, big ? 2.4 : 1.6);
+  const fireball = (at) => { puff(at, new THREE.Vector3(0, 1.2, 0), 2.2, 0.35, 0xffd24a, 1.4, 5, 1.8); puff(at, new THREE.Vector3(0, 1.6, 0), 2.6, 0.6, 0xff7a1a, 1.6, 6, 1.6); puff(at, new THREE.Vector3(0, 2.2, 0), 2.0, 1.8, 0x333333, 1.6, 8, 2.6); emit(at, new THREE.Vector3(0, 4, 0), 7, 0.8, ['ffd24a', 'ff7a1a', 'ffffff'], 6, 16, 0.5); };
+  const splinters = (at) => emit(at, new THREE.Vector3(0, 4, 0), 6, 1.1, ['6b4423', '3a2412', 'a67c52'], 9, 18, 0.7);
+  const splash = (at) => { emit(new THREE.Vector3(at.x, SEA_Y + 0.1, at.z), new THREE.Vector3(0, 5, 0), 3.5, 0.9, ['cfefff', 'ffffff', '8fd0f5'], 9, 22, 0.6); puff(new THREE.Vector3(at.x, SEA_Y + 0.6, at.z), new THREE.Vector3(0, 1.5, 0), 1.2, 0.7, 0xeaf7ff, 1.4, 3, 1.4); };
+  const blood = (at) => emit(at, new THREE.Vector3(0, 2, 0), 2.6, 0.7, ['b3161c', '8a0f14'], 8, 7, 0.35);
+  const flash = (at, color) => { const g = glow(scene, at.x, at.y, at.z, color || 0xffd24a, 4.5, 0.9); tween(0.28, k => { g.scale.setScalar(4.5 * (1 + k * 1.5)); g.material.opacity = 0.9 * (1 - k); }, linear, () => { scene.remove(g); g.material.dispose(); }); };
+
+  /* ---------- tweens ---------- */
+  const tweens = [];
+  const easeOut = t => 1 - Math.pow(1 - t, 3), easeIn = t => t * t * t, easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, linear = t => t;
+  function tween(dur, fn, ease, done) { const w = { t: 0, dur, fn, ease: ease || easeOut, done }; tweens.push(w); return w; }
+  function wait(dur, done) { return tween(dur, () => {}, linear, done); }
+  function seq(steps, done) { let i = 0; const next = () => { if (i >= steps.length) { if (done) done(); return; } const s = steps[i++]; if (typeof s === 'function') { s(); next(); } else tween(s[0], s[1], s[2], next); }; next(); }
+  function stepTweens(dt) { for (let i = tweens.length - 1; i >= 0; i--) { const w = tweens[i]; if (!w) continue; w.t += dt; const k = Math.min(1, w.t / w.dur); w.fn(w.ease(k)); if (k >= 1) { tweens.splice(i, 1); if (w.done) w.done(); } } }
+  function clearTweens() { tweens.length = 0; }
+  let onSplash = null;
+  let shake = 0; function shakeCam(a) { shake = Math.max(shake, a); }
+
+  /* ---------- audio: effects + a sea-shanty chiptune ---------- */
+  let AC = null, musicBus = null, fxBus = null, muted = false;
+  try { muted = localStorage.getItem('cmp_muted') === '1'; } catch (e) {}
+  function audioOn() { try { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); fxBus = AC.createGain(); fxBus.gain.value = 0.9; fxBus.connect(AC.destination); const lp = AC.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3200; musicBus = AC.createGain(); musicBus.gain.value = 0.22; musicBus.connect(lp); lp.connect(AC.destination); } if (AC.state === 'suspended') AC.resume(); } catch (e) {} }
+  function toneRaw(f, dur, type, gain, slide, bus) { if (!AC || muted) return; const o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'square'; o.frequency.setValueAtTime(f, AC.currentTime); if (slide) o.frequency.exponentialRampToValueAtTime(slide, AC.currentTime + dur); g.gain.setValueAtTime(gain || 0.08, AC.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + dur); o.connect(g); g.connect(bus || fxBus); o.start(); o.stop(AC.currentTime + dur + 0.02); }
+  function noiseRaw(dur, freq, gain) { if (!AC || muted) return; const n = Math.floor(AC.sampleRate * dur), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; const s = AC.createBufferSource(); s.buffer = b; const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq; const g = AC.createGain(); g.gain.setValueAtTime(gain || 0.08, AC.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + dur); s.connect(f); f.connect(g); g.connect(fxBus); s.start(); }
+  const tone = toneRaw, noise = noiseRaw;
+  const SFX = {
+    cannon: () => { noise(0.5, 500, 0.3); tone(80, 0.5, 'square', 0.16, 30); setTimeout(() => noise(0.9, 250, 0.12), 80); },
+    boom: () => { noise(0.8, 400, 0.3); tone(60, 0.7, 'sawtooth', 0.14, 25); },
+    crack: () => { noise(0.15, 5000, 0.16); tone(900, 0.2, 'square', 0.05, 200); },
+    splash: () => { noise(0.5, 1800, 0.14); tone(300, 0.3, 'sine', 0.05, 90); },
+    hurt: () => { tone(160, 0.35, 'sawtooth', 0.09, 60); noise(0.3, 600, 0.12); },
+    right: () => { tone(880, 0.12, 'square', 0.06); setTimeout(() => tone(1320, 0.18, 'square', 0.06), 70); },
+    wrong: () => { tone(220, 0.3, 'sawtooth', 0.07, 120); },
+    coin: (n) => { const base = 1200 + (n || 0) * 60; tone(base, 0.09, 'square', 0.05); setTimeout(() => tone(base * 1.5, 0.16, 'square', 0.05), 60); },
+    win: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => tone(f, 0.28, 'square', 0.07), i * 120)); },
+    tick: () => tone(1000, 0.06, 'square', 0.04),
+    yell: () => { tone(300, 0.2, 'sawtooth', 0.06, 420); setTimeout(() => tone(260, 0.25, 'sawtooth', 0.05, 180), 150); },
+    cheer: () => { for (let i = 0; i < 5; i++) setTimeout(() => tone(500 + Math.random() * 400, 0.12, 'square', 0.04, 700), i * 70); },
+    hammer: () => { noise(0.05, 4000, 0.1); tone(1400, 0.08, 'square', 0.04, 600); },
+    rumble: () => { tone(45, 1.6, 'sawtooth', 0.14, 30); noise(1.4, 200, 0.14); },
+    erupt: () => { noise(1.2, 300, 0.35); tone(50, 1.2, 'square', 0.16, 20); setTimeout(() => noise(2, 500, 0.15), 300); },
+    bell: () => { [1568, 1568, 1568].forEach((f, i) => setTimeout(() => tone(f, 0.5, 'triangle', 0.08), i * 350)); },
+    whoosh: () => { noise(0.35, 2400, 0.1); tone(240, 0.3, 'sawtooth', 0.04, 90); },
+    creak: () => { tone(120, 0.6, 'sawtooth', 0.05, 80); },
+    sink: () => { noise(1.6, 900, 0.14); tone(200, 1.8, 'sine', 0.07, 40); },
+    plank: () => { tone(500, 0.1, 'square', 0.05, 350); },
+    gun: () => { noise(0.12, 3000, 0.2); tone(200, 0.15, 'square', 0.08, 60); }
+  };
+  const NOTE_IDX = { C: 0, 'C#': 1, Db: 1, D: 2, 'D#': 3, Eb: 3, E: 4, F: 5, 'F#': 6, Gb: 6, G: 7, 'G#': 8, Ab: 8, A: 9, 'A#': 10, Bb: 10, B: 11 };
+  const freq = (n) => { const m = n.match(/^([A-G][#b]?)(\d)$/); if (!m) return 0; const midi = 12 * (+m[2] + 1) + NOTE_IDX[m[1]]; return 440 * Math.pow(2, (midi - 69) / 12); };
+  // shanty in D minor, 6/8 feel, the lead holds notes
+  const SONGS = {
+    sea: { bpm: 168, lead: 'square', chords: [['D3', 'F3', 'A3'], ['D3', 'F3', 'A3'], ['C3', 'E3', 'G3'], ['D3', 'F3', 'A3'], ['Bb2', 'D3', 'F3'], ['F3', 'A3', 'C4'], ['C3', 'E3', 'G3'], ['D3', 'F3', 'A3']], bass: ['D2', 'D2', 'C2', 'D2', 'Bb1', 'F2', 'C2', 'D2'],
+      lead: ['D4', 'F4', 'A4', 'A4', 'G4', 'F4', 'E4', 'D4', 'F4', 'A4', 'D5', 'D5', 'C5', 'A4', 'G4', 'A4', 'Bb4', 'A4', 'G4', 'F4', 'A4', 'A4', 'G4', 'F4', 'E4', 'E4', 'F4', 'G4', 'D4', 'D4', '-', '-'] },
+    island: { bpm: 112, lead: 'triangle', chords: [['G3', 'B3', 'D4'], ['C4', 'E4', 'G4'], ['G3', 'B3', 'D4'], ['D3', 'F#3', 'A3'], ['E3', 'G3', 'B3'], ['C4', 'E4', 'G4'], ['G3', 'B3', 'D4'], ['D3', 'F#3', 'A3']], bass: ['G2', 'C2', 'G2', 'D2', 'E2', 'C2', 'G2', 'D2'],
+      lead: ['B4', '-', 'D5', '-', 'G4', '-', '-', '-', 'A4', 'B4', 'A4', '-', 'G4', '-', '-', '-', 'E4', '-', 'G4', 'B4', 'E5', '-', '-', '-', 'D5', '-', 'B4', 'A4', 'G4', '-', '-', '-'] },
+    deep: { bpm: 84, lead: 'triangle', chords: [['E3', 'G3', 'B3'], ['E3', 'G3', 'B3'], ['C3', 'E3', 'G3'], ['D3', 'F#3', 'A3'], ['E3', 'G3', 'B3'], ['A2', 'C3', 'E3'], ['B2', 'D#3', 'F#3'], ['E3', 'G3', 'B3']], bass: ['E2', 'E2', 'C2', 'D2', 'E2', 'A1', 'B1', 'E2'],
+      lead: ['E4', '-', '-', 'G4', 'F#4', '-', 'E4', '-', 'B3', '-', '-', '-', 'D4', '-', 'C4', 'B3', 'E4', '-', '-', 'G4', 'A4', '-', 'B4', '-', 'G4', '-', 'F#4', '-', 'E4', '-', '-', '-'] },
+    british: { bpm: 132, lead: 'square', chords: [['C3', 'E3', 'G3'], ['C3', 'E3', 'G3'], ['G3', 'B3', 'D4'], ['C3', 'E3', 'G3'], ['F3', 'A3', 'C4'], ['C3', 'E3', 'G3'], ['G3', 'B3', 'D4'], ['C3', 'E3', 'G3']], bass: ['C2', 'C2', 'G2', 'C2', 'F2', 'C2', 'G2', 'C2'],
+      lead: ['G4', 'G4', 'C5', '-', 'E5', '-', 'D5', 'C5', 'B4', '-', 'D5', '-', 'G4', '-', '-', '-', 'A4', 'A4', 'F5', '-', 'E5', '-', 'D5', 'C5', 'D5', 'B4', 'G4', '-', 'C5', '-', '-', '-'] }
+  };
+  let songTimer = null, songName = null;
+  function playSong(name) {
+    if (songName === name && songTimer) return; stopSong(); songName = name; const S = SONGS[name]; if (!S) return;
+    const beat = 60 / S.bpm; let step = 0;
+    songTimer = setInterval(() => {
+      if (!AC || muted) { step++; return; }
+      const bar = Math.floor(step / 4) % S.chords.length, sub = step % 4;
+      if (sub === 0 || sub === 2) S.chords[bar].forEach(n => toneRaw(freq(n), beat * 0.9, 'triangle', 0.045, 0, musicBus));
+      if (sub === 0) toneRaw(freq(S.bass[bar]), beat * 1.6, 'square', 0.07, 0, musicBus);
+      if (sub === 2) toneRaw(freq(S.bass[bar]) * 1.5, beat * 0.6, 'square', 0.04, 0, musicBus);
+      const ln = S.lead[step % S.lead.length]; if (ln && ln !== '-') { let len = 1; while (S.lead[(step + len) % S.lead.length] === '-' && len < 6) len++; toneRaw(freq(ln), beat * len * 0.95, S.lead === 'triangle' ? 'triangle' : 'square', 0.06, 0, musicBus); }
+      if (sub === 0) noiseRaw(0.05, 300, 0.06); if (sub === 2) noiseRaw(0.04, 2500, 0.03);
+      step++;
+    }, beat * 1000);
+  }
+  function stopSong() { if (songTimer) clearInterval(songTimer); songTimer = null; songName = null; }
+  function setMuted(m) { muted = m; try { localStorage.setItem('cmp_muted', m ? '1' : '0'); } catch (e) {} $('#mute').textContent = m ? '🔇' : '🔊'; }
+
+  /* ---------- questions ---------- */
+  const OPS = { add: ['+'], sub: ['-'], addsub: ['+', '-'], mul: ['×'], div: ['÷'], muldiv: ['×', '÷'] };
+  function makeQ(mode, level, missed) {
+    if (missed.length && makeQ.since >= 2) { makeQ.since = 0; const q = missed.shift(); q.repeat = true; return q; }
+    makeQ.since = (makeQ.since || 0) + 1;
+    const op = pick(OPS[mode] || OPS.add); const L = Math.max(1, level || 1);
+    let a, b, ans;
+    if (op === '+') { const top = L <= 1 ? 10 : L === 2 ? 15 : L === 3 ? 20 : 50; a = 1 + Math.floor(Math.random() * top); b = 1 + Math.floor(Math.random() * (top - Math.min(a, top - 1))); ans = a + b; }
+    else if (op === '-') { const top = L <= 1 ? 10 : L === 2 ? 15 : L === 3 ? 20 : 50; a = 2 + Math.floor(Math.random() * (top - 1)); b = 1 + Math.floor(Math.random() * (a - 1)); ans = a - b; }
+    else if (op === '×') { const top = L <= 2 ? 5 : L === 3 ? 9 : 12; a = 2 + Math.floor(Math.random() * (top - 1)); b = 2 + Math.floor(Math.random() * (top - 1)); ans = a * b; }
+    else { const top = L <= 2 ? 5 : L === 3 ? 9 : 12; b = 2 + Math.floor(Math.random() * (top - 1)); ans = 2 + Math.floor(Math.random() * (top - 1)); a = b * ans; }
+    // half the time ask for the missing middle number, like "6 + _ = 12" (only for + and - and ×)
+    const missing = (op === '+' || op === '-' || op === '×') && Math.random() < 0.45 && L >= 1;
+    if (missing) return { a, b, op, ans: b, res: ans, form: 'mid', key: `${a}${op}${b}`, text: `${a} ${op} <span class="blank">?</span> = ${ans}`, why: op === '+' ? `${ans} take away ${a} is ${b}. So ${a} + ${b} = ${ans}.` : op === '-' ? `${a} take away ${ans} is ${b}. So ${a} - ${b} = ${ans}.` : `${ans} split into ${a} groups is ${b}. So ${a} × ${b} = ${ans}.` };
+    return { a, b, op, ans, form: 'end', key: `${a}${op}${b}`, text: `${a} ${op} ${b} = <span class="blank">?</span>`, why: op === '+' ? `${a} + ${b} = ${ans}. Count up ${b} from ${a}.` : op === '-' ? `${a} - ${b} = ${ans}. Count back ${b} from ${a}.` : op === '×' ? `${a} × ${b} = ${ans}. That's ${b} groups of ${a}.` : `${a} ÷ ${b} = ${ans}. ${b} × ${ans} = ${a}.` };
+  }
+  function choices(q) {
+    const s = new Set([q.ans]); const base = q.ans;
+    const pool = [base + 1, base - 1, base + 2, base - 2, base + 3, base - 3, base + 10, base - 10, base + 4, base - 4, q.a + q.b, Math.abs(q.a - q.b), base * 2, q.a, q.b].filter(v => Number.isFinite(v) && v >= 0 && v !== base && (q.op !== '×' || v > 1));
+    pool.sort(() => Math.random() - 0.5);
+    for (const v of pool) { if (s.size >= 3) break; s.add(v); }
+    let k = 5; while (s.size < 3) s.add(base + k++);
+    return [...s].sort(() => Math.random() - 0.5);
+  }
+
+  /* ---------- save data ---------- */
+  const SAVE_KEY = 'cmp_saves_v1';
+  function loadSaves() { try { return JSON.parse(localStorage.getItem(SAVE_KEY) || '{}'); } catch (e) { return {}; } }
+  function storeSaves(o) { try { localStorage.setItem(SAVE_KEY, JSON.stringify(o)); } catch (e) {} }
+  function newProfile(name, mode) { return { name, mode, gold: 40, wood: 20, crew: 6, level: 1, wins: 0, sunk: 0, buildings: ['house', 'market', 'dock'], pending: null, missCount: {}, raids: { 0: 0, 1: 0, 2: 0 }, defended: 0, lastBritish: 0 }; }
+
+  /* ---------- game state ---------- */
+  const G = { P: null, world: 'title', state: 'idle', q: null, missed: [], timerMax: 15, timeLeft: 15, ourLives: 5, enemyLives: 5, enemy: null, raidIdx: -1, t: 0, islandTime: 0, camYaw: -0.7, camDist: 30, camH: 16, hasBuiltThisVisit: false };
+  const CAM = { pos: new THREE.Vector3(0, 8, 16), look: new THREE.Vector3(0, 2, -10), cur: new THREE.Vector3(0, 8, 16), curLook: new THREE.Vector3(0, 2, -10), snap: true };
+  window.__G = G;
+
+  /* ---------- pirates: a small blocky rig with a hat, a sword and a pistol ---------- */
+  const SKINS = [0xf1c27d, 0xe0ac69, 0xc68642, 0x8d5524, 0xffdbac];
+  const SHIRTS = [0xffffff, 0xd62828, 0x1d4ed8, 0x2a9d4a, 0xf5b301, 0x7c3aed];
+  function pirate(o) {
+    o = o || {}; const g = new THREE.Group(); const R = { g, t: Math.random() * 10, alive: true, o };
+    const skin = o.skin || pick(SKINS), brit = !!o.british, cap = !!o.captain;
+    const coat = brit ? 0xc1121f : cap ? 0x1a1a2e : pick(SHIRTS), pants = brit ? 0xf2f2f2 : pick([0x2b2b2b, 0x3a2412, 0x1d3557]);
+    R.body = new THREE.Group(); g.add(R.body);
+    R.legL = new THREE.Group(); R.legL.position.set(0, 0.55, 0.13); R.body.add(R.legL); box(R.legL, 0.22, 0.55, 0.22, 0, -0.28, 0, pants);
+    R.legR = new THREE.Group(); R.legR.position.set(0, 0.55, -0.13); R.body.add(R.legR); box(R.legR, 0.22, 0.55, 0.22, 0, -0.28, 0, pants);
+    if (!brit && !cap && Math.random() < 0.25) { R.legR.children[0].scale.y = 0.55; R.legR.children[0].position.y = -0.15; cyl(R.legR, 0.05, 0.06, 0.28, 0, -0.42, 0, 0x8a6a3a); } // peg leg
+    const torso = new THREE.Group(); torso.position.y = 0.55; R.body.add(torso); R.torso = torso;
+    box(torso, 0.34, 0.55, 0.5, 0, 0.28, 0, coat);
+    if (!brit && !cap) { for (let i = 0; i < 3; i++) box(torso, 0.35, 0.07, 0.51, 0, 0.1 + i * 0.16, 0, 0x1a1a1a); } // striped shirt
+    if (brit) { const s = box(torso, 0.36, 0.5, 0.1, 0, 0.3, 0, 0xffffff); s.rotation.x = 0.5; box(torso, 0.36, 0.08, 0.52, 0, 0.05, 0, 0x1a1a1a); box(torso, 0.37, 0.06, 0.53, 0, 0.55, 0, 0xf5b301); }
+    if (cap) { box(torso, 0.37, 0.09, 0.52, 0, 0.06, 0, 0xf5b301); box(torso, 0.36, 0.5, 0.12, 0, 0.3, 0, 0xd62828); }
+    box(torso, 0.35, 0.08, 0.5, 0, 0.02, 0, 0x2b1a0c);
+    R.head = new THREE.Group(); R.head.position.y = 0.6; torso.add(R.head);
+    box(R.head, 0.4, 0.4, 0.4, 0, 0.2, 0, skin);
+    box(R.head, 0.05, 0.06, 0.06, 0.2, 0.24, 0.09, 0x1a120b); box(R.head, 0.05, 0.06, 0.06, 0.2, 0.24, -0.09, 0x1a120b);
+    if (!brit && Math.random() < 0.4) { box(R.head, 0.06, 0.1, 0.12, 0.2, 0.24, 0.09, 0x111111); box(R.head, 0.42, 0.04, 0.42, 0, 0.3, 0, 0x111111); } // eyepatch + strap
+    if (Math.random() < 0.5 || cap) box(R.head, 0.12, 0.16, 0.34, 0.2, 0.06, 0, cap ? 0x2b1a0c : pick([0x2b1a0c, 0x8a5a2b, 0xd9d9d9, 0x1a1a1a])); // beard
+    // hat
+    if (brit || cap) { box(R.head, 0.5, 0.1, 0.62, 0, 0.44, 0, 0x111111); box(R.head, 0.36, 0.22, 0.46, 0, 0.55, 0, 0x111111); if (cap) box(R.head, 0.08, 0.1, 0.1, 0.19, 0.55, 0, 0xffffff); if (brit) box(R.head, 0.52, 0.03, 0.64, 0, 0.5, 0, 0xf5b301); }
+    else if (Math.random() < 0.5) { box(R.head, 0.42, 0.1, 0.42, 0, 0.42, 0, pick([0xd62828, 0x1d4ed8, 0x111111])); box(R.head, 0.06, 0.18, 0.1, -0.2, 0.36, 0.14, 0xd62828); }
+    else { box(R.head, 0.42, 0.06, 0.6, 0, 0.42, 0, 0x2b1a0c); box(R.head, 0.32, 0.14, 0.34, 0, 0.5, 0, 0x2b1a0c); }
+    // arms hang from the shoulders
+    R.armL = new THREE.Group(); R.armL.position.set(0, 0.5, 0.31); torso.add(R.armL); box(R.armL, 0.2, 0.5, 0.2, 0, -0.22, 0, coat); box(R.armL, 0.18, 0.12, 0.18, 0, -0.5, 0, skin);
+    R.armR = new THREE.Group(); R.armR.position.set(0, 0.5, -0.31); torso.add(R.armR); box(R.armR, 0.2, 0.5, 0.2, 0, -0.22, 0, coat); box(R.armR, 0.18, 0.12, 0.18, 0, -0.5, 0, skin);
+    // weapons: right hand sword (or musket for the British), left hand pistol for captains and guards
+    if (brit) { const m = box(R.armR, 0.07, 0.07, 1.1, 0.12, -0.5, 0.2, 0x3a2412); box(R.armR, 0.05, 0.05, 0.6, 0.12, -0.48, 0.5, 0x888888); m.rotation.x = 0; R.weapon = m; }
+    else { const sw = new THREE.Group(); sw.position.set(0.1, -0.55, 0); R.armR.add(sw); box(sw, 0.05, 0.9, 0.1, 0.45, 0, 0, 0xd4dbe6, { metal: 0.8, rough: 0.3 }); box(sw, 0.06, 0.06, 0.24, 0.05, 0, 0, 0xf5b301); box(sw, 0.06, 0.16, 0.08, -0.1, 0, 0, 0x2b1a0c); sw.rotation.z = -Math.PI / 2; R.weapon = sw; if (cap || Math.random() < 0.4) { box(R.armL, 0.28, 0.06, 0.06, 0.16, -0.5, 0, 0x555555, { metal: 0.6 }); box(R.armL, 0.08, 0.14, 0.06, 0.02, -0.56, 0, 0x5b3a1a); R.pistol = true; } }
+    if (cap && !brit) { R.pipe = box(R.head, 0.24, 0.04, 0.04, 0.3, 0.12, 0.08, 0x3a2412); box(R.head, 0.06, 0.06, 0.06, 0.42, 0.14, 0.08, 0x3a2412); }
+    if (cap) g.scale.setScalar(1.12);
+    R.armLBase = 0.15; R.armRBase = -0.15; R.armL.rotation.x = R.armLBase; R.armR.rotation.x = R.armRBase;
+    return R;
+  }
+  function idlePirate(R, t, dt) {
+    if (!R.alive) return;
+    const k = t * 2.2 + R.t;
+    R.body.position.y = Math.sin(k) * 0.03;
+    if (R.mode === 'cheer') { R.armL.rotation.x = -2.6 + Math.sin(k * 3) * 0.3; R.armR.rotation.x = -2.6 - Math.sin(k * 3) * 0.3; }
+    else if (R.mode === 'hammer') { R.armR.rotation.x = -1.4 + Math.sin(k * 4) * 0.9; R.armL.rotation.x = 0.3; if (Math.sin(k * 4) > 0.97 && !R.hammered) { R.hammered = true; if (G.world === 'island') SFX.hammer(); const p = wpos(R.armR); p.y -= 0.4; emit(p, new THREE.Vector3(0, 2, 0), 2, 0.4, ['ffe08a', 'ffffff'], 6, 4, 0.3); } if (Math.sin(k * 4) < 0) R.hammered = false; }
+    else if (R.mode === 'sit') { R.legL.rotation.x = -1.5; R.legR.rotation.x = -1.5; R.armL.rotation.x = -0.9; R.armR.rotation.x = -0.9; }
+    else if (R.mode === 'aim') { R.armL.rotation.x = -1.5; R.armR.rotation.x = -1.2; }
+    else { R.armL.rotation.x = R.armLBase + Math.sin(k) * 0.08; R.armR.rotation.x = R.armRBase - Math.sin(k) * 0.08; }
+    if (R.walk) { R.ph = (R.ph || 0) + dt * 7; R.legL.rotation.x = Math.sin(R.ph) * 0.6; R.legR.rotation.x = -Math.sin(R.ph) * 0.6; R.body.position.y = Math.abs(Math.cos(R.ph)) * 0.06; }
+    if (R.pipe && Math.random() < dt * 1.5) { const p = wpos(R.pipe); p.x += 0.15 * (R.g.parent ? 1 : 1); p.y += 0.1; smoke(p, 1, false); }
+  }
+  // a pirate goes over the side: tips, falls, splashes
+  function killPirate(R, dir, done) {
+    if (!R.alive) { if (done) done(); return; } R.alive = false; R.mode = null;
+    const start = R.g.position.clone(); const wp = wpos(R.g); blood(new THREE.Vector3(wp.x, wp.y + 1.2, wp.z)); SFX.yell();
+    seq([[0.35, k => { R.g.rotation.z = dir * k * 1.2; R.armL.rotation.x = -2 * k; R.armR.rotation.x = -2 * k; }], [0.7, k => { R.g.position.set(start.x + dir * k * 2.2, start.y + 1.5 * k - 4.5 * k * k, start.z); R.g.rotation.z = dir * (1.2 + k * 2); }, linear], () => { const w = wpos(R.g); splash(new THREE.Vector3(w.x, SEA_Y, w.z)); SFX.splash(); R.g.visible = false; if (onSplash && (G.world === 'battle' || G.world === 'defend')) onSplash(new THREE.Vector3(w.x, SEA_Y, w.z)); if (done) done(); }]);
+  }
+
+  /* ---------- a cannon on wheels ---------- */
+  function cannon(parent, x, y, z, yaw, scale) {
+    const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = yaw; g.scale.setScalar(scale || 1); parent.add(g);
+    box(g, 0.7, 0.3, 0.9, 0, 0.3, 0, 0x5b3a1a); [[-0.4, 0.3], [0.4, 0.3], [-0.4, -0.3], [0.4, -0.3]].forEach(([wx, wz]) => { const w = cyl(g, 0.22, 0.22, 0.1, wx, 0.22, wz, 0x3a2412, null, 8); w.rotation.z = Math.PI / 2; });
+    const barrel = new THREE.Group(); barrel.position.set(0, 0.6, 0); g.add(barrel);
+    const b = cyl(barrel, 0.22, 0.3, 1.7, 0, 0, -0.3, 0x2a2a2e, { metal: 0.7, rough: 0.35 }, 10); b.rotation.x = Math.PI / 2;
+    cyl(barrel, 0.27, 0.27, 0.16, 0, 0, -1.0, 0x1a1a1e, { metal: 0.7 }, 10).rotation.x = Math.PI / 2;
+    sph(barrel, 0.22, 0, 0, 0.6, 0x2a2a2e, { metal: 0.7 });
+    return { g, barrel, muzzle: () => { const v = new THREE.Vector3(0, 0, -1.25); barrel.localToWorld(v); return v; } };
+  }
+
+  /* ---------- a ship: hull, deck, masts, sails, crow's nest, gun ports, crew ---------- */
+  const FLAGS = {
+    pirate: (g, x, y, z) => { box(g, 0.05, 1.1, 1.8, x, y, z, 0x111111); box(g, 0.07, 0.34, 0.3, x, y + 0.18, z, 0xffffff); box(g, 0.08, 0.08, 0.7, x, y - 0.18, z, 0xffffff).rotation.x = 0.7; box(g, 0.08, 0.08, 0.7, x, y - 0.18, z, 0xffffff).rotation.x = -0.7; },
+    british: (g, x, y, z) => { box(g, 0.05, 1.1, 1.8, x, y, z, 0x1c2f6b); box(g, 0.07, 0.24, 1.8, x, y, z, 0xffffff); box(g, 0.07, 1.1, 0.34, x, y, z, 0xffffff); box(g, 0.08, 0.14, 1.8, x, y, z, 0xc1121f); box(g, 0.08, 1.1, 0.2, x, y, z, 0xc1121f); },
+    red: (g, x, y, z) => { box(g, 0.05, 1.1, 1.8, x, y, z, 0xb3161c); box(g, 0.07, 0.3, 0.3, x, y + 0.15, z, 0xffffff); box(g, 0.07, 0.5, 0.1, x, y - 0.2, z, 0xffffff); }
+  };
+  function buildShip(o) {
+    o = o || {}; const g = new THREE.Group(); const S = { g, o, crew: [], cannons: [], ports: [], holes: [], fires: [], alive: true, sails: [] };
+    const L = o.len || 14, W = o.wid || 4.4, HULL = o.hull || 0x5b3a1a, HULL_D = o.hullDark || 0x3a2412, TRIM = o.trim || 0xf5b301, SAIL = o.sail || 0xf3e7c9;
+    const deckY = 1.7;
+    // hull: a stack of boxes narrowing toward the keel, plus a pointed bow and a raised stern castle
+    box(g, W, 1.0, L * 0.86, 0, 0.5, 0, HULL_D); box(g, W * 1.02, 0.9, L * 0.92, 0, 1.25, 0, HULL); box(g, W * 0.7, 0.6, L * 0.8, 0, 0.0, 0, HULL_D);
+    box(g, W * 1.06, 0.14, L * 0.92, 0, 1.56, 0, TRIM); // gunwale stripe just under the deck
+    const bow = box(g, W * 0.7, 1.6, 3.2, 0, 1.1, -L / 2 + 0.2, HULL); bow.rotation.y = Math.PI / 4; bow.scale.z = 0.6;
+    box(g, 0.2, 0.2, 3.0, 0, 2.1, -L / 2 - 1.2, 0x8a6a3a).rotation.x = -0.15; // bowsprit
+    if (o.figurehead !== false) sph(g, 0.35, 0, 1.9, -L / 2 - 0.5, TRIM, { metal: 0.6 });
+    const deck = box(g, W * 0.94, 0.12, L * 0.84, 0, deckY, 0, 0xa67c52, { map: T.plank }); deck.material.map.repeat.set(4, 12);
+    // stern castle with windows
+    box(g, W * 0.96, 1.4, 3.4, 0, deckY + 0.7, L / 2 - 2.2, HULL); box(g, W * 0.98, 0.12, 3.5, 0, deckY + 1.45, L / 2 - 2.2, 0xa67c52);
+    box(g, W * 1.0, 0.1, 0.12, 0, deckY + 0.9, L / 2 - 0.4, TRIM); [-1, 0, 1].forEach(i => box(g, 0.5, 0.5, 0.1, i * 1.1, deckY + 0.7, L / 2 - 0.45, 0xffe08a, { emissive: 0xffa726, ei: 0.4 }));
+    // railing posts
+    for (let z = -L * 0.38; z <= L * 0.38; z += 1.4) { box(g, 0.12, 0.7, 0.12, W / 2 - 0.1, deckY + 0.35, z, HULL_D); box(g, 0.12, 0.7, 0.12, -W / 2 + 0.1, deckY + 0.35, z, HULL_D); }
+    box(g, 0.1, 0.1, L * 0.78, W / 2 - 0.1, deckY + 0.7, 0, 0x8a6a3a); box(g, 0.1, 0.1, L * 0.78, -W / 2 + 0.1, deckY + 0.7, 0, 0x8a6a3a);
+    // gun ports along the sides, with smoke pouring from them
+    const holes = o.holes == null ? 13 : o.holes; const per = Math.ceil(holes / 2);
+    for (let i = 0; i < holes; i++) { const side = i % 2 === 0 ? 1 : -1; const idx = Math.floor(i / 2); const z = -L * 0.36 + (idx / Math.max(1, per - 1)) * L * 0.72; const port = box(g, 0.25, 0.5, 0.6, side * (W / 2 + 0.05), 1.15, z, 0x111111); cyl(g, 0.16, 0.16, 0.5, side * (W / 2 + 0.2), 1.15, z, 0x222226, { metal: 0.7 }, 8).rotation.z = Math.PI / 2; S.ports.push({ m: port, side, z, smoke: !!o.portSmoke }); }
+    // masts, yards, sails
+    const masts = o.masts || [[-L * 0.22, 7.5], [L * 0.1, 9], [L * 0.36, 6.5]];
+    masts.forEach(([mz, mh], i) => {
+      cyl(g, 0.16, 0.22, mh, 0, deckY + mh / 2, mz, 0x6b4423, null, 8);
+      [0.45, 0.78].forEach((f, j) => { const yy = deckY + mh * f; const yw = (3.4 - j * 0.8) * (i === 1 ? 1.15 : 1); box(g, yw * 2, 0.12, 0.12, 0, yy, mz, 0x6b4423); if (o.furled) { box(g, yw * 1.9, 0.32, 0.36, 0, yy - 0.2, mz + 0.1, SAIL); } else { const sail = box(g, yw * 1.9, mh * 0.26, 0.08, 0, yy - mh * 0.15, mz + (o.enemy ? -0.14 : 0.14), SAIL, { map: null }); sail.userData.base = yy - mh * 0.15; S.sails.push(sail); } if (o.sailMark && j === 0 && i === 1) { box(g, 0.9, 0.9, 0.05, 0, yy - mh * 0.15, mz + 0.19, o.sailMark); } });
+      if (i === 1) { // crow's nest on the main mast, fire brazier optional
+        const ny = deckY + mh * 0.92; cyl(g, 0.7, 0.55, 0.5, 0, ny, mz, 0x3a2412, null, 8); cyl(g, 0.75, 0.75, 0.1, 0, ny + 0.28, mz, 0x8a6a3a, null, 8);
+        S.nest = new THREE.Vector3(0, ny + 0.3, mz);
+        if (o.nestFire) { const br = cyl(g, 0.25, 0.2, 0.3, 0, ny + 0.45, mz, 0x222226, { metal: 0.6 }, 8); const fl = cone(g, 0.32, 0.8, 0, ny + 0.95, mz, 0xffa726, { emissive: 0xff7a00, ei: 1.5, noShadow: true }); const gl = glow(g, 0, ny + 1.0, mz, 0xff8a2a, 3.5, 0.7); const l = new THREE.PointLight(0xff8a2a, 1.2, 12); l.position.set(0, ny + 1.2, mz); g.add(l); S.nestFire = { fl, gl, l, s: Math.random() * 9 }; }
+        else { const lk = pirate({}); lk.g.position.set(0, ny + 0.25, mz); lk.g.scale.setScalar(0.9); g.add(lk.g); lk.mode = 'aim'; S.lookout = lk; S.crew.push(lk); }
+        if (FLAGS[o.flag || 'pirate']) FLAGS[o.flag || 'pirate'](g, 0.1, deckY + mh + 0.6, mz + 0.9);
+      }
+    });
+    // deck cannons: for "ours" they sit at the bow and face -z; for enemies at the stern facing +z (toward the player)
+    const nC = o.cannons == null ? 3 : o.cannons; const cz = o.enemy ? L * 0.34 : -L * 0.3; const yaw = o.enemy ? Math.PI : 0;
+    for (let i = 0; i < nC; i++) { const x = (i - (nC - 1) / 2) * 1.35; S.cannons.push(cannon(g, x, deckY + 0.06, cz, yaw, 0.85)); }
+    // crew standing about the deck; the captain on the stern castle
+    const n = o.crew == null ? 12 : o.crew; const spots = [];
+    for (let i = 0; i < n; i++) { const side = i % 2 ? 1 : -1; const z = -L * 0.3 + (i / Math.max(1, n - 1)) * L * 0.5 + rnd(-0.3, 0.3); spots.push([side * (W / 2 - 1.15 - Math.random() * 0.5), z]); }
+    spots.forEach(([x, z]) => { const p = pirate({ british: !!o.british }); p.g.position.set(x, deckY + 0.06, z); p.g.rotation.y = o.broadside ? 0 : o.enemy ? -Math.PI / 2 : Math.PI / 2; g.add(p.g); S.crew.push(p); });
+    const capt = pirate({ captain: true, british: !!o.british }); capt.g.position.set(0, deckY + 1.5, L / 2 - 2.2); capt.g.rotation.y = o.broadside ? 0 : o.enemy ? -Math.PI / 2 : Math.PI / 2; g.add(capt.g); S.captain = capt; S.crew.push(capt);
+    // wheel
+    const wh = cyl(g, 0.45, 0.45, 0.08, 0, deckY + 2.1, L / 2 - 3.6, 0x6b4423, null, 8); wh.rotation.x = Math.PI / 2; S.wheel = wh;
+    // shadow-ish wake glow
+    S.deckY = deckY; S.L = L; S.W = W;
+    return S;
+  }
+  // the gunner stands next to the left cannon on our ship, ready to touch it off
+  function addGunner(S) { const gunner = pirate({}); const c = S.cannons[0].g.position; gunner.g.position.set(c.x + 0.15, S.deckY + 0.06, c.z + 1.3); gunner.g.rotation.y = Math.PI / 2; S.g.add(gunner.g); S.gunner = gunner; S.crew.push(gunner); }
+  function portGuns(S, side, n) { const ports = S.ports.filter(p => p.side === side).sort(() => Math.random() - 0.5).slice(0, n); return ports.map(p => ({ barrel: null, muzzle: () => S.g.localToWorld(new THREE.Vector3(side * (S.W / 2 + 0.5), 1.15, p.z)) })); }
+  function stepShip(S, t, dt) {
+    S.crew.forEach(p => idlePirate(p, t, dt));
+    S.sails.forEach((s, i) => { s.position.z = (s.userData.z0 == null ? (s.userData.z0 = s.position.z) : s.userData.z0) + Math.sin(t * 1.8 + i) * 0.06; s.scale.z = 1 + Math.sin(t * 1.8 + i) * 0.4; });
+    if (S.nestFire) { const f = 0.85 + Math.sin(t * 9 + S.nestFire.s) * 0.2 + Math.sin(t * 23 + S.nestFire.s) * 0.1; S.nestFire.l.intensity = 1.2 * f; S.nestFire.fl.scale.set(f, 0.8 + f * 0.3, f); S.nestFire.gl.material.opacity = 0.5 + f * 0.25; if (Math.random() < dt * 6) { const p = S.g.localToWorld(S.nest.clone()); p.y += 0.9; smoke(p, 1, false); } }
+    if (S.wheel) S.wheel.rotation.z += dt * 0.4;
+    // smoke from the gun ports and any hull holes / deck fires
+    S.ports.forEach(p => { if (p.smoke && Math.random() < dt * 1.8) { const w = S.g.localToWorld(new THREE.Vector3(p.side * (S.W / 2 + 0.4), 1.15, p.z)); smoke(w, 1, false); } });
+    S.holes.forEach(h => { if (Math.random() < dt * 5) { const w = S.g.localToWorld(h.clone()); smoke(w, 1, false); if (Math.random() < 0.4) puff(w, new THREE.Vector3(0, 1.5, 0), 0.6, 0.5, 0xff7a1a, 0.7, 1, 1.2); } });
+    S.fires.forEach(f => { f.fl.scale.setScalar(0.8 + Math.sin(t * 11 + f.s) * 0.2); if (Math.random() < dt * 4) { const w = S.g.localToWorld(f.pos.clone()); w.y += 0.6; smoke(w, 1, true); } });
+  }
+  function addHole(S, side) { const z = rnd(-S.L * 0.3, S.L * 0.3); const local = new THREE.Vector3(side * (S.W / 2 + 0.02), 1.0 + rnd(-0.2, 0.3), z); const h = box(S.g, 0.4, 0.9, 1.1, local.x, local.y, local.z, 0x0a0a0a); h.rotation.x = rnd(-0.3, 0.3); S.holes.push(local.clone().setX(side * (S.W / 2 + 0.3))); return S.g.localToWorld(local.clone()); }
+  function addDeckFire(S, x, z) { const pos = new THREE.Vector3(x, S.deckY + 0.05, z); const fl = cone(S.g, 0.45, 1.1, x, S.deckY + 0.6, z, 0xffa726, { emissive: 0xff7a00, ei: 1.5, noShadow: true }); glow(S.g, x, S.deckY + 0.8, z, 0xff8a2a, 3, 0.6); S.fires.push({ fl, pos, s: Math.random() * 9 }); box(S.g, 1.2, 0.04, 1.2, x, S.deckY + 0.08, z, 0x111111); }
+  // the ship keels over and slides under
+  function sinkShip(S, done) {
+    S.alive = false; SFX.creak(); setTimeout(() => SFX.sink(), 600);
+    const y0 = S.g.userData.baseY || 0; const dir = Math.random() < 0.5 ? 1 : -1;
+    S.crew.forEach((p, i) => { if (p.alive && Math.random() < 0.7) setTimeout(() => killPirate(p, dir), 200 + i * 180); });
+    tween(4.5, k => { S.g.userData.baseY = y0 - k * k * 9; S.g.userData.baseRX = 0.6 * k; S.g.userData.baseRZ = dir * k * 0.9; if (Math.random() < 0.5) { const w = S.g.localToWorld(new THREE.Vector3(rnd(-S.W / 2, S.W / 2), 1, rnd(-S.L / 2, S.L / 2))); if (w.y < SEA_Y + 0.5) puff(new THREE.Vector3(w.x, SEA_Y + 0.3, w.z), new THREE.Vector3(0, 0.8, 0), 0.5, 0.8, 0xdff2ff, 0.6, 1, 1.2); } }, easeIn, done);
+  }
+  // fires cannon c toward world point target; calls hit(target) when the ball lands
+  function fireCannon(S, c, target, hit, o) {
+    o = o || {}; const from = c.muzzle(); SFX.cannon(); flash(from, 0xffd24a); puff(from, new THREE.Vector3((target.x - from.x) * 0.15, 0.6, (target.z - from.z) * 0.15), 1.5, 1.2, 0x555555, 1.2, 6, 2.2); puff(from, new THREE.Vector3(0, 0.3, 0), 1, 0.3, 0xffb020, 1.1, 3, 1.5);
+    shakeCam(o.shake == null ? 0.25 : o.shake);
+    if (c.barrel) { const b0 = c.barrel.position.z; tween(0.12, k => { c.barrel.position.z = b0 + Math.sin(k * Math.PI) * 0.35; }, linear); }
+    const ball = sph(scene, 0.22, from.x, from.y, from.z, 0x1a1a1e, { metal: 0.6 }); const mid = from.clone().lerp(target, 0.5); mid.y += o.arc == null ? 2.5 : o.arc;
+    tween(o.dur || 0.85, k => { const a = from.clone().lerp(mid, k), b = mid.clone().lerp(target, k); ball.position.copy(a.lerp(b, k)); if (Math.random() < 0.5) puff(ball.position, new THREE.Vector3(0, 0.2, 0), 0.2, 0.35, 0x777777, 0.4, 1, 1.2); }, linear, () => { scene.remove(ball); if (hit) hit(target); });
+  }
+
+  /* ---------- worlds: battle sea (BW), the island (IW), a house interior (HW) ---------- */
+  const BW = new THREE.Group(); scene.add(BW);
+  const IW = new THREE.Group(); scene.add(IW); IW.visible = false;
+  const HW = new THREE.Group(); HW.position.set(0, 80, 0); scene.add(HW); HW.visible = false;
+
+  /* ---------- the battle: our ship and whichever enemy is up ---------- */
+  let OUR = null, ENEMY = null;
+  function buildOurShip() {
+    if (OUR) BW.remove(OUR.g);
+    OUR = buildShip({ len: 14, wid: 4.4, crew: Math.min(10, 4 + Math.floor((G.P ? G.P.crew : 6) / 3)), holes: 10, cannons: 3, flag: 'pirate', hull: 0x5b3a1a, sail: 0xf3e7c9, sailMark: 0x111111, furled: true });
+    addGunner(OUR); OUR.g.position.set(0, 0, 0); OUR.g.userData.baseY = 0; BW.add(OUR.g);
+  }
+  const CAPTAINS = [
+    { name: 'SCURVY PETE', flag: 'red', hull: 0x4a3320, sail: 0xd8cfb8, crew: 12, holes: 13 },
+    { name: 'ONE-EYE JACK', flag: 'pirate', hull: 0x2e2a2a, sail: 0xbfae8f, crew: 12, holes: 13 },
+    { name: 'REDBEARD', flag: 'red', hull: 0x6b1d1d, sail: 0xe6d3b3, crew: 12, holes: 13 },
+    { name: 'ADMIRAL GREY', flag: 'british', british: true, hull: 0x1c2f6b, sail: 0xf5f0e6, crew: 12, holes: 13 },
+    { name: 'BLACKBEARD', flag: 'pirate', hull: 0x111111, sail: 0x3a3a3a, crew: 12, holes: 13, big: true }
+  ];
+  const RIVALS = [
+    { name: "RED SALLY'S PORT", capt: 'RED SALLY', lv: 2, flag: 'red', hull: 0x8a1c1c, sail: 0xf1dcc2, dsc: 'A busy port full of gold. Sally has fast gunners.' },
+    { name: "BLACKBEARD'S COVE", capt: 'BLACKBEARD', lv: 4, flag: 'pirate', hull: 0x111111, sail: 0x3a3a3a, dsc: 'The most feared ship on the sea. Big loot, little time.' },
+    { name: 'BONE ISLAND', capt: 'CAPTAIN BONES', lv: 3, flag: 'pirate', hull: 0x3d3d3d, sail: 0xd9d9d9, dsc: 'Skulls on every mast. His crew never sleeps.' }
+  ];
+  function spawnEnemy(cfg) {
+    if (ENEMY) BW.remove(ENEMY.g);
+    ENEMY = buildShip({ len: cfg.big ? 16 : 14, wid: cfg.big ? 5 : 4.4, crew: cfg.crew || 12, holes: cfg.holes == null ? 13 : cfg.holes, cannons: 0, flag: cfg.flag, british: !!cfg.british, hull: cfg.hull, hullDark: 0x231508, sail: cfg.sail, enemy: true, broadside: true, nestFire: false, portSmoke: true });
+    ENEMY.g.position.set(-55, 0, -24); ENEMY.g.rotation.y = -Math.PI / 2; ENEMY.g.userData.baseY = 0; ENEMY.name = cfg.name; BW.add(ENEMY.g);
+  }
+  // distant scenery for the battle: a low island and gulls
+  (function battleScenery() { const far = new THREE.Group(); far.position.set(-60, 0, -90); BW.add(far); cyl(far, 12, 16, 3, 0, 1.2, 0, 0xd9c48a, null, 10); cyl(far, 7, 11, 5, 2, 4, -2, 0x3f8f3a, null, 9); cone(far, 5, 10, -3, 8, 2, 0x5a4a3a, null, 8); const far2 = new THREE.Group(); far2.position.set(70, 0, -110); BW.add(far2); cyl(far2, 9, 12, 3, 0, 1.2, 0, 0xd9c48a, null, 9); cyl(far2, 5, 8, 4, 0, 4, 0, 0x3f8f3a, null, 8); })();
+
+  /* ---------- the island ---------- */
+  const BUILDS = {
+    house: { name: 'HOUSE', gold: 30, wood: 20, eff: '2 more guys live on your island.' },
+    market: { name: 'MARKET', gold: 50, wood: 30, eff: '+15 gold every time you sink a ship.' },
+    tavern: { name: 'TAVERN', gold: 40, wood: 30, eff: '+2 guys join your crew after each win.' },
+    fort: { name: 'FORT', gold: 80, wood: 50, eff: 'Giant slingshot. Your island takes one extra hit from the British.' },
+    tower: { name: 'WATCHTOWER', gold: 70, wood: 40, eff: 'You see the British coming and get the first shot.' },
+    shipyard: { name: 'SHIPYARD', gold: 120, wood: 80, eff: 'A second cannon fires on every third correct answer.' },
+    mine: { name: 'GOLD MINE', gold: 90, wood: 60, eff: 'Your guys dig gold: +25 gold every time you sink a ship.' }
+  };
+  const SLOTS = [[3, -2], [-2, 4], [-5, -1], [1, -7], [6, -6], [-8, 5], [-3, 9], [7, 3], [-11, -4], [2, 12], [-9, 10], [10, -10], [-13, 2], [12, 8], [-6, -12], [5, 15]];
+  const ISL = { land: null, builds: [], villagers: [], ships: [], fires: [], volcano: null, builder: null, scaffold: null, dockShip: null, sling: null, radius: 14, torches: [] };
+  const islandRadius = () => 14 + 3 * Math.floor((G.P ? G.P.buildings.length : 3) / 3);
+  function buildLand() {
+    if (ISL.land) IW.remove(ISL.land); const g = new THREE.Group(); ISL.land = g; IW.add(g);
+    const R = islandRadius(); ISL.radius = R; ISL.torches = [];
+    const sand = cyl(g, R, R + 2.5, 0.9, 0, 0.45, 0, 0xe9d8a6, { map: T.sand }, 24); sand.material.map.repeat.set(8, 8);
+    const grass = cyl(g, R - 2.2, R - 1.5, 0.6, 0, 1.2, 0, 0x4f9a3c, { map: T.grass }, 24); grass.material.map.repeat.set(8, 8);
+    // palms around the beach
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + hash(i, 3) * 0.4; const r = R - 1.2; const x = Math.cos(a) * r, z = Math.sin(a) * r; if (x > 6 && z > 0 && z < 8) continue; palm(g, x, z, 1.3, 0.8 + hash(i, 9) * 0.5); }
+    for (let i = 0; i < 10; i++) { const a = hash(i, 17) * Math.PI * 2, r = 3 + hash(i, 5) * (R - 6); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.hypot(x + 7, z + 7) < 7) continue; if (SLOTS.some(([sx, sz]) => Math.hypot(sx - x, sz - z) < 2.6)) continue; if (hash(i, 2) < 0.5) rock(g, 0.5 + hash(i, 1) * 0.5, x, 1.6, z, 0x8a8a8a); else { const b = sph(g, 0.6, x, 1.9, z, pick([0x3f8f3a, 0x5aa846])); b.scale.y = 0.7; } }
+    // dock: planks out over the water to the east
+    for (let i = 0; i < 9; i++) { box(g, 1.2, 0.14, 3, R - 2 + i * 1.2, 1.35, 4, 0xa67c52, { map: T.plank }); if (i % 2 === 0) { cyl(g, 0.14, 0.16, 2.2, R - 2 + i * 1.2, 0.5, 2.6, 0x5b3a1a, null, 6); cyl(g, 0.14, 0.16, 2.2, R - 2 + i * 1.2, 0.5, 5.4, 0x5b3a1a, null, 6); } }
+    [[R + 3, 2.4], [R + 6, 5.6]].forEach(([x, z]) => { box(g, 0.9, 0.9, 0.9, x, 1.9, z, 0x8a5a2b); }); // crates on the dock
+    // volcano to the north-west, crater glowing
+    const V = new THREE.Group(); V.position.set(-R * 0.5, 1.4, -R * 0.5); g.add(V); ISL.volcano = V;
+    cone(V, 5.5, 8, 0, 4, 0, 0x4a3f3a, null, 10); cyl(V, 2.1, 2.6, 0.6, 0, 7.8, 0, 0x2a2420, null, 10);
+    const lava = cyl(V, 1.6, 1.6, 0.2, 0, 8.05, 0, 0xff7a1a, { emissive: 0xff5a00, ei: 1.2, map: T.lava }, 10); ISL.lava = lava; ISL.lavaGlow = glow(V, 0, 8.6, 0, 0xff7a1a, 7, 0.55);
+    const vl = new THREE.PointLight(0xff7a1a, 1.4, 22); vl.position.set(0, 9, 0); V.add(vl); ISL.vlight = vl;
+    [[1.2, 0.6], [-1.4, -0.4], [0.3, -1.5]].forEach(([dx, dz]) => { const s = box(V, 0.6, 0.3, 4, dx * 2, 3.2, dz * 2, 0xff7a1a, { emissive: 0xff5a00, ei: 0.9, map: T.lava }); s.lookAt(0, 8, 0); s.rotation.x += Math.PI / 2; });
+    // torches on the path
+    [[2, 1], [-1, 1.5], [4, -4]].forEach(([x, z]) => { cyl(g, 0.07, 0.09, 1.6, x, 2.3, z, 0x4a2f14); const fl = cone(g, 0.2, 0.5, x, 3.25, z, 0xffa726, { emissive: 0xff7a00, ei: 1.4, noShadow: true }); const gl = glow(g, x, 3.3, z, 0xff8a2a, 2.6, 0.6); ISL.torches.push({ fl, gl, s: Math.random() * 9 }); });
+    // a ship of our own tied up at the dock, and a plank sticking out of its side
+    if (ISL.dockShip) IW.remove(ISL.dockShip.g);
+    ISL.dockShip = buildShip({ len: 12, wid: 4, crew: 3, holes: 8, cannons: 2, flag: 'pirate', hull: 0x5b3a1a, sail: 0xf3e7c9, sailMark: 0x111111, figurehead: false, furled: true });
+    ISL.dockShip.g.position.set(R + 5, 0, 8.8); ISL.dockShip.g.rotation.y = Math.PI / 2; ISL.dockShip.g.userData.baseY = 0; IW.add(ISL.dockShip.g);
+    ISL.plank = box(ISL.dockShip.g, 0.5, 0.08, 3.2, 0, ISL.dockShip.deckY + 0.7, 0, 0xa67c52); ISL.plank.position.set(-ISL.dockShip.W / 2 - 1.2, ISL.dockShip.deckY + 0.7, 1.5); ISL.plank.rotation.y = Math.PI / 2;
+    // the giant slingshot on the south beach (defense)
+    const sg = new THREE.Group(); sg.position.set(4, 1.4, R - 3.5); g.add(sg); ISL.sling = sg;
+    box(sg, 1.6, 0.4, 1.6, 0, 0.2, 0, 0x5b3a1a); cyl(sg, 0.12, 0.16, 3.2, -0.7, 1.9, 0, 0x6b4423, null, 6).rotation.z = 0.25; cyl(sg, 0.12, 0.16, 3.2, 0.7, 1.9, 0, 0x6b4423, null, 6).rotation.z = -0.25;
+    ISL.slingBand = box(sg, 2.2, 0.1, 0.1, 0, 3.2, 0.2, 0x3a3a3a); ISL.slingPouch = box(sg, 0.6, 0.4, 0.4, 0, 3.0, 0.5, 0x2b1a0c);
+    ISL.slingRock = rock(sg, 0.4, 0, 3.1, 0.55, 0x8a8a8a);
+    // a couple of extra forts' worth of guns if the player built one
+    ISL.builds.forEach(b => g.remove(b.g)); ISL.builds = [];
+    (G.P ? G.P.buildings : []).forEach((type, i) => { if (type === 'dock') return; placeBuilding(type, i); });
+    placeScaffold();
+  }
+  function palm(g, x, z, y, s) { const tr = cyl(g, 0.16 * s, 0.24 * s, 3.4 * s, x, y + 1.7 * s, z, 0x8a5a2b, null, 6); tr.rotation.z = (hash(x, z) - 0.5) * 0.3; for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; const leaf = box(g, 0.5 * s, 0.08, 2.2 * s, x + Math.cos(a) * 0.9 * s, y + 3.4 * s, z + Math.sin(a) * 0.9 * s, pick([0x2f8f3a, 0x46a041])); leaf.rotation.y = -a + Math.PI / 2; leaf.rotation.x = -0.5; } sph(g, 0.22 * s, x, y + 3.3 * s, z, 0x5b3a1a); }
+  function slotFor(i) { let s = SLOTS[Math.min(i, SLOTS.length - 1)]; return { x: s[0], z: s[1] }; }
+  function placeBuilding(type, i) {
+    const { x, z } = slotFor(i); const g = new THREE.Group(); g.position.set(x, 1.5, z); g.rotation.y = hash(i, 7) * 0.6 - 0.3; ISL.land.add(g); g.userData.type = type; const B = { g, type, i, hp: 1 };
+    if (type === 'house') { box(g, 3, 2.2, 3, 0, 1.1, 0, pick([0xe0c9a6, 0xd9b48f, 0xc9ad7f])); const r = cone(g, 2.6, 1.6, 0, 3.0, 0, pick([0xb3161c, 0x8a3b1c, 0x6b4423]), null, 4); r.rotation.y = Math.PI / 4; box(g, 0.7, 1.2, 0.1, 0, 0.6, 1.53, 0x3a2412); box(g, 0.6, 0.6, 0.1, -1, 1.3, 1.53, 0xffe08a, { emissive: 0xffa726, ei: 0.35 }); box(g, 0.6, 0.6, 0.1, 1.53, 1.3, 0, 0xffe08a, { emissive: 0xffa726, ei: 0.35 }).rotation.y = Math.PI / 2; cyl(g, 0.2, 0.2, 1.2, 0.9, 3.2, -0.7, 0x777777, null, 6); B.chimney = new THREE.Vector3(0.9, 3.9, -0.7); g.userData.enter = true; }
+    else if (type === 'tavern') { box(g, 4, 2.6, 3.4, 0, 1.3, 0, 0x8a5a2b); box(g, 4.1, 0.2, 3.5, 0, 1.3, 0, 0x3a2412); const r = cone(g, 3.3, 1.8, 0, 3.5, 0, 0x3a2412, null, 4); r.rotation.y = Math.PI / 4; box(g, 0.9, 1.4, 0.1, 0, 0.7, 1.73, 0x2b1a0c); [-1.3, 1.3].forEach(dx => box(g, 0.7, 0.7, 0.1, dx, 1.7, 1.73, 0xffe08a, { emissive: 0xffa726, ei: 0.4 })); box(g, 1.6, 0.6, 0.1, 0, 2.3, 1.78, 0xf5b301); cyl(g, 0.4, 0.4, 0.8, 2.4, 0.4, 1, 0x6b4423, null, 8); cyl(g, 0.2, 0.2, 1.4, -1.2, 3.6, -0.8, 0x777777, null, 6); B.chimney = new THREE.Vector3(-1.2, 4.4, -0.8); g.userData.enter = true; }
+    else if (type === 'market') { [[-1.4, -1], [1.4, -1], [-1.4, 1], [1.4, 1]].forEach(([dx, dz]) => cyl(g, 0.1, 0.1, 2.4, dx, 1.2, dz, 0x6b4423, null, 6)); for (let s = 0; s < 6; s++) box(g, 0.55, 0.1, 2.6, -1.4 + s * 0.55 + 0.27, 2.45, 0, s % 2 ? 0xffffff : 0xb3161c); box(g, 3, 0.8, 1, 0, 0.4, 0.6, 0x8a5a2b); [[-0.9, 0xf5b301], [0, 0xd62828], [0.9, 0x2a9d4a]].forEach(([dx, c]) => sph(g, 0.3, dx, 1.0, 0.6, c)); box(g, 0.8, 0.8, 0.8, -1.9, 0.4, -0.8, 0x8a5a2b); box(g, 0.7, 0.7, 0.7, 1.9, 0.35, -0.9, 0x8a5a2b); }
+    else if (type === 'fort') { box(g, 4.4, 1.6, 4.4, 0, 0.8, 0, 0x7a7a7a); box(g, 4.6, 0.3, 4.6, 0, 1.7, 0, 0x5a5a5a); [[-2, -2], [2, -2], [-2, 2], [2, 2]].forEach(([dx, dz]) => box(g, 0.7, 2.4, 0.7, dx, 1.2, dz, 0x8a8a8a)); cannon(g, 0, 1.85, 0.5, 0, 0.8); box(g, 0.05, 1.0, 1.4, 2.2, 3.3, -2, 0x111111); cyl(g, 0.05, 0.05, 2.2, 2.2, 2.9, -2.7, 0x3a2412, null, 5); }
+    else if (type === 'tower') { cyl(g, 1.2, 1.5, 5.5, 0, 2.75, 0, 0x8a8a8a, null, 10); cyl(g, 1.7, 1.7, 0.3, 0, 5.6, 0, 0x5a5a5a, null, 10); for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; box(g, 0.4, 0.5, 0.4, Math.cos(a) * 1.5, 6.0, Math.sin(a) * 1.5, 0x7a7a7a); } const w = pirate({}); w.g.position.set(0, 5.75, 0); w.mode = 'aim'; g.add(w.g); B.guard = w; const fl = cone(g, 0.35, 0.8, 0, 6.5, -0.6, 0xffa726, { emissive: 0xff7a00, ei: 1.5, noShadow: true }); const gl = glow(g, 0, 6.6, -0.6, 0xff8a2a, 3, 0.6); ISL.torches.push({ fl, gl, s: Math.random() * 9 }); }
+    else if (type === 'mine') { const mound = sph(g, 2.6, 0, 0.4, -1, 0x5a5a5a); mound.scale.set(1.3, 0.7, 1); box(g, 1.8, 1.8, 0.2, 0, 0.9, 1.5, 0x050505); box(g, 0.35, 2.0, 0.35, -1.0, 1.0, 1.6, 0x5b3a1a); box(g, 0.35, 2.0, 0.35, 1.0, 1.0, 1.6, 0x5b3a1a); box(g, 2.6, 0.35, 0.35, 0, 2.1, 1.6, 0x5b3a1a); box(g, 0.1, 0.08, 3, -0.4, 0.05, 3, 0x555555); box(g, 0.1, 0.08, 3, 0.4, 0.05, 3, 0x555555); box(g, 1.0, 0.6, 1.1, 0, 0.5, 3.2, 0x3a3a3a); for (let k = 0; k < 4; k++) sph(g, 0.16, rnd(-0.3, 0.3), 0.85, 3.2 + rnd(-0.3, 0.3), 0xf5b301, { emissive: 0xf5b301, ei: 0.5 }); const w = pirate({}); w.g.position.set(1.6, 0, 2.6); w.g.rotation.y = Math.PI; w.mode = 'hammer'; g.add(w.g); B.guard = w; box(w.armR, 0.1, 0.1, 0.5, 0.12, -0.55, 0.1, 0x6b4423); box(w.armR, 0.3, 0.12, 0.12, 0.12, -0.55, 0.38, 0x555555); }
+    else if (type === 'shipyard') { for (let k = 0; k < 6; k++) { const rb = box(g, 0.2, 2.4, 0.2, -2 + k * 0.8, 1.2, 1.3, 0x8a5a2b); rb.rotation.x = 0.5; const rb2 = box(g, 0.2, 2.4, 0.2, -2 + k * 0.8, 1.2, -1.3, 0x8a5a2b); rb2.rotation.x = -0.5; } box(g, 5, 0.3, 0.6, 0, 0.15, 0, 0x5b3a1a); cyl(g, 0.15, 0.15, 4.5, 2.6, 2.25, -1.5, 0x6b4423, null, 6); box(g, 3, 0.2, 0.2, 1.3, 4.4, -1.5, 0x6b4423); cyl(g, 0.03, 0.03, 2.4, 0.2, 3.2, -1.5, 0x3a3a3a, null, 4); box(g, 0.8, 0.8, 0.8, 0.2, 1.7, -1.5, 0x8a5a2b); }
+    ISL.builds.push(B); return B;
+  }
+  function placeScaffold() {
+    if (ISL.scaffold) { ISL.land.remove(ISL.scaffold); ISL.scaffold = null; ISL.builder = null; }
+    const pend = G.P && G.P.pending; if (!pend) return;
+    const { x, z } = slotFor(pend.slot); const g = new THREE.Group(); g.position.set(x, 1.5, z); ISL.land.add(g); ISL.scaffold = g;
+    [[-1.6, -1.6], [1.6, -1.6], [-1.6, 1.6], [1.6, 1.6]].forEach(([dx, dz]) => cyl(g, 0.08, 0.08, 3.2, dx, 1.6, dz, 0xa67c52, null, 5));
+    [[0, 1.6, -1.6, 3.4, 0.1, 0.1], [0, 1.6, 1.6, 3.4, 0.1, 0.1], [-1.6, 1.6, 0, 0.1, 0.1, 3.4], [1.6, 1.6, 0, 0.1, 0.1, 3.4]].forEach(([px_, py, pz, w, h, d]) => box(g, w, h, d, px_, py, pz, 0xa67c52));
+    box(g, 2.6, 0.3, 2.6, 0, 0.15, 0, 0x9a9a9a); ISL.scaffoldWall = box(g, 2.4, 0.2, 2.4, 0, 0.4, 0, 0xd9b48f); ISL.scaffoldWall.scale.y = 0.2;
+    [[-1.0, 0.4, 1.9], [0.2, 0.4, 2.1]].forEach(([dx, dy, dz]) => box(g, 0.9, 0.6, 0.9, dx, dy, dz, 0x8a5a2b));
+    const b = pirate({}); b.g.position.set(1.9, 0, 0.6); b.g.rotation.y = Math.PI; b.mode = 'hammer'; g.add(b.g); ISL.builder = b;
+    box(b.armR, 0.1, 0.1, 0.5, 0.12, -0.55, 0.1, 0x6b4423); box(b.armR, 0.28, 0.16, 0.16, 0.12, -0.55, 0.38, 0x555555);
+  }
+  function refreshVillagers() {
+    ISL.villagers.forEach(v => ISL.land.remove(v.g)); ISL.villagers = [];
+    const houses = G.P ? G.P.buildings.filter(b => b === 'house' || b === 'tavern').length : 1;
+    const n = Math.min(16, 2 + houses * 2 + Math.floor((G.P ? G.P.crew : 6) / 4));
+    for (let i = 0; i < n; i++) { const v = pirate({}); const p = randomLandPoint(); v.g.position.set(p.x, 1.5, p.z); v.target = randomLandPoint(); v.speed = 1.2 + Math.random() * 0.8; v.pause = Math.random() * 3; ISL.land.add(v.g); ISL.villagers.push(v); }
+  }
+  function randomLandPoint() { for (let k = 0; k < 20; k++) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * (ISL.radius - 5); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.hypot(x + ISL.radius * 0.5, z + ISL.radius * 0.5) < 6.5) continue; if (SLOTS.slice(0, (G.P ? G.P.buildings.length : 3) + 1).some(([sx, sz]) => Math.hypot(sx - x, sz - z) < 2.4)) continue; return new THREE.Vector3(x, 1.5, z); } return new THREE.Vector3(0, 1.5, 6); }
+  function refreshSailors() {
+    ISL.ships.forEach(s => IW.remove(s.S.g)); ISL.ships = [];
+    for (let i = 0; i < 3; i++) { const S = buildShip({ len: 9, wid: 3, crew: 3, holes: 6, cannons: 1, flag: pick(['pirate', 'red', 'british']), british: i === 2, hull: pick([0x5b3a1a, 0x3a3a3a, 0x1c2f6b]), sail: pick([0xf3e7c9, 0xd8cfb8]), figurehead: false, masts: [[-1.5, 5.5], [1.6, 6.5]] }); S.g.userData.baseY = 0; IW.add(S.g); ISL.ships.push({ S, a: i / 3 * Math.PI * 2, r: 36 + i * 9, sp: (0.05 + i * 0.012) * (i % 2 ? 1 : -1) }); }
+  }
+  function stepIsland(t, dt) {
+    ISL.torches.forEach(o => { const f = 0.85 + Math.sin(t * 9 + o.s) * 0.2; o.fl.scale.set(f, 0.8 + f * 0.3, f); o.gl.material.opacity = 0.45 + f * 0.25; });
+    if (ISL.lava) { ISL.lava.material.map.offset.x = t * 0.03; const k = 0.9 + Math.sin(t * 2) * 0.15; ISL.lavaGlow.material.opacity = 0.45 * k; ISL.vlight.intensity = 1.4 * k; if (Math.random() < dt * 1.5) { const p = ISL.volcano.localToWorld(new THREE.Vector3(rnd(-1, 1), 8.6, rnd(-1, 1))); smoke(p, 1, true); } }
+    ISL.builds.forEach(b => { if (b.chimney && Math.random() < dt * 0.8) smoke(b.g.localToWorld(b.chimney.clone()), 1, false); if (b.guard) idlePirate(b.guard, t, dt); if (b.burning && Math.random() < dt * 6) { const p = b.g.localToWorld(new THREE.Vector3(rnd(-1, 1), 2.2, rnd(-1, 1))); smoke(p, 1, true); puff(p, new THREE.Vector3(0, 1.6, 0), 0.6, 0.5, 0xff7a1a, 0.8, 1, 1.3); } });
+    if (ISL.builder) { idlePirate(ISL.builder, t, dt); const pend = G.P.pending; if (pend && G.world === 'island') { pend.left -= dt; const k = 1 - Math.max(0, pend.left) / pend.total; ISL.scaffoldWall.scale.y = 0.2 + k * 9; ISL.scaffoldWall.position.y = 0.4 + k * 0.9; if (pend.left <= 0) finishBuild(); } }
+    const run = ISL.panicUntil && t < ISL.panicUntil;
+    ISL.villagers.forEach(v => { idlePirate(v, t, dt); if (v.pause > 0 && !run) { v.pause -= dt; v.walk = false; return; } const d = v.target.clone().sub(v.g.position); d.y = 0; const len = d.length(); if (len < 0.3) { v.target = randomLandPoint(); v.pause = run ? 0 : 1 + Math.random() * 4; v.walk = false; return; } v.walk = true; d.normalize(); const sp = v.speed * (run ? 2.6 : 1); v.g.position.addScaledVector(d, Math.min(len, sp * dt)); v.g.rotation.y = Math.atan2(-d.z, d.x); });
+    ISL.ships.forEach(s => { s.a += s.sp * dt; s.S.g.position.set(Math.cos(s.a) * s.r, s.S.g.position.y, Math.sin(s.a) * s.r); s.S.g.rotation.y = -s.a + (s.sp > 0 ? Math.PI : 0); floatOn(s.S.g, t, 0.5, s.a); stepShip(s.S, t, dt); });
+    if (ISL.dockShip) { floatOn(ISL.dockShip.g, t, 0.35, 2); stepShip(ISL.dockShip, t, dt); }
+    if (BRIT.S) { floatOn(BRIT.S.g, t, 0.5, 5); stepShip(BRIT.S, t, dt); }
+    if (ISL.erupting) stepEruption(t, dt);
+  }
+  function finishBuild() {
+    const pend = G.P.pending; if (!pend) return; G.P.pending = null; G.P.buildings.push(pend.type); saveP();
+    const before = ISL.radius; SFX.cheer(); toast(BUILDS[pend.type].name + ' finished!');
+    if (islandRadius() !== before) { banner('YOUR ISLAND GREW!', 'white'); rebuildIsland(); } else { placeScaffold(); placeBuilding(pend.type, pend.slot); refreshVillagers(); }
+  }
+  function rebuildIsland() { buildLand(); refreshVillagers(); }
+  /* ---------- volcano eruption: rumble, lava bombs, ash, everyone runs ---------- */
+  function erupt() {
+    if (ISL.erupting) return; ISL.erupting = { until: G.t + 9, next: 0 }; ISL.panicUntil = G.t + 10; SFX.rumble(); setTimeout(() => SFX.erupt(), 900); banner('THE VOLCANO!', 'red'); shakeCam(0.5);
+    setTimeout(() => { banner(''); }, 2500);
+  }
+  function stepEruption(t, dt) {
+    const E = ISL.erupting; shakeCam(0.12); const top = ISL.volcano.localToWorld(new THREE.Vector3(0, 8.4, 0));
+    ISL.vlight.intensity = 3 + Math.sin(t * 20) * 1.2; ISL.lavaGlow.material.opacity = 0.9;
+    if (t > E.next) { E.next = t + 0.12; emit(top, new THREE.Vector3(rnd(-3, 3), rnd(9, 15), rnd(-3, 3)), 3, 2.4, ['ff7a1a', 'ffd24a', 'e0440f', '7a1d0c'], 8, 4, 0.9); puff(top, new THREE.Vector3(rnd(-1, 1), 3.5, rnd(-1, 1)), 1.6, 3.0, pick([0x2a2a2a, 0x444444, 0x5a3a2a]), 2.4, 3, 3); if (Math.random() < 0.4) { const a = Math.random() * Math.PI * 2, r = 5 + Math.random() * 6; const lp = ISL.volcano.localToWorld(new THREE.Vector3(Math.cos(a) * r, 0.2, Math.sin(a) * r)); if (Math.random() < 0.3) { fireball(lp); SFX.boom(); } } }
+    if (t > E.until) { ISL.erupting = null; ISL.vlight.intensity = 1.4; }
+  }
+
+  /* ---------- inside a house: table, two guys, fire, hammock ---------- */
+  const HOUSE = { folk: [] };
+  (function buildInterior() {
+    const g = HW; box(g, 9, 0.2, 9, 0, 0, 0, 0xa67c52, { map: T.plank }); box(g, 9, 4, 0.3, 0, 2, -4.5, 0xd9b48f); box(g, 0.3, 4, 9, -4.5, 2, 0, 0xd9b48f); box(g, 0.3, 4, 9, 4.5, 2, 0, 0xd9b48f); box(g, 9, 0.3, 9, 0, 4.2, 0, 0x6b4423);
+    [-3, 0, 3].forEach(z => box(g, 8.6, 0.25, 0.25, 0, 4.0, z, 0x5b3a1a));
+    // fireplace on the back wall
+    box(g, 2.6, 2.4, 0.7, -2.4, 1.2, -4.2, 0x7a7a7a); box(g, 1.6, 1.4, 0.4, -2.4, 0.8, -4.05, 0x111111); const fl = cone(g, 0.5, 1.0, -2.4, 0.7, -4.0, 0xffa726, { emissive: 0xff7a00, ei: 1.6, noShadow: true }); HOUSE.fire = fl; HOUSE.glow = glow(g, -2.4, 0.9, -3.8, 0xff8a2a, 5, 0.6); const l = new THREE.PointLight(0xff9a3a, 1.6, 12); l.position.set(-2.4, 1.2, -3.4); g.add(l); HOUSE.light = l;
+    box(g, 3, 0.2, 0.8, -2.4, 2.5, -4.1, 0x5b3a1a); [[-3.2, 0xf5b301], [-2.4, 0x2a9d4a], [-1.6, 0xd62828]].forEach(([x, c]) => cyl(g, 0.15, 0.15, 0.35, x, 2.78, -4.1, c, null, 8));
+    // window with day light
+    box(g, 1.4, 1.2, 0.1, 2.4, 2.3, -4.36, 0x8fd0f5, { emissive: 0x8fd0f5, ei: 0.6 }); box(g, 0.08, 1.2, 0.12, 2.4, 2.3, -4.35, 0x3a2412); box(g, 1.4, 0.08, 0.12, 2.4, 2.3, -4.35, 0x3a2412);
+    // table, mugs, map, two guys sitting
+    box(g, 2.8, 0.15, 1.6, 0.6, 1.1, -0.5, 0x8a5a2b); [[-0.6, -1.1], [1.8, -1.1], [-0.6, 0.1], [1.8, 0.1]].forEach(([x, z]) => box(g, 0.15, 1.05, 0.15, x, 0.55, z, 0x5b3a1a));
+    box(g, 1.2, 0.03, 0.9, 0.5, 1.19, -0.5, 0xf2dfb6); cyl(g, 0.14, 0.12, 0.3, 1.5, 1.33, -0.9, 0x6b4423, null, 8); cyl(g, 0.14, 0.12, 0.3, -0.2, 1.33, -0.1, 0x6b4423, null, 8);
+    [[0.6, -1.6, -Math.PI / 2], [0.6, 0.6, Math.PI / 2]].forEach(([x, z, ry]) => { box(g, 0.7, 0.1, 0.7, x, 0.55, z, 0x6b4423); const p = pirate({}); p.g.position.set(x, 0.6, z); p.g.rotation.y = ry; p.mode = 'sit'; g.add(p.g); HOUSE.folk.push(p); });
+    // hammock, barrels, a chest of gold
+    cyl(g, 0.08, 0.08, 3.2, 3.2, 2.4, 1.5, 0x3a2412, null, 5).rotation.x = Math.PI / 2; const hm = box(g, 1.0, 0.15, 2.6, 3.2, 1.6, 1.5, 0xf3e7c9); HOUSE.hammock = hm; const sl = pirate({}); sl.g.position.set(3.2, 1.65, 1.6); sl.g.rotation.z = -Math.PI / 2; sl.g.rotation.y = Math.PI / 2; sl.g.scale.setScalar(0.9); g.add(sl.g); HOUSE.folk.push(sl); sl.mode = 'sit';
+    [[-3.5, 2.8], [-2.6, 3.2]].forEach(([x, z]) => cyl(g, 0.45, 0.45, 0.9, x, 0.55, z, 0x6b4423, null, 8));
+    box(g, 1.2, 0.7, 0.8, -3.4, 0.45, 0.2, 0x5b3a1a); box(g, 1.2, 0.2, 0.8, -3.4, 0.9, 0.2, 0x3a2412); box(g, 1.0, 0.08, 0.6, -3.4, 0.84, 0.2, 0xf5b301, { emissive: 0xf5b301, ei: 0.3 });
+    box(g, 1.6, 2.2, 0.15, 0, 1.1, 4.45, 0x3a2412); // door behind the camera
+    const hl = new THREE.HemisphereLight(0xfff0d0, 0x6b4423, 0.5); g.add(hl);
+  })();
+  function stepHouse(t, dt) { const f = 0.85 + Math.sin(t * 9) * 0.2 + Math.sin(t * 23) * 0.1; HOUSE.fire.scale.set(f, 0.8 + f * 0.3, f); HOUSE.light.intensity = 1.6 * f; HOUSE.glow.material.opacity = 0.45 + f * 0.25; HOUSE.hammock.rotation.x = Math.sin(t * 0.8) * 0.06; HOUSE.folk.forEach((p, i) => { idlePirate(p, t, dt); if (i === 0) p.armR.rotation.x = -0.9 + Math.sin(t * 1.5) * 0.5; }); if (Math.random() < dt * 3) smoke(new THREE.Vector3(-2.4, 81.6, -4.0), 1, false); }
+
+  /* ---------- the British attack ---------- */
+  const BRIT = { S: null, townHP: 5, lives: 5, active: false };
+  function spawnBritish() {
+    if (BRIT.S) IW.remove(BRIT.S.g);
+    BRIT.S = buildShip({ len: 15, wid: 4.6, crew: 12, holes: 13, cannons: 3, flag: 'british', british: true, hull: 0x1c2f6b, hullDark: 0x0f1a3d, trim: 0xf5b301, sail: 0xf5f0e6, enemy: true, portSmoke: true });
+    BRIT.S.g.rotation.y = Math.PI; // its stern (and cannons) face the island to the north
+    BRIT.S.g.position.set(4, 0, ISL.radius + 60); BRIT.S.g.userData.baseY = 0; IW.add(BRIT.S.g); BRIT.S.name = 'THE BRITISH';
+    return BRIT.S;
+  }
+  const britTargetZ = () => ISL.radius + 26;
+  function slingFire(target, hit) {
+    const sg = ISL.sling; SFX.whoosh(); shakeCam(0.15);
+    const from = sg.localToWorld(new THREE.Vector3(0, 3.1, 0.55)); const rockM = rock(scene, 0.42, from.x, from.y, from.z, 0x8a8a8a);
+    tween(0.18, k => { ISL.slingPouch.position.z = 0.5 + Math.sin(k * Math.PI) * 1.2; ISL.slingBand.scale.x = 1 + Math.sin(k * Math.PI) * 0.4; }, linear);
+    const mid = from.clone().lerp(target, 0.5); mid.y += 9;
+    tween(1.1, k => { const a = from.clone().lerp(mid, k), b = mid.clone().lerp(target, k); rockM.position.copy(a.lerp(b, k)); rockM.rotation.x += 0.2; }, linear, () => { scene.remove(rockM); if (hit) hit(target); });
+  }
+
+  /* ---------- below deck: the gun deck of our ship, cannons at the ports, hammocks, barrels ---------- */
+  const SW = new THREE.Group(); SW.position.set(200, 80, 0); scene.add(SW); SW.visible = false;
+  const SHIPIN = { folk: [], lamps: [] };
+  (function buildGunDeck() {
+    const g = SW; const L = 18, W = 6.4, H = 3.2;
+    const fl = box(g, W, 0.2, L, 0, 0, 0, 0xa67c52, { map: T.plank }); box(g, W + 0.4, 0.3, L, 0, H, 0, 0x6b4423);
+    for (let z = -L / 2 + 1.5; z < L / 2; z += 3) box(g, W + 0.4, 0.35, 0.35, 0, H - 0.2, z, 0x4a2f14);
+    [[-1, 0], [1, 0]].forEach(([sx]) => { const wall = box(g, 0.3, H, L, sx * W / 2, H / 2, 0, 0x6b4423); wall.rotation.z = sx * 0.12; for (let i = 0; i < 4; i++) { const z = -L / 2 + 2.6 + i * 4.2; box(g, 0.4, 0.9, 1.0, sx * (W / 2 - 0.05), 1.3, z, 0x9fd8ff, { emissive: 0x8fd0f5, ei: 0.7 }); const c = cannon(g, sx * (W / 2 - 1.5), 0.1, z, sx > 0 ? -Math.PI / 2 : Math.PI / 2, 0.95); box(g, 0.6, 0.6, 0.6, sx * (W / 2 - 1.0), 0.5, z + 1.3, 0x5b3a1a); } });
+    box(g, W, H, 0.3, 0, H / 2, -L / 2, 0x6b4423); box(g, W, H, 0.3, 0, H / 2, L / 2, 0x6b4423);
+    // ladder up to the deck at the far end, light coming down the hatch
+    [-0.4, 0.4].forEach(x => box(g, 0.1, H, 0.1, x, H / 2, -L / 2 + 0.6, 0x8a6a3a)); for (let i = 0; i < 6; i++) box(g, 0.9, 0.08, 0.08, 0, 0.4 + i * 0.5, -L / 2 + 0.6, 0x8a6a3a);
+    box(g, 1.6, 0.05, 1.6, 0, H - 0.1, -L / 2 + 1.2, 0xfff4c2, { emissive: 0xfff4c2, ei: 0.8 }); const hl = new THREE.PointLight(0xfff0d0, 1.2, 10); hl.position.set(0, H - 0.4, -L / 2 + 1.2); g.add(hl);
+    // cannonball pyramids, barrels, a powder keg, ropes
+    [[-1.2, 4], [1.4, -2]].forEach(([x, z]) => { box(g, 1.1, 0.12, 1.1, x, 0.16, z, 0x5b3a1a); for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) sph(g, 0.2, x - 0.35 + a * 0.35, 0.4, z - 0.35 + b * 0.35, 0x1a1a1e, { metal: 0.6 }); sph(g, 0.2, x, 0.72, z, 0x1a1a1e, { metal: 0.6 }); });
+    [[-2.0, 7], [-1.2, 7.4], [2.2, 6.5], [1.5, -6.8]].forEach(([x, z]) => { cyl(g, 0.45, 0.45, 0.9, x, 0.55, z, 0x6b4423, null, 10); box(g, 0.95, 0.06, 0.95, x, 0.55, z, 0x3a3a3a); });
+    box(g, 0.8, 0.9, 0.8, 2.4, 0.55, 3, 0x2b1a0c); box(g, 0.5, 0.2, 0.5, 2.4, 1.05, 3, 0x8a6a3a);
+    // hammocks with sleepers, a table with two guys playing cards, a cook stirring a pot
+    [[-1.6, -5.5], [1.6, -5.5]].forEach(([x, z], i) => { cyl(g, 0.06, 0.06, 3.0, x, 2.3, z, 0x3a2412, null, 5).rotation.x = Math.PI / 2; const hm = box(g, 1.1, 0.16, 2.6, x, 1.6, z, i ? 0xd8cfb8 : 0xf3e7c9); const s = pirate({}); s.g.position.set(x, 1.65, z + 0.1); s.g.rotation.z = -Math.PI / 2; s.g.rotation.y = Math.PI / 2; s.g.scale.setScalar(0.9); s.mode = 'sit'; g.add(s.g); SHIPIN.folk.push(s); SHIPIN.hammocks = SHIPIN.hammocks || []; SHIPIN.hammocks.push(hm); });
+    box(g, 2.0, 0.12, 1.2, 0, 1.0, 1.0, 0x8a5a2b); [[-0.8, 0.5], [0.8, 0.5], [-0.8, 1.5], [0.8, 1.5]].forEach(([x, z]) => box(g, 0.12, 0.95, 0.12, x, 0.5, z, 0x5b3a1a)); [[-0.3, 0.8], [0.4, 1.2], [0.1, 0.7]].forEach(([x, z], i) => box(g, 0.28, 0.02, 0.4, x, 1.07, z, i ? 0xffffff : 0xd62828).rotation.y = i * 0.5);
+    [[0, -0.2, -Math.PI / 2], [0, 2.2, Math.PI / 2]].forEach(([x, z, ry]) => { box(g, 0.7, 0.1, 0.7, x, 0.5, z, 0x6b4423); const p = pirate({}); p.g.position.set(x, 0.55, z); p.g.rotation.y = ry; p.mode = 'sit'; g.add(p.g); SHIPIN.folk.push(p); });
+    cyl(g, 0.5, 0.4, 0.6, -2.2, 0.5, -1.5, 0x222222, null, 10); const stew = cyl(g, 0.42, 0.42, 0.1, -2.2, 0.8, -1.5, 0xb36a2b, null, 10); const cook = pirate({}); cook.g.position.set(-1.4, 0.1, -1.5); cook.g.rotation.y = Math.PI; cook.mode = 'hammer'; g.add(cook.g); SHIPIN.folk.push(cook); box(cook.armR, 0.08, 0.08, 0.9, 0.12, -0.55, 0.2, 0x8a6a3a);
+    // lanterns
+    [[-2.8, -2], [2.8, 2], [0, 6.5]].forEach(([x, z]) => { cyl(g, 0.05, 0.05, 0.4, x, H - 0.4, z, 0x3a3a3a, null, 5); box(g, 0.3, 0.4, 0.3, x, H - 0.8, z, 0xffe08a, { emissive: 0xffa726, ei: 1.0, transparent: true, opacity: 0.8 }); const l = new THREE.PointLight(0xffb060, 1.0, 9); l.position.set(x, H - 0.9, z); g.add(l); SHIPIN.lamps.push({ l, s: Math.random() * 9 }); });
+    g.add(new THREE.HemisphereLight(0xffe0b0, 0x4a2f14, 0.35));
+  })();
+  function stepGunDeck(t, dt) { SHIPIN.lamps.forEach(o => { o.l.intensity = 0.9 + Math.sin(t * 7 + o.s) * 0.15; }); SHIPIN.folk.forEach(p => idlePirate(p, t, dt)); (SHIPIN.hammocks || []).forEach((h, i) => { h.rotation.z = Math.sin(t * 0.9 + i) * 0.05; }); SW.rotation.z = Math.sin(t * 0.7) * 0.02; if (Math.random() < dt * 2) smoke(new THREE.Vector3(SW.position.x - 2.2, SW.position.y + 1.1, SW.position.z - 1.5), 1, false); }
+
+  /* ---------- sharks: big, toothy, and hungry when a ship goes down ---------- */
+  const SHARKS = [];
+  function shark(parent, scale) {
+    const g = new THREE.Group(); parent.add(g); const s = scale || 1; g.scale.setScalar(s);
+    const body = new THREE.Group(); g.add(body);
+    const b = sph(body, 1, 0, 0, 0, 0x5b6b78); b.scale.set(1.1, 0.9, 2.6);
+    const belly = sph(body, 0.85, 0, -0.3, 0.2, 0xe6ebee); belly.scale.set(1.0, 0.6, 2.2);
+    const nose = sph(body, 0.55, 0, 0.05, 2.6, 0x5b6b78); nose.scale.set(1, 0.7, 1.4);
+    box(body, 0.16, 0.16, 0.1, 0.5, 0.35, 2.4, 0x111111); box(body, 0.16, 0.16, 0.1, -0.5, 0.35, 2.4, 0x111111);
+    const dorsal = cone(body, 0.5, 1.4, 0, 1.2, 0.2, 0x4b5b68, null, 4); dorsal.rotation.z = 0; dorsal.scale.z = 0.35;
+    [[1, 0], [-1, 0]].forEach(([sx]) => { const f = cone(body, 0.45, 1.6, sx * 1.0, -0.2, 0.9, 0x4b5b68, null, 4); f.rotation.z = sx * 1.4; f.scale.z = 0.3; });
+    const tail = new THREE.Group(); tail.position.set(0, 0, -2.4); body.add(tail); const t1 = sph(tail, 0.5, 0, 0, -0.6, 0x5b6b78); t1.scale.set(0.8, 0.7, 1.4); const fin = cone(tail, 0.4, 2.2, 0, 0.5, -1.4, 0x4b5b68, null, 4); fin.scale.x = 0.25; const fin2 = cone(tail, 0.35, 1.4, 0, -0.5, -1.3, 0x4b5b68, null, 4); fin2.rotation.x = Math.PI; fin2.scale.x = 0.25;
+    // the jaw: red inside, two rows of teeth
+    const jaw = new THREE.Group(); jaw.position.set(0, -0.35, 2.4); body.add(jaw);
+    const lower = sph(jaw, 0.5, 0, -0.1, 0.5, 0x5b6b78); lower.scale.set(0.95, 0.5, 1.3); box(jaw, 0.8, 0.12, 1.0, 0, 0.12, 0.6, 0xb3161c);
+    for (let i = 0; i < 6; i++) { cone(jaw, 0.07, 0.25, -0.35 + i * 0.14, 0.25, 0.9, 0xffffff, null, 4); }
+    box(body, 0.9, 0.12, 1.0, 0, -0.25, 3.0, 0xb3161c); for (let i = 0; i < 6; i++) { const t = cone(body, 0.07, 0.25, -0.35 + i * 0.14, -0.36, 3.3, 0xffffff, null, 4); t.rotation.x = Math.PI; }
+    const S = { g, body, tail, jaw, a: Math.random() * Math.PI * 2, r: 20, cx: 0, cz: -14, sp: 0.35, depth: 0.25, target: null, ph: Math.random() * 9, s };
+    SHARKS.push(S); return S;
+  }
+  function stepSharks(t, dt) {
+    SHARKS.forEach(S => {
+      if (!S.g.parent || !S.g.parent.visible) return;
+      S.tail.rotation.y = Math.sin(t * 6 + S.ph) * 0.45; S.body.rotation.z = Math.sin(t * 6 + S.ph) * 0.05;
+      if (S.target) {
+        const d = S.target.clone().sub(S.g.position); d.y = 0; const len = d.length();
+        if (len > 1.2) { d.normalize(); S.g.position.addScaledVector(d, dt * 9); S.g.rotation.y = Math.atan2(d.x, d.z); S.g.position.y = S.depth + Math.sin(t * 6) * 0.1; }
+        else if (!S.biting) { S.biting = true; SFX.crack(); const at = S.target.clone(); at.y += 0.4; blood(at); blood(at); splash(at); seq([[0.18, k => { S.jaw.rotation.x = k * 0.9; S.g.position.y = S.depth + k * 0.8; }], [0.15, k => { S.jaw.rotation.x = 0.9 * (1 - k); }], [0.5, k => { S.g.position.y = S.depth + 0.8 * (1 - k); }]], () => { S.biting = false; S.target = null; S.a = Math.atan2(S.g.position.x - S.cx, S.g.position.z - S.cz); }); }
+        return;
+      }
+      S.a += S.sp * dt; S.g.position.set(S.cx + Math.sin(S.a) * S.r, S.depth + Math.sin(t * 1.3 + S.ph) * 0.25, S.cz + Math.cos(S.a) * S.r); S.g.rotation.y = S.a + (S.sp >= 0 ? Math.PI / 2 : -Math.PI / 2);
+      if (Math.random() < dt * 0.6) puff(new THREE.Vector3(S.g.position.x, SEA_Y + 0.05, S.g.position.z - 1), new THREE.Vector3(0, 0, 0), 0.3, 0.8, 0xdff2ff, 0.7 * S.s, 1, 1.5);
+    });
+  }
+  function sharkFeed(pos) { const free = SHARKS.filter(S => S.g.parent && S.g.parent.visible && !S.target && !S.biting); if (!free.length) return; free.sort((a, b) => a.g.position.distanceTo(pos) - b.g.position.distanceTo(pos)); free[0].target = pos.clone(); }
+  onSplash = sharkFeed;
+  // battle sharks circle between the two ships; island sharks patrol the reef
+  [[0, -14, 21, 0.3, 1.2], [4, -12, 15, -0.42, 1.0]].forEach(([cx, cz, r, sp, s]) => { const S = shark(BW, s); S.cx = cx; S.cz = cz; S.r = r; S.sp = sp; });
+  [[0, 0, 30, 0.22, 1.4], [0, 0, 24, -0.3, 1.0]].forEach(([cx, cz, r, sp, s]) => { const S = shark(IW, s); S.cx = cx; S.cz = cz; S.r = r; S.sp = sp; });
+
+  /* ---------- the Cursed Deep: sea floor, wrecks, a drowned city and its mine, skeleton crew ---------- */
+  const UW = new THREE.Group(); UW.position.set(0, -90, 0); scene.add(UW); UW.visible = false;
+  const DEEP = { skels: [], captain: null, avatar: null, boat: null, bubbles: [], glints: [], rays: [], lives: 5, floorY: 0 };
+  function skeleton(o) {
+    o = o || {}; const BONE = 0xe8e2d0, DARK = 0x1a1a1a; const R = pirate({ skin: BONE, captain: !!o.captain });
+    // strip the flesh: rebuild torso/limbs in bone with rib gaps, black eye sockets
+    R.torso.children.slice().forEach(c => R.torso.remove(c)); R.armL.children.slice().forEach(c => R.armL.remove(c)); R.armR.children.slice().forEach(c => R.armR.remove(c)); R.legL.children.slice().forEach(c => R.legL.remove(c)); R.legR.children.slice().forEach(c => R.legR.remove(c));
+    box(R.torso, 0.3, 0.55, 0.46, 0, 0.28, 0, BONE); for (let i = 0; i < 4; i++) box(R.torso, 0.32, 0.05, 0.48, 0, 0.08 + i * 0.12, 0, DARK); box(R.torso, 0.12, 0.6, 0.12, -0.1, 0.28, 0, BONE);
+    if (o.captain) { box(R.torso, 0.34, 0.5, 0.14, 0, 0.3, 0, 0x6b1d1d); box(R.torso, 0.36, 0.08, 0.5, 0, 0.06, 0, 0xf5b301); }
+    else if (Math.random() < 0.6) box(R.torso, 0.34, 0.3, 0.5, 0, 0.15, 0, pick([0x3a2f2a, 0x4a3320, 0x2a2a2e]));
+    [R.armL, R.armR].forEach(a => { box(a, 0.13, 0.5, 0.13, 0, -0.22, 0, BONE); box(a, 0.16, 0.1, 0.16, 0, -0.5, 0, BONE); });
+    [R.legL, R.legR].forEach(l => { box(l, 0.14, 0.55, 0.14, 0, -0.28, 0, BONE); box(l, 0.2, 0.1, 0.24, 0.02, -0.53, 0, DARK); });
+    R.head.children.slice().forEach(c => R.head.remove(c)); box(R.head, 0.4, 0.4, 0.4, 0, 0.2, 0, BONE); box(R.head, 0.05, 0.12, 0.12, 0.2, 0.24, 0.1, DARK); box(R.head, 0.05, 0.12, 0.12, 0.2, 0.24, -0.1, DARK); box(R.head, 0.05, 0.06, 0.06, 0.2, 0.13, 0, DARK); for (let i = 0; i < 4; i++) box(R.head, 0.05, 0.05, 0.03, 0.2, 0.04, -0.12 + i * 0.08, DARK);
+    if (o.captain) { box(R.head, 0.5, 0.1, 0.62, 0, 0.44, 0, 0x111111); box(R.head, 0.36, 0.22, 0.46, 0, 0.55, 0, 0x111111); box(R.head, 0.08, 0.12, 0.12, 0.19, 0.55, 0, 0xffffff); }
+    else if (Math.random() < 0.5) { box(R.head, 0.42, 0.1, 0.42, 0, 0.42, 0, pick([0x6b1d1d, 0x1d3557, 0x111111])); box(R.head, 0.06, 0.18, 0.1, -0.2, 0.36, 0.14, 0x6b1d1d); }
+    else { box(R.head, 0.42, 0.06, 0.6, 0, 0.42, 0, 0x2b1a0c); box(R.head, 0.32, 0.14, 0.34, 0, 0.5, 0, 0x2b1a0c); }
+    const sw = new THREE.Group(); sw.position.set(0.1, -0.55, 0); R.armR.add(sw); box(sw, 0.05, 0.9, 0.1, 0.45, 0, 0, 0x9aa3ad, { metal: 0.7, rough: 0.5 }); box(sw, 0.06, 0.06, 0.24, 0.05, 0, 0, 0x5b3a1a); sw.rotation.z = -Math.PI / 2; R.weapon = sw;
+    if (o.captain) R.g.scale.setScalar(1.25);
+    R.skel = true; R.hp = o.captain ? 3 : 1; R.down = false; return R;
+  }
+  function wreck(parent, x, z, ry, len) {
+    const S = buildShip({ len: len || 12, wid: 4, crew: 0, holes: 8, cannons: 0, flag: 'pirate', hull: 0x2f2a25, hullDark: 0x1e1a16, trim: 0x3a3a3a, sail: 0x3a4a4a, figurehead: false, masts: [[-2, 4.5], [1.5, 6]], furled: true });
+    S.g.position.set(x, 0.6, z); S.g.rotation.set(0.1, ry, 0.55); parent.add(S.g); S.sails.length = 0;
+    // barnacles and weed on the hull
+    for (let i = 0; i < 8; i++) { const w = cone(S.g, 0.15, 1.2 + Math.random(), rnd(-1.5, 1.5), 2.2, rnd(-5, 5), pick([0x2e6b3a, 0x3f8f3a]), null, 4); w.rotation.z = rnd(-0.3, 0.3); }
+    return S;
+  }
+  function seaweed(parent, x, z, n) { for (let i = 0; i < (n || 3); i++) { const w = cone(parent, 0.16, 1.6 + Math.random() * 1.6, x + rnd(-0.6, 0.6), 0.8, z + rnd(-0.6, 0.6), pick([0x2e6b3a, 0x3f8f3a, 0x1f5a4a]), null, 4); w.userData.ph = Math.random() * 9; DEEP.weeds.push(w); } }
+  DEEP.weeds = [];
+  function buildDeep() {
+    const g = UW;
+    const floor = cyl(g, 60, 60, 1, 0, -0.5, 0, 0xb9a97a, { map: T.sand }, 28); floor.material.map.repeat.set(12, 12);
+    for (let i = 0; i < 26; i++) { const a = hash(i, 11) * Math.PI * 2, r = 6 + hash(i, 4) * 40; rock(g, 0.6 + hash(i, 6) * 1.6, Math.cos(a) * r, 0.4, Math.sin(a) * r, pick([0x6b6b6b, 0x5a6b6b, 0x7a7a7a])); }
+    for (let i = 0; i < 22; i++) { const a = hash(i, 21) * Math.PI * 2, r = 5 + hash(i, 8) * 38; seaweed(g, Math.cos(a) * r, Math.sin(a) * r, 3); }
+    // abandoned ships lying broken on the bottom
+    wreck(g, -18, -12, 0.6, 13); wreck(g, 20, -20, -1.1, 11); wreck(g, 12, 18, 2.4, 10);
+    // the drowned city: columns, arches, broken houses, a well, all north of the arena
+    const C = new THREE.Group(); C.position.set(0, 0, -20); g.add(C); DEEP.city = C;
+    for (let i = 0; i < 8; i++) { const x = -14 + i * 4; const h = 3 + hash(i, 5) * 3; cyl(C, 0.5, 0.6, h, x, h / 2, 0, 0x8a8f8a, null, 8); if (i % 2 === 0) box(C, 4.6, 0.6, 1.2, x + 2, h + 0.3, 0, 0x7a7f7a); }
+    [[-9, -6, 5, 3.5], [-2, -7, 6, 4.5], [6, -6, 5, 3], [12, -5, 4, 5]].forEach(([x, z, w, h], i) => { box(C, w, h, w * 0.9, x, h / 2, z, pick([0x7a7f7a, 0x8a8f8a, 0x6a6f6a])); box(C, w * 0.5, h * 0.4, 0.2, x - w * 0.2, h * 0.2, z + w * 0.45, 0x111111); if (i % 2) box(C, w * 0.3, h * 0.5, 0.2, x + w * 0.25, h * 0.6, z + w * 0.45, 0x0a2a3a); });
+    const arch = box(C, 1.0, 5, 1.0, -5, 2.5, -13, 0x8a8f8a); box(C, 1.0, 5, 1.0, -1, 2.5, -13, 0x8a8f8a); box(C, 5, 1, 1, -3, 5.5, -13, 0x8a8f8a);
+    cyl(C, 1.2, 1.3, 1, 4, 0.5, -12, 0x6a6f6a, null, 10); box(C, 2.4, 0.2, 0.2, 4, 2.2, -12, 0x5b3a1a); box(C, 1.6, 0.25, 0.25, 3.2, 1.6, -12, 0x5b3a1a);
+    // the mine: a timber-framed tunnel into a rock mound, ore cart on rails, gold glinting inside
+    const M = new THREE.Group(); M.position.set(22, 0, -4); g.add(M); DEEP.mine = M;
+    const mound = sph(M, 6, 0, 0, -3, 0x4a4a4a); mound.scale.set(1.4, 0.8, 1); box(M, 3.4, 3.2, 0.2, 0, 1.6, 2.4, 0x050505); box(M, 0.5, 3.4, 0.5, -1.7, 1.7, 2.6, 0x5b3a1a); box(M, 0.5, 3.4, 0.5, 1.7, 1.7, 2.6, 0x5b3a1a); box(M, 4.2, 0.5, 0.5, 0, 3.6, 2.6, 0x5b3a1a);
+    box(M, 0.15, 0.1, 9, -0.6, 0.05, 6, 0x555555); box(M, 0.15, 0.1, 9, 0.6, 0.05, 6, 0x555555); for (let i = 0; i < 8; i++) box(M, 1.6, 0.1, 0.25, 0, 0.02, 2 + i * 1.1, 0x5b3a1a);
+    box(M, 1.3, 0.9, 1.6, 0, 0.7, 5, 0x3a3a3a); [[-0.4, 0.3], [0.4, 0.3], [-0.4, -0.3], [0.4, -0.3]].forEach(([wx, wz]) => cyl(M, 0.22, 0.22, 0.1, wx, 0.22, 5 + wz * 2, 0x222222, null, 8).rotation.z = Math.PI / 2); for (let i = 0; i < 5; i++) sph(M, 0.2, rnd(-0.4, 0.4), 1.25, 5 + rnd(-0.5, 0.5), 0xf5b301, { emissive: 0xf5b301, ei: 0.5 });
+    for (let i = 0; i < 6; i++) { const gl = glow(M, rnd(-1.2, 1.2), rnd(0.5, 2.6), 2.3, 0xffe08a, 0.9, 0.7); DEEP.glints.push(gl); }
+    const ml = new THREE.PointLight(0xffc04a, 1.5, 12); ml.position.set(0, 1.8, 2.8); M.add(ml);
+    // light rays from above and drifting bubbles
+    for (let i = 0; i < 7; i++) { const r = new THREE.Mesh(new THREE.PlaneGeometry(2.2 + Math.random() * 2, 40), new THREE.MeshBasicMaterial({ color: 0x9fd8ff, transparent: true, opacity: 0.08, depthWrite: false, side: THREE.DoubleSide })); r.position.set(rnd(-25, 25), 20, rnd(-25, 10)); r.rotation.y = Math.random() * Math.PI; r.rotation.z = rnd(-0.2, 0.2); g.add(r); DEEP.rays.push(r); }
+    for (let i = 0; i < 40; i++) { const b = sph(g, 0.12 + Math.random() * 0.12, rnd(-30, 30), rnd(0, 30), rnd(-30, 15), 0xdff2ff, { transparent: true, opacity: 0.5, noShadow: true }); DEEP.bubbles.push(b); }
+    // a fake surface far overhead
+    const surf = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshBasicMaterial({ color: 0x5fb3e6, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false })); surf.rotation.x = Math.PI / 2; surf.position.y = 34; g.add(surf);
+    const dl = new THREE.HemisphereLight(0x5fb3e6, 0x0a2a3a, 0.9); g.add(dl);
+    // the huge shark that patrols the deep
+    const S = shark(g, 3.2); S.cx = 0; S.cz = -6; S.r = 26; S.sp = 0.16; S.depth = 14;
+    // our diver and the rowboat he carries down over his head
+    DEEP.avatar = pirate({ captain: true }); DEEP.avatar.g.position.set(0, 0, 8); DEEP.avatar.g.rotation.y = Math.PI / 2; g.add(DEEP.avatar.g);
+    const boat = new THREE.Group(); DEEP.boat = boat; DEEP.avatar.head.add(boat); boat.position.set(0, 0.55, 0);
+    const hull = box(boat, 2.4, 0.6, 1.1, 0, 0, 0, 0x5b3a1a); const hull2 = box(boat, 2.2, 0.3, 0.9, 0, 0.35, 0, 0x6b4423); box(boat, 0.2, 0.7, 1.2, 1.2, 0.05, 0, 0x5b3a1a).rotation.z = 0.3; [-0.6, 0.3].forEach(x => box(boat, 0.15, 0.1, 1.0, x, 0.42, 0, 0x8a6a3a));
+  }
+  buildDeep();
+  function spawnSkeletons(n) {
+    DEEP.skels.forEach(s => UW.remove(s.g)); DEEP.skels = [];
+    for (let i = 0; i < n; i++) { const s = skeleton({}); const a = -Math.PI * 0.15 - (i / (n - 1)) * Math.PI * 0.7; const r = 14 + (i % 2) * 4; s.g.position.set(Math.cos(a) * r, -1.2, -6 + Math.sin(a) * r); s.speed = 0.9 + Math.random() * 0.5; s.rise = 1.5 + i * 0.7; UW.add(s.g); DEEP.skels.push(s); }
+    const c = skeleton({ captain: true }); c.g.position.set(0, -1.4, -22); c.speed = 0.55; c.rise = 6; UW.add(c.g); DEEP.skels.push(c); DEEP.captain = c;
+  }
+  function stepDeep(t, dt) {
+    DEEP.bubbles.forEach(b => { b.position.y += dt * (0.8 + b.geometry.parameters.radius * 3); b.position.x += Math.sin(t * 2 + b.position.z) * dt * 0.3; if (b.position.y > 33) b.position.y = 0.3; });
+    DEEP.rays.forEach((r, i) => { r.material.opacity = 0.06 + Math.sin(t * 0.7 + i) * 0.03; });
+    DEEP.weeds.forEach(w => { w.rotation.z = Math.sin(t * 1.4 + w.userData.ph) * 0.18; });
+    DEEP.glints.forEach((gl, i) => { gl.material.opacity = 0.3 + Math.abs(Math.sin(t * 2.3 + i * 1.7)) * 0.6; });
+    if (DEEP.avatar) idlePirate(DEEP.avatar, t, dt);
+    const av = DEEP.avatar.g.position;
+    DEEP.skels.forEach(s => {
+      if (s.down || !s.alive) return;
+      if (s.rise > 0) { s.rise -= dt; if (s.rise <= 0) { SFX.creak(); } const p = s.g.position; p.y = Math.min(0, p.y + dt * 0.5); if (Math.random() < dt * 3) puff(UW.localToWorld(new THREE.Vector3(p.x, 0.2, p.z)), new THREE.Vector3(0, 0.6, 0), 0.4, 0.8, 0xb9a97a, 0.7, 1, 1.4); if (s.rise > 0) return; }
+      s.g.position.y = Math.min(0, s.g.position.y + dt * 0.5);
+      if (DEEP.freeze) { s.walk = false; return; }
+      const d = av.clone().sub(s.g.position); d.y = 0; const len = d.length();
+      if (len > 2.2) { d.normalize(); s.g.position.addScaledVector(d, dt * s.speed * (DEEP.chasing ? 1 : 0.6)); s.g.rotation.y = Math.atan2(-d.z, d.x); s.walk = true; } else s.walk = false;
+      idlePirate(s, t, dt); s.armR.rotation.x = -0.6 + Math.sin(t * 3 + s.t) * 0.3;
+    });
+  }
+  const nearestSkel = () => DEEP.skels.filter(s => !s.down && s.alive && s.rise <= 0).sort((a, b) => a.g.position.distanceTo(DEEP.avatar.g.position) - b.g.position.distanceTo(DEEP.avatar.g.position))[0];
+  function chopSkel() {
+    const s = nearestSkel(); const A = DEEP.avatar;
+    if (!s) { wait(0.5, () => askQ()); return; }
+    // step in and swing
+    const from = A.g.position.clone(); const to = s.g.position.clone().lerp(from, 0.35); to.y = 0;
+    const d = s.g.position.clone().sub(from); A.g.rotation.y = Math.atan2(-d.z, d.x);
+    seq([[0.3, k => { A.g.position.lerpVectors(from, to, k); A.armR.rotation.x = -2.2 * k; }], [0.12, k => { A.armR.rotation.x = -2.2 + 3.2 * k; }], () => {
+      SFX.crack(); const wp = wpos(s.g); wp.y += 1;
+      s.hp--;
+      if (s === DEEP.captain && s.hp > 0) { emit(wp, new THREE.Vector3(0, 3, 0), 4, 0.8, ['e8e2d0', 'ffffff'], 6, 8, 0.4); banner(s.hp === 2 ? 'THE CAPTAIN! TWO MORE!' : 'ONE MORE CHOP!', 'white'); s.g.position.addScaledVector(d.normalize(), 1.5); wait(1.2, () => askQ()); return; }
+      if (s === DEEP.captain) return captainFalls(s);
+      // bones everywhere; then they crawl back together unless you hold the coin
+      emit(wp, new THREE.Vector3(0, 4, 0), 5, 1.4, ['e8e2d0', 'ffffff', 'd9d2c0'], 7, 22, 0.5); s.down = true; s.g.visible = false; s.walk = false;
+      const back = s.g.position.clone();
+      if (G.P.coin) { toast('The curse is broken. It stays down.'); }
+      else wait(4 + Math.random() * 2, () => { if (G.world !== 'deep' || DEEP.freeze) return; s.down = false; s.g.visible = true; s.g.position.copy(back); s.g.position.y = -1.3; SFX.creak(); DEEP.chasing = true; toast(pick(['It\'s getting back up!', 'The bones are crawling back together!', 'It just won\'t stay down!'])); });
+      wait(1.0, () => askQ());
+    }, [0.3, k => { A.armR.rotation.x = 1.0 * (1 - k); A.g.position.lerpVectors(to, from, k); }]]);
+  }
+  function captainFalls(c) {
+    const wp = wpos(c.g); wp.y += 1.6; SFX.yell(); const head = c.head; const hp = wpos(head);
+    // off comes the head; it rolls away, the body drops, and the coin spills out
+    c.g.remove(head); const hg = new THREE.Group(); hg.position.copy(hp); hg.add(head); head.position.set(0, 0, 0); scene.add(hg); c.alive = false;
+    blood(hp); tween(0.9, k => { hg.position.x = hp.x + 3 * k; hg.position.y = hp.y + 2 * k - 6 * k * k + (k > 0.7 ? 0 : 0); hg.rotation.z += 0.3; }, linear, () => { hg.position.y = wpos(UW).y + 0.3; });
+    tween(0.7, k => { c.g.rotation.x = k * 1.5; c.g.position.y = -0.4 * k; }, easeIn);
+    const coin = cyl(scene, 0.55, 0.55, 0.1, wp.x, wp.y, wp.z, 0xf5b301, { emissive: 0xf5b301, ei: 0.6, metal: 0.8, rough: 0.2 }, 16); coin.rotation.x = Math.PI / 2; box(coin, 0.3, 0.05, 0.3, 0, 0.06, 0, 0x111111); glow(scene, wp.x, wp.y, wp.z, 0xffe08a, 4, 0.7);
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; DEEP.freeze = true; banner('THE GOLDEN CURSE COIN!'); SFX.win();
+    DEEP.skels.forEach(s => { if (s !== c && !s.down) { tween(0.6, k => { s.g.rotation.x = k * 1.5; }, easeIn); s.walk = false; } });
+    let t0 = 0; tween(3.2, k => { t0 = k; coin.rotation.z += 0.08; coin.position.y = wp.y + 0.3 + Math.sin(k * 6) * 0.15; }, linear, () => {
+      scene.remove(coin); scene.remove(hg); const P = G.P; const first = !P.coin; P.coin = true; const gold = 120 + level() * 20; P.gold += gold; P.dives = (P.dives || 0) + 1; saveP(); purse();
+      $('#defend-title').textContent = first ? 'YOU BROKE THE CURSE!' : 'THE DEEP IS YOURS';
+      $('#defend-text').textContent = first ? 'The skeleton captain lost his head and dropped the Golden Curse Coin. With it in your pocket, chopped skeletons stay down for good. The drowned city and its gold mine are yours to plunder.' : 'The skeletons never learn. You cleared the drowned city again and hauled up more gold from the mine.';
+      $('#defend-loot').innerHTML = `<span>${$('#gold-w svg').outerHTML} +${gold}</span>${first ? `<span>${$('#coin-w svg').outerHTML} CURSE COIN</span>` : ''}`; show('ov-defend', true);
+    });
+  }
+  function skelAttack() {
+    const s = nearestSkel(); const A = DEEP.avatar;
+    if (!s) { wait(0.5, () => askQ()); return; }
+    const from = s.g.position.clone(); const to = A.g.position.clone().lerp(from, 0.3); to.y = 0; DEEP.chasing = true; SFX.creak();
+    seq([[0.5, k => { s.g.position.lerpVectors(from, to, k); s.armR.rotation.x = -2.2 * k; }], [0.12, k => { s.armR.rotation.x = -2.2 + 3.2 * k; }], () => {
+      SFX.hurt(); shakeCam(0.8); const wp = wpos(A.g); wp.y += 1.2; blood(wp); G.ourLives--; lives(ui.ourLives, G.ourLives, 5);
+      if (G.ourLives <= 0) return diverLost();
+      banner(pick(['IT GOT YOU!', 'WATCH THE SWORD!', 'CHOP FASTER!']), 'red');
+      tween(0.5, k => { s.g.position.lerpVectors(to, from, k); s.armR.rotation.x = 1.0 * (1 - k); }); wait(1.8, () => askQ());
+    }]);
+  }
+  function diverLost() {
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('SWIM FOR IT!', 'red'); DEEP.freeze = true;
+    const A = DEEP.avatar; tween(2.5, k => { A.g.position.y = 12 * k; A.g.rotation.x = 0.4; }, easeIn, () => {
+      $('#defend-title').textContent = 'THE SKELETONS CHASED YOU OFF'; $('#defend-text').textContent = 'You kicked for the surface and made it back to the boat. The drowned city is still down there, and so is the captain with his coin. Catch your breath and dive again.'; $('#defend-loot').innerHTML = ''; show('ov-defend', true);
+    });
+  }
+  // the dive: walk off the dock with the rowboat over your head and sink to the bottom
+  function startDive() {
+    if (G.world !== 'island') return; clearTweens(); show('ov-menu', false);
+    G.ourLives = 5; G.enemyLives = 0; G.missed = []; G.streak = 0; G.qLevel = Math.min(5, level() + 1); G.timerMax = Math.max(6, 15 - G.qLevel * 2); DEEP.freeze = false; DEEP.chasing = false;
+    const A = DEEP.avatar; A.g.position.set(0, 30, 8); A.g.rotation.set(0, Math.PI / 2, 0); A.alive = true; A.mode = null; DEEP.boat.visible = true; A.armL.rotation.x = -2.9; A.armR.rotation.x = -2.9; A.armLBase = -2.9; A.armRBase = -2.9;
+    spawnSkeletons(5); enterWorld('deep');
+    lives(ui.ourLives, 5, 5); ui.ourLives.querySelector('.lbl').textContent = 'YOU'; ui.enemyLives.hidden = true; ui.enemyName.textContent = 'THE CURSED CREW';
+    banner('THE CURSED DEEP', 'white'); SFX.splash();
+    const camFor = (y) => setCam(new THREE.Vector3(UW.position.x + 9, UW.position.y + y + 4, UW.position.z + 16), new THREE.Vector3(UW.position.x, UW.position.y + y + 1, UW.position.z + 2), false);
+    camFor(30); CAM.snap = true;
+    tween(6, k => { A.g.position.y = 30 * (1 - k); camFor(30 * (1 - k)); if (Math.random() < 0.6) puff(wpos(A.head).add(new THREE.Vector3(0, 0.8, 0)), new THREE.Vector3(0, 1.5, 0), 0.4, 1.2, 0xdff2ff, 0.4, 1, 1.2); }, easeInOut, () => {
+      // drop the boat, draw the sword
+      const bw = wpos(DEEP.boat); DEEP.boat.visible = false; const dropped = new THREE.Group(); dropped.position.set(A.g.position.x + 2.2, 0.5, A.g.position.z + 1.8); dropped.rotation.set(0.15, 0.6, Math.PI + 0.25); UW.add(dropped); box(dropped, 2.4, 0.5, 1.1, 0, 0, 0, 0x5b3a1a); box(dropped, 2.0, 0.25, 0.8, 0, 0.3, 0, 0x0a2a3a); box(dropped, 0.2, 0.7, 1.15, 1.2, 0.1, 0, 0x5b3a1a).rotation.z = 0.35; box(dropped, 0.2, 0.7, 1.15, -1.2, 0.1, 0, 0x5b3a1a).rotation.z = -0.35; DEEP.droppedBoat = dropped;
+      A.armLBase = 0.15; A.armRBase = -0.15; SFX.plank();
+      ui.qprompt.textContent = 'SKELETONS! ANSWER TO SWING YOUR SWORD!'; ui.ourLives.hidden = false; toast('Chop the skeletons. Chop the captain three times to take his head and his coin.'); wait(0.8, () => askQ());
+    });
+  }
+  function leaveDeep() { if (DEEP.droppedBoat) { UW.remove(DEEP.droppedBoat); DEEP.droppedBoat = null; } DEEP.skels.forEach(s => UW.remove(s.g)); DEEP.skels = []; }
+
+  /* ---------- UI helpers ---------- */
+  const ui = { hud: $('#hud'), qpanel: $('#qpanel'), qtext: $('#qtext'), qprompt: $('#qprompt'), choices: $('#choices'), qwhy: $('#qwhy'), banner: $('#banner'), toast: $('#toast'), ourLives: $('#our-lives'), enemyLives: $('#enemy-lives'), enemyName: $('#enemy-name'), timer: $('#timer'), timerW: $('#timer-w'), timerFill: $('#timer-fill'), islandBtns: $('#island-btns'), leave: $('#leave-w') };
+  const SHIP_ICON = '<svg viewBox="0 0 32 28" aria-hidden="true"><path d="M3 18 L29 18 L25 26 L7 26 Z" fill="#5b3a1a" stroke="#1a120b" stroke-width="1.5"/><rect x="15" y="3" width="2" height="15" fill="#3a2412"/><path d="M17 4 L27 12 L17 12 Z" fill="#f3e7c9" stroke="#1a120b" stroke-width="1.2"/><path d="M15 6 L7 12 L15 12 Z" fill="#f3e7c9" stroke="#1a120b" stroke-width="1.2"/></svg>';
+  function lives(el, n, max) { [...el.querySelectorAll('svg')].forEach(s => s.remove()); for (let i = 0; i < max; i++) { const w = document.createElement('span'); w.innerHTML = SHIP_ICON; const s = w.firstChild; if (i >= n) s.classList.add('gone'); el.appendChild(s); } }
+  let bannerT = null; function banner(txt, cls) { ui.banner.textContent = txt; ui.banner.className = 'px ' + (cls || ''); if (bannerT) clearTimeout(bannerT); if (txt) { ui.banner.classList.add('show'); bannerT = setTimeout(() => ui.banner.classList.remove('show'), 2400); } else ui.banner.classList.remove('show'); }
+  let toastT = null; function toast(txt) { ui.toast.textContent = txt; ui.toast.classList.add('show'); if (toastT) clearTimeout(toastT); toastT = setTimeout(() => ui.toast.classList.remove('show'), 2600); }
+  function bump(id) { const el = $('#' + id); el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 160); }
+  function purse() { const P = G.P; if (!P) return; $('#coin-w').hidden = !P.coin; $('#gold').textContent = P.gold; $('#wood').textContent = P.wood; $('#crew').textContent = P.crew; $('#pname').textContent = 'CAPTAIN ' + P.name.toUpperCase(); }
+  function show(id, on) { $('#' + id).hidden = !on; }
+  function saveP() { if (!G.P) return; const all = loadSaves(); all[G.P.name] = G.P; storeSaves(all); }
+  function level() { return Math.min(5, 1 + Math.floor(G.P.sunk / 2)); }
+
+  /* ---------- camera ---------- */
+  function setCam(pos, look, snap) { CAM.pos.copy(pos); CAM.look.copy(look); if (snap) { CAM.cur.copy(pos); CAM.curLook.copy(look); } }
+  function battleCam() { const c = new THREE.Vector3(-3, 2, -11); const r = 27, h = 9.5; setCam(new THREE.Vector3(c.x + Math.sin(G.battleYaw) * r, h, c.z + Math.cos(G.battleYaw) * r), c, false); }
+  function islandCam() { const R = ISL.radius; const d = R * 1.9 + 8, h = R * 0.95 + 6; setCam(new THREE.Vector3(Math.sin(G.camYaw) * d, h, Math.cos(G.camYaw) * d), new THREE.Vector3(0, 1.5, 0)); }
+  function stepCam(dt) { const k = CAM.snap ? 1 : Math.min(1, dt * 2.6); CAM.cur.lerp(CAM.pos, k); CAM.curLook.lerp(CAM.look, k); CAM.snap = false; camera.position.copy(CAM.cur); if (shake > 0.001) { camera.position.x += (Math.random() - .5) * shake; camera.position.y += (Math.random() - .5) * shake; shake *= Math.pow(0.02, dt); } camera.lookAt(CAM.curLook); sun.position.set(CAM.curLook.x - 18, 26, CAM.curLook.z + 12); sun.target.position.copy(CAM.curLook); }
+
+  /* ---------- worlds ---------- */
+  function enterWorld(w) {
+    G.world = w; timerOn = false; answering = false; banner(''); BW.visible = w === 'battle'; IW.visible = w === 'island' || w === 'defend' || w === 'plank'; HW.visible = w === 'house'; UW.visible = w === 'deep'; SW.visible = w === 'ship';
+    sea.visible = w !== 'house' && w !== 'deep' && w !== 'ship'; scene.fog.near = w === 'house' ? 300 : w === 'deep' ? 6 : 40; scene.fog.far = w === 'deep' ? 70 : (w === 'house' || w === 'ship') ? 1000 : 120; scene.fog.near = (w === 'house' || w === 'ship') ? 300 : scene.fog.near; scene.fog.color.setHex(w === 'deep' ? 0x0a3a55 : 0xa7d8f7);
+    const sk = w === 'deep' ? [0x03141f, 0x0a3a55, 0x0f5a80] : [0x2f7fd1, 0x8fd0f5, 0xe8f3fb]; skyMat.uniforms.top.value.setHex(sk[0]); skyMat.uniforms.mid.value.setHex(sk[1]); skyMat.uniforms.bottom.value.setHex(sk[2]); sunDisc.visible = w !== 'deep'; hemi.intensity = w === 'deep' ? 0.35 : 0.7; sun.intensity = w === 'deep' ? 0.6 : 1.35;
+    ui.islandBtns.hidden = w !== 'island'; ui.leave.hidden = w !== 'house'; $('#deck-w').hidden = w !== 'ship'; $('#btn-inside').hidden = w !== 'battle'; $('#hint').hidden = !(w === 'battle' || w === 'island'); ui.qpanel.hidden = true; ui.timerW.hidden = !(w === 'battle' || w === 'defend'); ui.enemyLives.hidden = !(w === 'battle' || w === 'defend'); ui.ourLives.hidden = !(w === 'battle' || w === 'defend'); ui.enemyName.textContent = '';
+    if (w === 'island') { playSong('island'); islandCam(); G.islandTime = 0; }
+    if (w === 'house') { playSong('island'); setCam(new THREE.Vector3(0.4, 83.2, 5.6), new THREE.Vector3(0, 81.4, -0.5), true); }
+    if (w === 'battle') { playSong('sea'); battleCam(); }
+    if (w === 'ship') { playSong('island'); setCam(new THREE.Vector3(SW.position.x + 0.3, SW.position.y + 2.2, SW.position.z + 8.4), new THREE.Vector3(SW.position.x, SW.position.y + 1.2, SW.position.z - 2), true); }
+    if (w === 'defend') playSong('british');
+    if (w === 'deep') playSong('deep');
+  }
+
+  /* ---------- the sea battle ---------- */
+  let timerOn = false, answering = false;
+  function startBattle(cfg, raidIdx) {
+    G.raidIdx = raidIdx == null ? -1 : raidIdx; G.enemy = cfg; G.ourLives = 5; G.enemyLives = 5; G.missed = []; G.streak = 0; makeQ.since = 0; clearTweens();
+    buildOurShip(); spawnEnemy(cfg); G.battleYaw = -0.32;
+    const lv = cfg.lv || level(); G.qLevel = lv; G.timerMax = Math.max(6, 16 - lv * 2);
+    enterWorld('battle'); CAM.snap = true;
+    lives(ui.ourLives, 5, 5); ui.ourLives.querySelector('.lbl').textContent = 'SHIP'; lives(ui.enemyLives, 5, 5); ui.enemyName.textContent = cfg.name + "'S SHIP";
+    banner(cfg.name + ' AHEAD!', 'red'); SFX.bell();
+    tween(3.6, k => { ENEMY.g.position.x = -55 + 55 * k; }, easeOut, () => { ui.qprompt.textContent = 'LOAD THE CANNON. ANSWER TO FIRE!'; askQ(); });
+  }
+  function askQ() {
+    if (G.world !== 'battle' && G.world !== 'defend' && G.world !== 'deep') return;
+    G.q = makeQ(G.P.mode, G.qLevel, G.missed); answering = true;
+    ui.qtext.innerHTML = G.q.text; ui.qwhy.textContent = G.q.repeat ? 'Here it is again. You can get it this time!' : ''; ui.qwhy.className = '';
+    ui.choices.innerHTML = ''; choices(G.q).forEach(v => { const b = document.createElement('button'); b.className = 'choice px'; b.textContent = v; b.addEventListener('click', () => answer(v, b)); ui.choices.appendChild(b); });
+    ui.qpanel.hidden = false; G.timeLeft = G.timerMax; timerOn = true; ui.timer.textContent = Math.ceil(G.timeLeft); ui.timer.classList.remove('hot');
+    if (OUR && OUR.gunner) OUR.gunner.mode = 'aim';
+  }
+  function stepTimer(dt) {
+    if (!timerOn || (G.world !== 'battle' && G.world !== 'defend' && G.world !== 'deep')) return; G.timeLeft -= dt; const shown = Math.max(0, Math.ceil(G.timeLeft)); if (ui.timer.textContent !== String(shown)) { ui.timer.textContent = shown; if (shown <= 3 && shown > 0) SFX.tick(); }
+    ui.timerFill.style.width = Math.max(0, G.timeLeft / G.timerMax * 100) + '%'; ui.timer.classList.toggle('hot', G.timeLeft < 4);
+    if (G.timeLeft <= 0) { timerOn = false; answer(null, null); }
+  }
+  function answer(v, btn) {
+    if (!answering) return; answering = false; timerOn = false; if (G.world !== 'battle' && G.world !== 'defend' && G.world !== 'deep') return;
+    [...ui.choices.children].forEach(b => { b.disabled = true; if (+b.textContent === G.q.ans) b.classList.add('right'); });
+    const right = v === G.q.ans;
+    if (right) { SFX.right(); ui.qwhy.textContent = pick(['FIRE!', 'Direct hit coming!', 'Aye, that\'s it!', 'Blast \'em!']); ui.qwhy.className = 'good'; G.streak++; }
+    else { SFX.wrong(); if (btn) btn.classList.add('wrong'); ui.qwhy.textContent = (v == null ? 'Too slow! ' : '') + G.q.why; ui.qwhy.className = 'bad'; G.streak = 0; const key = G.q.key; G.P.missCount[key] = (G.P.missCount[key] || 0) + 1; if (!G.q.repeat) { const again = Object.assign({}, G.q); again.repeat = false; G.missed.push(again); } saveP(); }
+    if (G.world === 'battle') right ? ourShot() : theirVolley(); else if (G.world === 'deep') right ? chopSkel() : skelAttack(); else right ? slingShot() : britVolley();
+  }
+  // our left cannon fires; the gunner touches it off
+  function ourShot() {
+    const c = OUR.cannons[0]; const side = 1; const target = ENEMY.g.localToWorld(new THREE.Vector3(ENEMY.W / 2 - 0.4, rnd(1.2, 2.3), rnd(-4, 4)));
+    if (OUR.gunner) { OUR.gunner.armR.rotation.x = -1.6; }
+    const extra = G.P.buildings.includes('shipyard') && G.streak % 3 === 0;
+    wait(0.35, () => {
+      if (!ENEMY || !OUR || G.world !== 'battle') return;
+      fireCannon(OUR, c, target, (t) => enemyHit(t, extra ? 1 : 0), { arc: 3 });
+      if (extra) wait(0.25, () => fireCannon(OUR, OUR.cannons[1], ENEMY.g.localToWorld(new THREE.Vector3(ENEMY.W / 2 - 0.4, rnd(1.2, 2.3), rnd(-3, 3))), (t) => enemyHit(t, 1), { arc: 3 }));
+    });
+  }
+  function enemyHit(t, extraDamage) {
+    fireball(t); splinters(t); SFX.boom(); shakeCam(0.3); addHole(ENEMY, 1);
+    const victims = ENEMY.crew.filter(p => p.alive && p !== ENEMY.captain && p !== ENEMY.lookout); if (victims.length) killPirate(pick(victims), Math.random() < 0.5 ? 1 : -1);
+    if (extraDamage && G.enemyLives > 1) { G.enemyLives--; toast('Second cannon! Double hit!'); }
+    G.enemyLives--; lives(ui.enemyLives, G.enemyLives, 5);
+    if (G.enemyLives <= 0) return enemySunk();
+    if (G.enemyLives === 2) addDeckFire(ENEMY, rnd(-1, 1), rnd(-3, 2));
+    OUR.crew.forEach(p => { if (p.alive) p.mode = 'cheer'; }); SFX.cheer();
+    wait(1.6, () => { OUR.crew.forEach(p => { p.mode = null; }); if (G.enemyLives > 0) askQ(); });
+  }
+  // the enemy's cannons answer a miss; our deck takes it
+  function theirVolley() {
+    ENEMY.crew.forEach(p => { if (p.alive) p.mode = 'cheer'; }); SFX.yell();
+    wait(0.9, () => {
+      if (!ENEMY || !OUR || G.world !== 'battle') return;
+      ENEMY.crew.forEach(p => { p.mode = null; });
+      portGuns(ENEMY, 1, 4).forEach((c, i) => wait(i * 0.18, () => { const local = new THREE.Vector3(rnd(-1.5, 1.5), OUR.deckY + 0.1, rnd(-4, 2)); const target = OUR.g.localToWorld(local.clone()); fireCannon(ENEMY, c, target, i === 1 ? (t) => ourHit(t, local) : (t) => { fireball(t); splinters(t); SFX.boom(); shakeCam(0.5); }, { arc: 4, dur: 1.0, shake: 0.1 }); }));
+    });
+  }
+  function ourHit(t, local) {
+    fireball(t); splinters(t); SFX.boom(); SFX.hurt(); shakeCam(1.1); addDeckFire(OUR, local.x, local.z);
+    const victims = OUR.crew.filter(p => p.alive && p !== OUR.gunner && p !== OUR.captain && p !== OUR.lookout); if (victims.length) killPirate(pick(victims), Math.random() < 0.5 ? 1 : -1);
+    G.ourLives--; lives(ui.ourLives, G.ourLives, 5);
+    if (G.ourLives <= 0) return weSank();
+    banner(pick(['WE\'RE HIT!', 'HOLD ON!', 'MAN THE PUMPS!']), 'red');
+    wait(2.2, () => askQ());
+  }
+  function enemySunk() {
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('SHE\'S GOING DOWN!'); SFX.win(); OUR.crew.forEach(p => { if (p.alive) p.mode = 'cheer'; });
+    sinkShip(ENEMY, () => {
+      const P = G.P; const lv = G.qLevel; const raid = G.raidIdx >= 0 ? RIVALS[G.raidIdx] : null;
+      const markets = P.buildings.filter(b => b === 'market').length, taverns = P.buildings.filter(b => b === 'tavern').length, mines = P.buildings.filter(b => b === 'mine').length;
+      const gold = 40 + lv * 15 + markets * 15 + mines * 25 + (raid ? 60 : 0), wood = 25 + lv * 10 + (raid ? 30 : 0), crew = 2 + taverns * 2;
+      P.gold += gold; P.wood += wood; P.crew += crew; P.sunk++; P.wins++; if (raid) P.raids[G.raidIdx] = (P.raids[G.raidIdx] || 0) + 1; saveP(); purse();
+      $('#win-text').textContent = raid ? `You sank ${raid.capt}'s ship and raided ${raid.name}. They lost a building and you took their treasure.` : `${G.enemy.name} is at the bottom of the sea. Your crew hauled the treasure aboard. ${crew} new guys joined you.`;
+      $('#win-loot').innerHTML = `<span>${$('#gold-w svg').outerHTML} +${gold}</span><span>${$('#wood-w svg').outerHTML} +${wood}</span><span>${$('#crew-w svg').outerHTML} +${crew}</span>`;
+      show('ov-win', true);
+    });
+  }
+  function weSank() {
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('ABANDON SHIP!', 'red'); ENEMY.crew.forEach(p => { if (p.alive) p.mode = 'cheer'; });
+    sinkShip(OUR, () => { const top = topMissed(4); $('#lose-missed').innerHTML = top.length ? top.map(k => `<span>${k}</span>`).join('') : ''; show('ov-lose', true); });
+  }
+  function topMissed(n) { const P = G.P; return Object.entries(P.missCount).sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, c]) => `${k.replace(/\+/, ' + ').replace(/-/, ' - ').replace(/×/, ' × ').replace(/÷/, ' ÷ ')} (${c})`); }
+
+  /* ---------- island life: build, raid, houses, the volcano ---------- */
+  function goIsland() {
+    show('ov-win', false); show('ov-lose', false); show('ov-defend', false); clearTweens(); leaveDeep(); ISL.builds.forEach(b => b.burning = false); if (BRIT.S) { IW.remove(BRIT.S.g); BRIT.S = null; }
+    buildOurShip(); rebuildIsland(); refreshSailors(); enterWorld('island'); purse(); CAM.snap = true; islandCam(); CAM.cur.copy(CAM.pos); CAM.curLook.copy(CAM.look);
+    // the British come knocking a little while after you get home, if you've been out sinking ships
+    const P = G.P; G.britishDue = (P.sunk >= 2 && P.sunk - P.lastBritish >= 2) ? 10 + Math.random() * 8 : 0; G.eruptDue = 45 + Math.random() * 60;
+  }
+  function openBuild() {
+    const P = G.P; const list = $('#build-list'); list.innerHTML = '';
+    const need = P.buildings.length * 2;
+    Object.entries(BUILDS).forEach(([type, B]) => {
+      const have = P.buildings.filter(b => b === type).length; const canAfford = P.gold >= B.gold && P.wood >= B.wood; const enoughCrew = P.crew >= need; const ok = canAfford && enoughCrew && !P.pending;
+      const b = document.createElement('button'); b.className = 'bcard'; b.disabled = !ok;
+      b.innerHTML = `<div class="nm">${B.name}${have ? ' ×' + have : ''}</div><div class="cost">${B.gold} gold · ${B.wood} wood · ${need} guys</div><div class="eff">${B.eff}</div>${P.pending ? '<div class="eff">Builder is busy.</div>' : !enoughCrew ? `<div class="eff">Need ${need} guys. You have ${P.crew}.</div>` : !canAfford ? '<div class="eff">Not enough loot yet.</div>' : ''}`;
+      b.addEventListener('click', () => { if (!ok) return; P.gold -= B.gold; P.wood -= B.wood; P.pending = { type, slot: P.buildings.length, total: 18, left: 18 }; saveP(); purse(); bump('gold-w'); bump('wood-w'); show('ov-build', false); placeScaffold(); SFX.coin(); toast('The builder got to work on your ' + B.name + '.'); });
+      list.appendChild(b);
+    });
+    show('ov-build', true);
+  }
+  function openRaid() {
+    const list = $('#raid-list'); list.innerHTML = '';
+    RIVALS.forEach((r, i) => { const b = document.createElement('button'); b.className = 'raid'; const n = G.P.raids[i] || 0; b.innerHTML = `<div><div class="nm">${r.name}</div><div class="dsc">${r.dsc}${n ? ` You've raided it ${n} time${n > 1 ? 's' : ''}; they've lost ${n} building${n > 1 ? 's' : ''}.` : ''}</div></div><div class="lv">CAPTAIN<br>${r.capt}<br>LEVEL ${r.lv}</div>`; b.addEventListener('click', () => { show('ov-raid', false); startBattle({ name: r.capt, flag: r.flag, hull: r.hull, sail: r.sail, crew: 12, holes: 13, lv: r.lv, big: r.lv >= 4 }, i); }); list.appendChild(b); });
+    show('ov-raid', true);
+  }
+  function openMenu() {
+    const P = G.P; $('#menu-stats').innerHTML = `<b>CAPTAIN</b><span>${P.name}</span><b>MATH</b><span>${$('[data-mode="' + P.mode + '"]').textContent}</span><b>LEVEL</b><span>${level()}</span><b>SHIPS SUNK</b><span>${P.sunk}</span><b>RAIDS WON</b><span>${Object.values(P.raids).reduce((a, b) => a + b, 0)}</span><b>ISLAND DEFENDED</b><span>${P.defended}</span><b>BUILDINGS</b><span>${P.buildings.length}</span>`;
+    const top = topMissed(8); $('#menu-missed').innerHTML = top.length ? top.map(k => `<span>${k}</span>`).join('') : '<span>None yet!</span>'; show('ov-menu', true);
+  }
+  let shipFrom = 'island';
+  function enterShip() { if (G.world !== 'island' && G.world !== 'battle') return; shipFrom = G.world; SFX.creak(); if (G.world === 'battle') { G.pausedQ = !ui.qpanel.hidden && answering; } enterWorld('ship'); }
+  function leaveShip() { if (shipFrom === 'battle') { enterWorld('battle'); CAM.snap = true; ui.timerW.hidden = false; ui.enemyLives.hidden = false; ui.ourLives.hidden = false; ui.enemyName.textContent = G.enemy.name + "'S SHIP"; if (G.pausedQ) { ui.qpanel.hidden = false; answering = true; G.timeLeft = G.timerMax; timerOn = true; } else if (ENEMY && ENEMY.alive && OUR && OUR.alive && G.enemyLives > 0 && G.ourLives > 0) wait(0.8, () => { if (G.world === 'battle' && !answering) askQ(); }); } else { enterWorld('island'); CAM.snap = true; } }
+  function enterHouse() { SFX.creak(); enterWorld('house'); }
+  function leaveHouse() { enterWorld('island'); CAM.snap = true; }
+
+  /* ---------- the British attack: defend the island with the giant slingshot ---------- */
+  function startDefense() {
+    if (G.world !== 'island') return; G.britishDue = 0; clearTweens(); show('ov-build', false); show('ov-raid', false); show('ov-menu', false);
+    BRIT.townHP = 5 + (G.P.buildings.includes('fort') ? 1 : 0); BRIT.lives = 5; G.enemyLives = 5; G.ourLives = BRIT.townHP; G.missed = []; G.streak = 0; G.qLevel = level(); G.timerMax = Math.max(6, 16 - G.qLevel * 2);
+    spawnBritish(); enterWorld('defend'); SFX.bell(); banner('THE BRITISH ARE COMING!', 'red');
+    const R = ISL.radius; setCam(new THREE.Vector3(4, 9.5, R - 9), new THREE.Vector3(4, 2.5, R + 26), false);
+    lives(ui.ourLives, G.ourLives, BRIT.townHP); ui.ourLives.querySelector('.lbl').textContent = 'TOWN'; lives(ui.enemyLives, 5, 5); ui.enemyName.textContent = 'THE BRITISH NAVY';
+    ISL.villagers.forEach(v => { v.target = new THREE.Vector3(rnd(-6, 8), 1.5, R - 6); v.pause = 0; });
+    tween(4, k => { BRIT.S.g.position.z = R + 60 - (34 * k); }, easeOut, () => {
+      ui.qprompt.textContent = 'MAN THE SLINGSHOT! ANSWER TO FIRE!';
+      if (G.P.buildings.includes('tower')) { toast('The watchtower saw them first. Free shot!'); slingFire(BRIT.S.g.localToWorld(new THREE.Vector3(0, 1.3, 0)), britHit); } else askQ();
+    });
+  }
+  function slingShot() { if (!BRIT.S) return; const target = BRIT.S.g.localToWorld(new THREE.Vector3(rnd(-1.2, 1.2), 1.3, rnd(-3, 3))); wait(0.3, () => { if (BRIT.S && G.world === 'defend') slingFire(target, britHit); }); }
+  function britHit(t) {
+    fireball(t); splinters(t); SFX.boom(); shakeCam(0.25); addHole(BRIT.S, t.x < BRIT.S.g.position.x ? -1 : 1);
+    const victims = BRIT.S.crew.filter(p => p.alive && p !== BRIT.S.captain); if (victims.length) killPirate(pick(victims), Math.random() < 0.5 ? 1 : -1);
+    G.enemyLives--; lives(ui.enemyLives, G.enemyLives, 5);
+    if (G.enemyLives <= 0) return britSunk();
+    if (G.enemyLives === 2) addDeckFire(BRIT.S, rnd(-1, 1), rnd(-3, 2));
+    wait(1.4, () => { if (G.world === 'defend') askQ(); });
+  }
+  function britVolley() {
+    SFX.yell(); wait(0.7, () => {
+      if (!BRIT.S || G.world !== 'defend') return;
+      BRIT.S.cannons.forEach((c, i) => wait(i * 0.2, () => {
+        const targets = ISL.builds.length ? ISL.builds : null; const b = targets ? pick(targets) : null;
+        const target = b ? b.g.localToWorld(new THREE.Vector3(rnd(-1, 1), 1.5, rnd(-1, 1))) : new THREE.Vector3(rnd(-6, 6), 1.6, rnd(-4, 4));
+        fireCannon(BRIT.S, c, target, i === 1 ? (t) => townHit(t, b) : (t) => { fireball(t); SFX.boom(); shakeCam(0.4); }, { arc: 7, dur: 1.3, shake: 0.05 });
+      }));
+    });
+  }
+  function townHit(t, b) {
+    fireball(t); splinters(t); SFX.boom(); SFX.hurt(); shakeCam(1.0); if (b) b.burning = true;
+    G.ourLives--; lives(ui.ourLives, G.ourLives, BRIT.townHP);
+    if (G.ourLives <= 0) return townLost();
+    banner(pick(['THEY HIT THE TOWN!', 'PUT OUT THE FIRE!', 'FIRE BACK!']), 'red'); wait(2.0, () => askQ());
+  }
+  function britSunk() {
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('THE BRITISH ARE SINKING!'); SFX.win(); ISL.villagers.forEach(v => v.mode = 'cheer');
+    sinkShip(BRIT.S, () => plankScene());
+  }
+  // the captured British captain walks the plank off our ship at the dock
+  function plankScene() {
+    G.world = 'plank'; const D = ISL.dockShip; const cap = pirate({ british: true, captain: true }); D.g.add(cap.g); const pl = ISL.plank.position;
+    cap.g.position.set(-D.W / 2 + 0.3, D.deckY + 0.06, pl.z); cap.g.rotation.y = Math.PI; cap.walk = true;
+    const guard = D.crew[0]; if (guard) { guard.g.position.set(-D.W / 2 + 1.4, D.deckY + 0.06, pl.z); guard.g.rotation.y = Math.PI; guard.mode = 'aim'; }
+    const camPos = D.g.localToWorld(new THREE.Vector3(-D.W / 2 - 7, D.deckY + 3.5, pl.z + 6)); const camLook = D.g.localToWorld(new THREE.Vector3(-D.W / 2 - 1.5, D.deckY + 1, pl.z));
+    setCam(camPos, camLook, false); banner('WALK THE PLANK!', 'white'); SFX.plank();
+    const x0 = cap.g.position.x, x1 = -D.W / 2 - 2.6;
+    seq([[2.6, k => { cap.g.position.x = x0 + (x1 - x0) * k; idlePirate(cap, G.t, 0.016); }, linear], () => { cap.walk = false; SFX.yell(); }, [0.8, k => { cap.g.position.x = x1 + 0.6 * k; cap.g.position.y = D.deckY + 0.06 + 1.2 * k - 5 * k * k; cap.g.rotation.z = k * 2.2; }, linear], () => { const w = wpos(cap.g); splash(new THREE.Vector3(w.x, SEA_Y, w.z)); SFX.splash(); cap.g.visible = false; ISL.villagers.forEach(v => v.mode = null); }, [1.0, () => {}]], () => {
+      const P = G.P; const gold = 60 + level() * 10, wood = 30; P.gold += gold; P.wood += wood; P.defended++; P.lastBritish = P.sunk; saveP(); purse();
+      $('#defend-title').textContent = 'YOU HELD THE ISLAND!'; $('#defend-text').textContent = 'The British ship is on the bottom and their captain took a swim. Your crew grabbed the loot floating off the wreck.';
+      $('#defend-loot').innerHTML = `<span>${$('#gold-w svg').outerHTML} +${gold}</span><span>${$('#wood-w svg').outerHTML} +${wood}</span>`; show('ov-defend', true);
+    });
+  }
+  function townLost() {
+    ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('THEY LOOTED THE TOWN!', 'red'); SFX.hurt();
+    wait(2.5, () => { const P = G.P; const lost = Math.floor(P.gold * 0.3); P.gold -= lost; P.lastBritish = P.sunk; saveP(); purse(); tween(3, k => { BRIT.S.g.position.z += 30 * 0.016; }, linear);
+      $('#defend-title').textContent = 'THE BRITISH GOT AWAY'; $('#defend-text').textContent = `They set fire to your town and sailed off with ${lost} gold. Your guys are already putting the fires out. Build a FORT and a WATCHTOWER to hold them off next time.`; $('#defend-loot').innerHTML = `<span>${$('#gold-w svg').outerHTML} -${lost}</span>`; show('ov-defend', true); });
+  }
+
+  /* ---------- input: drag to look around the island, tap a house to go in ---------- */
+  const ray = new THREE.Raycaster(); const ptr = { down: false, x: 0, y: 0, moved: 0 };
+  canvas.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; });
+  canvas.addEventListener('pointermove', e => { if (!ptr.down) return; const dx = e.clientX - ptr.x; ptr.moved += Math.abs(dx) + Math.abs(e.clientY - ptr.y); ptr.x = e.clientX; ptr.y = e.clientY; if (G.world === 'island') { G.camYaw += dx * 0.006; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + dx * 0.006, -1.5, 1.5); battleCam(); } });
+  window.addEventListener('pointerup', e => {
+    if (!ptr.down) return; ptr.down = false; if (ptr.moved > 8 || G.world !== 'island') return;
+    const r = canvas.getBoundingClientRect(); const m = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(m, camera); if (ISL.dockShip && ray.intersectObject(ISL.dockShip.g, true).length) return enterShip(); const hits = ray.intersectObjects(ISL.builds.map(b => b.g), true); if (!hits.length) return;
+    let o = hits[0].object; while (o && !o.userData.type) o = o.parent; if (o && o.userData.enter) enterHouse(); else if (o) toast(BUILDS[o.userData.type].name + ': ' + BUILDS[o.userData.type].eff);
+  });
+  canvas.addEventListener('wheel', e => { if (G.world === 'island') { G.camYaw += e.deltaY * 0.002; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + e.deltaY * 0.002, -1.5, 1.5); battleCam(); } }, { passive: true });
+
+  /* ---------- buttons ---------- */
+  let chosenMode = 'add';
+  $('#modes').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; chosenMode = b.dataset.mode; [...$('#modes').children].forEach(x => x.classList.toggle('on', x === b)); });
+  function refreshSaves() { const all = loadSaves(); const names = Object.keys(all); $('#saves').innerHTML = names.length ? 'Captains on this device: ' + names.map(n => `<button class="hbtn" data-load="${n}" style="min-height:30px;font-size:8px;margin:2px">${n.toUpperCase()}</button>`).join(' ') : ''; }
+  $('#saves').addEventListener('click', e => { const b = e.target.closest('[data-load]'); if (!b) return; $('#name-in').value = b.dataset.load; const all = loadSaves(); const P = all[b.dataset.load]; if (P) { chosenMode = P.mode; [...$('#modes').children].forEach(x => x.classList.toggle('on', x.dataset.mode === P.mode)); } });
+  $('#btn-start').addEventListener('click', () => {
+    audioOn(); const name = ($('#name-in').value || '').trim() || 'Finn'; const all = loadSaves(); G.P = all[name] || newProfile(name, chosenMode); G.P.mode = chosenMode; saveP();
+    show('ov-title', false); ui.hud.hidden = false; purse(); goIsland(); toast('Welcome home, Captain ' + name + '. Tap SAIL & FIGHT to go sink a ship!');
+  });
+  $('#btn-to-island').addEventListener('click', goIsland);
+  $('#btn-lose-island').addEventListener('click', goIsland);
+  $('#btn-retry').addEventListener('click', () => { show('ov-lose', false); startBattle(G.enemy, G.raidIdx); });
+  $('#btn-build').addEventListener('click', openBuild); $('#btn-build-close').addEventListener('click', () => show('ov-build', false));
+  $('#btn-raid').addEventListener('click', openRaid); $('#btn-raid-close').addEventListener('click', () => show('ov-raid', false));
+  $('#btn-menu').addEventListener('click', openMenu); $('#btn-menu-close').addEventListener('click', () => show('ov-menu', false));
+  $('#btn-british').addEventListener('click', () => { show('ov-menu', false); startDefense(); });
+  $('#btn-erupt').addEventListener('click', () => { show('ov-menu', false); erupt(); });
+  $('#btn-switch').addEventListener('click', () => { show('ov-menu', false); saveP(); G.P = null; ui.hud.hidden = true; refreshSaves(); show('ov-title', true); });
+  $('#btn-sail').addEventListener('click', () => { const lv = level(); const cfg = Object.assign({}, CAPTAINS[lv - 1]); cfg.lv = lv; startBattle(cfg, -1); });
+  $('#btn-leave').addEventListener('click', leaveHouse);
+  $('#btn-dive').addEventListener('click', startDive);
+  $('#btn-myship').addEventListener('click', enterShip); $('#btn-inside').addEventListener('click', enterShip); $('#btn-deck').addEventListener('click', leaveShip);
+  $('#btn-defend-ok').addEventListener('click', goIsland);
+  $('#mute').addEventListener('click', () => { audioOn(); setMuted(!muted); }); setMuted(muted);
+  window.addEventListener('keydown', e => { if (ui.qpanel.hidden || !answering) return; const i = ['1', '2', '3'].indexOf(e.key); if (i >= 0 && ui.choices.children[i]) ui.choices.children[i].click(); });
+  $('#name-in').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-start').click(); });
+  refreshSaves();
+  window.__dbg = { enterShip, leaveShip, startDive, DEEP, fireball, puff, smoke, erupt, startDefense, enterHouse, leaveHouse, openBuild, goIsland, ISL, BRIT, scene, camera, get OUR() { return OUR; }, get ENEMY() { return ENEMY; } };
+
+  /* ---------- main loop ---------- */
+  function resize() { const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  window.addEventListener('resize', resize); resize();
+  let last = performance.now();
+  function frame(now) {
+    requestAnimationFrame(frame); const dt = Math.min(0.05, (now - last) / 1000); last = now; G.t += dt; const t = G.t;
+    if (sea.visible) stepSea(t);
+    if (G.world === 'battle') { if (OUR) { floatOn(OUR.g, t, 0.5, 0); stepShip(OUR, t, dt); } if (ENEMY) { floatOn(ENEMY.g, t, 0.5, 3); stepShip(ENEMY, t, dt); } }
+    else if (G.world === 'island' || G.world === 'defend' || G.world === 'plank') {
+      stepIsland(t, dt);
+      if (G.world === 'island') { G.islandTime += dt; if (G.britishDue && G.islandTime > G.britishDue && !document.querySelector('.overlay:not([hidden])')) startDefense(); if (G.eruptDue && G.islandTime > G.eruptDue) { G.eruptDue = G.islandTime + 70 + Math.random() * 60; erupt(); } }
+    }
+    else if (G.world === 'house') stepHouse(t, dt);
+    else if (G.world === 'ship') stepGunDeck(t, dt);
+    else if (G.world === 'deep') stepDeep(t, dt);
+    stepSharks(t, dt);
+    stepTweens(dt); stepParticles(dt); stepTimer(dt); stepCam(dt); renderer.render(scene, camera);
+  }
+  // the page starts on the island behind the title card so the first frame already shows the world
+  (function boot() { G.P = newProfile('Preview', 'add'); buildOurShip(); rebuildIsland(); refreshSailors(); enterWorld('island'); G.P = null; CAM.snap = true; stopSong(); requestAnimationFrame(frame); })();
+})();
+</script>
+
+
+<!-- Family Games: saves this game online with the family code, and can bring in saves from the old link. -->
+<style>#fg-bring{position:fixed;left:10px;bottom:10px;z-index:99999;font:700 13px -apple-system,sans-serif;padding:8px 12px;border:0;border-radius:8px;background:#fff6e0;color:#1a120b;box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:pointer}#fg-box{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.65);display:grid;place-items:center;padding:20px}#fg-panel{background:#fff6e0;color:#1a120b;border-radius:14px;padding:18px;width:min(100%,520px);display:grid;gap:10px;font:16px -apple-system,sans-serif}#fg-panel textarea{min-height:120px;font-size:16px}#fg-panel button{min-height:46px;font-weight:700;border-radius:8px;border:0;background:#2a9d4a;color:#fff;font-size:16px}#btn-british,#btn-erupt{display:none!important}</style>
+<script>
+(function () {
+  var GAME = "cannon-math-pirates", KEY = "cmp_saves_v1", AT = KEY + "-saved-at";
+  var URL_ = "https://sqxghmebflleejwvgvif.supabase.co/rest/v1/rpc/", API = "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8";
+  var store = window.localStorage, rawSet = Storage.prototype.setItem, timer = 0;
+  function rpc(fn, body) { return fetch(URL_ + fn, { method: "POST", headers: { apikey: API, "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  function code() {
+    var c = store.getItem("family-games-code");
+    if (c) return c;
+    var abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", n = crypto.getRandomValues(new Uint8Array(25)), out = "";
+    for (var i = 0; i < 25; i++) out += abc[n[i] % abc.length] + (i % 5 === 4 && i < 24 ? "-" : "");
+    rawSet.call(store, "family-games-code", out);
+    return out;
+  }
+  function push() {
+    clearTimeout(timer);
+    var raw = store.getItem(KEY); if (!raw) return;
+    var at = +store.getItem(AT) || Date.now();
+    rpc("save_progress", { p_code: code(), p_game: GAME, p_player: "family", p_state: { savedAt: at, data: JSON.parse(raw) }, p_client_updated: at }).catch(function () {});
+  }
+  Storage.prototype.setItem = function (k, v) {
+    rawSet.call(this, k, v);
+    if (this === store && k === KEY) { rawSet.call(store, AT, String(Date.now())); clearTimeout(timer); timer = setTimeout(push, 2500); }
+  };
+  addEventListener("pagehide", function () { if (timer) push(); });
+  function bringButton() {
+    var b = document.createElement("button"); b.id = "fg-bring"; b.textContent = "Bring saves from the old game";
+    b.onclick = function () {
+      var box = document.createElement("div"); box.id = "fg-box";
+      box.innerHTML = '<div id="fg-panel"><b>Bring your old saves</b><span>Open the old game, tap "Move my saves" there, then paste here. Tap outside to close.</span><textarea id="fg-in"></textarea><button id="fg-go">Bring them in</button><span id="fg-msg"></span></div>';
+      box.onclick = function (e) { if (e.target === box) box.parentNode.removeChild(box); };
+      document.body.appendChild(box);
+      box.querySelector("#fg-go").onclick = function () {
+        try { var text = box.querySelector("#fg-in").value.trim(); JSON.parse(text); store.setItem(KEY, text); push(); location.reload(); }
+        catch (e) { box.querySelector("#fg-msg").textContent = "That doesn't look like a save. Copy it again and paste the whole thing."; }
+      };
+    };
+    document.body.appendChild(b);
+  }
+  rpc("load_progress", { p_code: code(), p_game: GAME, p_player: "family" }).then(function (remote) {
+    var localAt = +store.getItem(AT) || 0;
+    if (remote && remote.savedAt > localAt) {
+      rawSet.call(store, KEY, JSON.stringify(remote.data)); rawSet.call(store, AT, String(remote.savedAt));
+      location.reload(); return;
+    }
+    if (store.getItem(KEY) && (!remote || localAt > remote.savedAt)) { if (!localAt) rawSet.call(store, AT, String(Date.now())); push(); }
+    if (!remote && (store.getItem(KEY) || '{}') === '{}') bringButton();
+  }).catch(function () { if ((store.getItem(KEY) || '{}') === '{}') bringButton(); });
+})();
+</script>
+</body></html>
