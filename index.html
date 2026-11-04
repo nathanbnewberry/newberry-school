@@ -1,4 +1,21 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Outlaw Run"><link rel="manifest" href="manifest.webmanifest"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><title>Elliot's Math Trail</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Outlaw Run"><link rel="manifest" href="manifest.webmanifest"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><script>
+// If the game can't draw itself, say so instead of leaving a blank screen.
+(function () {
+  var errs = [];
+  addEventListener("error", function (e) { if (e.message) errs.push(e.message + " (" + String(e.filename || "").split("/").pop() + ":" + e.lineno + ")"); });
+  addEventListener("unhandledrejection", function (e) { errs.push(String(e.reason && e.reason.message || e.reason)); });
+  setTimeout(function () {
+    var a = document.getElementById("app");
+    if (a && a.innerHTML.trim()) return;
+    var d = document.createElement("div");
+    d.setAttribute("style", "position:fixed;inset:0;z-index:9999;background:#fbf3df;color:#1c1712;padding:24px;font:18px/1.45 -apple-system,system-ui,sans-serif;overflow:auto");
+    d.innerHTML = '<h1 style="margin:0 0 8px">The game had trouble starting</h1><p>Everyone\'s progress is safe.</p><p><a href="fix.html" style="display:block;padding:18px;border-radius:12px;background:#2f7f4a;color:#fff;text-align:center;font-weight:800;text-decoration:none">Fix the game</a></p><p style="font-size:.85rem;word-break:break-word" id="booterr"></p>';
+    document.documentElement.appendChild(d);
+    document.getElementById("booterr").textContent = errs.length ? "What went wrong: " + errs.slice(0, 3).join(" | ") : "No error message. It may still be downloading.";
+  }, 8000);
+})();
+</script>
+<title>Elliot's Math Trail</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Schoolbell&family=Lexend:wght@400;600;800&display=swap">
@@ -1763,7 +1780,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "329542cfe861";
+const GAME_BUILD = "48483a2ee97f";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4574,11 +4591,11 @@ async function offlinePrepare() {
     const missing = [...voiceLines].filter((c) => !have.has(c));
     offlineReady.total = voiceLines.size; offlineReady.have = voiceLines.size - missing.length;
     const worker = async () => { while (missing.length && navigator.onLine !== false) { const c = missing.pop(); const r = await fetch(`voice/${c}.mp3`).catch(() => null); if (r?.ok) { await cache.put(new URL(`voice/${c}.mp3`, location.href).href, r.clone()); offlineReady.have++; } } };
-    await Promise.all([worker(), worker(), worker()]);
+    await Promise.all([worker(), worker()]);
     SFX_FILES.forEach((n) => fetch(`sfx/${n}.mp3`).catch(() => {}));
   } finally { offlineReady.running = false; }
 }
-setTimeout(offlinePrepare, 4000);
+setTimeout(offlinePrepare, 30000);
 addEventListener("online", offlinePrepare);
 </script>
 </body></html>
