@@ -768,6 +768,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   body[data-view="store"] .storewrap .item .btn,body[data-view="store"] .storewrap .item button{flex:none;width:auto;min-height:38px;padding:4px 7px;font-size:clamp(.72rem,1.100vw,.86rem);white-space:nowrap}
 }
 input,textarea{user-select:text;-webkit-user-select:text}
+.workednext[disabled]{opacity:.55;cursor:default}
 body.stillnow *{animation:none!important;transition:none!important}
 .stlasso{position:fixed;z-index:40;pointer-events:none;overflow:hidden}.stlasso svg{position:absolute;inset:0}.stpull{position:absolute;transform-origin:50% 60%}.stpull svg{position:static;width:100%;display:block}.stpull b{position:absolute;left:-20px;right:-20px;top:-32px;text-align:center;font:400 1.6rem var(--display);color:#c8202c}
 .stcount{position:absolute;left:176px;right:10px;top:8px;z-index:3;display:flex;align-items:center;gap:10px;background:rgba(251,243,223,.94);border:3px solid #5a3517;border-radius:14px;padding:4px 12px;color:#1c1712}.stnum{display:grid;justify-items:center;line-height:1;min-width:44px}.stnum b{font:800 1.7rem var(--body);color:#2f7f4a}.stnum.left b{color:#b4411a}.stnum small{font-size:.72rem;font-weight:700}.stbar{position:relative;flex:1;height:18px;border-radius:9px;background:#e3d4ad;overflow:hidden}.stbar i{display:block;height:100%;background:linear-gradient(#ffd96a,#e8a317);transition:width .35s ease}.stbar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(var(--seg) - 2px),rgba(90,53,23,.45) calc(var(--seg) - 2px) var(--seg))}
@@ -793,7 +794,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=352b97b42a"></script>
+<script src="lessons.js?v=fb47547feb"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1503,7 +1504,7 @@ function buildItems(l, r) {
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
   return [{ type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false, workedRead: false }); }
 function pageGap(l, r) {
   const lp = LP(l.id);
   if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
@@ -1795,7 +1796,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "250fdfec998f";
+const GAME_BUILD = "11b2c19c5c8e";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2641,7 +2642,7 @@ function narrateWorked() {
   const next = () => {
     if (id !== narrateId || !document.querySelector(".workedpage")) return;
     document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking"));
-    if (n >= lines.length) return;
+    if (n >= lines.length) { U.workedRead = true; const b = document.getElementById("workedNextBtn"); if (b) { b.disabled = false; b.textContent = nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"; } return; }
     const line = lines[n++]; line.el?.classList.add("speaking"); line.el?.scrollIntoView?.({ block: "nearest" });
     let moved = false; const go = () => { if (moved) return; moved = true; clearTimeout(narrateTimer); next(); };
     narrateTimer = setTimeout(go, 3000 + line.t.length * 110);
@@ -2659,7 +2660,7 @@ function solveView(l, q) {
     const log = U.stepLog || [];
     const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
     return hudRide(`<span class="chip">Worked out</span>`) + bubble("You did every step with me. Listen, and I'll show you how it worked.", "", true) +
-      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}<button class="btn go wide workednext" data-act="workedNext">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button></div><div class="workedside">${WHY[q.skill] ? `<p class="remember whybox"><b>Why it worked</b> ${esc(WHY[q.skill])}</p>` : ""}${divisionCheck(q, p.ans)}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol></div></div></div>`;
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}<button class="btn go wide workednext" id="workedNextBtn" data-act="workedNext" ${U.workedRead ? "" : "disabled"}>${U.workedRead ? (nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION") : "Listen first..."}</button></div><div class="workedside">${WHY[q.skill] ? `<p class="remember whybox"><b>Why it worked</b> ${esc(WHY[q.skill])}</p>` : ""}${divisionCheck(q, p.ans)}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol></div></div></div>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
