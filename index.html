@@ -1792,7 +1792,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8d50915e94f4";
+const GAME_BUILD = "525294688944";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1966,6 +1966,17 @@ function stateNext() {
   if (part === 2) { const cap = stateCapital(sg.name), others = shuffled(US_CAPITALS.filter((r) => r[0] !== sg.name)).slice(0, 3).map((r) => r[2]); sg.choices = shuffled([cap, ...others]); sg.picked = null; }
   lastSaid = "";
 }
+// Show and say the whole sentence, and only move on once it has finished. Tapping waits too, so nothing cuts it off.
+function stateSayThen(sg, text, then) {
+  sg.msg = text; sg.locked = true; lastSaid = text; U.lastBubble = text; render();
+  let fired = false, safety = 0;
+  const go = () => { if (fired) return; fired = true; clearTimeout(safety); endWords(); setTimeout(() => { if (U.view === "states" && U.sg === sg) then(); }, 400); };
+  const quiet = S.voice === false || S.muted;
+  safety = setTimeout(go, quiet ? 2800 : 9000);
+  if (quiet) return;
+  try { clearInterval(sayTimer); sayText = text; sayIdx = 0; markWord(); document.body.classList.add("talking"); playVoice(text, "david", go, (i) => { if (i !== sayIdx) { sayIdx = i; markWord(); } }); } catch (e) { go(); }
+}
+function stateMoveOn(sg) { stateNext(); render(); }
 function stateAnswered(correct) {
   const g = stateGame(), sg = U.sg, day = schoolDay();
   day.capTries++;
@@ -1975,7 +1986,6 @@ function stateAnswered(correct) {
   if (sg.part === 2 && correct) S.capitals = { ...S.capitals, [sg.name]: true };
   if (day.capTries % 10 === 0) { earn(10); banner(`${day.capTries} states today! +$10`); }
   save(); sg.locked = true;
-  sg.timer = setTimeout(() => { if (U.view !== "states" || U.sg !== sg) return; stateNext(); render(); }, correct ? 1500 : 2600);
 }
 function statesMapTap(e) {
   const sg = U.sg, svg = document.getElementById("statesMap");
@@ -1995,24 +2005,25 @@ function statesMapTap(e) {
   if (name === sg.name) {
     sg.flash = name; sg.locked = true;
     if (sg.misses < 2) { earn(2); coinPop(2); } else { earn(1); coinPop(1); }
-    beep(CHIME); sg.msg = `Yes! That's ${name}.`; lastSaid = ""; render();
-    stateAnswered(sg.misses < 2);
+    beep(CHIME); stateAnswered(sg.misses < 2);
+    stateSayThen(sg, `Yes, that's right. That's ${name}.`, () => stateMoveOn(sg));
     return;
   }
   sg.misses++; sg.flash = name; S.brave = (S.brave || 0) + 1;
   if (sg.misses === 1) { earn(1); coinPop(1); }
   beep(BLIP);
   sg.hint = sg.misses >= 2;
-  sg.msg = sg.hint ? `Good try! That's ${name}. Tap the gold one.` : `Good try! That's ${name}. Keep looking.`;
-  lastSaid = ""; save(); render();
+  save();
+  stateSayThen(sg, `Good try. That's ${name}. ${sg.hint ? "Tap the gold one." : "Keep looking."}`, () => { sg.locked = false; });
 }
 function statesPick(d) {
   const sg = U.sg; if (!sg || sg.locked || sg.part !== 2) return;
   const cap = stateCapital(sg.name), right = d.c === cap;
   sg.picked = d.c; sg.locked = true;
-  if (right) { earn(3); coinPop(3); beep(CHIME); sg.msg = `Yes! ${cap} is the capital of ${sg.name}.`; }
-  else { S.brave = (S.brave || 0) + 1; earn(1); coinPop(1); beep(BLIP); sg.msg = `Good try! The capital of ${sg.name} is ${cap}.`; }
-  lastSaid = ""; render(); stateAnswered(right);
+  if (right) { earn(3); coinPop(3); beep(CHIME); }
+  else { S.brave = (S.brave || 0) + 1; earn(1); coinPop(1); beep(BLIP); }
+  stateAnswered(right);
+  stateSayThen(sg, `${right ? "Yes, that's right." : "Good try."} The capital of ${sg.name} is ${cap}.`, () => stateMoveOn(sg));
 }
 function statesMapSvg(sg, interactive) {
   const g = stateGame();
@@ -3732,7 +3743,7 @@ function stepWrong(choice) {
   U.stepWrong++; if (!p.done) p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
   if (s.label && !p.done) { p.missBy = p.missBy || {}; p.missBy[s.label] = (p.missBy[s.label] || 0) + 1; }
   if (choice) U.off.push(choice);
-  U.msg = `${braveLine()} ${s.nudge}`; U.draft = ""; wrongFx(); save(); render();
+  U.msg = `${braveLine()} ${s.nudge}`; if (!lettersNow() || s.choices) U.draft = ""; wrongFx(); save(); render();
 }
 function checkStepTyped() {
   const q = curQ(), s = q.coach.steps[U.step];
@@ -3765,8 +3776,10 @@ function checkFinal() {
   if (q.choices) U.off.push(U.draft);
   U.lastWrong = U.draft; U.lastWrongFor = q.id; U.lastTrap = q.traps[sealed] || "";
   U.msg = `${braveLine()} ${q.traps[sealed] || q.rule || "Check it one step at a time, or tap Hint."}`;
-  U.draft = ""; U.cells = []; U.cellAt = 0; save();
-  if ((U.wrongNow >= 2 || q.choices) && !U.coachDone && q.coach) { const keep = U.msg; startCoach(); U.msg = null; U.lineFor = null; beep(BLIP); void keep; return; }
+  const typedOut = lettersNow() && !q.choices;
+  if (!typedOut) U.draft = "";
+  U.cells = []; U.cellAt = 0; save();
+  if (((U.wrongNow >= 2 && !typedOut) || q.choices) && !U.coachDone && q.coach) { const keep = U.msg; startCoach(); U.msg = null; U.lineFor = null; beep(BLIP); void keep; return; }
   render();
 }
 function checkProof() {
