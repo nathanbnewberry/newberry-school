@@ -625,6 +625,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .plist,.plearn{margin:0;padding:0 0 0 1.3em;display:grid;gap:12px}.plearn{list-style:none;padding:0}.plist p,.plearn p{margin:4px 0 0;line-height:1.35}.ptry{color:var(--gold)}.panel h3{margin:4px 0 0;font-size:1.05rem}
 .plog summary,.pwork summary{cursor:pointer;font-weight:800;min-height:40px;display:flex;align-items:center}.plog summary::before{content:"\25B6";font-size:.7em;margin-right:8px}.plog[open] summary::before{content:"\25BC"}.pq{min-width:150px}.pwork{min-width:92px}.pwork ol{margin:4px 0;padding-left:1.3em;font-size:.85rem;min-width:230px}.pwork p{margin:4px 0;font-size:.85rem}.pwork b{color:var(--gold)}
 @media (orientation:landscape) and (min-width:800px){.problempage .pgrid .pmath .pbody.pbody{font-size:clamp(2.6rem,8.4vh,4rem);line-height:1.12;align-self:center;white-space:nowrap}.problempage .pgrid .pmath .pbody.pbody:has(.vert>:nth-child(3)){font-size:clamp(1.9rem,5vh,2.7rem)}.problempage .pgrid .pmath .pbody.pbody:has(.vert>:nth-child(4)){font-size:clamp(1.4rem,3.8vh,2.2rem)}.pcell .pnum{font-size:1.25rem}.pword .pbody{font-size:clamp(1.15rem,2.9vh,1.4rem)}}
+.biscuit .again{display:grid;place-items:center;width:48px;height:48px;min-height:48px;padding:0;border-radius:50%;flex:none}.biscuit .again svg{width:26px;height:26px;color:#fff}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1217,7 +1218,8 @@ const MASCOT = `<svg class="mascot" viewBox="0 0 110 130" data-act="biscuitTap" 
   <ellipse class="mlid" cx="79" cy="34" rx="8" ry="8" fill="#c6ced8"/>
 </g></svg>`;
 const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
-const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again">Say it again</button></span></div></div>`; };
+const REPLAY_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.500-5.800" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"/><path d="M20.500 2.500v5.500H15" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again" aria-label="Say it again">${REPLAY_ICON}</button></span></div></div>`; };
 function titleView() {
   const res = S.resume?.lesson && LESSONS.find((l) => l.id === S.resume.lesson);
   if (res) return `<div class="console center"><p>Welcome back, Elliot. Everything you did is saved.</p><button class="btn go wide" data-act="resume" style="font-size:1.4rem;min-height:70px">KEEP GOING</button><button class="btn dark wide" data-act="start">Go to the map</button></div>`;
