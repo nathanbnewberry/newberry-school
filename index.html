@@ -1583,6 +1583,12 @@ function schoolDay(key = dateKey()) {
   return S.days[key];
 }
 const todaysItems = (d = new Date()) => schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()));
+const TIMERS = {
+  reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
+  piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
+};
+const timerNeed = (id) => (schoolPlan().find((x) => x.id === id)?.minutes || 30) * 60;
+const timerSecs = (id, day = schoolDay()) => { const t = TIMERS[id]; return Math.min(timerNeed(id), (day[t.secs] || 0) + (day[t.from] ? (Date.now() - day[t.from]) / 1000 : 0)); };
 const readingNeed = () => (schoolPlan().find((x) => x.kind === "reading")?.minutes || 30) * 60;
 const readingSecs = (day = schoolDay()) => Math.min(readingNeed(), day.readSecs + (day.readFrom ? (Date.now() - day.readFrom) / 1000 : 0));
 const mmss = (secs) => { const t = Math.max(0, Math.ceil(secs)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
@@ -1593,6 +1599,7 @@ function itemStatus(x, day = schoolDay()) {
     return { done: !!l && n >= must.length, label: n >= must.length ? `${l.town} finished` : `${l.town}: ${n} of ${must.length} sections`, pct: must.length ? n / must.length : 0 };
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
   return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : x.minutes ? `Play ${x.minutes} minutes, then tap here` : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
@@ -1627,7 +1634,7 @@ function schoolTick() {
   if (!LESSONS.length) return;
   const day = schoolDay(), items = todaysItems();
   FAMILY_GAMES.forEach((g) => { const secs = +localStorage.getItem(`family-play::${KID.id}::${dateKey()}::${g.id}`) || 0; if (secs) { day.gameSecs = day.gameSecs || {}; day.gameSecs[g.id] = secs; } });
-  if (day.readFrom && readingSecs(day) >= readingNeed()) { day.readSecs = readingNeed(); day.readFrom = 0; }
+  Object.entries(TIMERS).forEach(([id, t]) => { if (day[t.from] && timerSecs(id, day) >= timerNeed(id)) { day[t.secs] = timerNeed(id); day[t.from] = 0; } });
   const open = beforeGameCutoff();
   items.forEach((x) => {
     if (!itemStatus(x, day).done) return;
@@ -1657,7 +1664,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "e5456afba05a";
+const GAME_BUILD = "f884b25033f8";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1674,14 +1681,14 @@ setInterval(checkForUpdate, 300000);
 setTimeout(checkForUpdate, 3000);
 let readTimer = 0, wakeLock = null;
 function readingView() {
-  const day = schoolDay(), need = readingNeed(), secs = readingSecs(day), finished = secs >= need, r = 86, len = 2 * Math.PI * r;
+  const id = U.timerId || "reading", t = TIMERS[id], day = schoolDay(), need = timerNeed(id), secs = timerSecs(id, day), finished = secs >= need, r = 86, len = 2 * Math.PI * r;
   clearInterval(readTimer);
-  if (day.readFrom) readTimer = setInterval(() => {
+  if (day[t.from]) readTimer = setInterval(() => {
     const clock = document.getElementById("readClock"); if (!clock) return clearInterval(readTimer);
-    const now = readingSecs(); if (now >= readingNeed()) { clearInterval(readTimer); return render(); }
-    clock.textContent = mmss(readingNeed() - now); document.getElementById("readRing")?.setAttribute("stroke-dasharray", `${(len * now) / readingNeed()} ${len}`);
+    const now = timerSecs(id); if (now >= timerNeed(id)) { clearInterval(readTimer); return render(); }
+    clock.textContent = mmss(timerNeed(id) - now); document.getElementById("readRing")?.setAttribute("stroke-dasharray", `${(len * now) / timerNeed(id)} ${len}`);
   }, 500);
-  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>Reading Time</h2><span></span></div><div class="readwrap"><div class="readring"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="16"/><circle id="readRing" cx="100" cy="100" r="${r}" fill="none" stroke="${finished ? "#39d07a" : "#ffc42e"}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * secs) / need} ${len}" transform="rotate(-90 100 100)"/></svg><div class="readclock"><b id="readClock">${finished ? "&#10003;" : mmss(need - secs)}</b><small>${finished ? "All done!" : day.readFrom ? "Happy reading" : "minutes to read"}</small></div></div><div class="readside"><p>${finished ? `Great reading today, ${KID.name}! That's checked off.` : "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting."}</p>${finished ? `<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button>` : `<button class="btn ${day.readFrom ? "dark" : "go"} wide readbtn" data-act="readToggle">${day.readFrom ? "Pause" : secs > 0 ? "Keep reading" : "Start 30 minute timer".replace("30", String(Math.round(need / 60)))}</button>`}</div></div>`;
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(t.title)}</h2><span></span></div><div class="readwrap"><div class="readring"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="16"/><circle id="readRing" cx="100" cy="100" r="${r}" fill="none" stroke="${finished ? "#39d07a" : "#ffc42e"}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * secs) / need} ${len}" transform="rotate(-90 100 100)"/></svg><div class="readclock"><b id="readClock">${finished ? "&#10003;" : mmss(need - secs)}</b><small>${finished ? "All done!" : day[t.from] ? t.running : t.waiting}</small></div></div><div class="readside"><p>${finished ? esc(t.doneLine()) : t.intro}</p>${finished ? `<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button>` : `<button class="btn ${day[t.from] ? "dark" : "go"} wide readbtn" data-act="readToggle">${day[t.from] ? "Pause" : secs > 0 ? t.again : `Start ${Math.round(need / 60)} minute timer`}</button>`}</div></div>`;
 }
 const KID_COLORS = ["#c8202c", "#2f7f96", "#2a9d4a", "#a97808", "#7b5ea7", "#d9622b", "#1c5a8f"];
 function whoView() {
@@ -3831,15 +3838,16 @@ const acts = {
     const x = schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
     beep(BLIP);
     if (x.kind === "math") { const l = LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
-    if (x.kind === "reading") { U.view = "reading"; render(); return; }
+    if (x.kind === "reading" || x.id === "piano") { U.timerId = x.id; U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { stateOpen(); return; }
     if (x.kind === "game") { save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id]; save(); render();
   },
   async readToggle() {
     const day = schoolDay();
-    if (day.readFrom) { day.readSecs = readingSecs(day); day.readFrom = 0; try { wakeLock?.release(); } catch (e) {} wakeLock = null; }
-    else { day.readFrom = Date.now(); try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (e) {} }
+    const id = U.timerId || "reading", t = TIMERS[id];
+    if (day[t.from]) { day[t.secs] = timerSecs(id, day); day[t.from] = 0; try { wakeLock?.release(); } catch (e) {} wakeLock = null; }
+    else { day[t.from] = Date.now(); try { wakeLock = await navigator.wakeLock?.request("screen"); } catch (e) {} }
     beep(BLIP); save(); render();
   },
   planToggle(d) { const x = schoolPlan().find((y) => y.id === d.id); if (x) { x.on = !x.on; save(); render(); } },
