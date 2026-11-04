@@ -726,7 +726,15 @@ body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;o
 .spellside{display:flex;flex-direction:column;gap:6px;min-height:0}.spellhelp{margin:0;text-align:center;font-size:.85rem;opacity:.8}
 .spellword{display:flex;justify-content:center;align-items:center;min-height:56px;font:400 clamp(2.2rem,8vh,3.4rem) var(--display);color:#ffd23f;letter-spacing:.06em}
 .spellslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.spellslots span{display:grid;place-items:center;width:clamp(36px,6vh,50px);height:clamp(42px,7vh,56px);border-radius:8px;background:var(--paper);color:#1c1712;font-size:1.6rem;font-weight:800;border-bottom:4px solid #b9ad96}.spellslots span.on{background:#c9f0d3;border-color:#1f9a4f}.spellslots span.hinted{color:#a97808;background:#fff3b0}
-.spellkb{display:grid;gap:6px;margin-top:auto}.spellrow{display:flex;justify-content:center;gap:5px}.spellk{flex:1;max-width:84px;min-height:clamp(44px,8.5vh,62px);border-radius:10px;background:#2a2f48;color:#fff;font-size:1.35rem;font-weight:800;text-transform:lowercase;cursor:pointer;box-shadow:0 3px 0 #12142b;touch-action:manipulation}.spellk:active{transform:translateY(2px)}.spellk.wide{max-width:110px;font-size:1.05rem;flex:1.4}.spellk.go{background:#39d07a;color:#12142b}
+.spellkb{display:grid;gap:clamp(7px,1.500vh,11px);margin-top:auto;padding:clamp(7px,1.500vh,11px) 4px;background:#d1d4db;border-radius:12px}
+.spellrow{display:flex;justify-content:center;gap:clamp(3px,.6vw,6px)}.spellrow.inset{padding:0 5%}
+.spellgap{flex:1.400}
+.spellk{flex:1;min-width:0;display:grid;place-items:center;padding:0;min-height:clamp(38px,7.800vh,56px);border:0;border-radius:6px;background:#fff;color:#000;font:400 clamp(1.15rem,3.400vh,1.65rem) -apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;text-transform:none;cursor:pointer;box-shadow:0 1px 0 #898a8d;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.spellk:active{background:#e4e5e8;transform:none}
+.spellk.fn{background:#abb0ba}.spellk.fn:active{background:#fff}
+.spellk.back{flex:1.400}.spellk.back svg{width:28px;height:20px}
+.spellk.space{flex:5;font-size:clamp(.9rem,2.400vh,1.1rem)}.spellk.ret{flex:2;font-size:clamp(.9rem,2.400vh,1.1rem)}
+.spellk.ret.go{background:#0a84ff;color:#fff}.spellk.ret.go:active{background:#0066cc}
 body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
 @media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}.spellgame{grid-template-columns:1fr}.spellscene{height:30vh}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
@@ -1675,7 +1683,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "e6ffed3bf56f";
+const GAME_BUILD = "d2cd9a953a71";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1976,7 +1984,9 @@ function spellGoal(clean) {
 }
 function spellKey(d) {
   const sp = U.sp; if (!sp?.item || sp.locked) return;
-  const k = d.k, it = sp.item, r = spellRec(it.w);
+  const k = d.k === "RETURN" && sp.mode === "bee" ? "DONE" : d.k, it = sp.item, r = spellRec(it.w);
+  if (k === "SPACE") { beep(KEY_TAP); return; }
+  if (k === "RETURN") { beep(KEY_TAP); spellSay(); return; }
   if (sp.mode === "bee") {
     if (k === "DEL") sp.typed = sp.typed.slice(0, -1);
     else if (k === "DONE") {
@@ -1991,7 +2001,7 @@ function spellKey(d) {
     } else if (sp.typed.length < it.w.length + 3) sp.typed += k;
     beep(KEY_TAP); render(); return;
   }
-  if (k === "DEL") return;
+  if (k === "DEL") { if (sp.typed) { sp.typed = sp.typed.slice(0, -1); sp.hint = false; sp.shake = false; beep(KEY_TAP); render(); } return; }
   if (sp.level === 1 && !sp.hidden) sp.hidden = true;
   if (k === it.w[sp.typed.length]) {
     sp.typed += k; sp.shake = false; sp.hint = false; beep(KEY_TAP);
@@ -2017,9 +2027,11 @@ function spellingView() {
   setTimeout(spellScene, 0);
   const show = sp.mode === "practice" && !sp.hidden;
   const say = sp.mode === "bee" ? sp.beeMsg || SPELL_LINES.bee : sp.scored ? "Nice spelling. Now take your shot." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
-  const kb = ["qwertyuiop", "asdfghjkl", "zxcvbnm"].map((row, n) => `<div class="spellrow">${n === 2 && sp.mode === "bee" ? `<button class="spellk wide" data-act="spellKey" data-k="DEL">&#9003;</button>` : ""}${row.split("").map((c) => `<button class="spellk" data-act="spellKey" data-k="${c}">${c}</button>`).join("")}${n === 2 && sp.mode === "bee" ? `<button class="spellk wide go" data-act="spellKey" data-k="DONE">Done</button>` : ""}</div>`).join("");
+  const letterKeys = (row) => row.split("").map((c) => `<button class="spellk" data-act="spellKey" data-k="${c}" aria-label="${c}">${c}</button>`).join("");
+  const backIcon = `<svg viewBox="0 0 28 20" aria-hidden="true"><path d="M9 1.500h15a2.500 2.500 0 0 1 2.500 2.500v12a2.500 2.500 0 0 1-2.500 2.500H9L1.500 10z" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/><path d="M12.500 6.500l7 7M19.500 6.500l-7 7" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg>`;
+  const kb = `<div class="spellrow">${letterKeys("qwertyuiop")}</div><div class="spellrow inset">${letterKeys("asdfghjkl")}</div><div class="spellrow"><span class="spellgap"></span>${letterKeys("zxcvbnm")}<button class="spellk fn back" data-act="spellKey" data-k="DEL" aria-label="Backspace">${backIcon}</button></div><div class="spellrow"><button class="spellk space" data-act="spellKey" data-k="SPACE" aria-label="Space">space</button><button class="spellk fn ret ${sp.mode === "bee" ? "go" : ""}" data-act="spellKey" data-k="RETURN" aria-label="Return">return</button></div>`;
   const count = sp.mode === "bee" ? `Bee: word ${sp.right.length + sp.missed.length + 1} of ${list.words.length}` : `${Math.min(day.spellWords || 0, SPELL_DAILY)} of ${SPELL_DAILY} words today &#183; ${mastered} of ${list.words.length} from memory`;
-  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<div class="spellgame"><div class="spellscene">${kickScene().replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"').replace('id="pitch"', 'id="spellPitch"')}</div><div class="spellside"><p class="statesbar">${count} &#183; ${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"}</p><div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><p class="spellhelp">Tap the letters, or use your keyboard.</p><div class="spellkb">${kb}</div></div></div>`;
+  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<div class="spellgame"><div class="spellscene">${kickScene().replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"').replace('id="pitch"', 'id="spellPitch"')}</div><div class="spellside"><p class="statesbar">${count} &#183; ${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"}</p><div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><p class="spellhelp">${sp.mode === "bee" ? "Tap return when you're done." : "Tap return to hear it again."}</p><div class="spellkb">${kb}</div></div></div>`;
 }
 function spellLog() {
   const list = spellList(), bees = spellBees();
@@ -3787,13 +3799,13 @@ function askAnswer(text) {
   return explainBetter("I'm not sure I caught that, so let me try this.");
 }
 let rec = null;
-// Browsers that support it hide their own bars after the first tap. Home Screen installs already run full screen.
+// Browsers only allow full screen after a tap or key press, so every tap or key asks again if it was lost. Home Screen installs already run full screen.
 function goFullscreen() {
   if (document.fullscreenElement || document.webkitFullscreenElement || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone) return;
   const el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
   try { const p = ask?.call(el); p?.catch?.(() => {}); } catch (e) {}
 }
-document.addEventListener("pointerup", goFullscreen);
+["pointerup", "touchend", "click", "keydown"].forEach((ev) => document.addEventListener(ev, goFullscreen, { capture: true }));
 // The iPad draws its own X in the top left corner when the game fills the screen, so buttons stay clear of it.
 const markFullscreen = () => document.documentElement.classList.toggle("fs", !!(document.fullscreenElement || document.webkitFullscreenElement));
 document.addEventListener("fullscreenchange", markFullscreen); document.addEventListener("webkitfullscreenchange", markFullscreen);
@@ -4197,7 +4209,8 @@ document.addEventListener("keydown", (e) => {
   if (U.view === "spelling" && U.sp?.item) {
     if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); if (!e.repeat) spellKey({ k: e.key.toLowerCase() }); }
     else if (e.key === "Backspace") { e.preventDefault(); spellKey({ k: "DEL" }); }
-    else if (e.key === "Enter") { e.preventDefault(); if (U.sp.mode === "bee") spellKey({ k: "DONE" }); }
+    else if (e.key === "Enter") { e.preventDefault(); spellKey({ k: "RETURN" }); }
+    else if (e.key === " ") e.preventDefault();
     return;
   }
   if (U.view === "game" && U.game?.kind === "kick" && kick?.phase === "aim") {

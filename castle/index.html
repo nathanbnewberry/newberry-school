@@ -2303,4 +2303,15 @@
   }
 })();
 </script>
+<script>
+// Browsers only allow full screen after a tap or key press, so each one asks again if it was lost.
+(function () {
+  function go() {
+    if (document.fullscreenElement || document.webkitFullscreenElement || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone) return;
+    var el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
+    try { var p = ask && ask.call(el); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+  }
+  ["pointerup", "touchend", "click", "keydown"].forEach(function (ev) { document.addEventListener(ev, go, true); });
+})();
+</script>
 </body></html>
