@@ -865,6 +865,43 @@ function rankHud() {
 const voiceSpoken = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)½/g, "$1 and a half").replace(/½/g, "one half").replace(/(\d)R(\d)/g, "$1 remainder $2").replace(/\s+/g, " ").trim();
 function voiceSentences(t) { return voiceSpoken(t).split(/(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it):)\s+/).map((x) => x.trim()).filter(Boolean); }
 function voiceClip(voice, sentence) { let h = 2166136261; const text = `${voice}|${sentence}`; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); } return `${voice[0]}${(h >>> 0).toString(36)}`; }
+const VOICE_ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+const VOICE_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+const VOICE_PLURAL = { 1: "ones", 2: "twos", 3: "threes", 4: "fours", 5: "fives", 6: "sixes", 7: "sevens", 8: "eights", 9: "nines", 10: "tens", 20: "twenties", 25: "twenty-fives", 50: "fifties", 100: "hundreds" };
+const VOICE_ORDINAL = { 1: "first", 2: "second", 3: "third", 4: "fourth", 5: "fifth", 6: "sixth", 7: "seventh", 8: "eighth", 9: "ninth", 10: "tenth" };
+const VOICE_PARTS = { 2: ["half", "halves"], 3: ["third", "thirds"], 4: ["fourth", "fourths"], 5: ["fifth", "fifths"], 6: ["sixth", "sixths"], 8: ["eighth", "eighths"], 10: ["tenth", "tenths"] };
+function voiceWhole(x) {
+  const out = [], small = (v) => { if (v >= 100) { out.push(`${VOICE_ONES[Math.floor(v / 100)]} hundred`); v %= 100; } if (v >= 20) { out.push(VOICE_TENS[Math.floor(v / 10)]); v %= 10; } if (v > 0) out.push(VOICE_ONES[v]); };
+  if (x === 0) return ["zero"];
+  if (x >= 1000000) { small(Math.floor(x / 1000000)); out.push("million"); x %= 1000000; }
+  if (x >= 1000) { small(Math.floor(x / 1000)); out.push("thousand"); x %= 1000; }
+  small(x);
+  return out;
+}
+function voiceNumber(raw) {
+  const [whole, dec] = raw.replace(/,/g, "").split(".");
+  return [...voiceWhole(+whole), ...(dec ? ["point", ...dec.split("").map((d) => VOICE_ONES[+d])] : [])];
+}
+// Every number becomes reusable words, so a new problem's numbers never need recording.
+function voiceToken(t) {
+  let m;
+  if ((m = t.match(/^\$(\d[\d,]*)(?:\.(\d\d))?$/))) { const d = +m[1].replace(/,/g, ""), c = m[2] ? +m[2] : 0; return [...voiceWhole(d), d === 1 ? "dollar" : "dollars", ...(c ? ["and", ...voiceWhole(c), c === 1 ? "cent" : "cents"] : [])]; }
+  if ((m = t.match(/^(\d+)\/(\d+)$/))) { const a = +m[1], b = +m[2], p = VOICE_PARTS[b]; return p ? [...voiceWhole(a), p[a === 1 ? 0 : 1]] : [...voiceWhole(a), "over", ...voiceWhole(b)]; }
+  if ((m = t.match(/^(\d{1,2}):(\d\d)$/))) { const h = +m[1], n = +m[2]; return [...voiceWhole(h), ...(n === 0 ? ["o'clock"] : n < 10 ? ["oh", VOICE_ONES[n]] : voiceWhole(n))]; }
+  if ((m = t.match(/^(\d+)(?:st|nd|rd|th)$/))) return VOICE_ORDINAL[+m[1]] ? [VOICE_ORDINAL[+m[1]]] : voiceWhole(+m[1]);
+  if ((m = t.match(/^(\d+)s$/))) return VOICE_PLURAL[+m[1]] ? [VOICE_PLURAL[+m[1]]] : voiceWhole(+m[1]);
+  if (t.endsWith("%")) return [...voiceNumber(t.slice(0, -1)), "percent"];
+  return voiceNumber(t);
+}
+function voicePieces(sentence) {
+  const clean = sentence.replace(/\s*=\s*\?/g, " equals what?").replace(/\s=\s/g, " equals ").replace(/\s\+\s/g, " plus ");
+  const re = /\$\d[\d,]*(?:\.\d\d)?|\d+\/\d+|\d{1,2}:\d\d|\d+(?:st|nd|rd|th)\b|\d+s\b|\d[\d,]*(?:\.\d+)?%?/g;
+  const out = [], tidy = (x) => { const p = x.replace(/[()]/g, " ").replace(/^[\s,.:;]+|[\s,.:;]+$/g, "").replace(/\s+/g, " "); if (/[a-z]/i.test(p)) out.push(p); };
+  let at = 0, m;
+  while ((m = re.exec(clean))) { tidy(clean.slice(at, m.index)); out.push(...voiceToken(m[0].replace(/,$/, ""))); at = m.index + m[0].length; }
+  tidy(clean.slice(at));
+  return out;
+}
 // VOICE-TEXT-END
 let ac = null, music = 0;
 // Recorded sounds. If one hasn't loaded yet, the game falls back to its old synthesized tone.
@@ -938,8 +975,7 @@ function followWords(t) {
   };
   sayTimer = setInterval(nextWord, 170 + parts[0].length * 58);
 }
-// Each sentence plays as its own recording. A sentence with no recording, like one with a typed number, uses the device voice.
-const VOICE_DEVICE = { david: { pitch: .8, rate: .95 }, nora: { pitch: 1.5, rate: 1.05 }, outlaw: { pitch: .7, rate: .95 } };
+// Each sentence plays as a recording, or as reusable pieces stitched together. With neither, the words just show on screen.
 let voiceLines = null, voiceRun = 0;
 const voiceEl = typeof Audio === "function" ? new Audio() : null;
 if (voiceEl) { voiceEl.preload = "auto"; voiceEl.setAttribute("playsinline", ""); }
@@ -955,41 +991,44 @@ function stopVoice() {
   voiceRun++;
   clearInterval(voiceTick);
   try { if (voiceEl) { voiceEl.onended = voiceEl.onerror = null; voiceEl.pause(); } } catch (e) {}
-  try { window.speechSynthesis?.cancel(); } catch (e) {}
 }
 let voiceTick = 0;
-function deviceSay(text, voice, done) {
-  if (!window.speechSynthesis) return done();
-  const u = new SpeechSynthesisUtterance(text), d = VOICE_DEVICE[voice] || VOICE_DEVICE.david;
-  u.pitch = d.pitch; u.rate = d.rate; u.onend = u.onerror = done;
-  speechSynthesis.speak(u);
+function voicePlan(sentence, voice) {
+  const whole = [voice, "david"].map((v) => voiceClip(v, sentence)).find((c) => voiceLines?.has(c));
+  if (whole) return [whole];
+  const clips = voicePieces(sentence).map((p) => voiceClip("david", p));
+  return clips.length && clips.every((c) => voiceLines?.has(c)) ? clips : null;
+}
+// Remembers lines nobody has recorded, so credits only go to ones a child actually reached.
+function noteVoiceMiss(sentence) {
+  if (!voiceLines?.size) return;
+  S.voiceMiss = S.voiceMiss || [];
+  if (S.voiceMiss.length < 300 && !S.voiceMiss.includes(sentence)) S.voiceMiss.push(sentence);
 }
 // Plays t in that character's voice. onWord(i) follows along, and done runs at the end.
 function playVoice(t, voice = "david", done = () => {}, onWord = null) {
   stopVoice();
-  const run = voiceRun, parts = voiceSentences(t), counts = parts.map((p) => p.split(/\s+/).length);
-  const shown = String(t).trim().split(/\s+/).length, spoken = counts.reduce((a, b) => a + b, 0) || 1;
+  const run = voiceRun, parts = voiceSentences(t), queue = [], shown = String(t).trim().split(/\s+/).length;
+  parts.forEach((p) => {
+    const words = p.split(/\s+/).length, clips = voicePlan(p, voice);
+    if (!clips) { noteVoiceMiss(p); queue.push({ words }); return; }
+    clips.forEach((clip) => queue.push({ clip, words: words / clips.length }));
+  });
+  const spoken = queue.reduce((a, q) => a + q.words, 0) || 1;
   let n = 0, wordsBefore = 0;
   const next = () => {
     if (run !== voiceRun) return;
     clearInterval(voiceTick);
-    if (n >= parts.length) return done();
-    const part = parts[n], at = n; n++;
-    const before = wordsBefore; wordsBefore += counts[at];
-    const moveOn = () => { if (run === voiceRun) next(); };
-    const clip = [voice, "david"].map((v) => voiceClip(v, part)).find((c) => voiceLines?.has(c));
-    if (clip && voiceEl) {
-      voiceEl.onended = moveOn;
-      voiceEl.onerror = () => { if (run === voiceRun) { voiceEl.onerror = voiceEl.onended = null; deviceSay(part, voice, moveOn); } };
-      voiceEl.src = `voice/${clip}.mp3`;
-      voiceEl.play().catch(() => { if (run === voiceRun) deviceSay(part, voice, moveOn); });
-      if (onWord) voiceTick = setInterval(() => { const dur = voiceEl.duration; if (dur > 0) onWord(Math.floor((before + (voiceEl.currentTime / dur) * counts[at]) * shown / spoken)); }, 90);
-      const after = parts[n] && [voice, "david"].map((v) => voiceClip(v, parts[n])).find((c) => voiceLines?.has(c));
-      if (after) { const hint = new Audio(); hint.preload = "auto"; hint.src = `voice/${after}.mp3`; }
-    } else {
-      if (onWord) onWord(Math.floor(before * shown / spoken));
-      deviceSay(part, voice, moveOn);
-    }
+    if (n >= queue.length) return done();
+    const q = queue[n++], before = wordsBefore; wordsBefore += q.words;
+    if (!q.clip || !voiceEl) { if (onWord) onWord(Math.floor(wordsBefore * shown / spoken)); return next(); }
+    voiceEl.onended = next;
+    voiceEl.onerror = () => { if (run === voiceRun) { voiceEl.onerror = voiceEl.onended = null; next(); } };
+    voiceEl.src = `voice/${q.clip}.mp3`;
+    voiceEl.play().catch(() => { if (run === voiceRun) next(); });
+    if (onWord) voiceTick = setInterval(() => { const dur = voiceEl.duration; if (dur > 0) onWord(Math.floor((before + (voiceEl.currentTime / dur) * q.words) * shown / spoken)); }, 90);
+    const after = queue[n]?.clip;
+    if (after) { const hint = new Audio(); hint.preload = "auto"; hint.src = `voice/${after}.mp3`; }
   };
   next();
 }
