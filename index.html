@@ -1431,8 +1431,8 @@ function itemStatus(x, day = schoolDay()) {
   return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
 }
 // Video game time rewards getting the work done, not sitting for hours: finish early and you are free.
-// Each subject finished before the cutoff earns its share of the daily 30 minutes.
-const GAME_MINUTES = 30, GAME_CUTOFF_HOUR = 13;
+// Each subject finished before the cutoff earns 10 minutes, up to 30 a day.
+const GAME_MINUTES = 30, GAME_PER_SUBJECT = 10, GAME_CUTOFF_HOUR = 13;
 const beforeGameCutoff = (d = new Date()) => +new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", hourCycle: "h23" }).format(d) < GAME_CUTOFF_HOUR;
 function gameSecsLeft(d = new Date()) {
   const p = {}; new Intl.DateTimeFormat("en-US", { timeZone: "America/Los_Angeles", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23" }).formatToParts(d).forEach((x) => { p[x.type] = +x.value; });
@@ -1445,15 +1445,14 @@ setInterval(() => {
   el.textContent = `${gameClock(secs)} left`;
   if (!secs) render();
 }, 1000);
-const gameShare = (items) => items.length ? Math.round(GAME_MINUTES / items.length) : 0;
 function gameMinutes(items = todaysItems(), day = schoolDay()) {
   const counted = items.filter((x) => day.gameTime?.[x.id]).length;
-  return items.length ? Math.min(GAME_MINUTES, Math.round(GAME_MINUTES * counted / items.length)) : 0;
+  return Math.min(GAME_MINUTES, counted * GAME_PER_SUBJECT);
 }
 function gameTimeBar(items, day) {
   if (!items.length) return "";
   const mins = gameMinutes(items, day), open = beforeGameCutoff();
-  const note = mins >= GAME_MINUTES ? "All earned. Great work!" : open ? `Each subject earns ${gameShare(items)} minutes until 1:00` : "Earning stops at 1:00. Your work still counts.";
+  const note = mins >= GAME_MINUTES ? "All earned. Great work!" : open ? `Each subject earns ${GAME_PER_SUBJECT} minutes until 1:00` : "Earning stops at 1:00. Your work still counts.";
   return `<div class="gametime ${open ? "" : "closed"}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5" fill="currentColor"/><path d="M6 12.500h4M8 10.500v4" stroke="#12142b" stroke-width="1.800" stroke-linecap="round"/><circle cx="15.500" cy="11" r="1.300" fill="#12142b"/><circle cx="18" cy="14" r="1.300" fill="#12142b"/></svg><b>Video game time: ${mins} of ${GAME_MINUTES} minutes</b>${open && mins < GAME_MINUTES ? `<strong class="gameclock" id="gameClock">${gameClock(gameSecsLeft())} left</strong>` : ""}<small>${esc(note)}</small></div>`;
 }
 // Pays once for each thing he finishes today, and again when the whole day is done.
@@ -1466,7 +1465,7 @@ function schoolTick() {
   items.forEach((x) => {
     if (!itemStatus(x, day).done) return;
     let extra = "";
-    if (open && !day.gameTime?.[x.id]) { day.gameTime = day.gameTime || {}; day.gameTime[x.id] = true; extra = ` and ${gameShare(items)} game minutes`; save(); }
+    if (open && !day.gameTime?.[x.id]) { day.gameTime = day.gameTime || {}; const had = gameMinutes(items, day); day.gameTime[x.id] = true; const got = gameMinutes(items, day) - had; if (got) extra = ` and ${got} game minutes`; save(); }
     if (!day.paid[x.id]) { day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5${extra}`); beep(CHIME); }
   });
   if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); confetti(60); beep(FANFARE); banner("School's out! +$25"); }
