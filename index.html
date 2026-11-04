@@ -711,6 +711,16 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .statesdone{display:grid;gap:12px;justify-items:center;padding:12px}
 body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
 @media (orientation:portrait){.statespart2{grid-template-columns:1fr}body[data-view="states"] #app{overflow:auto}}
+.learnhint{margin-top:8px;width:100%}
+.revwrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:12px;flex:1;min-height:0}
+.revranch{display:flex;flex-direction:column;gap:8px;min-height:0}.revranch .ranch{display:block;width:100%;border-radius:12px}
+.revstats{margin:0;font-weight:700;text-align:center;font-size:.95rem}.revbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.revwork{overflow:auto;display:grid;gap:8px;align-content:start;background:var(--paper);color:#1c1712;border-radius:12px;padding:10px;min-height:0}
+.revsec h3{margin:0 0 4px;font-size:1.02rem}.revgrid{display:flex;flex-wrap:wrap;gap:6px}
+.revq{display:grid;justify-items:center;min-width:64px;min-height:50px;padding:4px 8px;border-radius:10px;background:#efe6d3;color:#1c1712;box-shadow:0 3px 0 #b9ad96;cursor:pointer;font:inherit}.revq b{font-size:.8rem;opacity:.7}.revq span{font-weight:800;font-size:1rem}.revq.done{background:#c9f0d3;box-shadow:0 3px 0 #1f9a4f}
+.revride{min-height:44px;text-align:left;padding:6px 12px;border-radius:10px;background:#efe6d3;color:#1c1712;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b9ad96}.revride.done{background:#c9f0d3;box-shadow:0 3px 0 #1f9a4f}
+body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
+@media (orientation:portrait){.revwrap{grid-template-columns:1fr}body[data-view="lessonReview"] #app{overflow:auto}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1627,7 +1637,19 @@ function schoolTick() {
   });
   if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); confetti(60); beep(FANFARE); banner("School's out! +$25"); }
 }
-const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="town" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
+function lessonReviewView() {
+  const l = curLesson(), lp = LP(l.id), must = l.rides.filter((r) => !optionalRide(r)), sections = must.filter((r) => rideDone(l, r)).length, built = ownedHere().length;
+  const allQ = l.problems.filter((q) => !PP(lp, q.id).given), doneQ = allQ.filter((q) => PP(lp, q.id).done).length, trophies = cityPrizes(l.id).length;
+  const rows = must.map((r) => {
+    const done = rideDone(l, r);
+    if (!r.problems) return `<button class="revride ${done ? "done" : ""}" data-act="reviewRide" data-id="${esc(r.id)}">${done ? "&#10003; " : ""}${esc(r.name)}</button>`;
+    return `<div class="revsec"><h3>${done ? "&#10003; " : ""}${esc(r.name)}</h3><div class="revgrid">${r.problems.map((id) => { const p = PP(lp, id); return `<button class="revq ${p.done ? "done" : ""}" data-act="reviewQ" data-id="${esc(id)}" data-r="${esc(r.id)}"><b>${esc(id)}</b><span>${p.done && p.ans ? esc(p.ans) : p.done ? "&#10003;" : "&#8230;"}</span></button>`; }).join("")}</div></div>`;
+  }).join("");
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; Lesson ${esc(l.bookLesson)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  ${bubble(`Here's everything you did in ${l.town}. Tap any problem to see it again.`, "", true)}
+  <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="ranch">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
+}
+const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
 function schoolView() {
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
@@ -1635,7 +1657,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "9372ed87170f";
+const GAME_BUILD = "e5456afba05a";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1920,6 +1942,7 @@ function townView() {
   return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button></span>${navRight()}</div>
   ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
   ${townMapSvg(l)}
+  ${l.problems.some((q) => PP(lp, q.id).done) ? `<button class="btn dark wide" data-act="lessonReview" data-id="${esc(l.id)}">See all the work and the ranch</button>` : ""}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
 
@@ -2199,7 +2222,7 @@ function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Yee-haw!", "Even I'm impressed, and I eat grass."])) +
-      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : LP(l.id).rides[U.ride] ? "BACK TO THE PROBLEMS" : "FINISH THIS SECTION"}</button><button class="btn dark wide" data-act="redoq">Practice it again</button><button class="link dk" data-act="closeq">See all the problems</button>`;
+      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : LP(l.id).rides[U.ride] ? "BACK TO THE PROBLEMS" : "FINISH THIS SECTION"}</button>${q.coach ? `<button class="btn go" data-act="explainAgain">Explain it, step by step</button>` : ""}<button class="btn dark wide" data-act="redoq">Practice it again</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
     const log = U.stepLog || [];
@@ -2214,7 +2237,7 @@ function solveView(l, q) {
       ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}</div>`;
   }
   if (U.mode === "coach") {
-    const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
+    const s = c.steps[U.step], txt = U.msg || [U.step === 0 ? U.coachIntro : "", s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
@@ -2265,7 +2288,7 @@ function rideView() {
   if (it.type === "match") return hudRide(pips) + bubble(U.msg || it.say, U.msg ? "shake" : "") + `<div class="console">${matchHtml(it.pairs)}</div>`;
   if (it.type === "note") return hudRide(pips) + bubble(it.say) + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}<button class="btn go wide" data-act="next">Sort the facts</button></div>`;
   if (it.type === "sort") return hudRide(pips) + bubble(U.msg || "Do you need this fact to answer the question?", U.msg ? "shake" : "") + `<div class="console"><p class="tag">The question</p><div class="ctx">${esc(it.context)}</div><p class="tag">The fact</p><div class="card pop">${esc(it.card)}</div><div class="sort"><button class="yes" data-act="sort" data-c="1">NEED IT</button><button class="no" data-act="sort" data-c="0">DON'T NEED IT</button></div></div>`;
-  if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}${it.visual ? visual(it.visual) : ""}<div class="ctx">${esc(it.ask)}</div>${it.visual ? "" : scratchHtml()}<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(it.extra || [])}</div>`;
+  if (it.type === "num") return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${it.context ? `<div class="ctx">${esc(it.context)}</div>` : ""}${it.visual ? visual(it.visual) : ""}<div class="ctx">${esc(it.ask)}</div>${it.visual ? "" : scratchHtml()}<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(it.extra || [])}${it.nudge ? `<button class="btn hintbtn learnhint" data-act="learnHint">Hint</button>` : ""}</div>`;
   return hudRide(pips) + bubble(U.msg || [it.say, it.ask].filter(Boolean).join(" "), U.msg ? "shake" : "") + `<div class="console">${visual(it.visual)}<div class="choices">${it.choices.map((c) => `<button data-act="learnPick" data-c="${esc(c)}" ${U.off.includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
 }
 const BRAND = [[0, 0], [3, 0], [0, 2]];
@@ -3252,9 +3275,18 @@ function winPrize(name, id) {
 }
 const curQ = () => (U.qid ? qOf(curLesson(), U.qid) : null);
 const curItem = () => U.items[U.i];
+function skillLink(q) {
+  const at = LESSONS.findIndex((l) => l.id === U.lesson);
+  for (const l of LESSONS.slice(0, Math.max(0, at)).reverse()) {
+    const ps = l.problems.filter((x) => x.skill === q.skill).map((x) => PP(LP(l.id), x.id)).filter((p) => p.done && !p.given);
+    if (ps.length) return `${ps.every(soloDone) ? `You got this kind on your own in ${l.town}.` : `You worked through this kind in ${l.town}.`} Same idea, new numbers.`;
+  }
+  return "";
+}
 function startCoach() {
   const q = curQ(), p = PP(LP(U.lesson), q.id);
   if (!q.coach) return;
+  U.coachIntro = skillLink(q);
   if (!p.done) p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
 }
 const unseal = (key, code) => (code.match(/.{4}/g) || []).map((h, i) => String.fromCharCode(parseInt(h, 16) ^ key.charCodeAt(i % key.length))).join("");
@@ -3705,7 +3737,13 @@ const acts = {
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
   leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
   mute() { S.muted = !S.muted; if (S.muted) stopMusic(); save(); render(); },
+  lessonReview(d) { stopVoice(); U.lesson = d.id; S.atTown = d.id; U.qid = null; U.view = "lessonReview"; W.theme = "west"; save(); beep(BLIP); render(); window.scrollTo(0, 0); },
+  reviewTown() { U.view = "town"; render(); window.scrollTo(0, 0); },
+  reviewRide(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
+  reviewQ(d) { const l = curLesson(); startRide(l, rideOf(l, d.r)); acts.openq({ id: d.id }); },
   town(d) {
+    const finished = LESSONS.find((l) => l.id === d.id);
+    if (finished && lessonFinished(finished) && U.view === "home") return acts.lessonReview(d);
     const go = () => { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); }, idx = LESSONS.findIndex((l) => l.id === d.id);
     S.atTown = d.id; save();
     if (U.view === "home" && idx >= 0) return trot("world", idx, worldPts(), go);
@@ -3866,7 +3904,9 @@ const acts = {
     if (U.shade.length === it.target) { earn(3); coinPop(3); confetti(14); beep(CHIME); }
     render();
   },
+  explainAgain() { acts.redoq(); startCoach(); },
   redoq() { resetItem(); U.earned = 0; U.tryHint = null; U.hintKey = null; U.qStart = Date.now(); beep(BLIP); render(); window.scrollTo(0, 0); },
+  learnHint() { const it = curItem(); if (it?.nudge) { U.msg = it.nudge; lastSaid = ""; beep(BLIP); render(); } },
   hint() {
     const q = curQ(); if (!q?.coach) return;
     { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
@@ -4035,8 +4075,8 @@ function arrange() {
 function render() {
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["who", "parent", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["who", "parent", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
