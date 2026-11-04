@@ -769,6 +769,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
 }
 input,textarea{user-select:text;-webkit-user-select:text}
 body[data-coach="1"] #topbar .saytext{font-size:clamp(1.02rem,2.3vh,1.2rem);line-height:1.25}
+.spcoach{min-height:44px;margin-top:6px;font-size:1.05rem}
 .ctx.stepask{font-size:clamp(1.25rem,2.9vh,1.65rem);font-weight:700;line-height:1.3}
 .workednext[disabled]{opacity:.55;cursor:default}
 body.stillnow *{animation:none!important;transition:none!important}
@@ -783,6 +784,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
 .offlinepill{padding:5px 12px;border-radius:10px;background:rgba(127,182,255,.18);border:2px solid #7fb6ff;font-size:.92rem;font-weight:700;text-align:center}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.scratch.big,.split.hasScratch>.left>.scratch.big{height:auto!important;grid-template-rows:auto auto minmax(0,1fr)!important}.scratch.big .spbigq{align-self:start}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1800,7 +1802,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "f85d0b69bcd1";
+const GAME_BUILD = "b0998a86d2dc";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2681,7 +2683,7 @@ function solveView(l, q) {
     const s = c.steps[U.step], txt = U.msg || [U.step === 0 ? U.coachIntro : "", s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
-      ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt stepask">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
+      ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt stepask">${esc(s.ask)}</div>${c.boards?.length ? (U.spBig ? scratchHtml() : `<button class="btn dark wide spcoach" data-act="spBig">Scratch paper</button>`) : scratchHtml()}
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
