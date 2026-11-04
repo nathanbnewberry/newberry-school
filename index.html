@@ -750,6 +750,9 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   body[data-view="store"] .storewrap .itemtext .sub{display:none}
   body[data-view="store"] .storewrap .item .btn,body[data-view="store"] .storewrap .item button{flex:none;width:auto;min-height:38px;padding:4px 7px;font-size:clamp(.72rem,1.100vw,.86rem);white-space:nowrap}
 }
+.linkwrap{display:grid;place-items:center;flex:1;padding:16px}.linkcard{display:grid;gap:12px;width:min(100%,480px);padding:22px;border-radius:16px;background:var(--paper);color:#1c1712;text-align:center}.linkcard h1{margin:0;font-size:clamp(1.7rem,5vh,2.3rem)}.linkcard p{margin:0}.linkcard input{min-height:54px;font-size:18px;padding:8px 14px;border-radius:10px;border:2px solid #b9ad96;text-align:center;background:#fff;color:#1c1712}.linkmsg{font-size:.95rem;color:#5d564b}.linkcard .link{justify-self:center;color:#5d564b}
+body[data-view="familyLink"] #app{display:flex;flex-direction:column}
+.offlinepill{padding:5px 12px;border-radius:10px;background:rgba(127,182,255,.18);border:2px solid #7fb6ff;font-size:.92rem;font-weight:700;text-align:center}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -828,7 +831,9 @@ async function loadRoster() {
   if (roster.pin && !localStorage.getItem("family-pin")) localStorage.setItem("family-pin", roster.pin);
   return true;
 }
+const familyLinked = () => { try { return localStorage.getItem("family-linked") === "1"; } catch (e) { return false; } };
 function familyCode() {
+  if (familyLinked()) { const c = localStorage.getItem("family-games-code"); if (c) return (S.familyCode = c); }
   if (S.familyCode) return S.familyCode;
   S.familyCode = localStorage.getItem("family-games-code") || "";
   if (S.familyCode) return S.familyCode;
@@ -860,19 +865,38 @@ function mergeSaves(mine, theirs, joining = false) {
   if (joining) out.nuggets = Math.max(mine.nuggets || 0, theirs.nuggets || 0);
   return out;
 }
-async function cloudStart() {
-  if (S.familyCode) {
-    const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
-    if (remote && (remote.updatedAt || 0) !== (S.updatedAt || 0)) {
-      const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0);
-      S = mergeSaves(S, remote); S.updatedAt = stamp;
-      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-      if (["home", "school", "town", "title", "parent"].includes(U.view)) render();
-    }
+// Brings in what other devices saved. Skips it mid-activity so nothing shifts under a child's fingers.
+async function cloudPull() {
+  // A child's save still under an old code joins the family's, keeping the work and coins from both.
+  const was = S.familyCode, moved = familyLinked() && was && was !== familyCode();
+  if (!S.familyCode) return;
+  const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
+  if (remote && (moved || (remote.updatedAt || 0) !== (S.updatedAt || 0))) {
+    const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0);
+    S = mergeSaves(S, remote, moved); S.updatedAt = stamp;
+    try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+    if (["home", "school", "town", "title", "parent", "lessonReview"].includes(U.view)) render();
   }
+}
+async function cloudStart() {
+  await cloudPull();
   if (S.updatedAt) cloudSend();
   if (S.familyCode) { try { localStorage.setItem("family-games-code", S.familyCode); } catch (e) {} await loadRoster(); saveRoster(); }
 }
+let syncBusy = false;
+async function cloudSync() {
+  if (syncBusy || navigator.onLine === false || document.hidden) return;
+  syncBusy = true;
+  try {
+    if (!["ride", "game", "gameEnd", "rideEnd", "reading", "spelling", "states", "familyLink"].includes(U.view)) await cloudPull();
+    if (S.updatedAt) await cloudSend();
+  } finally { syncBusy = false; }
+}
+// Work done offline goes up as soon as the internet is back, and other devices' work comes down.
+addEventListener("online", () => { cloudSync(); if (U.view === "school") render(); });
+addEventListener("offline", () => { if (U.view === "school") render(); });
+document.addEventListener("visibilitychange", cloudSync);
+setInterval(cloudSync, 60000);
 function save() {
   S.updatedAt = Date.now();
   cloudSoon();
@@ -1707,10 +1731,10 @@ function schoolView() {
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "ea5eb4921f98";
+const GAME_BUILD = "8fb2dba1cd88";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1737,6 +1761,27 @@ function readingView() {
   return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(t.title)}</h2><span></span></div><div class="readwrap"><div class="readring"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="16"/><circle id="readRing" cx="100" cy="100" r="${r}" fill="none" stroke="${finished ? "#39d07a" : "#ffc42e"}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * secs) / need} ${len}" transform="rotate(-90 100 100)"/></svg><div class="readclock"><b id="readClock">${finished ? "&#10003;" : mmss(need - secs)}</b><small>${finished ? "All done!" : day[t.from] ? t.running : t.waiting}</small></div></div><div class="readside"><p>${finished ? esc(t.doneLine()) : t.intro}</p>${finished ? `<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button>` : `<button class="btn ${day[t.from] ? "dark" : "go"} wide readbtn" data-act="readToggle">${day[t.from] ? "Pause" : secs > 0 ? t.again : `Start ${Math.round(need / 60)} minute timer`}</button>`}</div></div>`;
 }
 const KID_COLORS = ["#c8202c", "#2f7f96", "#2a9d4a", "#a97808", "#7b5ea7", "#d9622b", "#1c5a8f"];
+async function familyPasswordCode(pw) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`family-games|${pw.trim().toLowerCase()}`));
+  return [...new Uint8Array(bytes)].map((x) => x.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+async function familyFinishLink(code) {
+  U.linkMsg = "Bringing your progress together...";
+  render();
+  const remote = await familyRpc("load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
+  try { localStorage.setItem(`${KEY}-before-family`, JSON.stringify(S)); } catch (e) {}
+  if (remote) S = mergeSaves(S, remote, true);
+  S.familyCode = code;
+  try { localStorage.setItem("family-games-code", code); localStorage.setItem("family-linked", "1"); } catch (e) {}
+  save(); await cloudSend(); saveRoster();
+  U.linkPw = ""; U.linkMsg = ""; U.linkCreate = false;
+  U.view = U.afterLink || "school"; U.afterLink = null;
+  render();
+}
+function familyLinkView() {
+  const off = navigator.onLine === false;
+  return `<div class="linkwrap"><div class="linkcard"><h1>Sign in your family</h1><p>Do this once on each iPad or computer. Then Elliot, Finn and Myla keep their progress on every device.</p><input id="famPw" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Family password" value="${esc(U.linkPw || "")}"><p class="linkmsg">${esc(off ? "You need internet to sign in the first time. You can still play, and it saves on this device." : U.linkMsg || "Pick one password for the whole family, at least 6 letters. Use the same one on every device.")}</p>${U.linkCreate ? `<button class="btn go wide" data-act="familyCreate">Create our family</button><button class="btn dark wide" data-act="familyRetry">Try the password again</button>` : `<button class="btn go wide" data-act="familySignIn" ${off ? "disabled" : ""}>Sign in</button>`}<button class="link" data-act="familySkip">Not now</button></div></div>`;
+}
 function whoView() {
   return `<div class="whohead"><h1>${new Date().getHours() < 12 ? "Good morning!" : new Date().getHours() < 17 ? "Good afternoon!" : "Good evening!"}</h1><p>Tap your name to start your school day.</p></div><div class="whotiles">${familyKids().map((k, i) => `<button class="whotile" data-act="kidUse" data-id="${esc(k.id)}" style="--kid:${KID_COLORS[i % KID_COLORS.length]}"><span>${esc(k.name[0].toUpperCase())}</span><b>${esc(k.name)}</b></button>`).join("")}</div><div class="hud"><span></span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
@@ -3222,7 +3267,7 @@ function parentView() {
   return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Saved online" : "Saved on this device, will retry online"}</span></div><h1>Parent page</h1>
   ${schoolTop}
   ${top}
-  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>Saved progress and family code</summary><div class="panel"><p>Progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open saved progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
+  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>Saved progress and family code</summary><div class="panel"><p><strong>${familyLinked() ? "This device is signed in to your family." : "This device isn't signed in yet, so its progress stays separate."}</strong> ${familyLinked() ? "" : `<button class="btn small go" data-act="familySignInAgain">Sign in</button>`}</p><p>Offline: ${offlineReady.total ? `${offlineReady.have} of ${offlineReady.total} voice lines saved on this device.` : "getting ready."} Work done offline saves here and goes online when the internet is back.</p><p>Progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open saved progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
   <details class="plog pfold" ${U.copied ? "open" : ""}><summary>Adding a new lesson</summary><div class="panel"><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Copy the progress below and paste it in too, so the help targets what was hard.</li></ol><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy progress"}</button></div></div></details>`;
 }
 
@@ -4219,6 +4264,21 @@ const acts = {
   },
   openGame(d) { save(); location.href = `${d.g}/`; },
   statesPick,
+  async familySignIn() {
+    const pw = (document.getElementById("famPw")?.value || "").trim();
+    U.linkPw = pw;
+    if (pw.length < 6) { U.linkMsg = "Use at least 6 letters."; return render(); }
+    U.linkMsg = "Checking..."; render();
+    const code = await familyPasswordCode(pw);
+    let found;
+    try { found = await familyRpc("load_progress", { p_code: code, p_game: "family", p_player: "roster" }); } catch (e) { U.linkMsg = "Couldn't reach the internet. Try again in a moment."; return render(); }
+    if (!found) { U.linkCreate = true; U.linkMsg = "No family uses that password yet. Check the spelling. If this is your first device, tap Create our family."; return render(); }
+    familyFinishLink(code);
+  },
+  async familyCreate() { familyFinishLink(await familyPasswordCode(U.linkPw || "")); },
+  familyRetry() { U.linkCreate = false; U.linkPw = ""; U.linkMsg = ""; render(); },
+  familySkip() { try { sessionStorage.setItem("family-skip", "1"); } catch (e) {} U.linkPw = ""; U.linkMsg = ""; U.linkCreate = false; U.view = U.afterLink || "school"; U.afterLink = null; render(); },
+  familySignInAgain() { U.afterLink = "parent"; U.view = "familyLink"; U.linkMsg = ""; render(); },
   tapWord(d) { const i = +d.i; U.capsOn = U.capsOn.includes(i) ? U.capsOn.filter((x) => x !== i) : [...U.capsOn, i]; U.msg = null; beep(KEY_TAP); render(); },
   parentSubject(d) { setSubject(d.s); U.parentLesson = null; beep(BLIP); render(); },
   spellKey,
@@ -4288,6 +4348,7 @@ app.addEventListener("keydown", (e) => {
 canvas.addEventListener("pointerdown", () => { if (W.run) runJump(); });
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target?.id === "famPw" && e.key === "Enter") { e.preventDefault(); return U.linkCreate ? acts.familyCreate() : acts.familySignIn(); }
   if (["INPUT", "TEXTAREA"].includes(e.target?.tagName)) return;
   if (U.view === "spelling" && U.sp?.item) {
     if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); if (!e.repeat) spellKey({ k: e.key.toLowerCase() }); }
@@ -4373,8 +4434,8 @@ function arrange() {
 function render() {
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["who", "parent", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["who", "parent", "familyLink", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
@@ -4400,8 +4461,27 @@ worldSize(200);
 W.ready = true;
 if (NEEDS_LOGIN) U.view = "who";
 else { U.view = "school"; W.title = false; }
+try { if (!familyLinked() && !sessionStorage.getItem("family-skip")) { U.afterLink = U.view; U.view = "familyLink"; } } catch (e) {}
 render();
 connect();
 cloudStart();
+if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
+let offlineReady = { have: 0, total: 0, running: false };
+async function offlinePrepare() {
+  if (offlineReady.running || !("caches" in window) || navigator.onLine === false || navigator.connection?.saveData) return;
+  const reg = await navigator.serviceWorker?.ready.catch(() => null);
+  if (!reg || !voiceLines?.size) return;
+  offlineReady.running = true;
+  try {
+    const cache = await caches.open("media-v1"), have = new Set((await cache.keys()).map((r) => r.url.split("/").pop().replace(".mp3", "")));
+    const missing = [...voiceLines].filter((c) => !have.has(c));
+    offlineReady.total = voiceLines.size; offlineReady.have = voiceLines.size - missing.length;
+    const worker = async () => { while (missing.length && navigator.onLine !== false) { const c = missing.pop(); const r = await fetch(`voice/${c}.mp3`).catch(() => null); if (r?.ok) { await cache.put(new URL(`voice/${c}.mp3`, location.href).href, r.clone()); offlineReady.have++; } } };
+    await Promise.all([worker(), worker(), worker()]);
+    SFX_FILES.forEach((n) => fetch(`sfx/${n}.mp3`).catch(() => {}));
+  } finally { offlineReady.running = false; }
+}
+setTimeout(offlinePrepare, 4000);
+addEventListener("online", offlinePrepare);
 </script>
 </body></html>
