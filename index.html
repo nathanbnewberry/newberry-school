@@ -698,6 +698,8 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .gametime svg{width:26px;height:26px;color:#ffd23f;flex:none}.gametime b{font-size:1.02rem}.gametime small{margin-left:auto;font-size:.88rem;opacity:.9}
 .gameclock{font-size:1.15rem;color:#ffd23f;font-variant-numeric:tabular-nums;background:#12142b;border-radius:8px;padding:1px 9px}
 .gametime.closed{background:rgba(128,128,128,.16);border-color:rgba(128,128,128,.55)}.gametime.closed svg{color:#9aa0ad}
+.gamechip.lessondone{background:#1f9a4f}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit}
+@media (orientation:landscape) and (min-width:800px){.gamepicks.sixup{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks.sixup .gameart{aspect-ratio:auto;height:clamp(70px,19vh,150px)}.gamepicks.sixup .gametext{padding:5px 10px}.gamepicks.sixup h3{font-size:1.05rem}.gamepicks.sixup .sub{font-size:.82rem}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -786,13 +788,31 @@ function cloudSend(keepalive = false) {
   return familyRpc("save_progress", cloudBody(), keepalive).then(() => { cloud = "synced"; cloudAt = Date.now(); }).catch(() => { cloud = "device"; });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
+const MERGE_KEYS = ["lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
+function mergeDeep(a, b) {
+  if (a === undefined || a === null) return b;
+  if (b === undefined || b === null) return a;
+  if (Array.isArray(a) && Array.isArray(b)) return a.some((x) => x && typeof x === "object") || b.some((x) => x && typeof x === "object") ? (b.length > a.length ? b : a) : [...new Set([...a, ...b])];
+  if (typeof a === "object" && typeof b === "object") { const out = { ...a }; Object.keys(b).forEach((k) => { out[k] = mergeDeep(a[k], b[k]); }); return out; }
+  if (typeof a === "number" && typeof b === "number") return Math.max(a, b);
+  if (typeof a === "boolean" && typeof b === "boolean") return a || b;
+  return b;
+}
+function mergeSaves(mine, theirs, joining = false) {
+  const newer = (theirs.updatedAt || 0) > (mine.updatedAt || 0) ? theirs : mine, out = { ...blank(), ...mine, ...newer };
+  MERGE_KEYS.forEach((k) => { const m = mergeDeep(mine[k], theirs[k]); if (m !== undefined) out[k] = m; });
+  // Coins go down when spent, so only joining two separate saves keeps the larger amount.
+  if (joining) out.nuggets = Math.max(mine.nuggets || 0, theirs.nuggets || 0);
+  return out;
+}
 async function cloudStart() {
   if (S.familyCode) {
     const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
-    if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
-      S = { ...blank(), ...remote };
+    if (remote && (remote.updatedAt || 0) !== (S.updatedAt || 0)) {
+      const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0);
+      S = mergeSaves(S, remote); S.updatedAt = stamp;
       try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
-      if (["home", "title", "parent"].includes(U.view)) render();
+      if (["home", "school", "town", "title", "parent"].includes(U.view)) render();
     }
   }
   if (S.updatedAt) cloudSend();
@@ -1592,14 +1612,15 @@ function schoolTick() {
   });
   if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); confetti(60); beep(FANFARE); banner("School's out! +$25"); }
 }
+const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="town" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
 function schoolView() {
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="daygames"><span>More games:</span>${FAMILY_GAMES.filter((g) => !KID_PLANS[KID.id] || KID_PLANS[KID.id].games.includes(g.id)).map((g) => `<a class="gamechip" href="${g.path}"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[g.id]}</svg>${esc(g.name)}</a>`).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "dfda2efe9b40";
+const GAME_BUILD = "763b4fc19b6f";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1794,7 +1815,7 @@ function trot(key, idx, pts, go) {
 }
 function homeView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${gameTimeBar(todaysItems(), schoolDay())}
-  ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
+  ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}${lessonChips()}
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
@@ -2395,17 +2416,21 @@ const gameArt = {
   run: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a63"/><stop offset=".6" stop-color="#b5546a"/><stop offset="1" stop-color="#ffb860"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaS)"/><circle cx="150" cy="66" r="18" fill="#ffe08a"/><path d="M0 84l26-26h26l18 26zM110 84l18-20h30l18 20z" fill="#5a2c52"/><rect y="84" width="200" height="26" fill="#3a1c30"/><g transform="translate(150 92)"><rect x="-5" y="-28" width="10" height="18" fill="#4a2020"/><circle cy="-33" r="5" fill="#dcb48a"/><path d="M-11-37h22M-5-37v-6h10v6" stroke="#16151b" stroke-width="3"/><path d="M-3-10V4M3-10V4" stroke="#2b2b2b" stroke-width="3"/></g><g class="artjump"><g transform="translate(60 62) scale(1.05)"><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#8fb7dc"/><circle cx="-2" cy="-35" r="6" fill="#f4cda8"/><rect x="-8" y="-38" width="12" height="4" fill="#15171b"/><path d="M-13-41H9" stroke="#fbfbf7" stroke-width="3"/><rect x="-7" y="-48" width="10" height="7" rx="2" fill="#fbfbf7"/></g></g><circle class="artcoin" cx="112" cy="40" r="7" fill="#ffc42e" stroke="#b9840f"/></svg>`,
   kick: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="46" fill="#10163a"/>${Array.from({ length: 40 }, (_, n) => `<circle cx="${3 + n * 5}" cy="${8 + (n % 3) * 9}" r="2" fill="${["#c8202c", "#fff", "#ffc42e", "#2f6fb0"][n % 4]}"/>`).join("")}<rect y="46" width="200" height="64" fill="#2f9757"/><rect y="66" width="200" height="16" fill="#35a35f"/><g stroke="#e6edf4" stroke-width=".7" opacity=".8"><path d="M40 34V80M56 34V80M72 34V80M88 34V80M104 34V80M120 34V80M136 34V80M152 34V80M40 46H160M40 58H160M40 70H160"/></g><path d="M36 80V30H164V80" fill="none" stroke="#fff" stroke-width="4"/><g class="artkeeper"><rect x="112" y="50" width="16" height="20" rx="3" fill="#f2b61c"/><circle cx="120" cy="44" r="6" fill="#f0c9a4"/><path d="M114 54L102 42M126 54L138 42" stroke="#f2b61c" stroke-width="4" stroke-linecap="round"/><path d="M116 70v10M124 70v10" stroke="#20242c" stroke-width="4"/></g><g class="artball"><circle r="8" fill="#fff" stroke="#222"/><path d="M0-3l3 2-1 3h-4l-1-3z" fill="#222"/></g></svg>`,
   gallery: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="110" fill="#1d2550"/>${Array.from({ length: 10 }, (_, n) => `<path d="M${n * 20} 0h20v16a10 10 0 0 1-20 0z" fill="${n % 2 ? "#fff3d9" : "#c8202c"}"/>`).join("")}<rect y="92" width="200" height="18" fill="#7a5230"/><g transform="translate(40 94) scale(.8)">${GAL_ART.bull}</g><g transform="translate(100 94) scale(.8)">${GAL_ART.bad}</g><g transform="translate(160 94) scale(.8)">${GAL_ART.deer}</g></svg>`,
+  castle: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="110" fill="#8fd0ee"/><path d="M0 92c40-16 150-16 200 0v18H0z" fill="#6fb35a"/><path d="M58 96V44h10v-8h9v8h10v-8h9v8h8v-8h9v8h10v-8h9v8h10v52z" fill="#b9b4c4" stroke="#5c5870" stroke-width="2"/><path d="M90 96V74a10 10 0 0 1 20 0v22z" fill="#5a3a1e"/><path d="M100 36V16l16 6-16 6" fill="#c8202c" stroke="#5a3a1e" stroke-width="2"/><rect x="70" y="56" width="10" height="13" fill="#34405e"/><rect x="120" y="56" width="10" height="13" fill="#34405e"/></svg>`,
+  pirates: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="110" fill="#7cc4e8"/><circle cx="168" cy="22" r="13" fill="#ffe28a"/><path d="M0 84c20-8 40 8 60 0s40 8 60 0 40 8 80 0v26H0z" fill="#2276a8"/><path d="M50 76h100l-14 22H66z" fill="#6b4423" stroke="#3a2412" stroke-width="2"/><path d="M98 76V16h5v60z" fill="#3a2412"/><path d="M103 20c26 8 26 36 0 48z" fill="#fff3d9" stroke="#3a2412" stroke-width="2"/><path d="M98 18H74v14h24z" fill="#16151b"/><circle cx="86" cy="24" r="3.500" fill="#fff"/><circle cx="74" cy="85" r="4" fill="#16151b"/><circle cx="100" cy="85" r="4" fill="#16151b"/><circle cx="126" cy="85" r="4" fill="#16151b"/></svg>`,
   duel: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f9fd1"/><stop offset="1" stop-color="#f6dfae"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaN)"/><circle cx="100" cy="20" r="13" fill="#ffefa8"/><path d="M0 76V44h30v32zM170 76V40h30v36z" fill="#94603a"/><rect x="92" y="38" width="16" height="38" fill="#a58d6c"/><circle cx="100" cy="48" r="5" fill="#fbf6e8" stroke="#3a2412"/><rect y="76" width="200" height="34" fill="#d6b077"/><g transform="translate(54 44)"><path d="M-7 8h14l-1 22H-6z" fill="#8fb7dc"/><path d="M-5 30l-1 22M5 30l1 22" stroke="#2f3a55" stroke-width="5"/><circle cy="1" r="6" fill="#f4cda8"/><rect x="-6" y="-2" width="12" height="4" fill="#121318"/><path d="M-11-5h22" stroke="#fbfbf7" stroke-width="3"/><rect x="-5" y="-12" width="10" height="7" rx="2" fill="#fbfbf7"/><g class="artgun"><path d="M6 12L24 14" stroke="#8fb7dc" stroke-width="5"/><path d="M24 12h14v3H24zM24 12v8h4l1-5z" fill="#343a43"/></g></g><g transform="translate(146 44)"><path d="M-7 8h14l-1 22H-6z" fill="#4a2020"/><path d="M-5 30l-1 22M5 30l1 22" stroke="#3b2c22" stroke-width="5"/><circle cy="1" r="6" fill="#dcb48a"/><path d="M-11-5h22" stroke="#16151b" stroke-width="3"/><rect x="-5" y="-12" width="10" height="7" rx="2" fill="#16151b"/></g></svg>`,
 };
 const gameCard = (art, attrs, name, sub) => `<button class="game gamepic" ${attrs}>${gameArt[art]}<span class="gametext"><h3>${name}</h3><span class="sub">${sub}</span></span></button>`;
 function arcadeView() {
   return `<div class="hud storehud">${bigMapBtn()}<h2>Saloon Games</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   <p class="center sub">Play as much as you want. Coins you grab in Boost Run count as money.</p>
-  <div class="games gamepicks">
+  <div class="games gamepicks sixup">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", "Rope 100 steers. Beat your time.")}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "3 lives. Land on guys, win a prize.")}
     ${gameCard("gallery", 'data-act="game" data-g="gallery" data-n="5" data-free="1"', "Shooting Gallery", "Step right up! Hit every target at the fair.")}
     ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", "Beat the outlaw on the draw and save Nora.")}
+    ${gameCard("castle", 'data-act="openGame" data-g="castle"', "The Learning Castle", "Clear the castle one room at a time.")}
+    ${gameCard("pirates", 'data-act="openGame" data-g="pirates"', "Cannon Math Pirates", "Fire the cannons and sink the ships.")}
   </div>`;
 }
 function betterNote(l) {
@@ -3668,7 +3693,7 @@ const acts = {
     U.famData = remote; U.famMsg = remote ? "" : "No save found for that code. Check it and try again.";
     render();
   },
-  async famYes() { localStorage.setItem("family-games-code", U.famCode); S = { ...blank(), ...U.famData, familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "Progress is on this device now."; save(); await loadRoster(); render(); },
+  async famYes() { localStorage.setItem("family-games-code", U.famCode); try { localStorage.setItem(`${KEY}-before-join`, JSON.stringify(S)); } catch (e) {} S = { ...mergeSaves(S, U.famData, true), familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "Progress is on this device now."; save(); await loadRoster(); render(); },
   famNo() { U.famData = null; U.famMsg = ""; render(); },
   schoolGo(d) {
     const x = schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
@@ -3789,6 +3814,7 @@ const acts = {
     if (d.g === "gallery") startGallery();
     if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "intro" }; drawScore("dscore", duel.shots, duel.n); }
   },
+  openGame(d) { save(); location.href = `${d.g}/`; },
   leaveGame() {
     const paid = U.game && !U.game.free;
     if (kick) { kick.phase = "done"; kick = null; }
