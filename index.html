@@ -1037,7 +1037,7 @@ function runDraw(gy) {
   (r.sparks || []).forEach((p) => { c.fillStyle = p.col; c.globalAlpha = Math.min(1, p.life / 12); c.beginPath(); c.arc(p.x, p.y, 4, 0, 7); c.fill(); }); c.globalAlpha = 1;
   (r.pops || []).forEach((p) => { c.fillStyle = "#ffe07a"; c.strokeStyle = "#2c1a0e"; c.lineWidth = 4; c.textAlign = "center"; c.font = "400 24px Rye,Georgia,serif"; c.globalAlpha = Math.min(1, p.life / 12); c.strokeText(p.t, p.x, p.y); c.fillText(p.t, p.x, p.y); }); c.globalAlpha = 1;
   if (W.theme !== "pitch") { for (let i = 0; i < 5; i++) { const x = ((i * 233 - W.scroll * 1.15) % 1160 + 1160) % 1160 - 80, b = W.H; c.fillStyle = i % 2 ? "#4a2a1c" : "#5e3620"; c.beginPath(); c.moveTo(x, b); c.quadraticCurveTo(x + 8, b - 18, x + 30, b - 14); c.quadraticCurveTo(x + 52, b - 12, x + 62, b); c.fill(); } }
-  c.textAlign = "left"; c.font = "400 26px Rye,Georgia,serif"; c.fillStyle = "#ff5a4f"; c.fillText("\u2665".repeat(Math.max(0, r.lives)) , 92, 36); c.fillStyle = "rgba(255,255,255,.3)"; c.fillText("\u2665".repeat(3 - Math.max(0, r.lives)), 92 + Math.max(0, r.lives) * 24, 36);
+  c.textAlign = "left"; c.font = "400 26px Rye,Georgia,serif"; c.fillStyle = "#ff5a4f"; const heartX = document.documentElement.classList.contains("fs") ? 135 : 92; c.fillText("\u2665".repeat(Math.max(0, r.lives)) , heartX, 36); c.fillStyle = "rgba(255,255,255,.3)"; c.fillText("\u2665".repeat(3 - Math.max(0, r.lives)), heartX + Math.max(0, r.lives) * 24, 36);
   c.fillStyle = "#ffc42e"; c.textAlign = "center"; c.fillText(`Score ${r.score}   $${S.nuggets}`, 360, 36);
   c.textAlign = "right"; c.fillStyle = "#f2f3ff"; c.fillText(`${Math.ceil(r.time / 40)}s`, 702, 36);
 }
