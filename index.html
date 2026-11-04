@@ -1173,6 +1173,8 @@ function playVoice(t, voice = "david", done = () => {}, onWord = null) {
   };
   next();
 }
+function audioForPlaying() { try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {} }
+audioForPlaying();
 function speak(t, force, voice = "david") {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
@@ -1796,7 +1798,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "c6fa1e6756ee";
+const GAME_BUILD = "2af9b502f8e8";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4140,7 +4142,7 @@ function openAskPanel() {
   box.innerHTML = `<h3>Ask Silver anything about this problem</h3><p class="sub">Tap outside to close.</p><p class="askstatus" id="askstatus"></p><div class="askrow"><input id="askinput" type="text" autocomplete="off" placeholder="Talk, or type it here"></div><div class="askbtns">${SR ? `<button class="btn dark" id="asklisten">Talk again</button>` : ""}<button class="btn go" id="asksend">Ask</button></div>`;
   document.body.appendChild(box);
   const input = box.querySelector("#askinput"), status = box.querySelector("#askstatus");
-  const stopRec = () => { try { rec?.abort(); } catch (e) {} rec = null; clearTimeout(box.quiet); clearTimeout(box.cap); };
+  const stopRec = () => { try { rec?.abort(); } catch (e) {} rec = null; clearTimeout(box.quiet); clearTimeout(box.cap); audioForPlaying(); };
   const outside = (e) => { if (!box.contains(e.target)) close(); };
   const close = () => { stopRec(); box.remove(); document.removeEventListener("pointerdown", outside, true); };
   setTimeout(() => { if (box.isConnected) document.addEventListener("pointerdown", outside, true); }, 0);
@@ -4152,6 +4154,7 @@ function openAskPanel() {
     if (!SR) { status.textContent = "Talking isn't available in this browser, so type your question."; return; }
     stopRec();
     let got = "", failed = false;
+    try { if (navigator.audioSession) navigator.audioSession.type = "play-and-record"; } catch (e) {}
     const r = (rec = new SR()); r.lang = "en-US"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
     r.onresult = (e) => {
       got = Array.from(e.results).map((x) => x[0].transcript).join(" ").trim(); input.value = got; status.textContent = "Got it. Keep talking, or wait a second.";
@@ -4163,6 +4166,7 @@ function openAskPanel() {
       status.textContent = e.error === "not-allowed" || e.error === "service-not-allowed" ? "The mic is blocked on this device. A parent can allow it for this site and turn on Dictation in Settings. You can type for now." : e.error === "no-speech" ? "I didn't hear anything. Tap Talk again, or type it." : "The mic had trouble. Tap Talk again, or type it.";
     };
     r.onend = () => {
+      audioForPlaying();
       clearTimeout(box.quiet); clearTimeout(box.cap);
       if (rec !== r || !box.isConnected) return;
       rec = null; status.classList.remove("on");
