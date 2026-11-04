@@ -721,6 +721,12 @@ body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflo
 .revride{min-height:44px;text-align:left;padding:6px 12px;border-radius:10px;background:#efe6d3;color:#1c1712;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b9ad96}.revride.done{background:#c9f0d3;box-shadow:0 3px 0 #1f9a4f}
 body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
 @media (orientation:portrait){.revwrap{grid-template-columns:1fr}body[data-view="lessonReview"] #app{overflow:auto}}
+.spellpitch{display:block;width:100%;max-height:96px;border-radius:10px}.spellpitch text{paint-order:stroke}
+.spellword{display:flex;justify-content:center;align-items:center;min-height:56px;font:400 clamp(2.2rem,8vh,3.4rem) var(--display);color:#ffd23f;letter-spacing:.06em}
+.spellslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.spellslots span{display:grid;place-items:center;width:clamp(36px,6vh,50px);height:clamp(42px,7vh,56px);border-radius:8px;background:var(--paper);color:#1c1712;font-size:1.6rem;font-weight:800;border-bottom:4px solid #b9ad96}.spellslots span.on{background:#c9f0d3;border-color:#1f9a4f}.spellslots span.hinted{color:#a97808;background:#fff3b0}
+.spellkb{display:grid;gap:6px;margin-top:auto}.spellrow{display:flex;justify-content:center;gap:5px}.spellk{flex:1;max-width:84px;min-height:clamp(44px,8.5vh,62px);border-radius:10px;background:#2a2f48;color:#fff;font-size:1.35rem;font-weight:800;text-transform:lowercase;cursor:pointer;box-shadow:0 3px 0 #12142b;touch-action:manipulation}.spellk:active{transform:translateY(2px)}.spellk.wide{max-width:110px;font-size:1.05rem;flex:1.4}.spellk.go{background:#39d07a;color:#12142b}
+body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
+@media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -809,7 +815,7 @@ function cloudSend(keepalive = false) {
   return familyRpc("save_progress", cloudBody(), keepalive).then(() => { cloud = "synced"; cloudAt = Date.now(); }).catch(() => { cloud = "device"; });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
-const MERGE_KEYS = ["statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
+const MERGE_KEYS = ["spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
 function mergeDeep(a, b) {
   if (a === undefined || a === null) return b;
   if (b === undefined || b === null) return a;
@@ -1549,7 +1555,7 @@ const SCHOOL_DEFAULT = [
   { id: "reading", name: "Reading", icon: "reading", kind: "reading", on: true, days: WEEKDAYS, minutes: 30 },
   { id: "capitals", name: "States and capitals", icon: "capitals", kind: "capitals", on: true, days: WEEKDAYS, goal: 5 },
   { id: "piano", name: "Piano practice", icon: "piano", kind: "check", on: false, days: WEEKDAYS, minutes: 30 },
-  { id: "spelling", name: "Spelling", icon: "spelling", kind: "check", on: false, soon: true, days: WEEKDAYS },
+  { id: "spelling", name: "Spelling", icon: "spelling", kind: "spelling", on: false, days: WEEKDAYS },
   { id: "grammar", name: "Grammar", icon: "grammar", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "history", name: "History", icon: "history", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "science", name: "Science", icon: "science", kind: "check", on: false, soon: true, days: WEEKDAYS },
@@ -1565,6 +1571,8 @@ function schoolPlan() {
   SCHOOL_DEFAULT.forEach((d) => { if (!S.schoolPlan.some((x) => x.id === d.id)) S.schoolPlan.push(JSON.parse(JSON.stringify(d))); });
   // Piano is daily for Elliot and Finn, set once so a parent's later changes stick.
   if ((KID.id === "elliot" || KID.id === "finn") && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) p.on = true; }
+  // Spelling used to be a checkbox. Now it's a game, so saved plans pick that up.
+  S.schoolPlan.forEach((x) => { if (x.id === "spelling") { x.kind = "spelling"; delete x.soon; } });
   // Finn's plan first saved at 15 minutes. Fixed once so a parent's later changes stick.
   if (KID.id === "finn" && !S.readingSet) { S.readingSet = 1; S.schoolPlan.forEach((x) => { if (x.kind === "reading") x.minutes = 30; }); }
   // Elliot's daily list, set once so a parent's later changes stick.
@@ -1599,6 +1607,7 @@ function itemStatus(x, day = schoolDay()) {
     return { done: !!l && n >= must.length, label: n >= must.length ? `${l.town} finished` : `${l.town}: ${n} of ${must.length} sections`, pct: must.length ? n / must.length : 0 };
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.kind === "spelling") { const n = Math.min(day.spellWords || 0, SPELL_DAILY), bee = spellBeeDay(); return { done: bee ? !!day.spellBee : n >= SPELL_DAILY || !!day.spellBee, label: bee ? (day.spellBee ? "Spelling bee done" : "Spelling bee day") : `${n} of ${SPELL_DAILY} words today`, pct: bee ? (day.spellBee ? 1 : 0) : n / SPELL_DAILY }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
@@ -1664,7 +1673,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "f884b25033f8";
+const GAME_BUILD = "0af5d3bad1f9";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1870,6 +1879,140 @@ function statesView() {
   return `${top}<p class="statesbar">${label}</p>${bubble(sg.msg || `What's the capital of ${sg.name}?`)}<div class="statespart2"><div class="statesmapwrap">${statesMapSvg(sg, false)}</div><div class="statesanswers"><h2>${esc(sg.name)}</h2>${sg.choices.map((c) => `<button class="btn ${sg.picked ? (c === cap ? "go" : c === sg.picked ? "dark stgood" : "dark") : "dark"} statesanswer" data-act="statesPick" data-c="${esc(c)}" ${sg.picked ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
 }
 document.addEventListener("click", (e) => { if (U?.view === "states" && e.target.closest?.("#statesMap")) statesMapTap(e); });
+/* ---------- Penalty Kick Spelling: copy it, flash it, then spell it from memory ---------- */
+// A new week's list goes first in this array. Each word's sentence is read aloud but never shown.
+const SPELLING_LISTS = [
+  { id: "list-10", title: "Spelling List 10", words: [
+    { w: "talking", s: "Talking to your team helps you win." },
+    { w: "know", s: "I know you can score this goal." },
+    { w: "sign", s: "The sign points to the soccer field." },
+    { w: "thing", s: "The best thing is scoring a goal." },
+    { w: "strong", s: "A strong kick sends the ball far." },
+    { w: "stung", s: "A bee stung the goalie on the arm." },
+    { w: "thanked", s: "He thanked the coach after the game." },
+    { w: "twinkle", s: "Stars twinkle over the field at night." },
+    { w: "honk", s: "The fans honk their horns after a win." },
+    { w: "chipmunk", s: "A chipmunk ran across the field." },
+    { w: "spelling", s: "You are getting good at spelling." },
+    { w: "knee", s: "He bumped the ball with his knee." },
+    { w: "swing", s: "Take a big swing with your leg." },
+    { w: "blank", s: "The scoreboard was blank before the game." },
+    { w: "who", s: "Who scored the first goal?" },
+    { w: "move", s: "Move the ball down the field." },
+    { w: "been", s: "He has been practicing all week." },
+    { w: "squirm", s: "The worm began to squirm on the grass." },
+  ] },
+];
+const SPELL_DAILY = 10, SPELL_LINES = { 0: "Look at the word, then copy it.", 1: "Look hard. It's about to hide.", 2: "Now spell it from memory.", bee: "Spelling bee time. No help on this one." };
+const spellList = () => SPELLING_LISTS[0];
+function spellRec(w) {
+  S.spelling = S.spelling || { lists: {} };
+  const l = S.spelling.lists[spellList().id] = S.spelling.lists[spellList().id] || { words: {}, bees: [] };
+  return (l.words[w] = l.words[w] || { level: 0, rounds: 0, misses: 0, typed: [], cleanRounds: 0 });
+}
+const spellBees = () => { spellRec(spellList().words[0].w); return S.spelling.lists[spellList().id].bees; };
+const spellMastered = () => spellList().words.filter((x) => spellRec(x.w).level >= 3).length;
+const spellBeeDay = (d = new Date()) => d.getDay() === 5;
+function spellSay() { const sp = U.sp, it = sp?.item; if (!it) return; const line = sp.mode === "bee" ? `${it.w}. ${it.s}` : `${SPELL_LINES[Math.min(2, sp.level)]} ${it.w}. ${it.s}`; U.lastBubble = line; lastSaid = line; try { if (!S.muted && S.voice !== false) playVoice(line, "david"); } catch (e) {} }
+function spellOpen(mode = "practice", extra = false) {
+  stopVoice();
+  const words = shuffled(spellList().words);
+  const queue = mode === "bee" ? words : [...words].sort((a, b) => spellRec(a.w).level - spellRec(b.w).level);
+  U.sp = { mode, extra, queue: mode === "bee" ? queue : queue.filter((x) => spellRec(x.w).level < 3), goals: 0, right: [], missed: [] };
+  if (mode === "practice" && !U.sp.queue.length) U.sp.queue = words;
+  U.view = "spelling"; spellNext(); render(); window.scrollTo(0, 0);
+}
+function spellNext() {
+  const sp = U.sp, day = schoolDay();
+  clearTimeout(sp.timer); sp.typed = ""; sp.misses = 0; sp.hint = false; sp.scored = false; sp.shake = false; sp.locked = false;
+  if (sp.mode === "practice" && (day.spellWords || 0) >= SPELL_DAILY && !sp.extra) { sp.item = null; sp.screen = "today"; stopVoice(); return; }
+  if (!sp.queue.length) {
+    if (sp.mode === "bee") { sp.item = null; sp.screen = "beeDone"; spellFinishBee(); return; }
+    sp.queue = shuffled(spellList().words.filter((x) => spellRec(x.w).level < 3));
+    if (!sp.queue.length) { sp.item = null; sp.screen = "allDone"; stopVoice(); return; }
+  }
+  sp.screen = null; sp.item = sp.queue.shift(); sp.level = spellRec(sp.item.w).level; sp.hidden = sp.mode === "bee" || sp.level >= 2;
+  if (sp.mode === "practice" && sp.level === 1) sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.hidden = true; render(); } }, 3500);
+  spellSay();
+}
+function spellFinishBee() {
+  const sp = U.sp, day = schoolDay(), n = sp.right.length, total = n + sp.missed.length;
+  spellBees().push({ date: dateKey(), right: n, total, missed: sp.missed.map((x) => x.w), typed: sp.missed.map((x) => x.typed) });
+  sp.missed.forEach((x) => { const r = spellRec(x.w); r.level = Math.min(r.level, 1); });
+  day.spellBee = true; earn(n * 3); if (n === total) { beep(FANFARE); confetti(80); } else beep(CHIME);
+  save(); lastSaid = ""; stopVoice();
+}
+function spellGoal(clean) {
+  const sp = U.sp, it = sp.item, r = spellRec(it.w), day = schoolDay();
+  r.rounds++; r.lastAt = Date.now(); sp.scored = true; sp.locked = true; sp.goals++;
+  day.spellWords = (day.spellWords || 0) + 1;
+  if (clean) r.cleanRounds++;
+  if (sp.misses <= (r.level >= 2 ? 0 : 1)) r.level = Math.min(3, r.level + 1);
+  const pay = clean ? 4 : 2; earn(pay); coinPop(pay); playSfx("thud", .7); setTimeout(() => crowdSound(true), 250);
+  save(); render();
+  sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { spellNext(); render(); } }, 1700);
+}
+function spellKey(d) {
+  const sp = U.sp; if (!sp?.item || sp.locked) return;
+  const k = d.k, it = sp.item, r = spellRec(it.w);
+  if (sp.mode === "bee") {
+    if (k === "DEL") sp.typed = sp.typed.slice(0, -1);
+    else if (k === "DONE") {
+      if (!sp.typed) return;
+      const right = sp.typed === it.w; sp.locked = true;
+      (right ? sp.right : sp.missed).push({ w: it.w, typed: sp.typed });
+      if (!right) { r.typed = [...new Set([...r.typed, sp.typed])].slice(-6); r.misses++; }
+      sp.scored = right; sp.beeMsg = right ? "Goal." : "Good try. We'll practice that one."; playSfx(right ? "thud" : "soft", .7); if (right) setTimeout(() => crowdSound(true), 250);
+      save(); render();
+      sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.beeMsg = ""; spellNext(); render(); } }, 1400);
+      return;
+    } else if (sp.typed.length < it.w.length + 3) sp.typed += k;
+    beep(KEY_TAP); render(); return;
+  }
+  if (k === "DEL") return;
+  if (sp.level === 1 && !sp.hidden) sp.hidden = true;
+  if (k === it.w[sp.typed.length]) {
+    sp.typed += k; sp.shake = false; sp.hint = false; beep(KEY_TAP);
+    if (sp.typed === it.w) return spellGoal(sp.misses === 0);
+  } else {
+    sp.misses++; r.misses++; S.brave = (S.brave || 0) + 1; sp.shake = true;
+    r.typed = [...new Set([...r.typed, `${sp.typed}${k}...`])].slice(-6);
+    if (sp.misses === 1) { earn(1); coinPop(1); }
+    if (sp.misses % 3 === 0) sp.hint = true;
+    beep(NOPE); save();
+  }
+  render();
+}
+function spellingView() {
+  const sp = U.sp || (spellOpen(), U.sp), day = schoolDay(), list = spellList(), mastered = spellMastered();
+  const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(list.title)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
+  const beeBtn = `<button class="btn go wide" data-act="spellBee">Take the Spelling Bee</button>`;
+  if (sp.screen === "today") return `${top}${bubble(`That's ${SPELL_DAILY} words for today. Nice work.`)}<div class="center statesdone"><div class="big">${day.spellWords || 0} goals today!</div><p>${mastered} of ${list.words.length} words known from memory.</p>${spellBeeDay() || mastered === list.words.length ? beeBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
+  if (sp.screen === "allDone") return `${top}${bubble("You know every word from memory. Time for the bee.")}<div class="center statesdone"><div class="big">All ${list.words.length} words!</div>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  if (sp.screen === "beeDone") return `${top}${bubble("Spelling bee finished. Good work.")}<div class="center statesdone"><div class="big">${sp.right.length} of ${sp.right.length + sp.missed.length} goals!</div><p>+$${sp.right.length * 3}${sp.missed.length ? `. We'll practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.` : ". A perfect bee!"}</p><button class="btn go wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  const it = sp.item, w = it.w, slots = sp.mode === "bee" ? Array.from({ length: Math.max(w.length, sp.typed.length) }, (_, i) => sp.typed[i] || "") : w.split("").map((_, i) => sp.typed[i] || "");
+  const nextL = w[sp.typed.length];
+  const pct = sp.scored ? 100 : Math.min(92, (sp.typed.length / w.length) * 92);
+  const pitch = `<svg class="spellpitch ${sp.scored ? "scored" : ""}" viewBox="0 0 600 96" role="img" aria-label="A soccer ball moving toward the goal"><rect width="600" height="96" fill="#2f9757"/><path d="M0 48h600M300 0v96" stroke="#7fd19c" stroke-width="2" opacity=".6"/><circle cx="300" cy="48" r="22" fill="none" stroke="#7fd19c" stroke-width="2" opacity=".6"/><path d="M552 14h40v68h-40" fill="rgba(255,255,255,.18)" stroke="#fff" stroke-width="4"/><path d="M560 14v68M570 14v68M580 14v68M552 30h40M552 48h40M552 64h40" stroke="#fff" stroke-width="1" opacity=".5"/><g class="spellkeeper"><circle cx="534" cy="${sp.scored ? 72 : 36}" r="7" fill="#dcb48a"/><rect x="528" y="${sp.scored ? 78 : 43}" width="12" height="${sp.scored ? 12 : 24}" rx="3" fill="#ffd23f"/></g><g transform="translate(${(30 + pct * 5.3).toFixed(0)} 52)"><circle r="11" fill="#fff" stroke="#16151b" stroke-width="1.500"/><path d="M0-5l5 3.500-2 6h-6l-2-6z" fill="#16151b"/></g>${sp.scored ? `<text x="300" y="58" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="30" fill="#ffd23f" stroke="#3a2412">GOOOAL!</text>` : ""}</svg>`;
+  const show = sp.mode === "practice" && !sp.hidden;
+  const say = sp.mode === "bee" ? sp.beeMsg || SPELL_LINES.bee : sp.scored ? "Goal." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
+  const kb = ["qwertyuiop", "asdfghjkl", "zxcvbnm"].map((row, n) => `<div class="spellrow">${n === 2 && sp.mode === "bee" ? `<button class="spellk wide" data-act="spellKey" data-k="DEL">&#9003;</button>` : ""}${row.split("").map((c) => `<button class="spellk" data-act="spellKey" data-k="${c}">${c}</button>`).join("")}${n === 2 && sp.mode === "bee" ? `<button class="spellk wide go" data-act="spellKey" data-k="DONE">Done</button>` : ""}</div>`).join("");
+  const count = sp.mode === "bee" ? `Bee: word ${sp.right.length + sp.missed.length + 1} of ${list.words.length}` : `${Math.min(day.spellWords || 0, SPELL_DAILY)} of ${SPELL_DAILY} words today &#183; ${mastered} of ${list.words.length} from memory`;
+  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<p class="statesbar">${count}</p>${pitch}<div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><div class="spellkb">${kb}</div>`;
+}
+function spellLog() {
+  const list = spellList(), bees = spellBees();
+  const rows = list.words.map((x) => { const r = spellRec(x.w), status = r.level >= 3 ? "From memory" : r.level === 2 ? "Almost" : r.level === 1 ? "Learning" : r.rounds ? "Started" : "Not started"; return `<tr><td><b>${esc(x.w)}</b></td><td>${status}</td><td>${r.rounds}</td><td>${r.misses}</td><td>${esc(r.typed.join(", "))}</td></tr>`; }).join("");
+  const beeRows = bees.map((b) => `<li>${esc(b.date)}: ${b.right} of ${b.total}${b.missed.length ? `, missed ${b.missed.map(esc).join(", ")}` : ""}</li>`).join("");
+  return `<div class="panel"><h2>Spelling: ${esc(list.title)}</h2><p class="sub">${spellMastered()} of ${list.words.length} words known from memory.</p>${beeRows ? `<h3>Spelling bees</h3><ul>${beeRows}</ul>` : ""}<details class="plog pfold"><summary>Every word</summary><table class="ptable"><tr><th>Word</th><th>Status</th><th>Rounds</th><th>Misses</th><th>Letters he tried</th></tr>${rows}</table></details></div>`;
+}
+function spellReport() {
+  const list = spellList(), out = [`SPELLING ${list.title}: ${spellMastered()} of ${list.words.length} from memory`];
+  const hard = list.words.filter((x) => spellRec(x.w).misses).map((x) => `${x.w} (${spellRec(x.w).misses})`);
+  if (hard.length) out.push(`Misses by word: ${hard.join(", ")}`);
+  spellBees().forEach((b) => out.push(`Bee ${b.date}: ${b.right} of ${b.total}${b.missed.length ? `, missed ${b.missed.join(", ")}` : ""}`));
+  return out;
+}
 function worldMapSvg() {
   const known = S.capitals || {}, pts = worldPts(), current = currentIdx(), here = new Set(LESSONS.map((l) => l.place?.state));
   const shapes = Object.entries(US_STATES).map(([name, st]) => `<path class="ust ${known[name] ? "known" : ""} ${here.has(name) ? "here" : ""}" d="${st.d}" ${STATE_ABBR[name] ? `data-act="stateTap" data-id="${esc(name)}" role="button" aria-label="${esc(name)}"` : ""}/>`).join("");
@@ -2827,6 +2970,7 @@ function reportText() {
     if (wrongs.length) out.push(`Wrong answers he tried: ${wrongs.join("; ")}`);
   });
   if (out.length === 2) out.push("", "Nothing done yet.");
+  out.push(...spellReport());
   return out.join("\n");
 }
 // A problem counts as proof only if he got it with no hints and no walkthrough.
@@ -2951,6 +3095,7 @@ function parentView() {
   const familyPanel = `<div class="panel"><h2>Viewing ${esc(KID.name)}</h2><div class="kidrow">${familyKids().map((k) => (k.id === KID.id ? `<span class="kidchip on">${esc(k.name)}</span>` : `<button class="kidchip" data-act="kidUse" data-id="${esc(k.id)}">${esc(k.name)}</button>`)).join("")}</div><div class="famrow"><input id="kidNew" type="text" maxlength="20" placeholder="Add a child's name"><button class="btn small" data-act="kidAdd">Add child</button></div><p class="sub"><a href="castle/?parents=1">Learning Castle lesson settings</a></p></div>`;
   const schoolTop = `${familyPanel}<div class="panel"><h2>Today's school day</h2>${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i></div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
   <div class="panel"><h2>This week</h2><div class="weekgrid" style="--days:7"><span></span>${weekDays.map((d) => `<b>${d.toLocaleDateString(undefined, { weekday: "short" })}</b>`).join("")}${planItems.map((x) => `<span class="wkname">${esc(x.name)}</span>${weekDays.map((d) => weekCell(x, d)).join("")}`).join("")}</div><div class="howkey"><span><i class="wk yes"></i> Done</span><span><i class="wk part"></i> Started</span><span><i class="wk none"></i> Not done</span><span><b>${S.schoolDays || 0}</b> full school days finished</span></div></div>
+  ${KID.id === "elliot" ? spellLog() : ""}
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
   const top = `<div class="panel"><h2>Lessons done: ${finishedN} of ${LESSONS.length}</h2><p class="sub">Tap a lesson to see how it went.</p>${lessonTrail()}</div>
   <div class="panel"><h2>How ${esc(KID.name)} is doing</h2>${howBar(all)}<div class="pstats">${stat(S.brave || 0, "brave tries")}${stat(count(all, (p) => p.hints), "hints used")}${stat(done.filter((p) => p.coached).length, "walkthroughs")}${stat(Object.keys(S.capitals || {}).length, "capitals learned")}</div>${done.length ? `<div class="ptwo"><div><h3>Strong at</h3>${strongList.length ? `<ul>${strongList.slice(0, 4).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="sub">Not enough solved alone yet.</p>`}</div><div><h3>Needs help with</h3>${hard.length ? `<ul>${hard.map((k) => `<li>${esc(k.name)}</li>`).join("")}</ul><p class="ptry">Try this: ask him to teach you one of these out loud.</p>` : `<p class="sub">Nothing stands out.</p>`}</div></div>` : ""}</div>
@@ -3840,6 +3985,7 @@ const acts = {
     if (x.kind === "math") { const l = LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "reading" || x.id === "piano") { U.timerId = x.id; U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { stateOpen(); return; }
+    if (x.kind === "spelling") { spellOpen(spellBeeDay() && !day.spellBee ? "bee" : "practice"); return; }
     if (x.kind === "game") { save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id]; save(); render();
   },
@@ -3958,6 +4104,10 @@ const acts = {
   },
   openGame(d) { save(); location.href = `${d.g}/`; },
   statesPick,
+  spellKey,
+  spellSayAgain() { spellSay(); },
+  spellBee() { spellOpen("bee"); },
+  spellMore() { U.sp.extra = true; spellNext(); render(); },
   statesZoom() { const sg = U.sg; if (!sg || sg.locked) return; sg.zoom = !sg.zoom; beep(BLIP); render(); },
   statesPractice() { U.sg = { queues: { 1: [], 2: [] }, extra: true }; stateNext(); render(); },
   statesMore() { U.sg.extra = true; stateNext(); render(); },
@@ -4083,8 +4233,8 @@ function arrange() {
 function render() {
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["who", "parent", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["who", "parent", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
