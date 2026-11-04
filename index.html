@@ -860,9 +860,39 @@ function rankHud() {
 }
 
 /* ---------- sound and voice ---------- */
+// VOICE-TEXT-START
+// Shared with tools/voice-lines.mjs, so a line is named the same when recorded and when played.
+const voiceSpoken = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)½/g, "$1 and a half").replace(/½/g, "one half").replace(/(\d)R(\d)/g, "$1 remainder $2").replace(/\s+/g, " ").trim();
+function voiceSentences(t) { return voiceSpoken(t).split(/(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it):)\s+/).map((x) => x.trim()).filter(Boolean); }
+function voiceClip(voice, sentence) { let h = 2166136261; const text = `${voice}|${sentence}`; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); } return `${voice[0]}${(h >>> 0).toString(36)}`; }
+// VOICE-TEXT-END
 let ac = null, music = 0;
+// Recorded sounds. If one hasn't loaded yet, the game falls back to its old synthesized tone.
+const SFX_FILES = ["coin", "fanfare", "blip", "key", "thud", "soft", "gunshot", "ricochet", "bell", "cheer", "bump", "jump", "ding", "whinny", "gallop", "trail"];
+const sfxBuffers = {};
+let sfxLoading = false;
+function loadSfx() {
+  if (sfxLoading) return; sfxLoading = true;
+  try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+  SFX_FILES.forEach((name) => fetch(`sfx/${name}.mp3`).then((r) => { if (!r.ok) throw 0; return r.arrayBuffer(); }).then((b) => ac.decodeAudioData(b)).then((buf) => { sfxBuffers[name] = buf; }).catch(() => {}));
+}
+function playSfx(name, vol = 1, loop = false) {
+  const buf = sfxBuffers[name];
+  if (S.muted || !buf) return null;
+  try {
+    if (ac.state === "suspended") ac.resume();
+    const src = ac.createBufferSource(), g = ac.createGain();
+    src.buffer = buf; src.loop = loop; g.gain.value = vol;
+    src.connect(g).connect(ac.destination); src.start();
+    return { stop: () => { try { src.stop(); } catch (e) {} } };
+  } catch (e) { return null; }
+}
+// iPads only count a finished tap as permission for sound, so every kind of tap tries.
+["pointerdown", "pointerup", "touchend", "click", "keydown"].forEach((ev) => document.addEventListener(ev, () => { loadSfx(); voiceUnlock(); try { if (ac?.state === "suspended") ac.resume(); } catch (e) {} }, { capture: true, passive: true }));
 function beep(notes) {
   if (S.muted) return;
+  const named = notes === CHIME ? ["coin", .7] : notes === FANFARE ? ["fanfare", .75] : notes === BLIP ? ["blip", .6] : notes === THUD ? ["thud", .8] : notes === NOPE ? ["soft", .7] : notes === KEY_TAP ? ["key", .45] : null;
+  if (named && playSfx(named[0], named[1])) return;
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();
@@ -876,13 +906,17 @@ function beep(notes) {
   } catch (e) {}
 }
 const CHIME = [[523, 0, .09], [659, .08, .09], [784, .16, .18]], BLIP = [[880, 0, .07]], NOPE = [[170, 0, .16, "sawtooth"]], THUD = [[100, 0, .15, "triangle"]], BANG = [[80, 0, .25, "sawtooth"], [50, .04, .3, "sawtooth"]];
+const KEY_TAP = [[520, 0, .03]];
 const FANFARE = [[523, 0, .12], [523, .12, .08], [523, .2, .08], [784, .28, .3], [659, .5, .12], [784, .62, .5]];
+let musicLoops = [];
 function startMusic() {
   stopMusic();
+  const tune = playSfx("trail", .32, true), hooves = playSfx("gallop", .4, true);
+  if (tune) { musicLoops = [tune, hooves].filter(Boolean); return; }
   const bass = [147, 147, 220, 147, 196, 147, 175, 165]; let i = 0;
   music = setInterval(() => { beep([[bass[i % 8], 0, .14, "triangle"], ...(i % 2 ? [[bass[i % 8] * 3, 0, .05]] : [])]); i++; }, 210);
 }
-function stopMusic() { clearInterval(music); music = 0; }
+function stopMusic() { clearInterval(music); music = 0; musicLoops.forEach((x) => x.stop()); musicLoops = []; }
 let lastSaid = "", sayText = "", sayIdx = -1, sayTimer = 0;
 const wordsHtml = (t) => String(t).split(/\s+/).map((w) => `<span class="w">${esc(w)}</span>`).join(" ");
 function markWord() {
@@ -904,19 +938,68 @@ function followWords(t) {
   };
   sayTimer = setInterval(nextWord, 170 + parts[0].length * 58);
 }
-function speak(t, force) {
+// Each sentence plays as its own recording. A sentence with no recording, like one with a typed number, uses the device voice.
+const VOICE_DEVICE = { david: { pitch: .8, rate: .95 }, nora: { pitch: 1.5, rate: 1.05 }, outlaw: { pitch: .7, rate: .95 } };
+let voiceLines = null, voiceRun = 0;
+const voiceEl = typeof Audio === "function" ? new Audio() : null;
+if (voiceEl) { voiceEl.preload = "auto"; voiceEl.setAttribute("playsinline", ""); }
+fetch("voice/lines.json").then((r) => (r.ok ? r.json() : [])).then((list) => { voiceLines = new Set(list); }).catch(() => { voiceLines = new Set(); });
+// iPads only let audio start from a tap, so the first tap unlocks the one player used for every line.
+function voiceUnlock() {
+  if (!voiceEl || voiceEl.dataset.ready || voiceRun) return;
+  voiceEl.dataset.ready = "1";
+  voiceEl.src = "data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjI5LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjU0AAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+xDEAAPAAAGkAAAAIAAANIAAAARMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV";
+  voiceEl.play().then(() => { voiceEl.pause(); }).catch(() => { delete voiceEl.dataset.ready; });
+}
+function stopVoice() {
+  voiceRun++;
+  clearInterval(voiceTick);
+  try { if (voiceEl) { voiceEl.onended = voiceEl.onerror = null; voiceEl.pause(); } } catch (e) {}
+  try { window.speechSynthesis?.cancel(); } catch (e) {}
+}
+let voiceTick = 0;
+function deviceSay(text, voice, done) {
+  if (!window.speechSynthesis) return done();
+  const u = new SpeechSynthesisUtterance(text), d = VOICE_DEVICE[voice] || VOICE_DEVICE.david;
+  u.pitch = d.pitch; u.rate = d.rate; u.onend = u.onerror = done;
+  speechSynthesis.speak(u);
+}
+// Plays t in that character's voice. onWord(i) follows along, and done runs at the end.
+function playVoice(t, voice = "david", done = () => {}, onWord = null) {
+  stopVoice();
+  const run = voiceRun, parts = voiceSentences(t), counts = parts.map((p) => p.split(/\s+/).length);
+  const shown = String(t).trim().split(/\s+/).length, spoken = counts.reduce((a, b) => a + b, 0) || 1;
+  let n = 0, wordsBefore = 0;
+  const next = () => {
+    if (run !== voiceRun) return;
+    clearInterval(voiceTick);
+    if (n >= parts.length) return done();
+    const part = parts[n], at = n; n++;
+    const before = wordsBefore; wordsBefore += counts[at];
+    const moveOn = () => { if (run === voiceRun) next(); };
+    const clip = [voice, "david"].map((v) => voiceClip(v, part)).find((c) => voiceLines?.has(c));
+    if (clip && voiceEl) {
+      voiceEl.onended = moveOn;
+      voiceEl.onerror = () => { if (run === voiceRun) { voiceEl.onerror = voiceEl.onended = null; deviceSay(part, voice, moveOn); } };
+      voiceEl.src = `voice/${clip}.mp3`;
+      voiceEl.play().catch(() => { if (run === voiceRun) deviceSay(part, voice, moveOn); });
+      if (onWord) voiceTick = setInterval(() => { const dur = voiceEl.duration; if (dur > 0) onWord(Math.floor((before + (voiceEl.currentTime / dur) * counts[at]) * shown / spoken)); }, 90);
+      const after = parts[n] && [voice, "david"].map((v) => voiceClip(v, parts[n])).find((c) => voiceLines?.has(c));
+      if (after) { const hint = new Audio(); hint.preload = "auto"; hint.src = `voice/${after}.mp3`; }
+    } else {
+      if (onWord) onWord(Math.floor(before * shown / spoken));
+      deviceSay(part, voice, moveOn);
+    }
+  };
+  next();
+}
+function speak(t, force, voice = "david") {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
   try {
-    followWords(t);
-    if (!window.speechSynthesis) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t.replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of "));
-    u.rate = 1.0; u.pitch = 1.1;
-    // Real word timing when the device gives it, otherwise the estimate above keeps going.
-    u.onboundary = (e) => { if (e.name && e.name !== "word") return; clearInterval(sayTimer); sayIdx = u.text.slice(0, e.charIndex).trim().split(/\s+/).filter(Boolean).length; markWord(); };
-    u.onend = endWords;
-    speechSynthesis.speak(u);
+    if (S.voice === false || S.muted) { followWords(t); return; }
+    clearInterval(sayTimer); sayText = t; sayIdx = 0; markWord(); document.body.classList.add("talking");
+    playVoice(t, voice, endWords, (i) => { if (i !== sayIdx) { sayIdx = i; markWord(); } });
   } catch (e) {}
 }
 function confetti(n = 24) {
@@ -1131,7 +1214,7 @@ function startRun(boosts) {
   W.run = { y: 0, vy: 0, obs: [], gold: [], score: 0, stomps: 0, lives: 3, safe: 0, time: 40 * 25, next: 40, dash: 0, boosts, flash: 0, over: false };
   startMusic();
 }
-function runJump() { const r = W.run; if (!r || r.over) return; if (r.y === 0) { r.vy = 13.5; beep(BLIP); } }
+function runJump() { const r = W.run; if (!r || r.over) return; if (r.y === 0) { r.vy = 13.5; if (!playSfx("jump", .6)) beep(BLIP); } }
 function runDash() { const r = W.run; if (!r || r.over || r.boosts <= 0 || r.dash > 0) return; r.boosts--; r.dash = 70; W.boost = 70; W.shake = 8; beep(FANFARE.slice(0, 2)); updateRunUI(); }
 function runStep() {
   const r = W.run; if (r.over) return;
@@ -1271,7 +1354,7 @@ function endRide() {
   if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
   if (!lp.rides[r.id]) earn(50);
   lp.rides[r.id] = true;
-  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; U.hugLine = pick(NORA_CHEERS); render(); window.scrollTo(0, 0); confetti(60); crowdSound(true); lastSaid = ""; speak(U.hugLine);
+  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; U.hugLine = pick(NORA_CHEERS); render(); window.scrollTo(0, 0); confetti(60); crowdSound(true); lastSaid = ""; speak(U.hugLine, false, "nora");
 }
 
 /* ---------- pictures ---------- */
@@ -1920,7 +2003,7 @@ const WHY = {
 // Silver reads the finished problem back out loud, lighting up each step as he says it.
 let narrateId = 0, narrateTimer = 0;
 const spokenMath = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)R(\d)/g, "$1 remainder $2");
-function stopNarration() { narrateId++; clearTimeout(narrateTimer); document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking")); try { speechSynthesis.cancel(); } catch (e) {} }
+function stopNarration() { narrateId++; clearTimeout(narrateTimer); document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking")); stopVoice(); }
 function narrateWorked() {
   const q = curQ(); if (!q || U.mode !== "worked") return;
   stopNarration();
@@ -1937,8 +2020,8 @@ function narrateWorked() {
     if (n >= lines.length) return;
     const line = lines[n++]; line.el?.classList.add("speaking"); line.el?.scrollIntoView?.({ block: "nearest" });
     let moved = false; const go = () => { if (moved) return; moved = true; clearTimeout(narrateTimer); next(); };
-    narrateTimer = setTimeout(go, 1800 + line.t.length * 85);
-    try { const u = new SpeechSynthesisUtterance(spokenMath(line.t)); u.rate = 1; u.pitch = 1.1; u.onend = go; speechSynthesis.speak(u); } catch (e) {}
+    narrateTimer = setTimeout(go, 3000 + line.t.length * 110);
+    try { playVoice(line.t, "david", go); } catch (e) {}
   };
   next();
 }
@@ -2365,7 +2448,7 @@ function openRoom(id) {
   box.innerHTML = `<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(room.name)}">${room.draw()}</svg><button class="btn dark roomback">&#9664; Back to the ranch</button><div class="roomtitle">${esc(room.name)}</div><p class="roomsay" id="roomSay">${esc(room.hello)}</p>`;
   document.body.appendChild(box);
   const say = box.querySelector("#roomSay"), talk = (t) => { say.textContent = t; lastSaid = ""; speak(t); };
-  box.querySelector(".roomback").onclick = () => { try { speechSynthesis.cancel(); } catch (e) {} box.remove(); };
+  box.querySelector(".roomback").onclick = () => { stopVoice(); box.remove(); };
   box.addEventListener("click", (e) => {
     const t = e.target.closest(".hot"); if (!t) return;
     t.classList.remove("hit"); void t.getBoundingClientRect(); t.classList.add("hit"); beep(BLIP); talk(t.dataset.say);
@@ -2376,7 +2459,7 @@ function noraSays(t, happy = true) {
   const el = document.getElementById("noraSay"); if (el) { el.textContent = t; el.hidden = false; }
   const n = document.getElementById("ranchNora");
   if (n && happy) { n.classList.remove("happy"); void n.getBoundingClientRect(); n.classList.add("happy"); }
-  lastSaid = ""; speak(t);
+  lastSaid = ""; speak(t, false, "nora");
 }
 const RANCH_ART = {
   fence: { view: "-50 -22 100 44", at: "translate(200 222)", draw: () => `<path d="M-48-8H48M-48 6H48" stroke="#7d5530" stroke-width="5"/><path d="M-48-10H48" stroke="#a97a48" stroke-width="1.500"/>${[-40, -14, 12, 38].map((x) => `<rect x="${x - 3}" y="-18" width="6" height="36" rx="1" fill="#5a3a1e"/>`).join("")}` },
@@ -2760,6 +2843,7 @@ function shoot() {
 function finishKick() { kick.phase = "done"; const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
 function crowdSound(cheer = true) {
   if (S.muted) return;
+  if (cheer && playSfx("cheer", .7)) return;
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();
@@ -2779,12 +2863,13 @@ function playNotes(notes, vol = .16) {
     notes.forEach(([f, at, len, type]) => { const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + at; o.type = type || "triangle"; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + len); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + len); });
   } catch (e) {}
 }
-const bumpSound = () => playNotes([[110, 0, .12, "square"], [70, .04, .22, "square"], [45, .1, .28]], .3);
-function sayOw() { try { if (S.voice === false || S.muted) return; speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance("Ow!"); u.rate = 1.15; u.pitch = .85; speechSynthesis.speak(u); } catch (e) {} }
+const bumpSound = () => playSfx("bump", .9) || playNotes([[110, 0, .12, "square"], [70, .04, .22, "square"], [45, .1, .28]], .3);
+function sayOw() { try { if (S.voice === false || S.muted) return; playVoice("Ow!", "outlaw"); } catch (e) {} }
 const chaChing = () => playNotes([[1319, 0, .07, "square"], [1760, .07, .07, "square"], [2637, .14, .32], [3520, .14, .32]], .13);
 const duDunDun = () => playNotes([[196, 0, .34, "sawtooth"], [98, 0, .34, "triangle"], [185, .42, .34, "sawtooth"], [92, .42, .34, "triangle"], [147, .84, 1, "sawtooth"], [73, .84, 1, "triangle"]], .2);
 function bellToll() {
   if (S.muted) return;
+  if (playSfx("bell", .9)) return;
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)();
     const t = ac.currentTime;
@@ -2793,6 +2878,7 @@ function bellToll() {
 }
 function gunshot(vol = 1, ricochet = false) {
   if (S.muted) return;
+  if (playSfx("gunshot", Math.min(1, vol + .1))) { if (ricochet) setTimeout(() => playSfx("ricochet", .8), 180); return; }
   try {
     ac = ac || new (window.AudioContext || window.webkitAudioContext)();
     if (ac.state === "suspended") ac.resume();
@@ -2831,9 +2917,9 @@ function outlawSay(kind) {
   const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay"), n = pick(NORA_LINES[kind]), nel = document.getElementById("noraBub");
   [[el, t], [nel, n]].forEach(([b, text]) => { if (b) { b.textContent = text; b.hidden = false; clearTimeout(b.hideT); b.hideT = setTimeout(() => { b.hidden = true; }, 2600); } });
   try {
-    speechSynthesis.cancel();
+    stopVoice();
     if (S.voice === false || S.muted) return;
-    const u = new SpeechSynthesisUtterance(n); u.pitch = 1.5; u.rate = 1.05; speechSynthesis.speak(u);
+    playVoice(t, "outlaw", () => playVoice(n, "nora"));
   } catch (e) {}
 }
 // Shooting Gallery: 30 seconds of tin targets. A miss costs nothing, so he can tap as much as he likes.
@@ -2899,7 +2985,7 @@ function galTap(e) {
   const pop = document.createElementNS("http://www.w3.org/2000/svg", "text");
   pop.setAttribute("x", best.x); pop.setAttribute("y", best.y - 50); pop.setAttribute("class", "galpop"); pop.textContent = `+${pts}`;
   fx.appendChild(pop); setTimeout(() => pop.remove(), 650);
-  beep([[best.kind === "bad" ? 1175 : 880, 0, .09]]);
+  if (!playSfx("ding", best.kind === "bad" ? 1 : .75)) beep([[best.kind === "bad" ? 1175 : 880, 0, .09]]);
 }
 function finishGallery() {
   const g = gal, free = U.game?.free, won = g.score >= GAL_RIBBON, record = g.score > (S.galleryBest || 0);
@@ -2960,7 +3046,7 @@ function duelResult(win, line, early) {
 }
 
 /* ---------- actions ---------- */
-function correctFx(msg) { U.combo++; worldBoost(msg); beep(CHIME); }
+function correctFx(msg) { U.combo++; worldBoost(msg); beep(CHIME); if (U.combo % 5 === 0) playSfx("whinny", .6); }
 const BRAVE_LINES = ["Good try!", "Brave shot!", "Love that you went for it.", "That try counts.", "Trying is how you get it.", "Nice swing!"];
 const braveLine = () => pick(BRAVE_LINES);
 // Every miss is a try, and every try earns something, with a limit so tapping at random doesn't pay.
@@ -3113,13 +3199,13 @@ function pressKey(k) {
     U.carries = U.carries || {};
     if (k === "DEL") delete U.carries[U.carryAt];
     else if (/^\d$/.test(k)) { U.carries[U.carryAt] = k; U.carryAt = null; }
-    beep([[520, 0, .03]]); return render();
+    beep(KEY_TAP); return render();
   }
   if (cb) {
     const max = cellLayout(cb).filter((x) => typeof x === "number").length;
     if (k === "DEL") { if (U.cells[U.cellAt] === undefined && U.cellAt > 0) U.cellAt--; U.cells[U.cellAt] = undefined; }
     else if (/^\d$/.test(k)) { U.cells[U.cellAt] = k; let nx = 0; while (nx < max && U.cells[nx] !== undefined) nx++; U.cellAt = Math.min(nx, max - 1); }
-    syncCellDraft(cb); beep([[520, 0, .03]]); return render();
+    syncCellDraft(cb); beep(KEY_TAP); return render();
   }
   if (k === "R" && (!U.draft || U.draft.includes("R"))) return beep([[220, 0, .06]]);
   if (k === "R") speak("left over");
@@ -3128,7 +3214,7 @@ function pressKey(k) {
   if (k !== "DEL" && checkEntryAuto()) return;
   const box = document.getElementById("ans");
   if (box) { const slot = box.classList.contains("slot"); box.innerHTML = U.draft ? draftText(U.draft) : slot ? "?" : `<span class="empty">${U.mode === "coach" ? "Type it" : "Your answer"}</span>`; if (slot) box.classList.toggle("open", !U.draft); }
-  beep([[520, 0, .03]]);
+  beep(KEY_TAP);
 }
 function pzMoved() {
   const it = curItem(), pz = U.pz; pz.moves++; beep(BLIP);
@@ -3367,7 +3453,7 @@ function movementBreak(after) {
 }
 function openAskPanel() {
   document.getElementById("askpanel")?.remove();
-  try { speechSynthesis?.cancel(); } catch (e) {}
+  stopVoice();
   endWords();
   const box = document.createElement("div"); box.id = "askpanel"; box.className = "askpanel"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Ask Silver");
   box.innerHTML = `<h3>Ask Silver anything about this problem</h3><p class="sub">Tap outside to close.</p><p class="askstatus" id="askstatus"></p><div class="askrow"><input id="askinput" type="text" autocomplete="off" placeholder="Talk, or type it here"></div><div class="askbtns">${SR ? `<button class="btn dark" id="asklisten">Talk again</button>` : ""}<button class="btn go" id="asksend">Ask</button></div>`;
@@ -3654,7 +3740,7 @@ const acts = {
     gal = null;
     if (duel) { clearTimeout(duel.timer); clearInterval(duel.bar); clearInterval(duel.beat); duel = null; }
     if (W.run) { W.run = null; stopMusic(); worldSize(200); }
-    try { speechSynthesis.cancel(); } catch (e) {}
+    stopVoice();
     U.game = null; U.view = paid ? "rideEnd" : "arcade"; render(); window.scrollTo(0, 0);
   },
   skipGame() { U.game = null; U.gameEnd = { title: "Back in the saddle", line: "Your boosts are safe with Silver. He ate two." }; U.view = "gameEnd"; render(); },
