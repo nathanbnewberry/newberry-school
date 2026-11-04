@@ -768,6 +768,8 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   body[data-view="store"] .storewrap .item .btn,body[data-view="store"] .storewrap .item button{flex:none;width:auto;min-height:38px;padding:4px 7px;font-size:clamp(.72rem,1.100vw,.86rem);white-space:nowrap}
 }
 input,textarea{user-select:text;-webkit-user-select:text}
+.stlasso{position:fixed;z-index:40;pointer-events:none;overflow:hidden}.stlasso svg{position:absolute;inset:0}.stpull{position:absolute;transform-origin:50% 60%}.stpull svg{position:static;width:100%;display:block}.stpull b{position:absolute;left:-20px;right:-20px;top:-32px;text-align:center;font:400 1.6rem var(--display);color:#c8202c}
+.stcount{position:absolute;left:176px;right:10px;top:8px;z-index:3;display:flex;align-items:center;gap:10px;background:rgba(251,243,223,.94);border:3px solid #5a3517;border-radius:14px;padding:4px 12px;color:#1c1712}.stnum{display:grid;justify-items:center;line-height:1;min-width:44px}.stnum b{font:800 1.7rem var(--body);color:#2f7f4a}.stnum.left b{color:#b4411a}.stnum small{font-size:.72rem;font-weight:700}.stbar{position:relative;flex:1;height:18px;border-radius:9px;background:#e3d4ad;overflow:hidden}.stbar i{display:block;height:100%;background:linear-gradient(#ffd96a,#e8a317);transition:width .35s ease}.stbar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(var(--seg) - 2px),rgba(90,53,23,.45) calc(var(--seg) - 2px) var(--seg))}
 .savewarn{display:block;width:100%;background:#b5362a;color:#fff;font-weight:800;padding:12px;border-radius:10px;margin:6px 0}.savedline{margin:0;font-size:.85rem;font-weight:700;color:#7fd492;text-align:right;min-height:1.1em}
 .spellprog{display:flex;align-items:center;gap:10px;min-width:0}.spellprogbar{flex:1;min-width:60px;height:14px;border-radius:7px;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);overflow:hidden}.spellprogbar i{display:block;height:100%;border-radius:7px;background:#3fa45b;transition:width .4s ease}.spellprog b{white-space:nowrap;font-size:.95rem}.spellprog.near .spellprogbar i{background:#e8a317}
 .linkwrap{display:grid;place-items:center;flex:1;padding:16px}.linkcard{display:grid;gap:12px;width:min(100%,480px);padding:22px;border-radius:16px;background:var(--paper);color:#1c1712;text-align:center}.linkcard h1{margin:0;font-size:clamp(1.7rem,5vh,2.3rem)}.linkcard p{margin:0}.linkcard input{min-height:54px;font-size:18px;padding:8px 14px;border-radius:10px;border:2px solid #b9ad96;text-align:center;background:#fff;color:#1c1712}.linkmsg{font-size:.95rem;color:#5d564b}.linkcard .link{justify-self:center;color:#5d564b}
@@ -790,7 +792,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=a8e3db7c5a"></script>
+<script src="lessons.js?v=60d3c25d22"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1792,12 +1794,12 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "525294688944";
+const GAME_BUILD = "83ea7d1e6441";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
     v = v.trim();
-    if (!v || v === GAME_BUILD || ["ride", "game", "reading", "familyLink"].includes(U.view)) return;
+    if (!v || v === GAME_BUILD || !["school", "who", "home", "parent", "title"].includes(U.view)) return;
     if (sessionStorage.getItem("reloaded-for") === v) return;
     sessionStorage.setItem("reloaded-for", v);
     save();
@@ -2468,14 +2470,30 @@ function stampedeView(pips) {
   U.factT = U.factT || now;
   const gold = (f.i + 1) % 10 === 0, streak = U.stStreak || 0, last = LP(U.lesson).factsResult;
   const dots = Array.from({ length: f.order.length }, (_, i) => `<i class="${i < f.i ? "on" : ""}"></i>`).join("");
-  return hudRide(`<span class="chip">${f.i} of ${f.order.length} roped</span>`) + bubble(U.msg || "Type the answer to rope him before he hits the fence!", U.msg ? "shake" : "", !U.msg) +
-    `<div class="bookpage stgame"><div class="stfield" id="stfield"><div class="stpen"><div class="stdots">${dots}</div></div><div class="stfence"></div><div class="steer ${gold ? "gold" : ""}" id="steer" style="animation-duration:${U.stDur}ms;animation-delay:-${now - U.stBorn}ms">${STEER}<div class="stsign">${a} × ${b} = <span>${esc(U.draft) || "?"}</span></div></div></div><div class="stinfo"><span class="chip ${streak >= 5 ? "hot" : ""}">Rope streak ${streak}</span>${gold ? `<span class="chip gold">Gold steer: +$3</span>` : ""}${last ? `<span class="chip">Last time ${fmtTime(last.secs)}</span>` : ""}</div><button class="btn dark wide stchart" data-act="chartOpen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg>Times chart</button>${padHtml()}</div>`;
+  const total = f.order.length, tick = total >= 50 ? 10 : 5, count = `<div class="stcount" role="img" aria-label="${f.i} roped, ${total - f.i} to go"><div class="stnum"><b>${f.i}</b><small>roped</small></div><div class="stbar" style="--seg:${(tick / total) * 100}%"><i style="width:${(f.i / total) * 100}%"></i></div><div class="stnum left"><b>${total - f.i}</b><small>to go</small></div></div>`;
+  return hudRide() + bubble(U.msg || "Type the answer to rope him before he hits the fence!", U.msg ? "shake" : "", !U.msg) +
+    `<div class="bookpage stgame"><div class="stfield" id="stfield">${count}<div class="stpen"><div class="stdots">${dots}</div></div><div class="stfence"></div><div class="steer ${gold ? "gold" : ""}" id="steer" style="animation-duration:${U.stDur}ms;animation-delay:-${now - U.stBorn}ms">${STEER}<div class="stsign">${a} × ${b} = <span>${esc(U.draft) || "?"}</span></div></div></div><div class="stinfo"><span class="chip ${streak >= 5 ? "hot" : ""}">Rope streak ${streak}</span>${gold ? `<span class="chip gold">Gold steer: +$3</span>` : ""}${last ? `<span class="chip">Last time ${fmtTime(last.secs)}</span>` : ""}</div><button class="btn dark wide stchart" data-act="chartOpen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg>Times chart</button>${padHtml()}</div>`;
 }
-// The caught steer flies over to the pen; drawn on top so it survives the next screen.
+// The rope flies out, loops the steer and hauls it back to the pen. Drawn over the page so typing the next answer can't cut it off.
 function stCaught(box) {
   const field = document.getElementById("stfield"); if (!field || !box) return;
-  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "LASSOED!"])}</b>`; playSfx("rope", .55); if (Math.random() < .12) playSfx("moo", .5);
-  field.appendChild(el); setTimeout(() => el.remove(), 750);
+  playSfx("rope", .55); if (Math.random() < .12) playSfx("moo", .5);
+  const f = field.getBoundingClientRect(), steerW = Math.min(170, f.width * .34), size = (steerW * 86) / 120;
+  const startX = f.left + box.left, y = f.bottom - f.height * .12 - size, endX = f.left + 60, line = pick(["GOT HIM!", "YEEHAW!", "ROPED!", "LASSOED!"]);
+  const layer = document.createElement("div"); layer.className = "stlasso"; layer.style.cssText = `left:${f.left}px;top:${f.top}px;width:${f.width}px;height:${f.height}px`;
+  layer.innerHTML = `<svg width="${f.width}" height="${f.height}" aria-hidden="true"><path id="stropeline" fill="none" stroke="#7a4a1e" stroke-width="4" stroke-linecap="round"/><ellipse id="stropeloop" rx="${steerW * .16}" ry="${steerW * .09}" fill="none" stroke="#7a4a1e" stroke-width="4"/></svg><div class="stpull" style="left:${startX - f.left}px;top:${y - f.top}px;width:${steerW}px">${STEER}<b>${line}</b></div>`;
+  document.body.appendChild(layer);
+  const pull = layer.querySelector(".stpull"), rope = layer.querySelector("#stropeline"), loop = layer.querySelector("#stropeloop"), ax = 150, ay = y - f.top + size * .2;
+  const THROW = 260, HAUL = 620, begin = performance.now(), neckAt = (px) => [px + steerW * .17, y - f.top + size * .26];
+  if (reduced) { setTimeout(() => layer.remove(), 500); return; }
+  const frame = (now) => {
+    const t = now - begin, hauled = Math.min(1, Math.max(0, (t - THROW) / HAUL)), ease = hauled * hauled, px = (startX - f.left) + ((endX - f.left) - (startX - f.left)) * ease;
+    pull.style.left = `${px}px`; pull.style.transform = `scale(${1 - ease * .55}) rotate(${-8 * Math.sin(hauled * Math.PI)}deg)`; pull.style.opacity = hauled > .9 ? String((1 - hauled) * 10) : "1";
+    const [nx, ny] = neckAt(px), reach = Math.min(1, t / THROW), ex = ax + (nx - ax) * reach, ey = ay + (ny - ay) * reach - 46 * Math.sin(reach * Math.PI), sag = hauled ? 10 : -38;
+    rope.setAttribute("d", `M${ax} ${ay}Q${(ax + ex) / 2} ${(ay + ey) / 2 + sag} ${ex} ${ey}`); loop.setAttribute("cx", ex); loop.setAttribute("cy", ey);
+    if (hauled < 1) requestAnimationFrame(frame); else layer.remove();
+  };
+  requestAnimationFrame(frame);
 }
 const draftText = (d) => esc(lettersNow() ? String(d || "") : String(d || "").replace("R", " R "));
 const lettersNow = () => curQ()?.keys === "letters";
