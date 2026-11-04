@@ -726,7 +726,7 @@ body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflo
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=8e16bf1e78"></script>
+<script src="lessons.js?v=808e684802"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 // Every game on this site reads the signed-in child from here, so nobody picks a player twice.
@@ -1635,7 +1635,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "25ff98c04f40";
+const GAME_BUILD = "c6a9d2f0a367";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
