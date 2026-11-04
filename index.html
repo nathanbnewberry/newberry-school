@@ -1680,7 +1680,7 @@ function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
     return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
-      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"}</button><button class="link dk" data-act="closeq">See all the problems</button>`;
+      `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : LP(l.id).rides[U.ride] ? "BACK TO THE PROBLEMS" : "FINISH THIS SECTION"}</button><button class="btn dark wide" data-act="redoq">Practice it again</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
     const log = U.stepLog || [];
@@ -2592,7 +2592,7 @@ const curItem = () => U.items[U.i];
 function startCoach() {
   const q = curQ(), p = PP(LP(U.lesson), q.id);
   if (!q.coach) return;
-  p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
+  if (!p.done) p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
 }
 const unseal = (key, code) => (code.match(/.{4}/g) || []).map((h, i) => String.fromCharCode(parseInt(h, 16) ^ key.charCodeAt(i % key.length))).join("");
 function applyStepRight(val) {
@@ -2600,12 +2600,12 @@ function applyStepRight(val) {
   if (s.put) { const ds = String(val).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`${s.board || 0}:${id}`] = ds[i]; }); }
   p.steps++;
   (U.stepLog = U.stepLog || [])[U.step] = String(val);
-  (p.work = p.work || [])[U.step] = [s.ask || "", String(val), U.stepWrong];
+  if (!p.done) (p.work = p.work || [])[U.step] = [s.ask || "", String(val), U.stepWrong];
   if (U.stepWrong === 0) { earn(1); coinPop(); correctFx(); } else { earn(2); coinPop(2); comeback(); correctFx("COMEBACK!"); }
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
   if (U.step >= c.steps.length) {
     U.step = c.steps.length - 1; U.cells = []; U.cellAt = 0; U.wrongNow = 0;
-    if (c.reveal) { U.mode = "worked"; p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
+    if (c.reveal) { U.mode = "worked"; if (!p.done) p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
     U.mode = "try"; U.coachDone = true;
   }
   save(); render();
@@ -2613,8 +2613,8 @@ function applyStepRight(val) {
 function stepWrong(choice) {
   const q = curQ(), s = q.coach.steps[U.step], p = PP(LP(U.lesson), q.id);
   U.lastWrong = choice || U.draft; U.lastWrongFor = q.id; U.lastTrap = s.nudge;
-  U.stepWrong++; p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
-  if (s.label) { p.missBy = p.missBy || {}; p.missBy[s.label] = (p.missBy[s.label] || 0) + 1; }
+  U.stepWrong++; if (!p.done) p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
+  if (s.label && !p.done) { p.missBy = p.missBy || {}; p.missBy[s.label] = (p.missBy[s.label] || 0) + 1; }
   if (choice) U.off.push(choice);
   U.msg = `${braveLine()} ${s.nudge}`; U.draft = ""; wrongFx(); save(); render();
 }
@@ -2640,7 +2640,7 @@ function checkFinal() {
   const sealed = seal(l.id, q.id, val);
   if (!p.done) p.tries = (p.tries || 0) + 1;
   if (q.sealed.includes(sealed)) {
-    p.ans = U.draft;
+    if (!p.done) p.ans = U.draft;
     const clean = !p.wrong.length && !p.coached && !p.stepMiss;
     return finishProblem(clean, false);
   }
@@ -3168,6 +3168,7 @@ const acts = {
     if (U.shade.length === it.target) { earn(3); coinPop(3); confetti(14); beep(CHIME); }
     render();
   },
+  redoq() { resetItem(); U.earned = 0; U.tryHint = null; U.hintKey = null; U.qStart = Date.now(); beep(BLIP); render(); window.scrollTo(0, 0); },
   hint() {
     const q = curQ(); if (!q?.coach) return;
     { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
