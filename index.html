@@ -765,7 +765,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=c895819627"></script>
+<script src="lessons.js?v=78b92397af"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject);
@@ -1697,20 +1697,20 @@ function lessonReviewView() {
     if (!r.problems) return `<button class="revride ${done ? "done" : ""}" data-act="reviewRide" data-id="${esc(r.id)}">${done ? "&#10003; " : ""}${esc(r.name)}</button>`;
     return `<div class="revsec"><h3>${done ? "&#10003; " : ""}${esc(r.name)}</h3><div class="revgrid">${r.problems.map((id) => { const p = PP(lp, id); return `<button class="revq ${p.done ? "done" : ""}" data-act="reviewQ" data-id="${esc(id)}" data-r="${esc(r.id)}"><b>${esc(id)}</b><span>${p.done && p.ans ? esc(p.ans) : p.done ? "&#10003;" : "&#8230;"}</span></button>`; }).join("")}</div></div>`;
   }).join("");
-  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; Lesson ${esc(l.bookLesson)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${l.subject === "grammar" ? `Grammar: ${esc(l.town)}` : `${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; Lesson ${esc(l.bookLesson)}`}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${bubble(`Here's everything you did in ${l.town}. Tap any problem to see it again.`, "", true)}
   <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="ranch">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
 }
-const lessonChips = () => ALL_LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${(U.view === "school" ? [...lessonsIn("math"), ...lessonsIn("grammar")] : LESSONS).map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
+const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
 function schoolView() {
   setSubject("math");
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "708b209126e3";
+const GAME_BUILD = "ea5eb4921f98";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2153,8 +2153,9 @@ function trot(key, idx, pts, go) {
   setTimeout(arrive, 1500);
 }
 function homeView() {
-  return `<div class="hud">${rankHud()}${navRight()}</div>${gameTimeBar(todaysItems(), schoolDay())}
-  ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}${lessonChips()}
+  setSubject("math");
+  return `<div class="hud">${rankHud()}${navRight()}</div>${lessonChips()}${gameTimeBar(todaysItems(), schoolDay())}
+  ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
@@ -2162,7 +2163,7 @@ const ranchStop = (x, y, w) => { const h = w * .6; return `<g class="stop" data-
 const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span>${U.view === "school" ? "" : `<button class="btn go small" data-act="view" data-v="school">School Day</button>`}<button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>Saloon Games</button><button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>General Store</button><button class="btn dark small" data-act="trophyOpen"><svg viewBox="-30 -34 60 64" aria-hidden="true">${PRIZE_ART["Rodeo Trophy"]}</svg>${U.view === "town" ? "Trophies" : "All Trophies"}</button></span>`;
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
-  return `<div class="hud"><span class="row-btns"><button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button></span>${navRight()}</div>
+  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}</span>${navRight()}</div>${lessonChips()}
   ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
   ${townMapSvg(l)}
   ${l.problems.some((q) => PP(lp, q.id).done) ? `<button class="btn dark wide" data-act="lessonReview" data-id="${esc(l.id)}">See all the work and the ranch</button>` : ""}
