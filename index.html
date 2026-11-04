@@ -548,7 +548,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .itempic{width:74px;height:56px;flex:none;background:#fbf3df;border-radius:8px;padding:3px}.item{display:flex;align-items:center;gap:10px}.itemtext{flex:1;min-width:0;display:grid}.shopcard{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center}.shopcard .itempic{grid-row:span 2}.shopcard .btn{grid-column:1/-1}
 @media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.storewrap .shop{grid-template-columns:1fr 1fr;gap:7px}.storewrap .item{padding:6px 8px;gap:7px;flex-wrap:wrap}.storewrap .itempic{width:58px;height:46px}.storewrap .itemtext{flex:1 1 90px}.storewrap .itemtext .sub{font-size:.76rem}.storewrap .item .btn{min-height:40px;padding:4px 10px;margin-left:auto}}
 .gamepic{padding:0;overflow:hidden;display:grid;grid-template-rows:auto auto;text-align:left;transition:transform .15s}.gamepic:hover,.gamepic:active{transform:scale(1.03)}.gameart{width:100%;display:block}.gametext{padding:8px 12px;display:grid;gap:2px}.gamepicks{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (orientation:landscape) and (min-width:800px){.gamepicks{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks .gameart{aspect-ratio:200/110}}
+@media (orientation:landscape) and (min-width:800px){.gamepicks{grid-template-columns:repeat(4,minmax(0,1fr))}.gamepicks .gameart{aspect-ratio:200/110}}
 .hughead~.gamepicks{grid-auto-flow:row}.gamepicks.small .gametext{padding:4px 8px}.gamepicks.small h3{font-size:1rem}.gamepicks.small .sub{font-size:.75rem}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.hugscene{width:190px}.gamepicks.small .gameart{max-height:64px;object-fit:cover}}
 .artjump{animation:artjump 1.4s ease-in-out infinite}@keyframes artjump{50%{transform:translateY(-14px)}}.artcoin{animation:artcoin 1s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}@keyframes artcoin{to{transform:scaleX(.2)}}
@@ -614,7 +614,7 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
 .dboard{position:absolute;left:calc(12px + env(safe-area-inset-left));bottom:12px;z-index:7;display:grid;justify-items:center;gap:3px;background:rgba(18,20,43,.88);color:#fff;border:2px solid #ffd23f;border-radius:12px;padding:6px 12px;pointer-events:none}.dboard small{font-weight:800;font-size:.85rem}.dboard .score{margin:0}
 .duelgame .outlawsay{top:32%;left:34%;right:auto;max-width:27%}.duelgame .norasaybub{left:auto;right:1.5%;top:26%;max-width:21%;background:#fff3d9}.duelgame .norasaybub::after{left:auto;right:30px}
 .endhead{text-align:center;padding:4px 8px}.endhead p{margin:4px auto 0;max-width:760px;font-size:1.05rem;font-weight:600}
-.endcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px}.endcard{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;background:var(--panel2);border:3px solid transparent;border-radius:16px;box-shadow:0 6px 0 #15183a;color:#fff;cursor:pointer}.endcard:active{transform:translateY(4px);box-shadow:0 2px 0 #15183a}.endcard.first{border-color:var(--gold);background:#2f8f55;box-shadow:0 6px 0 #1b6438}.endcard b{font-size:clamp(1.15rem,3.2vh,1.5rem);padding:10px 8px;text-align:center}.endart{display:block;aspect-ratio:200/110;overflow:hidden}.endart svg{width:100%;height:100%;display:block}.endtiles{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:2px}.endtiles svg{min-height:0}.endtiles svg:first-child{grid-column:1/3}.endshare{display:block;width:auto;margin:12px auto 0}
+.endcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px}.endcard{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;background:var(--panel2);border:3px solid transparent;border-radius:16px;box-shadow:0 6px 0 #15183a;color:#fff;cursor:pointer}.endcard:active{transform:translateY(4px);box-shadow:0 2px 0 #15183a}.endcard.first{border-color:var(--gold);background:#2f8f55;box-shadow:0 6px 0 #1b6438}.endcard b{font-size:clamp(1.15rem,3.2vh,1.5rem);padding:10px 8px;text-align:center}.endart{display:block;aspect-ratio:200/110;overflow:hidden}.endart svg{width:100%;height:100%;display:block}.endtiles{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:2px}.endtiles svg{min-height:0}.endshare{display:block;width:auto;margin:12px auto 0}
 .shareout{display:grid;gap:10px;padding:12px;justify-items:center;text-align:center}.soeq{margin:0;font-weight:800;font-size:1.2rem}.sorow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sorider{display:grid;justify-items:center;gap:2px}.sorider svg{width:30px;height:36px}.sobag{display:inline-grid;place-items:center;min-width:40px;height:34px;padding:0 4px;border-radius:10px 10px 6px 6px;background:#a9794a;box-shadow:inset 0 5px 0 #7d5530;color:#fff;font:800 1rem var(--body);font-style:normal}.sokey{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 20px;font-weight:700;font-size:1.05rem}.sokey>span{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.soleft .dcoin{width:20px;height:20px}
 .bookpage:has(.vis.notenough) .move{display:none}.vis.notenough{padding:4px 12px;gap:2px 4px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:780px){.vis.notenough .nespot{min-height:22px}.vis.notenough .nespot svg{width:18px;height:22px}.vis.notenough .dcoin,.vis.notenough .neempty{width:18px;height:18px}.bookpage:has(.vis.notenough) .bboard,.bookpage:has(.vis.notenough) .board{font-size:.82em}}
@@ -679,6 +679,21 @@ body[data-view="who"] #app{display:flex;flex-direction:column}
 .daygames{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.92rem}.gamechip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 14px;border-radius:999px;background:var(--panel2);color:#fff;font-weight:800;text-decoration:none}.gamechip svg{width:26px;height:26px}.whoami{font-weight:800}
 .kidrow{display:flex;flex-wrap:wrap;gap:8px}.kidchip{min-height:44px;padding:6px 18px;border-radius:999px;background:rgba(128,128,128,.25);color:#fff;font-weight:800}.kidchip.on{background:var(--gold);color:#1c1712}
 .whotiles{gap:clamp(14px,3vw,28px)}
+body[data-view="game-gallery"] #app{overflow:hidden}
+.galgame{background:#1d2550;cursor:crosshair;user-select:none;-webkit-user-select:none}
+#galScene{touch-action:none}
+.galbar{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:min(38%,380px);height:14px;background:rgba(18,20,43,.75);border:2px solid #fff3d9;border-radius:9px;overflow:hidden;pointer-events:none}
+.galbar i{display:block;height:100%;width:100%;background:#ffd23f}
+.galscore{pointer-events:none}
+.galintro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(18,20,43,.82);color:#fff;text-align:center;padding:16px;cursor:pointer;touch-action:none}
+.galintro h2{font-size:clamp(1.8rem,6vh,3rem);color:#ffd23f}
+.galintro p{font-size:clamp(1rem,3vh,1.3rem)}
+.gallegend{display:flex;gap:clamp(10px,3vw,30px);justify-content:center}
+.gallegend span{display:grid;justify-items:center;gap:2px}.gallegend svg{width:clamp(70px,20vh,120px);height:clamp(62px,18vh,106px)}.gallegend b{font-size:1.05rem}.gallegend small{color:#ffd23f;font-weight:800}
+.galpop{font:800 30px Rye,Georgia,serif;fill:#ffd23f;stroke:#3a2412;stroke-width:1px;text-anchor:middle;animation:galrise .65s ease-out forwards}
+@keyframes galrise{to{transform:translateY(-30px);opacity:0}}
+.galpuff{fill:#fff3d9;opacity:.8;animation:galfade .35s ease-out forwards}
+@keyframes galfade{to{opacity:0;r:16px}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -2079,6 +2094,7 @@ function rideEndView() {
   <div class="games gamepicks small">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", "Rope 100 steers.")}
     ${gameCard("run", `data-act="game" data-g="run" data-n="${shots}"`, "Boost Run", "Land on guys, win a prize.")}
+    ${gameCard("gallery", `data-act="game" data-g="gallery" data-n="${shots}"`, "Shooting Gallery", "Hit the targets.")}
     ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", "Save Nora.")}
   </div>`;
 }
@@ -2086,6 +2102,20 @@ function gameView() {
   const g = U.game;
   if (g.kind === "run") return `<div class="hud"><span class="tag">3 lives. Jump and land on the guys. Don't bump into them!</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
     <div class="actions runbtns"><button class="btn go" data-act="jump" style="min-height:96px;font-size:1.5rem">JUMP</button><button class="btn" id="dashbtn" data-act="dash" style="min-height:96px;font-size:1.3rem">DASH (${W.run ? W.run.boosts : 0})</button></div>`;
+  if (g.kind === "gallery") return `<div class="kickgame galgame"><div class="scene"><svg id="galScene" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A shooting gallery at the fair, with a bad guy, a coyote, a deer and bullseyes sliding past">
+      <rect width="2000" height="300" fill="#1d2550"/>
+      ${Array.from({ length: 40 }, (_, n) => `<circle cx="${20 + n * 50}" cy="${n % 2 ? 62 : 72}" r="3.5" fill="${["#ffd23f", "#ff7a59", "#7fd6ff"][n % 3]}"/>`).join("")}
+      <rect y="180" width="2000" height="9" fill="#a8743f" stroke="#3a2412"/>
+      <g id="galRow1"></g>
+      <rect y="262" width="2000" height="38" fill="#7a5230"/><rect y="262" width="2000" height="7" fill="#c9974f"/>
+      <g id="galRow2"></g>
+      <rect y="272" width="2000" height="28" fill="#7a5230"/>
+      ${Array.from({ length: 50 }, (_, n) => `<path d="M${n * 40} 0h40v30a20 20 0 0 1-40 0z" fill="${n % 2 ? "#fff3d9" : "#c8202c"}"/>`).join("")}
+      <g id="galFx"></g>
+    </svg></div>
+    <div class="galbar"><i id="galTime"></i></div><div class="dboard galscore"><small>Score</small><div class="score" id="galScore">0</div></div>
+    <div class="galintro" id="galIntro"><h2>Step right up!</h2><div class="gallegend">${[["bad", "Bad guy"], ["coyote", "Coyote"], ["deer", "Deer"], ["bull", "Bullseye"]].map(([k, name]) => `<span><svg viewBox="-48 -80 96 84" aria-hidden="true">${GAL_ART[k]}</svg><b>${name}</b><small>${GAL_POINTS[k]} ${GAL_POINTS[k] === 1 ? "point" : "points"}</small></span>`).join("")}</div><p>Tap the targets as they slide by. <strong>Tap anywhere to start.</strong></p></div>
+  </div>`;
   if (g.kind === "kick") return `<div class="kickgame" data-act="shoot"><div class="scene"><svg id="pitch" viewBox="0 0 360 250" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A soccer goal with a keeper">
       <defs><radialGradient id="flood"><stop offset="0" stop-color="#fff"/><stop offset=".25" stop-color="#eaf2ff" stop-opacity=".8"/><stop offset="1" stop-color="#eaf2ff" stop-opacity="0"/></radialGradient><linearGradient id="kitY" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset="1" stop-color="#e29c12"/></linearGradient><linearGradient id="post" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#bcc6d0"/></linearGradient></defs>
       <rect width="360" height="90" fill="#0b1030"/><rect y="4" width="360" height="62" fill="#181d44"/>
@@ -2160,7 +2190,7 @@ function gameView() {
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
   const card = (art, attrs, label, cls = "") => `<button class="endcard ${cls}" ${attrs}><span class="endart">${art}</span><b>${label}</b></button>`;
-  const tiles = `<span class="endtiles">${["run", "duel", "stampede"].map((k) => gameArt[k]).join("")}</span>`;
+  const tiles = `<span class="endtiles">${["run", "gallery", "duel", "stampede"].map((k) => gameArt[k]).join("")}</span>`;
   const mapArt = `<svg class="gameart" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="200" height="110" fill="#e9d6a6"/><path d="M0 84c30-22 58 12 90-8s54-44 110-36" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="10 8"/><path d="M34 40l14-22 14 22zM54 44l12-18 12 18z" fill="#8c6b8f"/><circle cx="150" cy="74" r="14" fill="#6d8c3c"/><path d="M162 20l14 14M176 20l-14 14" stroke="#c8202c" stroke-width="6" stroke-linecap="round"/></svg>`;
   const ranch = e.saved ? card(ranchSvg(), 'data-act="view" data-v="store"', "Build the ranch", "first") : "";
   const again = g ? card(gameArt[g.kind] || tiles, `data-act="game" data-g="${g.kind}" data-n="5" data-free="1"`, "Play again", e.saved ? "" : "first") : "";
@@ -2177,10 +2207,21 @@ function moveView() {
   <div class="panel"><h2>On the NEW iPad</h2><p class="sub">Paste the save code here. This replaces what's on this iPad.</p><textarea id="moveIn" placeholder="Paste the save code"></textarea>
   ${d ? `<div class="ctx">This save has $${d.nuggets || 0} and rank ${RANKS[rankOf(d.xp || 0)][0]}. Replace this iPad's game with it?</div><div class="hud"><button class="btn small" data-act="moveYes">Yes, use this save</button><button class="btn small dark" data-act="moveNo">Cancel</button></div>` : `<div><button class="btn small" data-act="moveLoad">Load save</button></div>`}</div>`;
 }
+// Painted tin targets from the fair. Each stands on its post, with the base at y = 0.
+const GAL_POST = `<rect x="-3" y="-22" width="6" height="22" fill="#7a5230" stroke="#3a2412" stroke-width="1"/>`;
+const GAL_ART = {
+  bull: `${GAL_POST}<circle cy="-44" r="24" fill="#fff" stroke="#3a2412" stroke-width="2"/><circle cy="-44" r="17" fill="#c8202c"/><circle cy="-44" r="10" fill="#fff"/><circle cy="-44" r="4.5" fill="#c8202c"/>`,
+  deer: `${GAL_POST}<path d="M-30-30c-1-9 6-14 15-14h19l7-9c2-3 7-5 11-3l8 4-1 4-9 2-4 9c-2 5-5 8-8 10l2 13h-5l-4-12h-17l-3 12h-5l1-14c-4-1-7-2-7-2z" fill="#a8672f" stroke="#3a2412" stroke-width="2" stroke-linejoin="round"/><path d="M-30-37l-6-5 2 7z" fill="#fff3d9" stroke="#3a2412"/><path d="M16-56l-3-9m3 9l6-10m-11 5l-5-5m14-1l5-5" fill="none" stroke="#5a3a1e" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="-52" r="1.8" fill="#16151b"/>`,
+  coyote: `${GAL_POST}<path d="M-46-36c8-2 12-10 20-8 7 1 14 1 22 0 5-1 9-4 12-8l1-9 5 6 4-6 1 9 12 5-1 3-14 3-3 8c-2 4-4 7-7 8l2 13h-5l-4-12h-14l-3 12h-5l1-14c-6-1-10-6-15-7-4 2-10 1-12-3z" fill="#8f8c86" stroke="#3a2412" stroke-width="2" stroke-linejoin="round"/><circle cx="20" cy="-49" r="1.8" fill="#16151b"/><path d="M31-46l3 1" stroke="#16151b" stroke-width="2.5" stroke-linecap="round"/>`,
+  bad: `${GAL_POST}<path d="M-22-22c0-12 8-16 22-16s22 4 22 16z" fill="#4a2020" stroke="#3a2412" stroke-width="2"/><circle cy="-50" r="16" fill="#dcb48a" stroke="#3a2412" stroke-width="2"/><path d="M-16-48c0 12 8 18 16 18s16-6 16-18c-10 3-22 3-32 0z" fill="#c8202c" stroke="#3a2412" stroke-width="1.5"/><path d="M-10-56l7 3M10-56l-7 3" stroke="#16151b" stroke-width="2.5" stroke-linecap="round"/><circle cx="-6" cy="-52" r="1.8" fill="#16151b"/><circle cx="6" cy="-52" r="1.8" fill="#16151b"/><path d="M-27-61c8-3 46-3 54 0-5 4-49 4-54 0z" fill="#16151b"/><path d="M-13-61c0-14 4-17 8-15 3 2 7 2 10 0 4-2 8 1 8 15z" fill="#16151b"/>`,
+};
+const GAL_POINTS = { bull: 1, deer: 2, coyote: 3, bad: 5 };
+const GAL_RIBBON = 30;
 const gameArt = {
   stampede: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b26a"/><stop offset="1" stop-color="#ffe2a8"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaD)"/><rect y="70" width="200" height="40" fill="#c9a15f"/><path d="M0 72h36M0 86h36M10 62v42M28 62v42" stroke="#5a3517" stroke-width="4"/><g class="artsteer"><g transform="translate(120 72) scale(.6)"><rect x="-32" y="10" width="9" height="30" fill="#5a3517"/><rect x="24" y="10" width="9" height="30" fill="#5a3517"/><ellipse cy="0" rx="44" ry="24" fill="#8a5a2b"/><ellipse cx="-42" cy="-10" rx="18" ry="16" fill="#7d4c22"/><path d="M-52-22c-10-1-13-10-9-17 1 8 6 10 14 11zM-32-24c9-3 12-11 8-18-1 8-6 9-13 12z" fill="#f1e2c6"/></g></g><path class="artrope" d="M20 30C50 10 70 30 96 52" fill="none" stroke="#b08a4e" stroke-width="2.500"/><g transform="translate(120 24)"><rect x="-30" y="-14" width="60" height="26" rx="6" fill="#fbf3df" stroke="#5a3517" stroke-width="2"/><text y="5" text-anchor="middle" font-size="15" font-weight="800" fill="#2c1a0e">7 × 8</text></g></svg>`,
   run: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a63"/><stop offset=".6" stop-color="#b5546a"/><stop offset="1" stop-color="#ffb860"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaS)"/><circle cx="150" cy="66" r="18" fill="#ffe08a"/><path d="M0 84l26-26h26l18 26zM110 84l18-20h30l18 20z" fill="#5a2c52"/><rect y="84" width="200" height="26" fill="#3a1c30"/><g transform="translate(150 92)"><rect x="-5" y="-28" width="10" height="18" fill="#4a2020"/><circle cy="-33" r="5" fill="#dcb48a"/><path d="M-11-37h22M-5-37v-6h10v6" stroke="#16151b" stroke-width="3"/><path d="M-3-10V4M3-10V4" stroke="#2b2b2b" stroke-width="3"/></g><g class="artjump"><g transform="translate(60 62) scale(1.05)"><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#8fb7dc"/><circle cx="-2" cy="-35" r="6" fill="#f4cda8"/><rect x="-8" y="-38" width="12" height="4" fill="#15171b"/><path d="M-13-41H9" stroke="#fbfbf7" stroke-width="3"/><rect x="-7" y="-48" width="10" height="7" rx="2" fill="#fbfbf7"/></g></g><circle class="artcoin" cx="112" cy="40" r="7" fill="#ffc42e" stroke="#b9840f"/></svg>`,
   kick: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="46" fill="#10163a"/>${Array.from({ length: 40 }, (_, n) => `<circle cx="${3 + n * 5}" cy="${8 + (n % 3) * 9}" r="2" fill="${["#c8202c", "#fff", "#ffc42e", "#2f6fb0"][n % 4]}"/>`).join("")}<rect y="46" width="200" height="64" fill="#2f9757"/><rect y="66" width="200" height="16" fill="#35a35f"/><g stroke="#e6edf4" stroke-width=".7" opacity=".8"><path d="M40 34V80M56 34V80M72 34V80M88 34V80M104 34V80M120 34V80M136 34V80M152 34V80M40 46H160M40 58H160M40 70H160"/></g><path d="M36 80V30H164V80" fill="none" stroke="#fff" stroke-width="4"/><g class="artkeeper"><rect x="112" y="50" width="16" height="20" rx="3" fill="#f2b61c"/><circle cx="120" cy="44" r="6" fill="#f0c9a4"/><path d="M114 54L102 42M126 54L138 42" stroke="#f2b61c" stroke-width="4" stroke-linecap="round"/><path d="M116 70v10M124 70v10" stroke="#20242c" stroke-width="4"/></g><g class="artball"><circle r="8" fill="#fff" stroke="#222"/><path d="M0-3l3 2-1 3h-4l-1-3z" fill="#222"/></g></svg>`,
+  gallery: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><rect width="200" height="110" fill="#1d2550"/>${Array.from({ length: 10 }, (_, n) => `<path d="M${n * 20} 0h20v16a10 10 0 0 1-20 0z" fill="${n % 2 ? "#fff3d9" : "#c8202c"}"/>`).join("")}<rect y="92" width="200" height="18" fill="#7a5230"/><g transform="translate(40 94) scale(.8)">${GAL_ART.bull}</g><g transform="translate(100 94) scale(.8)">${GAL_ART.bad}</g><g transform="translate(160 94) scale(.8)">${GAL_ART.deer}</g></svg>`,
   duel: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaN" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f9fd1"/><stop offset="1" stop-color="#f6dfae"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaN)"/><circle cx="100" cy="20" r="13" fill="#ffefa8"/><path d="M0 76V44h30v32zM170 76V40h30v36z" fill="#94603a"/><rect x="92" y="38" width="16" height="38" fill="#a58d6c"/><circle cx="100" cy="48" r="5" fill="#fbf6e8" stroke="#3a2412"/><rect y="76" width="200" height="34" fill="#d6b077"/><g transform="translate(54 44)"><path d="M-7 8h14l-1 22H-6z" fill="#8fb7dc"/><path d="M-5 30l-1 22M5 30l1 22" stroke="#2f3a55" stroke-width="5"/><circle cy="1" r="6" fill="#f4cda8"/><rect x="-6" y="-2" width="12" height="4" fill="#121318"/><path d="M-11-5h22" stroke="#fbfbf7" stroke-width="3"/><rect x="-5" y="-12" width="10" height="7" rx="2" fill="#fbfbf7"/><g class="artgun"><path d="M6 12L24 14" stroke="#8fb7dc" stroke-width="5"/><path d="M24 12h14v3H24zM24 12v8h4l1-5z" fill="#343a43"/></g></g><g transform="translate(146 44)"><path d="M-7 8h14l-1 22H-6z" fill="#4a2020"/><path d="M-5 30l-1 22M5 30l1 22" stroke="#3b2c22" stroke-width="5"/><circle cy="1" r="6" fill="#dcb48a"/><path d="M-11-5h22" stroke="#16151b" stroke-width="3"/><rect x="-5" y="-12" width="10" height="7" rx="2" fill="#16151b"/></g></svg>`,
 };
 const gameCard = (art, attrs, name, sub) => `<button class="game gamepic" ${attrs}>${gameArt[art]}<span class="gametext"><h3>${name}</h3><span class="sub">${sub}</span></span></button>`;
@@ -2190,6 +2231,7 @@ function arcadeView() {
   <div class="games gamepicks">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", "Rope 100 steers. Beat your time.")}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "3 lives. Land on guys, win a prize.")}
+    ${gameCard("gallery", 'data-act="game" data-g="gallery" data-n="5" data-free="1"', "Shooting Gallery", "Step right up! Hit every target at the fair.")}
     ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", "Beat the outlaw on the draw and save Nora.")}
   </div>`;
 }
@@ -2612,7 +2654,7 @@ function parentView() {
 }
 
 /* ---------- mini games ---------- */
-let kick = null, duel = null;
+let kick = null, duel = null, gal = null;
 let kickTap = null;
 document.addEventListener("pointerdown", (e) => { kickTap = [e.clientX, e.clientY]; }, true);
 const kickReach = () => 106 + 28 * (kick.shots.length / Math.max(1, kick.n - 1));
@@ -2758,6 +2800,85 @@ function outlawSay(kind) {
     if (S.voice === false || S.muted) return;
     const u = new SpeechSynthesisUtterance(n); u.pitch = 1.5; u.rate = 1.05; speechSynthesis.speak(u);
   } catch (e) {}
+}
+// Shooting Gallery: 30 seconds of tin targets. A miss costs nothing, so he can tap as much as he likes.
+function startGallery() {
+  gal = { on: false, left: 30, score: 0, hits: 0, last: 0, w: 640, h: 300, items: [], rows: [{ y: 180, dir: 1, speed: 74, gap: 0 }, { y: 262, dir: -1, speed: 104, gap: .5 }] };
+  const svg = document.getElementById("galScene");
+  svg.addEventListener("pointerdown", (e) => { e.preventDefault(); galTap(e); });
+  document.getElementById("galIntro").addEventListener("pointerdown", (e) => { e.preventDefault(); galBegin(); });
+  galFit(); gal.rows.forEach((r, i) => { for (let n = 0; n < 4; n++) galSpawn(i, r.dir > 0 ? gal.w * (n + .5) / 4 : gal.w * (n + .3) / 4); });
+  galDraw(); requestAnimationFrame(galFrame);
+}
+function galBegin() { if (!gal || gal.on) return; gal.on = true; document.getElementById("galIntro")?.remove(); gal.last = 0; }
+function galFit() {
+  const svg = document.getElementById("galScene"), b = svg?.getBoundingClientRect();
+  if (!b?.height) return;
+  const w = Math.round(300 * b.width / b.height);
+  if (w !== gal.w) { gal.w = w; svg.setAttribute("viewBox", `0 0 ${w} 300`); }
+  gal.scale = b.height / 300; gal.left0 = b.left; gal.top0 = b.top;
+}
+function galSpawn(row, x) {
+  const roll = Math.random(), kind = roll < .15 ? "bad" : roll < .4 ? "coyote" : roll < .68 ? "deer" : "bull";
+  const r = gal.rows[row], el = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  el.innerHTML = GAL_ART[kind];
+  document.getElementById(`galRow${row + 1}`).appendChild(el);
+  const item = { kind, row, x, y: r.y, fall: 1, dead: false, el };
+  gal.items.push(item);
+  return item;
+}
+function galDraw() { gal.items.forEach((t) => t.el.setAttribute("transform", `translate(${t.x.toFixed(1)} ${t.y}) scale(1 ${t.fall.toFixed(2)})`)); }
+function galFrame(now) {
+  if (!gal || !document.getElementById("galScene")) return;
+  const dt = Math.min(.05, gal.last ? (now - gal.last) / 1000 : 0); gal.last = now;
+  galFit();
+  const rush = gal.on && gal.left < 10 ? 1.3 : 1;
+  gal.rows.forEach((r, i) => {
+    gal.items.forEach((t) => { if (t.row === i) t.x += r.dir * r.speed * rush * dt; });
+    const mine = gal.items.filter((t) => t.row === i), edge = r.dir > 0 ? Math.min(...mine.map((t) => t.x)) : Math.max(...mine.map((t) => t.x));
+    if (!mine.length || (r.dir > 0 ? edge > 60 : edge < gal.w - 60)) galSpawn(i, r.dir > 0 ? -70 - Math.random() * 70 : gal.w + 70 + Math.random() * 70);
+  });
+  gal.items = gal.items.filter((t) => { const gone = t.x < -160 || t.x > gal.w + 160 || (t.dead && t.fall <= .02); if (gone) t.el.remove(); return !gone; });
+  gal.items.forEach((t) => { if (t.dead) t.fall = Math.max(0, t.fall - dt * 6); });
+  galDraw();
+  if (gal.on) {
+    gal.left -= dt;
+    const bar = document.getElementById("galTime"); if (bar) bar.style.width = `${Math.max(0, gal.left / 30 * 100)}%`;
+    if (gal.left <= 0) return finishGallery();
+  }
+  requestAnimationFrame(galFrame);
+}
+function galTap(e) {
+  if (!gal) return;
+  if (!gal.on) return galBegin();
+  galFit();
+  const x = (e.clientX - gal.left0) / gal.scale, y = (e.clientY - gal.top0) / gal.scale;
+  let best = null, dist = 40;
+  gal.items.forEach((t) => { if (t.dead) return; const d = Math.hypot(t.x - x, t.y - 44 - y); if (d < dist) { dist = d; best = t; } });
+  gunshot(.4);
+  const fx = document.getElementById("galFx");
+  if (!best) { const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 7); c.setAttribute("class", "galpuff"); fx.appendChild(c); setTimeout(() => c.remove(), 350); return; }
+  const pts = GAL_POINTS[best.kind];
+  best.dead = true; gal.hits++; gal.score += pts;
+  document.getElementById("galScore").textContent = gal.score;
+  const pop = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  pop.setAttribute("x", best.x); pop.setAttribute("y", best.y - 50); pop.setAttribute("class", "galpop"); pop.textContent = `+${pts}`;
+  fx.appendChild(pop); setTimeout(() => pop.remove(), 650);
+  beep([[best.kind === "bad" ? 1175 : 880, 0, .09]]);
+}
+function finishGallery() {
+  const g = gal, free = U.game?.free, won = g.score >= GAL_RIBBON, record = g.score > (S.galleryBest || 0);
+  gal = null;
+  if (record) S.galleryBest = g.score;
+  const city = ranchLesson().id, left = PRIZES.filter((p) => !cityPrizes(city).includes(p)), prize = won && left.length ? pick(left) : null;
+  if (prize) winPrize(prize, city);
+  const pay = won ? (free ? 0 : Math.min(40, g.hits * 2)) : 5;
+  if (pay) earn(pay);
+  U.gameEnd = won
+    ? { title: "Blue ribbon!", line: `${prize ? `Prize: ${prize}! ` : ""}You hit ${g.hits} targets for ${g.score} points.${pay ? ` +$${pay}` : ""} High score: ${S.galleryBest}.` }
+    : { title: "Nice shooting!", line: `You hit ${g.hits} targets for ${g.score} points, plus $5 for trying. Get ${GAL_RIBBON} points to win a prize. High score: ${S.galleryBest}.` };
+  if (won) { beep(FANFARE); confetti(50); }
+  save(); U.view = "gameEnd"; render(); window.scrollTo(0, 0);
 }
 function duelState(st) { const sc = document.getElementById("duelScene"); if (sc) sc.setAttribute("class", `st-${st}`); }
 function duelRound() {
@@ -3489,11 +3610,13 @@ const acts = {
     if (d.g === "run") startRun(+d.n);
     render(); window.scrollTo(0, 0);
     if (d.g === "kick") startKick();
+    if (d.g === "gallery") startGallery();
     if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "intro" }; drawScore("dscore", duel.shots, duel.n); }
   },
   leaveGame() {
     const paid = U.game && !U.game.free;
     if (kick) { kick.phase = "done"; kick = null; }
+    gal = null;
     if (duel) { clearTimeout(duel.timer); clearInterval(duel.bar); clearInterval(duel.beat); duel = null; }
     if (W.run) { W.run = null; stopMusic(); worldSize(200); }
     try { speechSynthesis.cancel(); } catch (e) {}
