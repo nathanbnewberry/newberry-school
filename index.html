@@ -867,10 +867,19 @@ function familyCode() {
 }
 let cloudTimer = 0, cloudAt = 0;
 const cloudBody = () => ({ p_code: (() => { const c = familyCode(); try { localStorage.setItem("family-games-code", c); } catch (e) {} return c; })(), p_game: FAMILY_DB.game, p_player: FAMILY_DB.player, p_state: S, p_client_updated: S.updatedAt || 0 });
+// Saves never overwrite: what goes up is this device's work joined with whatever is already online,
+// so work from another device survives even when this one is in the middle of a game.
+let cloudLastRemote = null;
 function cloudSend(keepalive = false) {
   clearTimeout(cloudTimer);
   const mark = () => { const el = document.getElementById("savedline"); if (el) el.textContent = saveStatusText(); };
-  return familyRpc("save_progress", cloudBody(), keepalive).then(() => { cloud = "synced"; cloudAt = Date.now(); mark(); }).catch(() => { cloud = "device"; mark(); });
+  const up = (remote) => {
+    const body = cloudBody();
+    if (remote) { const stamp = Math.max(S.updatedAt || 0, remote.updatedAt || 0); body.p_state = { ...mergeSaves(S, remote), updatedAt: stamp }; body.p_client_updated = stamp; }
+    return familyRpc("save_progress", body, keepalive);
+  };
+  const sent = keepalive ? up(cloudLastRemote) : familyRpc("load_progress", { p_code: familyCode(), p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).then((remote) => { cloudLastRemote = remote; return up(remote); });
+  return sent.then(() => { cloud = "synced"; cloudAt = Date.now(); mark(); }).catch(() => { cloud = "device"; mark(); });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
 const MERGE_KEYS = ["spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
@@ -896,9 +905,12 @@ async function cloudPull() {
   const was = S.familyCode, moved = familyLinked() && was && was !== familyCode();
   if (!S.familyCode) return;
   const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
-  if (remote && (moved || (remote.updatedAt || 0) !== (S.updatedAt || 0))) {
-    const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0);
-    S = mergeSaves(S, remote, moved); S.updatedAt = stamp;
+  if (remote) {
+    // Timestamps can match while the work differs, so compare the work itself.
+    const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0), joined = mergeSaves(S, remote, moved);
+    const changed = moved || (remote.updatedAt || 0) !== (S.updatedAt || 0) || MERGE_KEYS.some((k) => JSON.stringify(joined[k]) !== JSON.stringify(S[k]));
+    if (!changed) return;
+    S = joined; S.updatedAt = stamp;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
     if (["home", "school", "town", "title", "parent", "lessonReview"].includes(U.view)) render();
   }
@@ -1780,7 +1792,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "48483a2ee97f";
+const GAME_BUILD = "9c5a46a166f6";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
