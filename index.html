@@ -1794,7 +1794,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "83ea7d1e6441";
+const GAME_BUILD = "e48f8d97f72c";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3836,9 +3836,10 @@ function checkStampede() {
     else if (U.stStreak % 10 === 0 && U.stStreak) { W.text = `${U.stStreak} IN A ROW!`; W.textT = 40; }
     save(); render(); return stCaught(box);
   }
+  const typedFact = U.draft;
   f.miss++; U.stepWrong++; wrongFx(); U.draft = "";
-  { const lp = LP(U.lesson), key = `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; }
-  U.msg = a === 0 || b === 0 ? "Good try! Zero groups means nothing, so times zero is always zero." : b === 1 || a === 1 ? "Good try! Times one keeps the number the same." : `Good try! ${a} × ${b} means ${a} jumps of ${b}. Count them.`;
+  { const lp = LP(U.lesson), key = `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; lp.factTyped = lp.factTyped || {}; lp.factTyped[key] = [...(lp.factTyped[key] || []), typedFact].slice(-12); }
+  U.msg = `You typed ${typedFact}. ` + (a === 0 || b === 0 ? "Good try! Zero groups means nothing, so times zero is always zero." : b === 1 || a === 1 ? "Good try! Times one keeps the number the same." : `Good try! ${a} × ${b} means ${a} jumps of ${b}. Count them.`);
   save(); render();
 }
 function checkFact() {
@@ -4494,8 +4495,15 @@ const acts = {
     else { t.focus(); t.select(); }
   },
 };
+let stPressAt = 0;
+document.addEventListener("pointerdown", (e) => {
+  const key = e.target.closest?.('.stgame [data-act="key"]');
+  if (!key || key.disabled) return;
+  stPressAt = Date.now(); pressKey(key.dataset.k);
+}, true);
 document.getElementById("shell").addEventListener("click", (e) => {
   const el = e.target.closest("[data-act]");
+  if (el?.dataset.act === "key" && el.closest(".stgame") && Date.now() - stPressAt < 700) return;
   if (el && !el.disabled && acts[el.dataset.act]) acts[el.dataset.act](el.dataset, el);
 });
 app.addEventListener("keydown", (e) => {
