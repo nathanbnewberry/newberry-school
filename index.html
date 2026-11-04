@@ -1792,7 +1792,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "9c5a46a166f6";
+const GAME_BUILD = "8d50915e94f4";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4042,15 +4042,17 @@ function askAnswer(text) {
 }
 let rec = null;
 // Browsers only allow full screen after a tap or key press, so every tap or key asks again if it was lost. Home Screen installs already run full screen.
-const typingNow = () => !!document.activeElement?.matches?.("input,textarea");
+const typingNow = () => !!document.activeElement?.matches?.("input:not(#spellSink),textarea");
+// The iPad won't take typing from a real keyboard in full screen, so spelling with one stays out of it.
+let realKeyboard = false;
 function goFullscreen(e) {
-  if (U?.view === "familyLink" || typingNow() || e?.target?.matches?.("input,textarea")) return;
+  if (U?.view === "familyLink" || typingNow() || e?.target?.matches?.("input:not(#spellSink),textarea") || e?.type === "keydown" || (realKeyboard && U?.view === "spelling")) return;
   if (document.fullscreenElement || document.webkitFullscreenElement || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone) return;
   const el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
   try { const p = ask?.call(el); p?.catch?.(() => {}); } catch (e) {}
 }
 ["pointerup", "touchend", "click", "keydown"].forEach((ev) => document.addEventListener(ev, goFullscreen, { capture: true }));
-document.addEventListener("focusin", (e) => { if (!e.target?.matches?.("input,textarea") || !(document.fullscreenElement || document.webkitFullscreenElement)) return; try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); p?.catch?.(() => {}); } catch (err) {} });
+document.addEventListener("focusin", (e) => { if (!e.target?.matches?.("input:not(#spellSink),textarea") || !(document.fullscreenElement || document.webkitFullscreenElement)) return; try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); p?.catch?.(() => {}); } catch (err) {} });
 document.addEventListener("input", (e) => { if (e.target?.id === "famPw") U.linkPw = e.target.value; });
 // The iPad draws its own X in the top left corner when the game fills the screen, so buttons stay clear of it.
 const markFullscreen = () => document.documentElement.classList.toggle("fs", !!(document.fullscreenElement || document.webkitFullscreenElement));
@@ -4472,9 +4474,13 @@ canvas.addEventListener("pointerdown", () => { if (W.run) runJump(); });
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target?.id === "famPw" && e.key === "Enter") { e.preventDefault(); return U.linkCreate ? acts.familyCreate() : acts.familySignIn(); }
-  if (["INPUT", "TEXTAREA"].includes(e.target?.tagName)) return;
+  if (["INPUT", "TEXTAREA"].includes(e.target?.tagName) && e.target.id !== "spellSink") return;
   if (U.view === "spelling" && U.sp?.item) {
-    if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); if (!e.repeat) spellKey({ k: e.key.toLowerCase() }); }
+    if (/^[a-zA-Z]$/.test(e.key)) {
+      e.preventDefault(); realKeyboard = true;
+      if (document.fullscreenElement || document.webkitFullscreenElement) { try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); p?.catch?.(() => {}); } catch (err) {} }
+      if (!e.repeat) spellKey({ k: e.key.toLowerCase() });
+    }
     else if (e.key === "Backspace") { e.preventDefault(); spellKey({ k: "DEL" }); }
     else if (e.key === "Enter") { e.preventDefault(); spellKey({ k: "RETURN" }); }
     else if (e.key === " ") e.preventDefault();
@@ -4554,8 +4560,23 @@ function arrange() {
     }
   });
 }
+// A hidden box outside the redrawn screen holds keyboard focus. Read-only, so the on-screen keyboard never opens.
+function spellFocus() {
+  let box = document.getElementById("spellSink");
+  if (U?.view !== "spelling") { if (box && document.activeElement === box) box.blur(); return; }
+  if (!box) {
+    box = document.createElement("input"); box.id = "spellSink"; box.readOnly = true; box.tabIndex = -1;
+    box.setAttribute("inputmode", "none"); box.setAttribute("aria-hidden", "true"); box.setAttribute("autocomplete", "off"); box.setAttribute("autocapitalize", "none");
+    box.style.cssText = "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px;pointer-events:none";
+    document.body.appendChild(box);
+  }
+  if (document.activeElement !== box) box.focus({ preventScroll: true });
+}
+document.addEventListener("pointerup", () => setTimeout(spellFocus, 0), true);
+addEventListener("focus", () => setTimeout(spellFocus, 0));
 let lastRenderedView = "";
 function render() {
+  setTimeout(spellFocus, 0);
   if (U.view === "school" && lastRenderedView !== "school") setTimeout(cloudSync, 0);
   lastRenderedView = U.view;
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
@@ -4578,7 +4599,7 @@ function render() {
   if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
-function setAppHeight() { if (document.activeElement?.matches?.("input,textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
+function setAppHeight() { if (document.activeElement?.matches?.("input:not(#spellSink),textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
 setAppHeight();
 addEventListener("resize", setAppHeight); addEventListener("orientationchange", () => setTimeout(setAppHeight, 250)); window.visualViewport?.addEventListener("resize", setAppHeight); document.addEventListener("focusout", () => setTimeout(setAppHeight, 300));
 addEventListener("pagehide", () => { save(); cloudSend(JSON.stringify(S).length < 60000); });
