@@ -726,20 +726,30 @@ body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;o
 .spellside{display:flex;flex-direction:column;gap:6px;min-height:0}.spellhelp{margin:0;text-align:center;font-size:.85rem;opacity:.8}
 .spellword{display:flex;justify-content:center;align-items:center;min-height:56px;font:400 clamp(2.2rem,8vh,3.4rem) var(--display);color:#ffd23f;letter-spacing:.06em}
 .spellslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.spellslots span{display:grid;place-items:center;width:clamp(36px,6vh,50px);height:clamp(42px,7vh,56px);border-radius:8px;background:var(--paper);color:#1c1712;font-size:1.6rem;font-weight:800;border-bottom:4px solid #b9ad96}.spellslots span.on{background:#c9f0d3;border-color:#1f9a4f}.spellslots span.hinted{color:#a97808;background:#fff3b0}
-.spellkb{display:grid;gap:clamp(7px,1.500vh,11px);margin-top:auto;padding:clamp(7px,1.500vh,11px) 4px;background:#2b2b2e;border-radius:12px}
+.spellkb{display:grid;gap:clamp(7px,1.500vh,11px);margin-top:auto;padding:clamp(7px,1.500vh,11px) 4px;background:transparent;border-radius:12px}
 .spellrow{display:flex;justify-content:center;gap:clamp(3px,.6vw,6px)}.spellrow.inset{padding:0 5%}
 .spellgap{flex:1.400}
-.spellk{flex:1;min-width:0;display:grid;place-items:center;padding:0;min-height:clamp(38px,7.800vh,56px);border:0;border-radius:6px;background:#6b6b70;color:#fff;font:400 clamp(1.15rem,3.400vh,1.65rem) -apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;text-transform:none;cursor:pointer;box-shadow:0 1px 0 #111;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.spellk:active{background:#8e8e93;transform:none}
-.spellk.fn{background:#464649}.spellk.fn:active{background:#6b6b70}
+.spellk{flex:1;min-width:0;display:grid;place-items:center;padding:0;min-height:clamp(38px,7.800vh,56px);border:0;border-radius:10px;background:#30352f;color:#fff;font:800 clamp(1.15rem,3.400vh,1.65rem) var(--body);text-transform:none;cursor:pointer;box-shadow:0 4px 0 #101310;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.spellk:active{background:#4a504a;transform:translateY(3px);box-shadow:0 1px 0 #101310}
+.spellk.fn{background:#4a504a}.spellk.fn:active{background:#30352f}
 .spellk.back{flex:1.400}.spellk.back svg{width:28px;height:20px}
 .spellk.space{flex:5;font-size:clamp(.9rem,2.400vh,1.1rem)}.spellk.ret{flex:2;font-size:clamp(.9rem,2.400vh,1.1rem)}
-.spellk.ret.go{background:#0a84ff;color:#fff}.spellk.ret.go:active{background:#0066cc}
+.spellk.ret.go{background:#39d07a;color:#12142b;box-shadow:0 4px 0 #1f9a4f}.spellk.ret.go:active{background:#2fb86a}
 body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
 @media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}.spellgame{grid-template-columns:1fr}.spellscene{height:30vh}}
 .tapwords{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:clamp(14px,5vh,44px) 10px}
 .tapword{min-height:60px;padding:8px 16px;border-radius:10px;background:#efe6d3;color:#1c1712;font-size:clamp(1.3rem,4vh,1.9rem);font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b9ad96}.tapword.on{background:#ffd23f;box-shadow:0 3px 0 #a97808}
-.lettersboard{margin-top:6px;width:100%}.shiftk.on{background:#fff;color:#000}.marksrow .spellk{background:#464649}.subjecttabs{margin-bottom:8px}
+.lettersboard{margin-top:6px;width:100%}.shiftk.on{background:#ffd23f;color:#12142b}.marksrow .spellk{background:#4a504a}.subjecttabs{margin-bottom:8px}
+@media (orientation:landscape) and (min-width:800px){
+  body[data-view="store"] .storewrap{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}
+  body[data-view="store"] .storewrap .shop{grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden}
+  body[data-view="store"] .storewrap .item{min-width:0;overflow:hidden;padding:5px 7px;gap:6px}
+  body[data-view="store"] .storewrap .item svg{flex:none;max-width:clamp(38px,5vw,52px)}
+  body[data-view="store"] .storewrap .itemtext{flex:1;min-width:0}
+  body[data-view="store"] .storewrap .itemtext b{font-size:clamp(.82rem,1.350vw,1rem);line-height:1.1;overflow-wrap:anywhere}
+  body[data-view="store"] .storewrap .itemtext .sub{display:none}
+  body[data-view="store"] .storewrap .item .btn,body[data-view="store"] .storewrap .item button{flex:none;width:auto;min-height:38px;padding:4px 7px;font-size:clamp(.72rem,1.100vw,.86rem);white-space:nowrap}
+}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -755,7 +765,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=af2f6f3a51"></script>
+<script src="lessons.js?v=c895819627"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject);
@@ -928,7 +938,7 @@ function rankHud() {
 // VOICE-TEXT-START
 // Shared with tools/voice-lines.mjs, so a line is named the same when recorded and when played.
 const voiceSpoken = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)½/g, "$1 and a half").replace(/½/g, "one half").replace(/(\d)R(\d)/g, "$1 remainder $2").replace(/\s+/g, " ").trim();
-function voiceSentences(t) { return voiceSpoken(t).split(/(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it):)\s+/).map((x) => x.trim()).filter(Boolean); }
+function voiceSentences(t) { return voiceSpoken(t).split(/(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it|For example):)\s+/).map((x) => x.trim()).filter(Boolean); }
 function voiceClip(voice, sentence) { let h = 2166136261; const text = `${voice}|${sentence}`; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); } return `${voice[0]}${(h >>> 0).toString(36)}`; }
 const VOICE_ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
 const VOICE_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
@@ -1700,7 +1710,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "068c70497555";
+const GAME_BUILD = "708b209126e3";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2092,9 +2102,11 @@ function worldMapSvg() {
 }
 // Asks the capital first, so he gets a real try. A miss still pays and shows the answer.
 const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]].map(([x, y]) => [x * K, y]);
+// A lesson with few sections spreads its stops across the whole map instead of bunching in one corner.
+const townPts = (l) => { const n = l.rides.length; return n >= 6 || n < 2 ? TOWN_PTS : l.rides.map((_, i) => [170 + (i * 720) / (n - 1), i % 2 ? 270 : 480]); };
 function townMapSvg(l) {
   const lp = LP(l.id), nx = nextRide(l);
-  const pts = TOWN_PTS.slice(0, l.rides.length);
+  const pts = townPts(l).slice(0, l.rides.length);
   const stops = l.rides.map((r, i) => {
     const [x, y] = pts[i], done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
     return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${!done && !locked && r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? `<circle class="almostring" r="46" fill="rgba(255,210,63,.3)" stroke="#ffd23f" stroke-width="5"/>` : ""}${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? doneMark(26, -28) : ""}${next ? `<g transform="translate(0 -56)"><rect x="-44" y="-14" width="88" height="24" rx="6" fill="#c8202c"/><text y="4" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="15" fill="#fff">NEXT</text></g>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, done ? "Finished" : r.problems && r.problems.some((id) => PP(lp, id).done) ? (r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "Just 1 left! Almost done!" : `${r.problems.filter((id) => PP(lp, id).done).length} of ${r.problems.length} solved`) : r.blurb, done ? "#0f6b34" : r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "#c8202c" : "")}${!done && r.problems && r.problems.some((id) => PP(lp, id).done) ? (() => { const f = r.problems.filter((id) => PP(lp, id).done).length / r.problems.length; return `<rect x="${x - 44}" y="${y + 66}" width="88" height="9" rx="4.500" fill="#3a2412"/><rect x="${x - 42}" y="${y + 68}" width="${84 * f}" height="5" rx="2.500" fill="#ffc42e"/>`; })() : ""}</g>`;
@@ -3022,7 +3034,7 @@ function storeView() {
     return `<div class="item ${own ? "owned" : ""} ${locked ? "lockeditem" : ""}">${ranchPic(g.id)}<div class="itemtext"><b>${esc(ranchName(g))}</b><span class="sub">${esc(locked ? `Finish ${left} more section${left === 1 ? "" : "s"} to unlock` : g.note)}</span></div>${own ? (g.id === "fence" ? `<span class="builtmark">&#10003; Built</span>` : `<button class="btn small dark" data-act="roomOpen" data-id="${g.id}">Go inside</button>`) : locked ? `<span class="lockmark" aria-label="Locked">&#128274;</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
   const trophies = (S.prizes || []).length;
-  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid slice"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${items}</div></div>`;
+  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid meet"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${items}</div></div>`;
 }
 
 /* ---------- parents ---------- */
@@ -3588,7 +3600,7 @@ function checkFinal() {
   U.wrongNow++; wrongFx();
   if (q.choices) U.off.push(U.draft);
   U.lastWrong = U.draft; U.lastWrongFor = q.id; U.lastTrap = q.traps[sealed] || "";
-  U.msg = `${braveLine()} ${q.traps[sealed] || "Check it one step at a time, or tap Hint."}`;
+  U.msg = `${braveLine()} ${q.traps[sealed] || q.rule || "Check it one step at a time, or tap Hint."}`;
   U.draft = ""; U.cells = []; U.cellAt = 0; save();
   if ((U.wrongNow >= 2 || q.choices) && !U.coachDone && q.coach) { const keep = U.msg; startCoach(); U.msg = null; U.lineFor = null; beep(BLIP); void keep; return; }
   render();
@@ -4005,7 +4017,7 @@ const acts = {
   ride(d) {
     const l = curLesson(), r = rideOf(l, d.id);
     S.atRide = { ...S.atRide, [l.id]: r.id }; save();
-    trot(`town:${l.id}`, l.rides.indexOf(r), TOWN_PTS, () => startRide(l, r));
+    trot(`town:${l.id}`, l.rides.indexOf(r), townPts(l), () => startRide(l, r));
   },
   leaveRide() { stopNarration(); closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
@@ -4167,7 +4179,7 @@ const acts = {
     const q = curQ(); if (!q?.coach) return;
     { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
     if (U.mode === "try") {
-      if (U.tryHint !== q.id) { U.tryHint = q.id; return showHint(`Here's how to start. ${hintLine(q.coach.steps[0], q, 0)} Tap Hint again and we'll do it together.`); }
+      if (U.tryHint !== q.id) { U.tryHint = q.id; return showHint(q.rule ? `Here's the rule. ${q.rule} For example: ${q.example} Tap Hint again and we'll do it together.` : `Here's how to start. ${hintLine(q.coach.steps[0], q, 0)} Tap Hint again and we'll do it together.`); }
       U.tryHint = null; U.hintKey = null; startCoach();
     }
     if (U.mode !== "coach") return;
@@ -4375,7 +4387,7 @@ function render() {
   if (U.view === "ride" || U.view === "town") save();
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
   if (U.view === "home" && !U.trotting && document.getElementById("token")) placeToken("world", worldSpot(), worldPts());
-  if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), TOWN_PTS); }
+  if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
