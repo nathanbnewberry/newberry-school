@@ -726,12 +726,12 @@ body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;o
 .spellside{display:flex;flex-direction:column;gap:6px;min-height:0}.spellhelp{margin:0;text-align:center;font-size:.85rem;opacity:.8}
 .spellword{display:flex;justify-content:center;align-items:center;min-height:56px;font:400 clamp(2.2rem,8vh,3.4rem) var(--display);color:#ffd23f;letter-spacing:.06em}
 .spellslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.spellslots span{display:grid;place-items:center;width:clamp(36px,6vh,50px);height:clamp(42px,7vh,56px);border-radius:8px;background:var(--paper);color:#1c1712;font-size:1.6rem;font-weight:800;border-bottom:4px solid #b9ad96}.spellslots span.on{background:#c9f0d3;border-color:#1f9a4f}.spellslots span.hinted{color:#a97808;background:#fff3b0}
-.spellkb{display:grid;gap:clamp(7px,1.500vh,11px);margin-top:auto;padding:clamp(7px,1.500vh,11px) 4px;background:#d1d4db;border-radius:12px}
+.spellkb{display:grid;gap:clamp(7px,1.500vh,11px);margin-top:auto;padding:clamp(7px,1.500vh,11px) 4px;background:#2b2b2e;border-radius:12px}
 .spellrow{display:flex;justify-content:center;gap:clamp(3px,.6vw,6px)}.spellrow.inset{padding:0 5%}
 .spellgap{flex:1.400}
-.spellk{flex:1;min-width:0;display:grid;place-items:center;padding:0;min-height:clamp(38px,7.800vh,56px);border:0;border-radius:6px;background:#fff;color:#000;font:400 clamp(1.15rem,3.400vh,1.65rem) -apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;text-transform:none;cursor:pointer;box-shadow:0 1px 0 #898a8d;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-.spellk:active{background:#e4e5e8;transform:none}
-.spellk.fn{background:#abb0ba}.spellk.fn:active{background:#fff}
+.spellk{flex:1;min-width:0;display:grid;place-items:center;padding:0;min-height:clamp(38px,7.800vh,56px);border:0;border-radius:6px;background:#6b6b70;color:#fff;font:400 clamp(1.15rem,3.400vh,1.65rem) -apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;text-transform:none;cursor:pointer;box-shadow:0 1px 0 #111;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.spellk:active{background:#8e8e93;transform:none}
+.spellk.fn{background:#464649}.spellk.fn:active{background:#6b6b70}
 .spellk.back{flex:1.400}.spellk.back svg{width:28px;height:20px}
 .spellk.space{flex:5;font-size:clamp(.9rem,2.400vh,1.1rem)}.spellk.ret{flex:2;font-size:clamp(.9rem,2.400vh,1.1rem)}
 .spellk.ret.go{background:#0a84ff;color:#fff}.spellk.ret.go:active{background:#0066cc}
@@ -739,7 +739,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
 @media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}.spellgame{grid-template-columns:1fr}.spellscene{height:30vh}}
 .tapwords{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:clamp(14px,5vh,44px) 10px}
 .tapword{min-height:60px;padding:8px 16px;border-radius:10px;background:#efe6d3;color:#1c1712;font-size:clamp(1.3rem,4vh,1.9rem);font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b9ad96}.tapword.on{background:#ffd23f;box-shadow:0 3px 0 #a97808}
-.lettersboard{margin-top:6px;width:100%}.shiftk.on{background:#fff}.subjecttabs{margin-bottom:8px}
+.lettersboard{margin-top:6px;width:100%}.shiftk.on{background:#fff;color:#000}.marksrow .spellk{background:#464649}.subjecttabs{margin-bottom:8px}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -755,7 +755,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=691be8fead"></script>
+<script src="lessons.js?v=af2f6f3a51"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject);
@@ -1700,7 +1700,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "5e635885bcda";
+const GAME_BUILD = "068c70497555";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2298,7 +2298,8 @@ function letterPadHtml() {
   const k = (c) => { const t = U.shift ? c.toUpperCase() : c; return `<button class="spellk" data-act="key" data-k="${t}" aria-label="${t}">${t}</button>`; };
   const mark = (c, label) => `<button class="spellk" data-act="key" data-k="${esc(c)}" aria-label="${label}">${esc(c)}</button>`;
   const back = `<svg viewBox="0 0 28 20" aria-hidden="true"><path d="M9 1.500h15a2.500 2.500 0 0 1 2.500 2.500v12a2.500 2.500 0 0 1-2.500 2.500H9L1.500 10z" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/><path d="M12.500 6.500l7 7M19.500 6.500l-7 7" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg>`;
-  return `<div class="spellkb lettersboard"><div class="spellrow">${"qwertyuiop".split("").map(k).join("")}</div><div class="spellrow inset">${"asdfghjkl".split("").map(k).join("")}</div><div class="spellrow"><button class="spellk fn back shiftk ${U.shift ? "on" : ""}" data-act="key" data-k="SHIFT" aria-label="Shift"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3l8 9h-4.500v7h-7v-7H3z" fill="${U.shift ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/></svg></button>${"zxcvbnm".split("").map(k).join("")}<button class="spellk fn back" data-act="key" data-k="DEL" aria-label="Backspace">${back}</button></div><div class="spellrow">${mark(",", "Comma")}${mark(".", "Period")}<button class="spellk space" data-act="key" data-k="SPACE" aria-label="Space">space</button>${mark("'", "Apostrophe")}${mark('"', "Quotation mark")}${mark("?", "Question mark")}</div></div>`;
+  const needs = !!curQ()?.marks;
+  return `<div class="spellkb lettersboard">${needs ? `<div class="spellrow marksrow">${mark(",", "Comma")}${mark(".", "Period")}${mark("'", "Apostrophe")}${mark('"', "Quotation mark")}${mark("?", "Question mark")}</div>` : ""}<div class="spellrow">${"qwertyuiop".split("").map(k).join("")}</div><div class="spellrow inset">${"asdfghjkl".split("").map(k).join("")}</div><div class="spellrow">${needs ? `<button class="spellk fn back shiftk ${U.shift ? "on" : ""}" data-act="key" data-k="SHIFT" aria-label="Shift"><svg viewBox="0 0 22 22" aria-hidden="true"><path d="M11 3l8 9h-4.500v7h-7v-7H3z" fill="${U.shift ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/></svg></button>` : `<span class="spellgap"></span>`}${"zxcvbnm".split("").map(k).join("")}<button class="spellk fn back" data-act="key" data-k="DEL" aria-label="Backspace">${back}</button></div><div class="spellrow"><button class="spellk space" data-act="key" data-k="SPACE" aria-label="Space">space</button><button class="spellk fn ret" data-act="key" data-k="RETURN" aria-label="Return">return</button></div></div>`;
 }
 function padHtml(extra = []) {
   if (lettersNow()) return letterPadHtml();
@@ -3646,6 +3647,7 @@ function checkLearnNum() {
 function pressKey(k) {
   if (lettersNow()) {
     if (k === "SHIFT") { U.shift = !U.shift; beep(KEY_TAP); return render(); }
+    if (k === "RETURN") { beep(KEY_TAP); if (U.mode === "try") checkFinal(); else if (U.mode === "coach") checkStepTyped(); return; }
     if (k === "DEL") U.draft = U.draft.slice(0, -1);
     else if (U.draft.length < 120) { U.draft += k === "SPACE" ? " " : k; if (U.shift) U.shift = false; }
     beep(KEY_TAP); return render();
