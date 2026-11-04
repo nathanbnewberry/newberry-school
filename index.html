@@ -624,6 +624,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .pstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}.pstat{background:rgba(255,255,255,.07);border-radius:10px;padding:8px 10px;display:grid;gap:2px}.pstat b{font-size:1.45rem;line-height:1.1;color:var(--gold)}.pstat span{font-size:.82rem}
 .plist,.plearn{margin:0;padding:0 0 0 1.3em;display:grid;gap:12px}.plearn{list-style:none;padding:0}.plist p,.plearn p{margin:4px 0 0;line-height:1.35}.ptry{color:var(--gold)}.panel h3{margin:4px 0 0;font-size:1.05rem}
 .plog summary,.pwork summary{cursor:pointer;font-weight:800;min-height:40px;display:flex;align-items:center}.plog summary::before{content:"\25B6";font-size:.7em;margin-right:8px}.plog[open] summary::before{content:"\25BC"}.pq{min-width:150px}.pwork{min-width:92px}.pwork ol{margin:4px 0;padding-left:1.3em;font-size:.85rem;min-width:230px}.pwork p{margin:4px 0;font-size:.85rem}.pwork b{color:var(--gold)}
+@media (orientation:landscape) and (min-width:800px){.problempage .pgrid .pmath .pbody.pbody{font-size:clamp(2.6rem,8.4vh,4rem);line-height:1.12;align-self:center;white-space:nowrap}.problempage .pgrid .pmath .pbody.pbody:has(.vert>:nth-child(3)){font-size:clamp(1.9rem,5vh,2.7rem)}.problempage .pgrid .pmath .pbody.pbody:has(.vert>:nth-child(4)){font-size:clamp(1.4rem,3.8vh,2.2rem)}.pcell .pnum{font-size:1.25rem}.pword .pbody{font-size:clamp(1.15rem,2.9vh,1.4rem)}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -2223,6 +2224,19 @@ function struggles() {
   return LESSONS.flatMap((l) => skillReport(l).filter((k) => k.help.length).map((k) => ({ ...k, l }))).sort((a, b) => b.score - a.score).slice(0, 3);
 }
 const hardFacts = (lp) => Object.entries(lp.factMiss || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
+// Equations start big, and any that won't fit their square shrink just enough.
+function fitProblemCells() {
+  const page = document.querySelector(".problempage"), bodies = [...document.querySelectorAll(".problempage .pgrid .pmath .pbody")];
+  if (!page || !bodies.length) return;
+  const shrink = (b, by = 2) => { const fs = parseFloat(getComputedStyle(b).fontSize); if (fs <= 18) return false; b.style.setProperty("font-size", `${fs - by}px`, "important"); return true; };
+  const tooWide = (b) => [...b.querySelectorAll("*"), b].some((e) => e.getBoundingClientRect().right > b.closest(".pcell").getBoundingClientRect().right - 6) || b.scrollWidth > b.clientWidth + 1;
+  const tooTall = (b) => { const c = b.closest(".pcell").getBoundingClientRect(); return [...b.querySelectorAll("*"), b].some((e) => e.getBoundingClientRect().bottom > c.bottom - 4); };
+  const over = (e) => e && e.scrollHeight > e.clientHeight + 1;
+  bodies.forEach((b) => { b.style.removeProperty("font-size"); for (let i = 0; i < 40 && (tooWide(b) || tooTall(b)) && shrink(b); i++); });
+  for (let i = 0; i < 30 && (over(page) || over(document.getElementById("app"))); i++) if (!bodies.map((b) => shrink(b)).some(Boolean)) break;
+}
+addEventListener("resize", () => { if (typeof U !== "undefined" && U.view === "ride") fitProblemCells(); });
+document.fonts?.ready.then(() => fitProblemCells());
 function parentView() {
   if (!U.parentOk) {
     const creating = !S.pin;
@@ -3187,6 +3201,7 @@ function render() {
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
+  fitProblemCells();
   startRanchCam();
   drawMatchArrows();
   initScratch();
