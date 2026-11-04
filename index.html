@@ -548,7 +548,7 @@ svg.ranch svg,.map svg.ranch{overflow:hidden}
 .itempic{width:74px;height:56px;flex:none;background:#fbf3df;border-radius:8px;padding:3px}.item{display:flex;align-items:center;gap:10px}.itemtext{flex:1;min-width:0;display:grid}.shopcard{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center}.shopcard .itempic{grid-row:span 2}.shopcard .btn{grid-column:1/-1}
 @media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}.storewrap .shop{grid-template-columns:1fr 1fr;gap:7px}.storewrap .item{padding:6px 8px;gap:7px;flex-wrap:wrap}.storewrap .itempic{width:58px;height:46px}.storewrap .itemtext{flex:1 1 90px}.storewrap .itemtext .sub{font-size:.76rem}.storewrap .item .btn{min-height:40px;padding:4px 10px;margin-left:auto}}
 .gamepic{padding:0;overflow:hidden;display:grid;grid-template-rows:auto auto;text-align:left;transition:transform .15s}.gamepic:hover,.gamepic:active{transform:scale(1.03)}.gameart{width:100%;display:block}.gametext{padding:8px 12px;display:grid;gap:2px}.gamepicks{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media (orientation:landscape) and (min-width:800px){.gamepicks{grid-template-columns:repeat(4,minmax(0,1fr))}.gamepicks .gameart{aspect-ratio:200/110}}
+@media (orientation:landscape) and (min-width:800px){.gamepicks{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks .gameart{aspect-ratio:200/110}}
 .hughead~.gamepicks{grid-auto-flow:row}.gamepicks.small .gametext{padding:4px 8px}.gamepicks.small h3{font-size:1rem}.gamepicks.small .sub{font-size:.75rem}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.hugscene{width:190px}.gamepicks.small .gameart{max-height:64px;object-fit:cover}}
 .artjump{animation:artjump 1.4s ease-in-out infinite}@keyframes artjump{50%{transform:translateY(-14px)}}.artcoin{animation:artcoin 1s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:center}@keyframes artcoin{to{transform:scaleX(.2)}}
@@ -614,7 +614,7 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
 .dboard{position:absolute;left:calc(12px + env(safe-area-inset-left));bottom:12px;z-index:7;display:grid;justify-items:center;gap:3px;background:rgba(18,20,43,.88);color:#fff;border:2px solid #ffd23f;border-radius:12px;padding:6px 12px;pointer-events:none}.dboard small{font-weight:800;font-size:.85rem}.dboard .score{margin:0}
 .duelgame .outlawsay{top:32%;left:34%;right:auto;max-width:27%}.duelgame .norasaybub{left:auto;right:1.5%;top:26%;max-width:21%;background:#fff3d9}.duelgame .norasaybub::after{left:auto;right:30px}
 .endhead{text-align:center;padding:4px 8px}.endhead p{margin:4px auto 0;max-width:760px;font-size:1.05rem;font-weight:600}
-.endcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px}.endcard{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;background:var(--panel2);border:3px solid transparent;border-radius:16px;box-shadow:0 6px 0 #15183a;color:#fff;cursor:pointer}.endcard:active{transform:translateY(4px);box-shadow:0 2px 0 #15183a}.endcard.first{border-color:var(--gold);background:#2f8f55;box-shadow:0 6px 0 #1b6438}.endcard b{font-size:clamp(1.15rem,3.2vh,1.5rem);padding:10px 8px;text-align:center}.endart{display:block;aspect-ratio:200/110;overflow:hidden}.endart svg{width:100%;height:100%;display:block}.endtiles{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:2px}.endtiles svg{min-height:0}.endshare{display:block;width:auto;margin:12px auto 0}
+.endcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:10px}.endcard{display:grid;grid-template-rows:minmax(0,1fr) auto;padding:0;overflow:hidden;background:var(--panel2);border:3px solid transparent;border-radius:16px;box-shadow:0 6px 0 #15183a;color:#fff;cursor:pointer}.endcard:active{transform:translateY(4px);box-shadow:0 2px 0 #15183a}.endcard.first{border-color:var(--gold);background:#2f8f55;box-shadow:0 6px 0 #1b6438}.endcard b{font-size:clamp(1.15rem,3.2vh,1.5rem);padding:10px 8px;text-align:center}.endart{display:block;aspect-ratio:200/110;overflow:hidden}.endart svg{width:100%;height:100%;display:block}.endtiles{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:2px}.endtiles svg{min-height:0}.endtiles svg:first-child{grid-column:1/3}.endshare{display:block;width:auto;margin:12px auto 0}
 .shareout{display:grid;gap:10px;padding:12px;justify-items:center;text-align:center}.soeq{margin:0;font-weight:800;font-size:1.2rem}.sorow{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}.sorider{display:grid;justify-items:center;gap:2px}.sorider svg{width:30px;height:36px}.sobag{display:inline-grid;place-items:center;min-width:40px;height:34px;padding:0 4px;border-radius:10px 10px 6px 6px;background:#a9794a;box-shadow:inset 0 5px 0 #7d5530;color:#fff;font:800 1rem var(--body);font-style:normal}.sokey{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 20px;font-weight:700;font-size:1.05rem}.sokey>span{display:inline-flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}.soleft .dcoin{width:20px;height:20px}
 .bookpage:has(.vis.notenough) .move{display:none}.vis.notenough{padding:4px 12px;gap:2px 4px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:780px){.vis.notenough .nespot{min-height:22px}.vis.notenough .nespot svg{width:18px;height:22px}.vis.notenough .dcoin,.vis.notenough .neempty{width:18px;height:18px}.bookpage:has(.vis.notenough) .bboard,.bookpage:has(.vis.notenough) .board{font-size:.82em}}
@@ -694,7 +694,7 @@ body[data-view="who"] #app{display:flex;flex-direction:column}
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=a2321b7c70"></script>
+<script src="lessons.js?v=8e16bf1e78"></script>
 <script>
 const LESSONS = window.LESSONS || [];
 // Every game on this site reads the signed-in child from here, so nobody picks a player twice.
@@ -1105,7 +1105,7 @@ function worldFrame(now) {
 requestAnimationFrame(worldFrame);
 
 /* ---------- boost run: the playable runner ---------- */
-const PRIZES = ["Silver Spur", "Golden Horseshoe", "Lucky Sheriff's Star", "Trail Boss Belt Buckle", "Gold Soccer Ball", "Rodeo Trophy", "Wanted Poster", "Pony Express Medal", "Captain's Armband", "Treasure Map"];
+const PRIZES = ["Silver Spur", "Golden Horseshoe", "Lucky Sheriff's Star", "Trail Boss Belt Buckle", "Gold Lasso", "Rodeo Trophy", "Wanted Poster", "Pony Express Medal", "Cattle Baron's Hat", "Treasure Map"];
 function startRun(boosts) {
   worldSize(340);
   W.run = { y: 0, vy: 0, obs: [], gold: [], score: 0, stomps: 0, lives: 3, safe: 0, time: 40 * 25, next: 40, dash: 0, boosts, flash: 0, over: false };
@@ -1357,7 +1357,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5];
 const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle/" }, { id: "pirates", name: "Cannon Math Pirates", path: "pirates/" }];
 // Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
 const KID_PLANS = {
-  finn: { on: ["reading", "castle", "pirates"], reading: 15, games: ["castle", "pirates"], focus: "Plus and minus" },
+  finn: { on: ["reading", "castle", "pirates"], reading: 30, games: ["castle", "pirates"], focus: "Plus and minus" },
   myla: { on: ["reading", "castle"], reading: 15, games: ["castle"], focus: "Colors and shapes" },
 };
 const SCHOOL_DEFAULT = [
@@ -1378,6 +1378,8 @@ function schoolPlan() {
     if (start) S.schoolPlan.forEach((x) => { x.on = start.on.includes(x.id); if (x.kind === "reading") x.minutes = start.reading; });
   }
   SCHOOL_DEFAULT.forEach((d) => { if (!S.schoolPlan.some((x) => x.id === d.id)) S.schoolPlan.push(JSON.parse(JSON.stringify(d))); });
+  // Finn's plan first saved at 15 minutes. Fixed once so a parent's later changes stick.
+  if (KID.id === "finn" && !S.readingSet) { S.readingSet = 1; S.schoolPlan.forEach((x) => { if (x.kind === "reading") x.minutes = 30; }); }
   // Elliot's daily list, set once so a parent's later changes stick.
   if (KID.id === "elliot" && !S.planSet) {
     S.planSet = 1;
@@ -1749,7 +1751,7 @@ function stampedeView(pips) {
 // The caught steer flies over to the pen; drawn on top so it survives the next screen.
 function stCaught(box) {
   const field = document.getElementById("stfield"); if (!field || !box) return;
-  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "SIUUU!"])}</b>`;
+  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "LASSOED!"])}</b>`;
   field.appendChild(el); setTimeout(() => el.remove(), 750);
 }
 const draftText = (d) => esc(String(d || "").replace("R", " R "));
@@ -1893,7 +1895,7 @@ function narrateWorked() {
 function solveView(l, q) {
   const p = PP(LP(l.id), q.id), c = q.coach;
   if (U.mode === "solved") {
-    return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Siuuu!", "Even I'm impressed, and I eat grass."])) +
+    return bubble(U.solvedNote || pick(["Boom. Nailed it.", "That's it!", "Yee-haw!", "Even I'm impressed, and I eat grass."])) +
       `<div class="bookpage pop solvedpage"><div class="rightbanner">&#10003; Correct</div>${problemHead(q, p.ans || "")}${!q.book && p.ans ? `<div class="answer">${esc(p.ans)}${q.unit ? `&nbsp;<small>${esc(q.unit)}</small>` : ""}</div>` : ""}<p class="tag dk">${U.earned ? `+$${U.earned}` : ""}</p></div>${(() => { const r = rideOf(l, U.ride); return r?.problems?.includes(q.id) ? `<div class="trailcard">${progressTrail(r, LP(l.id))}</div>` : ""; })()}<button class="btn go wide nextbtn" data-act="nextProblem">${nextProblemId() ? "NEXT PROBLEM" : LP(l.id).rides[U.ride] ? "BACK TO THE PROBLEMS" : "FINISH THIS SECTION"}</button><button class="btn dark wide" data-act="redoq">Practice it again</button><button class="link dk" data-act="closeq">See all the problems</button>`;
   }
   if (U.mode === "worked") {
@@ -2077,7 +2079,6 @@ function rideEndView() {
   <div class="games gamepicks small">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", "Rope 100 steers.")}
     ${gameCard("run", `data-act="game" data-g="run" data-n="${shots}"`, "Boost Run", "Land on guys, win a prize.")}
-    ${gameCard("kick", `data-act="game" data-g="kick" data-n="${shots}"`, "Penalty Kicks", "Beat the keeper.")}
     ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", "Save Nora.")}
   </div>`;
 }
@@ -2159,7 +2160,7 @@ function gameView() {
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
   const card = (art, attrs, label, cls = "") => `<button class="endcard ${cls}" ${attrs}><span class="endart">${art}</span><b>${label}</b></button>`;
-  const tiles = `<span class="endtiles">${["run", "kick", "duel", "stampede"].map((k) => gameArt[k]).join("")}</span>`;
+  const tiles = `<span class="endtiles">${["run", "duel", "stampede"].map((k) => gameArt[k]).join("")}</span>`;
   const mapArt = `<svg class="gameart" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="200" height="110" fill="#e9d6a6"/><path d="M0 84c30-22 58 12 90-8s54-44 110-36" fill="none" stroke="#7b2d1c" stroke-width="5" stroke-dasharray="10 8"/><path d="M34 40l14-22 14 22zM54 44l12-18 12 18z" fill="#8c6b8f"/><circle cx="150" cy="74" r="14" fill="#6d8c3c"/><path d="M162 20l14 14M176 20l-14 14" stroke="#c8202c" stroke-width="6" stroke-linecap="round"/></svg>`;
   const ranch = e.saved ? card(ranchSvg(), 'data-act="view" data-v="store"', "Build the ranch", "first") : "";
   const again = g ? card(gameArt[g.kind] || tiles, `data-act="game" data-g="${g.kind}" data-n="5" data-free="1"`, "Play again", e.saved ? "" : "first") : "";
@@ -2189,7 +2190,6 @@ function arcadeView() {
   <div class="games gamepicks">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", "Rope 100 steers. Beat your time.")}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "3 lives. Land on guys, win a prize.")}
-    ${gameCard("kick", 'data-act="game" data-g="kick" data-n="5" data-free="1"', "Penalty Kicks", "Tap the goal. Stay out of the keeper's zone.")}
     ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", "Beat the outlaw on the draw and save Nora.")}
   </div>`;
 }
@@ -2402,11 +2402,11 @@ const PRIZE_ART = {
   "Golden Horseshoe": `<path d="M-14 24C-30 8-26-26 0-26s30 34 14 50" fill="none" stroke="#c98a0c" stroke-width="13" stroke-linecap="round"/><path d="M-14 24C-30 8-26-26 0-26s30 34 14 50" fill="none" stroke="#ffd23f" stroke-width="8" stroke-linecap="round"/>${[[-20, 4], [-19, -12], [-9, -22], [9, -22], [19, -12], [20, 4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.700" fill="#8a5f00"/>`).join("")}`,
   "Lucky Sheriff's Star": `<path d="M0-28L8-8l21 1-16 13 6 21L0 15l-19 12 6-21-16-13 21-1z" fill="#ffd23f" stroke="#a97808" stroke-width="2"/><circle r="7" fill="#fff0a8" stroke="#a97808"/>${[[0, -28], [27, -7], [17, 25], [-17, 25], [-27, -7]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#ffd23f" stroke="#a97808"/>`).join("")}`,
   "Trail Boss Belt Buckle": `<rect x="-28" y="-18" width="56" height="36" rx="12" fill="#c98a0c"/><rect x="-23" y="-13" width="46" height="26" rx="8" fill="#ffd23f"/><path d="M0-9L3-3l6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z" fill="#a97808"/>`,
-  "Gold Soccer Ball": `<circle r="25" fill="#ffd23f" stroke="#a97808" stroke-width="2"/><path d="M0-10l10 7-4 12H-6L-10-3z" fill="#a97808"/><path d="M0-10V-24M10-3l13-5M6 9l9 13M-6 9l-9 13M-10-3l-13-5" stroke="#a97808" stroke-width="2"/>`,
+  "Gold Lasso": `<ellipse cy="-8" rx="24" ry="16" fill="none" stroke="#ffd23f" stroke-width="6"/><ellipse cy="-8" rx="24" ry="16" fill="none" stroke="#a97808" stroke-width="1.5" stroke-dasharray="3 5"/><path d="M14 6c8 8 2 14-6 16s-10 6-4 8" fill="none" stroke="#ffd23f" stroke-width="5" stroke-linecap="round"/>`,
   "Rodeo Trophy": `<path d="M-16-26H16C16-6 10 4 0 6-10 4-16-6-16-26z" fill="#ffd23f" stroke="#a97808" stroke-width="2"/><path d="M-16-22h-8c0 12 5 16 11 17M16-22h8c0 12-5 16-11 17" fill="none" stroke="#c98a0c" stroke-width="4"/><path d="M-6-22c-2 8-1 15 3 20" stroke="#fff4b8" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="-4" y="6" width="8" height="11" fill="#c98a0c"/><path d="M-15 25l3-9h24l3 9z" fill="#6b3f1d"/>`,
   "Wanted Poster": `<rect x="-22" y="-28" width="44" height="56" fill="#e9d6a6" stroke="#8a6a3a" stroke-width="2"/><rect x="-16" y="-24" width="32" height="9" fill="#3a2412"/><text y="-17" text-anchor="middle" font-size="7" font-weight="800" fill="#e9d6a6" font-family="Georgia,serif">WANTED</text><circle cy="-4" r="8" fill="#6b4a2c"/><path d="M-11-10H11M-5-10v-4H5v4" stroke="#20150c" stroke-width="2.500"/><text y="16" text-anchor="middle" font-size="8" font-weight="800" fill="#7b2d1c" font-family="Georgia,serif">$500</text>`,
   "Pony Express Medal": `<path d="M-13-28L0-6 13-28H4L0-20-4-28z" fill="#c8202c"/><circle cy="8" r="19" fill="#ffd23f" stroke="#a97808" stroke-width="2"/><path d="M-11 10c0-5 4-7 8-7h6l4-5 3 1-2 3 2 2-1 2-3-1-2 3v7h-2l-1-4h-7l-1 4h-2z" fill="#a97808"/>`,
-  "Captain's Armband": `<ellipse cy="-14" rx="22" ry="6" fill="#a31a24"/><path d="M-22-14V14c0 8 44 8 44 0V-14c0 8-44 8-44 0z" fill="#c8202c"/><text y="11" text-anchor="middle" font-size="26" font-weight="800" fill="#fff" font-family="Georgia,serif">C</text>`,
+  "Cattle Baron's Hat": `<path d="M-30 12c10-8 50-8 60 0-10 10-50 10-60 0z" fill="#6b4423" stroke="#3a2412" stroke-width="2"/><path d="M-15 6c-2-24 4-30 10-26 4 3 6 3 10 0 6-4 12 2 10 26-10 3-20 3-30 0z" fill="#8a5a2e" stroke="#3a2412" stroke-width="2"/><path d="M-15 1c10 3 20 3 30 0v6c-10 3-20 3-30 0z" fill="#ffd23f"/>`,
   "Treasure Map": `<path d="M-26-22l14 4 13-5 13 5 12-4V24l-12 4-13-5-13 5-14-4z" fill="#e9d6a6" stroke="#8a6a3a" stroke-width="2"/><path d="M-12-18V28M1-23V23M14-18V28" stroke="#c9b27f"/><path d="M-20 16c8-10 14 4 20-6s10-8 12-14" fill="none" stroke="#7b2d1c" stroke-width="2" stroke-dasharray="3 3"/><path d="M10-10l8 8M18-10l-8 8" stroke="#c8202c" stroke-width="3"/>`,
 };
 const BRAVE_PRIZES = ["Courage Cup", "Never Quit Badge"];
@@ -2826,7 +2826,9 @@ function cityPrizes(id) {
   S.cityPrizes = S.cityPrizes || {};
   // Trophies won before cities had their own shelves were won in Abilene.
   if (S.prizes?.length) { S.cityPrizes["lesson-073"] = [...new Set([...(S.cityPrizes["lesson-073"] || []), ...S.prizes])]; S.prizes = []; }
-  return (S.cityPrizes[id] = S.cityPrizes[id] || []);
+  // The soccer trophies moved to the grammar game, so ones already won become cowboy trophies.
+  const swap = { "Gold Soccer Ball": "Gold Lasso", "Captain's Armband": "Cattle Baron's Hat" };
+  return (S.cityPrizes[id] = (S.cityPrizes[id] || []).map((p) => swap[p] || p));
 }
 function winPrize(name, id) {
   const list = cityPrizes(id); if (list.includes(name)) return;
@@ -2875,7 +2877,7 @@ function finishProblem(clean, proved) {
     if (p.wrong.length && !p.coached) comeback();
     earn(U.earned); if (clean || proved) U.solvedRun++;
   } else U.earned = 0;
-  U.mode = "solved"; U.msg = null; U.draft = ""; correctFx(pick(["BOOM!", "BULLSEYE!", "SIUUU!", "TOO EASY!"]));
+  U.mode = "solved"; U.msg = null; U.draft = ""; correctFx(pick(["BOOM!", "BULLSEYE!", "YEEHAW!", "TOO EASY!"]));
   if (clean || proved || !p.coached) celebrate(U.earned, true); else if (U.earned) celebrate(U.earned, false); W.targetGap = pageGap(curLesson(), rideOf(curLesson(), U.ride)); save(); render();
 }
 function checkFinal() {
@@ -3197,7 +3199,7 @@ function driftTick() {
   else if (driftStage === 1 && idle >= 75000) { driftStage = 2; movementBreak(() => {}); }
 }
 setInterval(driftTick, 5000);
-const MOVES_BREAK = ["Stand up and do 5 jumping jacks.", "Do 5 Ronaldo kicks in the air.", "Touch your toes 5 times.", "Shake out your hands, then roll your shoulders.", "Take 3 big, slow breaths."];
+const MOVES_BREAK = ["Stand up and do 5 jumping jacks.", "Gallop around the room like a horse.", "Touch your toes 5 times.", "Shake out your hands, then roll your shoulders.", "Take 3 big, slow breaths."];
 function movementBreak(after) {
   document.getElementById("breakbox")?.remove();
   const t = pick(MOVES_BREAK), box = document.createElement("div");
