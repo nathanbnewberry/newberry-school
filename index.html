@@ -621,6 +621,9 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
 html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roomback{left:calc(88px + env(safe-area-inset-left))}html.fs .ranchfull .norasay{left:250px}html.fs .scratch.big{padding-left:92px}
 .hintbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;width:auto;min-height:50px;padding:6px 18px;background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--gold-deep);font-size:1.15rem}.hintbtn svg{width:26px;height:26px;flex:none}.hintbtn.nudgeme{animation:pulse 1s ease-in-out 3}.helprow .explainbtn{flex:2}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.bookpage .helper{padding:3px 8px;gap:2px}.bookpage .helper p{margin:0;font-size:.85rem;line-height:1.15}.bookpage .helper .btn{min-height:36px;padding:2px 10px;margin:0}.bookpage .helper .chips{min-height:0;margin:0}}
+.pstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}.pstat{background:rgba(255,255,255,.07);border-radius:10px;padding:8px 10px;display:grid;gap:2px}.pstat b{font-size:1.45rem;line-height:1.1;color:var(--gold)}.pstat span{font-size:.82rem}
+.plist,.plearn{margin:0;padding:0 0 0 1.3em;display:grid;gap:12px}.plearn{list-style:none;padding:0}.plist p,.plearn p{margin:4px 0 0;line-height:1.35}.ptry{color:var(--gold)}.panel h3{margin:4px 0 0;font-size:1.05rem}
+.plog summary,.pwork summary{cursor:pointer;font-weight:800;min-height:40px;display:flex;align-items:center}.plog summary::before{content:"\25B6";font-size:.7em;margin-right:8px}.plog[open] summary::before{content:"\25BC"}.pq{min-width:150px}.pwork{min-width:92px}.pwork ol{margin:4px 0;padding-left:1.3em;font-size:.85rem;min-width:230px}.pwork p{margin:4px 0;font-size:.85rem}.pwork b{color:var(--gold)}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -2151,13 +2154,17 @@ function reportText() {
   LESSONS.forEach((l) => {
     const lp = LP(l.id), touched = l.problems.filter((q) => { const p = PP(lp, q.id); return p.done || p.wrong.length || p.steps || p.flagged; });
     if (!touched.length && !lp.factsResult) return;
-    const done = l.problems.filter((q) => PP(lp, q.id).done).length;
+    const mine = l.problems.filter((q) => !PP(lp, q.id).given), done = mine.filter((q) => PP(lp, q.id).done).length;
     const review = touched.filter((q) => { const p = PP(lp, q.id); return p.shaky || p.flagged || p.paper; });
-    out.push("", `SAXON LESSON ${l.bookLesson}: ${done} of ${l.problems.length} problems done`);
+    out.push("", `SAXON LESSON ${l.bookLesson}: ${done} of ${mine.length} problems done`);
     if (lp.factsResult) out.push(`100 facts: ${lp.factsResult.miss} misses, ${fmtTime(lp.factsResult.secs)}`);
     if (review.length) out.push(`Go over together: ${review.map((q) => q.id).join(", ")}`);
+    const skillsNow = skillReport(l);
+    if (skillsNow.length) { out.push("What he learned:"); skillsNow.forEach((k) => out.push(`- ${k.name} [${k.verdict[0]}]: ${k.proof}`)); }
+    if (hardFacts(lp).length) out.push(`Facts missed most: ${hardFacts(lp).map(([f, n]) => `${f} (${n})`).join(", ")}`);
     touched.forEach((q) => {
-      const p = PP(lp, q.id), bits = [statusOf(p)[0]];
+      const p = PP(lp, q.id), bits = [howItWent(p)[0]];
+      if (p.hints) bits.push(plural(p.hints, "hint"));
       if (p.wrong.length) bits.push(`wrong tries: ${p.wrong.join(", ")}`);
       if (p.steps) bits.push(`${p.steps} coaching step${p.steps === 1 ? "" : "s"}`);
       if (p.stepMiss) bits.push(`${p.stepMiss} missed step${p.stepMiss === 1 ? "" : "s"}`);
@@ -2166,23 +2173,79 @@ function reportText() {
     });
   });
   if (out.length === 2) out.push("", "Nothing done yet.");
+  else { const hard = struggles(); if (hard.length) out.splice(2, 0, "", "STRUGGLING MOST:", ...hard.map((k) => `- ${k.name} (Lesson ${k.l.bookLesson}): he ${struggleLine(k)}`)); }
   return out.join("\n");
 }
+// A problem counts as proof only if he got it with no hints and no walkthrough.
+const soloDone = (p) => p.done && !p.given && !p.coached && !p.hints;
+function howItWent(p) {
+  const tries = (p.tries || p.wrong.length + 1) - 1;
+  if (p.given) return ["Done in his book", "s-none"];
+  if (p.accepted) return ["Parent accepted", "s-good"];
+  if (soloDone(p)) return !tries && !p.stepMiss ? ["Alone, first try", "s-good"] : [`Alone, after ${Math.max(tries, p.stepMiss || 0) + 1} tries`, "s-good"];
+  if (p.done && !p.coached) return [`With ${p.hints} ${p.hints === 1 ? "hint" : "hints"}`, "s-work"];
+  if (p.done) return ["Walked through it", "s-work"];
+  if (p.flagged) return ["Asked for a parent", "s-stuck"];
+  if (p.wrong.length || p.steps || p.hints) return ["Started, not finished", "s-work"];
+  return ["Not started", "s-none"];
+}
+function skillReport(l) {
+  const lp = LP(l.id), skills = {};
+  l.problems.forEach((q) => {
+    const p = PP(lp, q.id); if (p.given || (!p.done && !p.steps && !p.wrong.length && !p.flagged && !p.hints)) return;
+    const k = (skills[q.skill] = skills[q.skill] || { name: q.skill, list: [], hints: 0, miss: 0, wrong: 0, solo: [], help: [], by: {} });
+    k.list.push(q); k.hints += p.hints || 0; k.miss += p.stepMiss || 0; k.wrong += p.wrong.length;
+    (soloDone(p) ? k.solo : k.help).push(q);
+    [p.missBy, p.hintBy].forEach((m) => Object.entries(m || {}).forEach(([w, n]) => { k.by[w] = (k.by[w] || 0) + n; }));
+  });
+  const nums = (qs) => qs.map((q) => `#${q.id}`).join(", ");
+  return Object.values(skills).map((k) => {
+    const when = (q) => PP(lp, q.id).doneAt || 0, helpDone = k.help.filter((q) => PP(lp, q.id).done), firstHelp = helpDone.slice().sort((a, b) => when(a) - when(b))[0], laterSolo = firstHelp && k.solo.filter((q) => when(q) > when(firstHelp) && when(firstHelp));
+    k.score = (k.help.length * 2 + k.hints + k.miss + k.wrong) / k.list.length;
+    k.spot = Object.entries(k.by).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (laterSolo?.length) { k.verdict = ["Improving", "s-good"]; k.proof = `Needed help on #${firstHelp.id}, then solved ${nums(laterSolo)} with no help.`; }
+    else if (k.solo.length >= 2 && !k.help.length) { k.verdict = ["Learned", "s-good"]; k.proof = `Solved ${nums(k.solo)} with no help.`; }
+    else if (k.solo.length === 1 && !k.help.length) { k.verdict = ["Looks good", "s-good"]; k.proof = `Solved ${nums(k.solo)} with no help, but that's only one problem so far.`; }
+    else if (k.solo.length) { k.verdict = ["Getting there", "s-work"]; k.proof = `Solved ${nums(k.solo)} with no help. Needed help on ${nums(k.help)}.`; }
+    else { k.verdict = ["Not proven yet", "s-stuck"]; k.proof = `Needed help on all of it: ${nums(k.help)}. He finished these with support, so they don't show he can do it alone yet.`; }
+    return k;
+  });
+}
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+function struggleLine(k) {
+  const bits = [];
+  if (k.hints) bits.push(plural(k.hints, "hint"));
+  if (k.miss) bits.push(plural(k.miss, "missed step"));
+  if (k.wrong) bits.push(plural(k.wrong, "wrong answer"));
+  return `needed help on ${k.help.length} of ${plural(k.list.length, "problem")}${bits.length ? ` (${bits.join(", ")})` : ""}.${k.spot ? ` Trouble spot: ${k.spot === "Getting started" ? "getting started" : `the ${k.spot} steps`}.` : ""}`;
+}
+function struggles() {
+  return LESSONS.flatMap((l) => skillReport(l).filter((k) => k.help.length).map((k) => ({ ...k, l }))).sort((a, b) => b.score - a.score).slice(0, 3);
+}
+const hardFacts = (lp) => Object.entries(lp.factMiss || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
 function parentView() {
   if (!U.parentOk) {
     const creating = !S.pin;
     return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button></div><div class="console center"><h2>Parents only</h2><p class="sub">${creating ? "Choose a 4-digit PIN. Set this before Elliot plays." : "Enter your 4-digit PIN."}</p>
       <div class="answer">${U.pin ? "&#9679;".repeat(U.pin.length) : `<span class="empty">PIN</span>`}</div><div class="pad pin">${["7", "8", "9", "4", "5", "6", "1", "2", "3", "CLR", "0", "OK"].map((k) => `<button data-act="pin" data-k="${k}">${k === "CLR" ? "C" : k}</button>`).join("")}</div>${U.pinMsg ? `<p>${esc(U.pinMsg)}</p>` : ""}${creating ? "" : `<p class="sub">Forgot it? Tell Claude and a reset can be added.</p>`}</div>`;
   }
-  const skills = {};
-  LESSONS.forEach((l) => { const lp = LP(l.id); l.problems.forEach((q) => { const p = PP(lp, q.id); if (!p.done && !p.steps && !p.wrong.length && !p.flagged) return; const s = (skills[q.skill] = skills[q.skill] || { n: 0, coached: 0, wrong: 0, solo: 0 }); s.n++; s.coached += p.coached ? 1 : 0; s.wrong += p.wrong.length; s.solo += p.firstTry ? 1 : 0; }); });
-  const rows = Object.entries(skills).sort((a, b) => (b[1].coached + b[1].wrong) / b[1].n - (a[1].coached + a[1].wrong) / a[1].n);
+  const all = LESSONS.flatMap((l) => l.problems.map((q) => PP(LP(l.id), q.id))).filter((p) => !p.given), done = all.filter((p) => p.done), solo = done.filter(soloDone), hard = struggles();
+  const count = (list, f) => list.reduce((n, p) => n + (f(p) || 0), 0);
+  const stat = (n, label) => `<div class="pstat"><b>${n}</b><span>${label}</span></div>`;
+  const facts = LESSONS.flatMap((l) => hardFacts(LP(l.id))).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const top = `<div class="panel"><h2>What he's struggling with most</h2>${hard.length ? `<ol class="plist">${hard.map((k) => { const q = k.help[k.help.length - 1]; return `<li><b>${esc(k.name)}</b> <span class="sub">Lesson ${esc(k.l.bookLesson)}</span><p>He ${esc(struggleLine(k))}</p><p class="ptry">Try this: ask him to teach you #${esc(q.id)} out loud (${esc(q.prompt.slice(0, 60))}). If he can say why each step works, he's got it.</p></li>`; }).join("")}</ol>` : `<p>${done.length ? "Nothing stands out. He's solving what he has done with no help." : "Nothing yet. This fills in as soon as he plays."}</p>`}${facts.length ? `<p><b>Times facts he missed most:</b> ${facts.map(([f, n]) => `${esc(f)} (${n})`).join(", ")}</p>` : ""}</div>
+  <div class="panel"><h2>All lessons so far</h2><div class="pstats">${stat(done.length, "problems finished")}${stat(solo.length, "solved with no help")}${stat(done.filter((p) => p.coached).length, "walked through")}${stat(count(all, (p) => p.hints), "hints used")}${stat(count(all, (p) => p.wrong.length) + count(all, (p) => p.stepMiss), "wrong attempts")}</div><p class="sub">Only a problem he solved with no hints and no walkthrough counts as proof he can do it. Hints, attempts and his typed work are recorded from Nov 3, 2026 on, so earlier problems may show fewer.</p></div>`;
   const lessons = LESSONS.map((l) => {
-    const lp = LP(l.id);
-    return `<div class="panel"><h2>${esc(l.town)} · Saxon Lesson ${esc(l.bookLesson)}</h2><div class="tablewrap"><table><thead><tr><th>Book #</th><th>Skill</th><th>Status</th><th>Wrong tries</th><th>Time</th><th></th></tr></thead><tbody>${l.problems.map((q) => { const p = PP(lp, q.id), [t, c] = statusOf(p); return `<tr><td>${esc(q.id)}</td><td>${esc(q.skill)}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : "None"}</td><td>${fmtTime(p.secs)}</td><td>${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`; }).join("")}</tbody></table></div></div>`;
+    const lp = LP(l.id), mine = l.problems.filter((q) => !PP(lp, q.id).given), fin = mine.filter((q) => PP(lp, q.id).done), report = skillReport(l), ps = mine.map((q) => PP(lp, q.id));
+    const secs = count(ps, (p) => p.secs), seen = report.length || fin.length || lp.factsResult, factLine = lp.factsResult ? `<p><b>100 times facts:</b> finished with ${plural(lp.factsResult.miss, "miss").replace("misss", "misses")} in ${fmtTime(lp.factsResult.secs) || "under 1 min"}.${hardFacts(lp).length ? ` Missed most: ${hardFacts(lp).map(([f]) => esc(f)).join(", ")}.` : ""}</p>` : "";
+    const rows = l.problems.map((q) => {
+      const p = PP(lp, q.id), [t, c] = howItWent(p), work = (p.work || []).filter(Boolean), when = p.doneAt ? new Date(p.doneAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+      return `<tr><td>${esc(q.id)}</td><td class="pq">${esc(q.prompt.slice(0, 70))}${q.prompt.length > 70 ? "..." : ""}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : ""}${p.stepMiss ? `<div class="sub">${plural(p.stepMiss, "missed step")}</div>` : ""}</td><td>${p.hints || ""}</td><td>${fmtTime(p.secs)}</td><td>${when}</td><td>${p.done && !p.given ? `<details class="pwork"><summary>His work</summary>${work.length ? `<ol>${work.map(([a, v, m]) => `<li>${esc(a)} <b>${esc(v.replace("R", " R "))}</b>${m ? ` <span class="sub">after ${plural(m, "miss").replace("misss", "misses")}</span>` : ""}</li>`).join("")}</ol>` : ""}<p>Final answer: <b>${esc(String(p.ans || "").replace("R", " R "))}</b></p></details>` : ""}${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`;
+    }).join("");
+    return `<div class="panel"><h2>Lesson ${esc(l.bookLesson)}: ${esc(l.title || l.town)}</h2>${seen ? `<div class="pstats">${stat(`${fin.length} of ${mine.length}`, "finished")}${stat(fin.filter((q) => soloDone(PP(lp, q.id))).length, "no help")}${stat(count(ps, (p) => p.hints), "hints")}${stat(count(ps, (p) => p.wrong.length) + count(ps, (p) => p.stepMiss), "wrong attempts")}${stat(fmtTime(secs) || "0 min", "time on problems")}</div><h3>What he learned, and the proof</h3>${report.length ? `<ul class="plearn">${report.map((k) => `<li><span class="state ${k.verdict[1]}">${k.verdict[0]}</span> <b>${esc(k.name)}</b><p>${esc(k.proof)}</p></li>`).join("")}</ul>` : `<p>No problems attempted yet.</p>`}${factLine}` : `<p class="sub">Not started yet.</p>`}<details class="plog"><summary>Problem-by-problem log</summary><div class="tablewrap"><table><thead><tr><th>#</th><th>Problem</th><th>How it went</th><th>Wrong tries</th><th>Hints</th><th>Time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></details></div>`;
   }).join("");
   return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Syncs to your account" : "Saved on this device"}</span></div><h1>Parent page</h1>
-  <div class="panel"><h2>Where Elliot needs you</h2>${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Skill</th><th>Problems</th><th>Solo</th><th>Coached</th><th>Wrong</th></tr></thead><tbody>${rows.map(([k, s]) => `<tr><td>${esc(k)}</td><td>${s.n}</td><td>${s.solo}</td><td>${s.coached}</td><td>${s.wrong}</td></tr>`).join("")}</tbody></table></div><p class="sub">Most help needed is first. Answers aren't shown here, so you can still work it out with him.</p>` : `<p>Nothing yet. This fills in as soon as he plays.</p>`}</div>
+  ${top}
   ${lessons}
   <div class="panel"><h2>Add this week's lessons</h2><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Paste the report below so the coaching targets what he found hard.</li><li>Claude adds a new town to this same link. Elliot refreshes.</li></ol></div>
   <div class="panel"><h2>Send this report</h2><p class="sub">Text or email it to Mom, or paste it to Claude with the next lesson.</p><textarea id="report" readonly>${esc(reportText())}</textarea><div class="hud"><button class="btn small" data-act="share">${U.shared ? "Sent" : "Send to Mom"}</button><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy report"}</button></div></div>
@@ -2397,6 +2460,7 @@ function applyStepRight(val) {
   if (s.put) { const ds = String(val).split("").reverse(); s.put.forEach((id, i) => { if (ds[i] !== undefined) U.fills[`${s.board || 0}:${id}`] = ds[i]; }); }
   p.steps++;
   (U.stepLog = U.stepLog || [])[U.step] = String(val);
+  (p.work = p.work || [])[U.step] = [s.ask || "", String(val), U.stepWrong];
   if (U.stepWrong === 0) { earn(1); coinPop(); correctFx(); } else beep(BLIP);
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
   if (U.step >= c.steps.length) {
@@ -2410,6 +2474,7 @@ function stepWrong(choice) {
   const q = curQ(), s = q.coach.steps[U.step], p = PP(LP(U.lesson), q.id);
   U.lastWrong = choice || U.draft; U.lastWrongFor = q.id; U.lastTrap = s.nudge;
   U.stepWrong++; p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
+  if (s.label) { p.missBy = p.missBy || {}; p.missBy[s.label] = (p.missBy[s.label] || 0) + 1; }
   if (choice) U.off.push(choice);
   U.msg = `${pick(["Not quite.", "Nope, close.", "Slow down."])} ${s.nudge}`; U.draft = ""; wrongFx(); save(); render();
 }
@@ -2420,7 +2485,7 @@ function checkStepTyped() {
 function finishProblem(clean, proved) {
   const q = curQ(), lp = LP(U.lesson), p = PP(lp, q.id);
   if (!p.done) {
-    p.done = true; p.flagged = false; p.firstTry = clean; p.proved = !!proved;
+    p.done = true; p.flagged = false; p.firstTry = clean; p.proved = !!proved; p.doneAt = Date.now();
     U.earned = clean ? 25 + Math.min(U.combo, 10) : proved ? 25 : 8;
     earn(U.earned); if (clean || proved) U.solvedRun++;
   } else U.earned = 0;
@@ -2432,6 +2497,7 @@ function checkFinal() {
   const l = curLesson(), p = PP(LP(l.id), q.id), val = norm(U.draft);
   if (!val) { U.msg = "Type your answer first, boss."; return render(); }
   const sealed = seal(l.id, q.id, val);
+  if (!p.done) p.tries = (p.tries || 0) + 1;
   if (q.sealed.includes(sealed)) {
     p.ans = U.draft;
     const clean = !p.wrong.length && !p.coached && !p.stepMiss;
@@ -2483,6 +2549,7 @@ function checkStampede() {
     save(); render(); return stCaught(box);
   }
   f.miss++; U.stepWrong++; U.stStreak = 0; wrongFx(); U.draft = "";
+  { const lp = LP(U.lesson), key = `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; }
   U.msg = a === 0 || b === 0 ? "Anything times zero stays at the same number every time: zero groups means nothing." : b === 1 || a === 1 ? "Times one keeps the number the same." : `${a} × ${b} means ${a} jumps of ${b}. Count them.`;
   save(); render();
 }
@@ -2896,7 +2963,7 @@ const acts = {
         const id = U.qid, item = U.i;
         setTimeout(() => {
           if (U.view !== "ride" || U.qid !== id || U.i !== item) return;
-          if (id) { const p = PP(LP(U.lesson), id); p.ans = "All matched"; return finishProblem(m.miss === 0, false); }
+          if (id) { const p = PP(LP(U.lesson), id); p.ans = "All matched"; p.stepMiss = (p.stepMiss || 0) + m.miss; return finishProblem(m.miss === 0, false); }
           nextItem();
         }, 1000);
         return;
@@ -2952,6 +3019,7 @@ const acts = {
   checkProof,
   hint() {
     const q = curQ(); if (!q?.coach) return;
+    { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
     if (U.mode === "try") {
       if (U.tryHint !== q.id) { U.tryHint = q.id; return showHint(`Here's how to start. ${hintLine(q.coach.steps[0], q, 0)} Tap Hint again and we'll do it together.`); }
       U.tryHint = null; U.hintKey = null; startCoach();
