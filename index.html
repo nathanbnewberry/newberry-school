@@ -752,7 +752,9 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
 }
 input,textarea{user-select:text;-webkit-user-select:text}
 .linkwrap{display:grid;place-items:center;flex:1;padding:16px}.linkcard{display:grid;gap:12px;width:min(100%,480px);padding:22px;border-radius:16px;background:var(--paper);color:#1c1712;text-align:center}.linkcard h1{margin:0;font-size:clamp(1.7rem,5vh,2.3rem)}.linkcard p{margin:0}.linkcard input{min-height:54px;font-size:18px;padding:8px 14px;border-radius:10px;border:2px solid #b9ad96;text-align:center;background:#fff;color:#1c1712}.linkmsg{font-size:.95rem;color:#5d564b}.linkcard .link{justify-self:center;color:#5d564b}
-body[data-view="familyLink"] #app{display:flex;flex-direction:column}
+body[data-view="familyLink"] #app{display:block;height:auto;overflow:visible}
+html:has(body[data-view="familyLink"]),body[data-view="familyLink"]{height:auto!important;min-height:100%;overflow:auto!important}
+body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;padding-top:24px}
 .offlinepill{padding:5px 12px;border-radius:10px;background:rgba(127,182,255,.18);border:2px solid #7fb6ff;font-size:.92rem;font-weight:700;text-align:center}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -1756,12 +1758,12 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1035b675de49";
+const GAME_BUILD = "fae923b41536";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
     v = v.trim();
-    if (!v || v === GAME_BUILD || ["ride", "game", "reading"].includes(U.view)) return;
+    if (!v || v === GAME_BUILD || ["ride", "game", "reading", "familyLink"].includes(U.view)) return;
     if (sessionStorage.getItem("reloaded-for") === v) return;
     sessionStorage.setItem("reloaded-for", v);
     save();
@@ -3979,12 +3981,16 @@ function askAnswer(text) {
 }
 let rec = null;
 // Browsers only allow full screen after a tap or key press, so every tap or key asks again if it was lost. Home Screen installs already run full screen.
-function goFullscreen() {
+const typingNow = () => !!document.activeElement?.matches?.("input,textarea");
+function goFullscreen(e) {
+  if (U?.view === "familyLink" || typingNow() || e?.target?.matches?.("input,textarea")) return;
   if (document.fullscreenElement || document.webkitFullscreenElement || matchMedia("(display-mode: fullscreen), (display-mode: standalone)").matches || navigator.standalone) return;
   const el = document.documentElement, ask = el.requestFullscreen || el.webkitRequestFullscreen;
   try { const p = ask?.call(el); p?.catch?.(() => {}); } catch (e) {}
 }
 ["pointerup", "touchend", "click", "keydown"].forEach((ev) => document.addEventListener(ev, goFullscreen, { capture: true }));
+document.addEventListener("focusin", (e) => { if (!e.target?.matches?.("input,textarea") || !(document.fullscreenElement || document.webkitFullscreenElement)) return; try { const p = (document.exitFullscreen || document.webkitExitFullscreen)?.call(document); p?.catch?.(() => {}); } catch (err) {} });
+document.addEventListener("input", (e) => { if (e.target?.id === "famPw") U.linkPw = e.target.value; });
 // The iPad draws its own X in the top left corner when the game fills the screen, so buttons stay clear of it.
 const markFullscreen = () => document.documentElement.classList.toggle("fs", !!(document.fullscreenElement || document.webkitFullscreenElement));
 document.addEventListener("fullscreenchange", markFullscreen); document.addEventListener("webkitfullscreenchange", markFullscreen);
@@ -4508,9 +4514,9 @@ function render() {
   if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
-function setAppHeight() { document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
+function setAppHeight() { if (document.activeElement?.matches?.("input,textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
 setAppHeight();
-addEventListener("resize", setAppHeight); addEventListener("orientationchange", () => setTimeout(setAppHeight, 250)); window.visualViewport?.addEventListener("resize", setAppHeight);
+addEventListener("resize", setAppHeight); addEventListener("orientationchange", () => setTimeout(setAppHeight, 250)); window.visualViewport?.addEventListener("resize", setAppHeight); document.addEventListener("focusout", () => setTimeout(setAppHeight, 300));
 addEventListener("pagehide", () => { save(); cloudSend(JSON.stringify(S).length < 60000); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") save(); });
 worldSize(200);
