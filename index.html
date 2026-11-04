@@ -721,12 +721,14 @@ body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflo
 .revride{min-height:44px;text-align:left;padding:6px 12px;border-radius:10px;background:#efe6d3;color:#1c1712;font:inherit;font-weight:800;cursor:pointer;box-shadow:0 3px 0 #b9ad96}.revride.done{background:#c9f0d3;box-shadow:0 3px 0 #1f9a4f}
 body[data-view="lessonReview"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
 @media (orientation:portrait){.revwrap{grid-template-columns:1fr}body[data-view="lessonReview"] #app{overflow:auto}}
-.spellpitch{display:block;width:100%;max-height:96px;border-radius:10px}.spellpitch text{paint-order:stroke}
+.spellgame{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:12px}
+.spellscene{border-radius:12px;overflow:hidden;background:#2f9757;min-height:0}.spellscene svg{display:block;width:100%;height:100%}
+.spellside{display:flex;flex-direction:column;gap:6px;min-height:0}.spellhelp{margin:0;text-align:center;font-size:.85rem;opacity:.8}
 .spellword{display:flex;justify-content:center;align-items:center;min-height:56px;font:400 clamp(2.2rem,8vh,3.4rem) var(--display);color:#ffd23f;letter-spacing:.06em}
 .spellslots{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}.spellslots span{display:grid;place-items:center;width:clamp(36px,6vh,50px);height:clamp(42px,7vh,56px);border-radius:8px;background:var(--paper);color:#1c1712;font-size:1.6rem;font-weight:800;border-bottom:4px solid #b9ad96}.spellslots span.on{background:#c9f0d3;border-color:#1f9a4f}.spellslots span.hinted{color:#a97808;background:#fff3b0}
 .spellkb{display:grid;gap:6px;margin-top:auto}.spellrow{display:flex;justify-content:center;gap:5px}.spellk{flex:1;max-width:84px;min-height:clamp(44px,8.5vh,62px);border-radius:10px;background:#2a2f48;color:#fff;font-size:1.35rem;font-weight:800;text-transform:lowercase;cursor:pointer;box-shadow:0 3px 0 #12142b;touch-action:manipulation}.spellk:active{transform:translateY(2px)}.spellk.wide{max-width:110px;font-size:1.05rem;flex:1.4}.spellk.go{background:#39d07a;color:#12142b}
 body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
-@media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}}
+@media (orientation:portrait){body[data-view="spelling"] #app{overflow:auto}.spellgame{grid-template-columns:1fr}.spellscene{height:30vh}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1673,7 +1675,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "0af5d3bad1f9";
+const GAME_BUILD = "e6ffed3bf56f";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1935,6 +1937,25 @@ function spellNext() {
   if (sp.mode === "practice" && sp.level === 1) sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.hidden = true; render(); } }, 3500);
   spellSay();
 }
+// A clean word earns an easier shot, because the keeper covers less of the goal.
+function spellShot(clean) {
+  const sp = U.sp;
+  U.game = { kind: "kick", n: 1, free: true, spell: true, word: sp.item.w };
+  U.view = "game"; render(); window.scrollTo(0, 0); startKick();
+  kick.reach = clean ? 70 : 96;
+  const call = document.getElementById("call"); if (call) call.textContent = `You spelled ${sp.item.w}! Aim and shoot.`;
+}
+function spellBackFromShot() {
+  if (kick) kick.phase = "done";
+  kick = null; U.game = null; U.view = "spelling"; stopVoice();
+  if (U.sp) spellNext();
+  render(); window.scrollTo(0, 0);
+}
+function spellScene() {
+  const sp = U.sp; if (!sp?.item || !document.getElementById("kball")) return;
+  const pct = sp.typed.length / Math.max(1, sp.item.w.length);
+  kickBall(96 + 84 * pct, 228 - 23 * pct, .9 + .1 * pct); kickShadow(96 + 84 * pct, 242 - 21 * pct, 14); kickerAt(60 + 68 * pct, 250 - 2 * pct); placeKeeper(180);
+}
 function spellFinishBee() {
   const sp = U.sp, day = schoolDay(), n = sp.right.length, total = n + sp.missed.length;
   spellBees().push({ date: dateKey(), right: n, total, missed: sp.missed.map((x) => x.w), typed: sp.missed.map((x) => x.typed) });
@@ -1948,9 +1969,10 @@ function spellGoal(clean) {
   day.spellWords = (day.spellWords || 0) + 1;
   if (clean) r.cleanRounds++;
   if (sp.misses <= (r.level >= 2 ? 0 : 1)) r.level = Math.min(3, r.level + 1);
-  const pay = clean ? 4 : 2; earn(pay); coinPop(pay); playSfx("thud", .7); setTimeout(() => crowdSound(true), 250);
+  const pay = clean ? 4 : 2; earn(pay); coinPop(pay); beep(CHIME);
+  sp.clean = clean; lastSaid = ""; try { if (!S.muted && S.voice !== false) playVoice("Nice spelling. Now take your shot.", "david"); } catch (e) {}
   save(); render();
-  sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { spellNext(); render(); } }, 1700);
+  sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") spellShot(clean); }, 1500);
 }
 function spellKey(d) {
   const sp = U.sp; if (!sp?.item || sp.locked) return;
@@ -1962,9 +1984,9 @@ function spellKey(d) {
       const right = sp.typed === it.w; sp.locked = true;
       (right ? sp.right : sp.missed).push({ w: it.w, typed: sp.typed });
       if (!right) { r.typed = [...new Set([...r.typed, sp.typed])].slice(-6); r.misses++; }
-      sp.scored = right; sp.beeMsg = right ? "Goal." : "Good try. We'll practice that one."; playSfx(right ? "thud" : "soft", .7); if (right) setTimeout(() => crowdSound(true), 250);
+      sp.scored = right; sp.beeMsg = right ? "Nice spelling. Now take your shot." : "Good try. We'll practice that one."; playSfx(right ? "coin" : "soft", .7);
       save(); render();
-      sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.beeMsg = ""; spellNext(); render(); } }, 1400);
+      sp.timer = setTimeout(() => { if (U.sp !== sp || U.view !== "spelling") return; sp.beeMsg = ""; if (right) return spellShot(true); spellNext(); render(); }, 1400);
       return;
     } else if (sp.typed.length < it.w.length + 3) sp.typed += k;
     beep(KEY_TAP); render(); return;
@@ -1987,18 +2009,17 @@ function spellingView() {
   const sp = U.sp || (spellOpen(), U.sp), day = schoolDay(), list = spellList(), mastered = spellMastered();
   const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(list.title)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
   const beeBtn = `<button class="btn go wide" data-act="spellBee">Take the Spelling Bee</button>`;
-  if (sp.screen === "today") return `${top}${bubble(`That's ${SPELL_DAILY} words for today. Nice work.`)}<div class="center statesdone"><div class="big">${day.spellWords || 0} goals today!</div><p>${mastered} of ${list.words.length} words known from memory.</p>${spellBeeDay() || mastered === list.words.length ? beeBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
+  if (sp.screen === "today") return `${top}${bubble(`That's ${SPELL_DAILY} words for today. Nice work.`)}<div class="center statesdone"><div class="big">${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"} today!</div><p>${mastered} of ${list.words.length} words known from memory.</p>${spellBeeDay() || mastered === list.words.length ? beeBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
   if (sp.screen === "allDone") return `${top}${bubble("You know every word from memory. Time for the bee.")}<div class="center statesdone"><div class="big">All ${list.words.length} words!</div>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
   if (sp.screen === "beeDone") return `${top}${bubble("Spelling bee finished. Good work.")}<div class="center statesdone"><div class="big">${sp.right.length} of ${sp.right.length + sp.missed.length} goals!</div><p>+$${sp.right.length * 3}${sp.missed.length ? `. We'll practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.` : ". A perfect bee!"}</p><button class="btn go wide" data-act="view" data-v="school">Back to School Day</button></div>`;
   const it = sp.item, w = it.w, slots = sp.mode === "bee" ? Array.from({ length: Math.max(w.length, sp.typed.length) }, (_, i) => sp.typed[i] || "") : w.split("").map((_, i) => sp.typed[i] || "");
   const nextL = w[sp.typed.length];
-  const pct = sp.scored ? 100 : Math.min(92, (sp.typed.length / w.length) * 92);
-  const pitch = `<svg class="spellpitch ${sp.scored ? "scored" : ""}" viewBox="0 0 600 96" role="img" aria-label="A soccer ball moving toward the goal"><rect width="600" height="96" fill="#2f9757"/><path d="M0 48h600M300 0v96" stroke="#7fd19c" stroke-width="2" opacity=".6"/><circle cx="300" cy="48" r="22" fill="none" stroke="#7fd19c" stroke-width="2" opacity=".6"/><path d="M552 14h40v68h-40" fill="rgba(255,255,255,.18)" stroke="#fff" stroke-width="4"/><path d="M560 14v68M570 14v68M580 14v68M552 30h40M552 48h40M552 64h40" stroke="#fff" stroke-width="1" opacity=".5"/><g class="spellkeeper"><circle cx="534" cy="${sp.scored ? 72 : 36}" r="7" fill="#dcb48a"/><rect x="528" y="${sp.scored ? 78 : 43}" width="12" height="${sp.scored ? 12 : 24}" rx="3" fill="#ffd23f"/></g><g transform="translate(${(30 + pct * 5.3).toFixed(0)} 52)"><circle r="11" fill="#fff" stroke="#16151b" stroke-width="1.500"/><path d="M0-5l5 3.500-2 6h-6l-2-6z" fill="#16151b"/></g>${sp.scored ? `<text x="300" y="58" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="30" fill="#ffd23f" stroke="#3a2412">GOOOAL!</text>` : ""}</svg>`;
+  setTimeout(spellScene, 0);
   const show = sp.mode === "practice" && !sp.hidden;
-  const say = sp.mode === "bee" ? sp.beeMsg || SPELL_LINES.bee : sp.scored ? "Goal." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
+  const say = sp.mode === "bee" ? sp.beeMsg || SPELL_LINES.bee : sp.scored ? "Nice spelling. Now take your shot." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
   const kb = ["qwertyuiop", "asdfghjkl", "zxcvbnm"].map((row, n) => `<div class="spellrow">${n === 2 && sp.mode === "bee" ? `<button class="spellk wide" data-act="spellKey" data-k="DEL">&#9003;</button>` : ""}${row.split("").map((c) => `<button class="spellk" data-act="spellKey" data-k="${c}">${c}</button>`).join("")}${n === 2 && sp.mode === "bee" ? `<button class="spellk wide go" data-act="spellKey" data-k="DONE">Done</button>` : ""}</div>`).join("");
   const count = sp.mode === "bee" ? `Bee: word ${sp.right.length + sp.missed.length + 1} of ${list.words.length}` : `${Math.min(day.spellWords || 0, SPELL_DAILY)} of ${SPELL_DAILY} words today &#183; ${mastered} of ${list.words.length} from memory`;
-  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<p class="statesbar">${count}</p>${pitch}<div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><div class="spellkb">${kb}</div>`;
+  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<div class="spellgame"><div class="spellscene">${kickScene().replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"').replace('id="pitch"', 'id="spellPitch"')}</div><div class="spellside"><p class="statesbar">${count} &#183; ${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"}</p><div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><p class="spellhelp">Tap the letters, or use your keyboard.</p><div class="spellkb">${kb}</div></div></div>`;
 }
 function spellLog() {
   const list = spellList(), bees = spellBees();
@@ -2559,25 +2580,7 @@ function rideEndView() {
     ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", "Save Nora.")}
   </div>`;
 }
-function gameView() {
-  const g = U.game;
-  if (g.kind === "run") return `<div class="hud"><span class="tag">3 lives. Jump and land on the guys. Don't bump into them!</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
-    <div class="actions runbtns"><button class="btn go" data-act="jump" style="min-height:96px;font-size:1.5rem">JUMP</button><button class="btn" id="dashbtn" data-act="dash" style="min-height:96px;font-size:1.3rem">DASH (${W.run ? W.run.boosts : 0})</button></div>`;
-  if (g.kind === "gallery") return `<div class="kickgame galgame"><div class="scene"><svg id="galScene" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A shooting gallery at the fair, with a bad guy, a coyote, a deer and bullseyes sliding past">
-      <rect width="2000" height="300" fill="#1d2550"/>
-      ${Array.from({ length: 40 }, (_, n) => `<circle cx="${20 + n * 50}" cy="${n % 2 ? 62 : 72}" r="3.5" fill="${["#ffd23f", "#ff7a59", "#7fd6ff"][n % 3]}"/>`).join("")}
-      <rect y="180" width="2000" height="9" fill="#a8743f" stroke="#3a2412"/>
-      <g id="galRow1"></g>
-      <rect y="262" width="2000" height="38" fill="#7a5230"/><rect y="262" width="2000" height="7" fill="#c9974f"/>
-      <g id="galRow2"></g>
-      <rect y="272" width="2000" height="28" fill="#7a5230"/>
-      ${Array.from({ length: 50 }, (_, n) => `<path d="M${n * 40} 0h40v30a20 20 0 0 1-40 0z" fill="${n % 2 ? "#fff3d9" : "#c8202c"}"/>`).join("")}
-      <g id="galFx"></g>
-    </svg></div>
-    <div class="galbar"><i id="galTime"></i></div><div class="dboard galscore"><small>Score</small><div class="score" id="galScore">0</div></div>
-    <div class="galintro" id="galIntro"><h2>Step right up!</h2><div class="gallegend">${[["bad", "Bad guy"], ["coyote", "Coyote"], ["deer", "Deer"], ["bull", "Bullseye"]].map(([k, name]) => `<span><svg viewBox="-48 -80 96 84" aria-hidden="true">${GAL_ART[k]}</svg><b>${name}</b><small>${GAL_POINTS[k]} ${GAL_POINTS[k] === 1 ? "point" : "points"}</small></span>`).join("")}</div><p>Tap the targets as they slide by. <strong>Tap anywhere to start.</strong></p></div>
-  </div>`;
-  if (g.kind === "kick") return `<div class="kickgame" data-act="shoot"><div class="scene"><svg id="pitch" viewBox="0 0 360 250" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A soccer goal with a keeper">
+const kickScene = () => `<svg id="pitch" viewBox="0 0 360 250" preserveAspectRatio="xMidYMid slice" role="img" aria-label="A soccer goal with a keeper">
       <defs><radialGradient id="flood"><stop offset="0" stop-color="#fff"/><stop offset=".25" stop-color="#eaf2ff" stop-opacity=".8"/><stop offset="1" stop-color="#eaf2ff" stop-opacity="0"/></radialGradient><linearGradient id="kitY" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset="1" stop-color="#e29c12"/></linearGradient><linearGradient id="post" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#bcc6d0"/></linearGradient></defs>
       <rect width="360" height="90" fill="#0b1030"/><rect y="4" width="360" height="62" fill="#181d44"/>
       ${[0, 1].map((grp) => `<g class="crowd crowd${grp}">${Array.from({ length: 6 }, (_, row) => Array.from({ length: 46 }, (_, n) => (n + row) % 2 === grp ? `<circle cx="${4 + n * 8 + (row % 2) * 4}" cy="${10 + row * 9}" r="3" fill="${["#c8202c", "#f2f3ff", "#ffc42e", "#2f6fb0", "#39b86a", "#e8743b"][(n * 7 + row * 5) % 6]}"/>` : "").join("")).join("")}</g>`).join("")}
@@ -2598,7 +2601,26 @@ function gameView() {
       <ellipse id="kshadow" cx="180" cy="221" rx="14" ry="3.500" fill="rgba(0,0,0,.3)"/>
       <g id="aim" opacity="0"><circle cx="0" cy="88" r="13" fill="none" stroke="#ff7a3c" stroke-width="4"/><circle cx="0" cy="88" r="3" fill="#ff7a3c"/></g>
       <g id="kball" transform="translate(165 190)"><circle cx="15" cy="15" r="14" fill="#fff" stroke="#222" stroke-width="2"/><path d="M15 8l6 4-2 7h-8l-2-7zM15 1l-3 3 3 2 3-2zM28 12l-4-1-1 4 3 3zM2 12l4-1 1 4-3 3zM8 26l2-4h10l2 4-4 2h-6z" fill="#222"/></g>
-      <g id="kicker" transform="translate(128 248)"><g class="kk"><path class="kleg1" d="M-5 -24L-9 -6" stroke="#f0c9a4" stroke-width="6" stroke-linecap="round"/><path class="kleg2" d="M5 -24L9 -6" stroke="#f0c9a4" stroke-width="6" stroke-linecap="round"/><path d="M-11 -8l1 8h6l-1-8zM5 -8l-1 8h6l1-8z" fill="#c8202c"/><path d="M-10 -38h20l2 16h-24z" fill="#f4f6f8"/><path d="M-13 -66c6-4 20-4 26 0l-3 30h-20z" fill="#c8202c"/><text y="-44" font-size="16" font-weight="800" text-anchor="middle" fill="#fff">7</text><g class="karms"><path d="M-12 -62L-20 -42M12 -62L20 -42" stroke="#c8202c" stroke-width="6" stroke-linecap="round"/><circle cx="-20" cy="-40" r="3.500" fill="#f0c9a4"/><circle cx="20" cy="-40" r="3.500" fill="#f0c9a4"/></g><rect x="-3" y="-72" width="6" height="7" fill="#e8bd93"/><ellipse cy="-79" rx="8" ry="9" fill="#2c1a0e"/></g></g></svg></div>
+      <g id="kicker" transform="translate(128 248)"><g class="kk"><path class="kleg1" d="M-5 -24L-9 -6" stroke="#f0c9a4" stroke-width="6" stroke-linecap="round"/><path class="kleg2" d="M5 -24L9 -6" stroke="#f0c9a4" stroke-width="6" stroke-linecap="round"/><path d="M-11 -8l1 8h6l-1-8zM5 -8l-1 8h6l1-8z" fill="#c8202c"/><path d="M-10 -38h20l2 16h-24z" fill="#f4f6f8"/><path d="M-13 -66c6-4 20-4 26 0l-3 30h-20z" fill="#c8202c"/><text y="-44" font-size="16" font-weight="800" text-anchor="middle" fill="#fff">7</text><g class="karms"><path d="M-12 -62L-20 -42M12 -62L20 -42" stroke="#c8202c" stroke-width="6" stroke-linecap="round"/><circle cx="-20" cy="-40" r="3.500" fill="#f0c9a4"/><circle cx="20" cy="-40" r="3.500" fill="#f0c9a4"/></g><rect x="-3" y="-72" width="6" height="7" fill="#e8bd93"/><ellipse cy="-79" rx="8" ry="9" fill="#2c1a0e"/></g></g></svg>`;
+function gameView() {
+  const g = U.game;
+  if (g.kind === "run") return `<div class="hud"><span class="tag">3 lives. Jump and land on the guys. Don't bump into them!</span><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+    <div class="actions runbtns"><button class="btn go" data-act="jump" style="min-height:96px;font-size:1.5rem">JUMP</button><button class="btn" id="dashbtn" data-act="dash" style="min-height:96px;font-size:1.3rem">DASH (${W.run ? W.run.boosts : 0})</button></div>`;
+  if (g.kind === "gallery") return `<div class="kickgame galgame"><div class="scene"><svg id="galScene" viewBox="0 0 640 300" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A shooting gallery at the fair, with a bad guy, a coyote, a deer and bullseyes sliding past">
+      <rect width="2000" height="300" fill="#1d2550"/>
+      ${Array.from({ length: 40 }, (_, n) => `<circle cx="${20 + n * 50}" cy="${n % 2 ? 62 : 72}" r="3.5" fill="${["#ffd23f", "#ff7a59", "#7fd6ff"][n % 3]}"/>`).join("")}
+      <rect y="180" width="2000" height="9" fill="#a8743f" stroke="#3a2412"/>
+      <g id="galRow1"></g>
+      <rect y="262" width="2000" height="38" fill="#7a5230"/><rect y="262" width="2000" height="7" fill="#c9974f"/>
+      <g id="galRow2"></g>
+      <rect y="272" width="2000" height="28" fill="#7a5230"/>
+      ${Array.from({ length: 50 }, (_, n) => `<path d="M${n * 40} 0h40v30a20 20 0 0 1-40 0z" fill="${n % 2 ? "#fff3d9" : "#c8202c"}"/>`).join("")}
+      <g id="galFx"></g>
+    </svg></div>
+    <div class="galbar"><i id="galTime"></i></div><div class="dboard galscore"><small>Score</small><div class="score" id="galScore">0</div></div>
+    <div class="galintro" id="galIntro"><h2>Step right up!</h2><div class="gallegend">${[["bad", "Bad guy"], ["coyote", "Coyote"], ["deer", "Deer"], ["bull", "Bullseye"]].map(([k, name]) => `<span><svg viewBox="-48 -80 96 84" aria-hidden="true">${GAL_ART[k]}</svg><b>${name}</b><small>${GAL_POINTS[k]} ${GAL_POINTS[k] === 1 ? "point" : "points"}</small></span>`).join("")}</div><p>Tap the targets as they slide by. <strong>Tap anywhere to start.</strong></p></div>
+  </div>`;
+  if (g.kind === "kick") return `<div class="kickgame" data-act="shoot"><div class="scene">${kickScene()}</div>
     </div><div class="kickhud" style="top:8px;bottom:auto"><div class="call" id="call">Tap the goal. Stay out of his zone!</div></div><div class="kboard"><div class="kbn"><span id="kgoals">0</span><small>Goals</small></div><div class="kbn"><span id="kshot">1</span><small>of <i id="kof">5</i> shots</small></div><div class="score" id="kscore"></div></div></div>`;
   const fighter = (x, dir, shirt, hat, hair, skin, name) => {
     const hero = name === "f-you", pants = hero ? "#2f3a55" : "#3b2c22", boot = hero ? "#2a1a0e" : "#1c130b", shade = "rgba(20,15,10,.2)", hatShade = hero ? "#c9c4b4" : "#050506", wrap = hero ? "#c8202c" : "#6d2a22";
@@ -3124,7 +3146,7 @@ function parentView() {
 let kick = null, duel = null, gal = null;
 let kickTap = null;
 document.addEventListener("pointerdown", (e) => { kickTap = [e.clientX, e.clientY]; }, true);
-const kickReach = () => 106 + 28 * (kick.shots.length / Math.max(1, kick.n - 1));
+const kickReach = () => kick.reach || 106 + 28 * (kick.shots.length / Math.max(1, kick.n - 1));
 function startKick() {
   kick = { shots: [], n: U.game.n, phase: "aim", t: 0, kx: 180, last: performance.now() };
   drawScore("kscore", kick.shots, kick.n); placeKeeper(180); kickBoard();
@@ -3164,7 +3186,7 @@ function kickLoop(now) {
       const call = document.getElementById("call");
       if (call) call.textContent = kick.saved ? "Saved! Stay out of his zone." : pick(["GOOOOL!", "SIUUU!", "Top corner!", "Unstoppable!"]);
       if (kick.saved) { beep(NOPE); crowdSound(false); }
-      else { crowdSound(true); document.getElementById("pitch")?.classList.add("goalnow"); document.querySelector("#kicker .kk")?.classList.add("cheer"); kickTilt(0); document.getElementById("keeper")?.classList.add("down"); S.goals++; if (!U.game?.free) earn(8); beep(CHIME); confetti(16); W.shake = 8; save(); }
+      else { crowdSound(true); document.getElementById("pitch")?.classList.add("goalnow"); document.querySelector("#kicker .kk")?.classList.add("cheer"); kickTilt(0); document.getElementById("keeper")?.classList.add("down"); S.goals++; if (!U.game?.free) earn(8); if (U.game?.spell) { const d = schoolDay(); d.spellGoals = (d.spellGoals || 0) + 1; earn(3); coinPop(3); } beep(CHIME); confetti(16); W.shake = 8; save(); }
     }
   } else if (kick.phase === "result") {
     if (kick.saved) { const b = Math.min(1, (now - kick.at) / 300); kickBall(kick.tx + Math.sign(kick.tx - 180 || 1) * 40 * b, kick.ty + 70 * b * b, .5, 900 + b * 400); }
@@ -3189,7 +3211,7 @@ function shoot() {
   document.getElementById("aim")?.setAttribute("transform", `translate(${kick.tx} ${kick.ty - 88})`); document.getElementById("aim")?.setAttribute("opacity", "1");
   kick.phase = "windup"; kick.at = performance.now();
 }
-function finishKick() { kick.phase = "done"; const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
+function finishKick() { if (U.game?.spell) return spellBackFromShot(); kick.phase = "done"; const g = kick.shots.filter(Boolean).length; U.gameEnd = { title: g === kick.n ? "Hat trick and then some!" : `${g} goals`, line: `${g} of ${kick.n} in the net.${U.game?.free ? "" : ` +$${g * 8}.`}` }; U.view = "gameEnd"; render(); }
 function crowdSound(cheer = true) {
   if (S.muted) return;
   if (cheer && playSfx("cheer", .7)) return;
@@ -4115,6 +4137,7 @@ const acts = {
     const paid = U.game && !U.game.free;
     if (kick) { kick.phase = "done"; kick = null; }
     gal = null;
+    if (U.game?.spell) return spellBackFromShot();
     if (duel) { clearTimeout(duel.timer); clearInterval(duel.bar); clearInterval(duel.beat); duel = null; }
     if (W.run) { W.run = null; stopMusic(); worldSize(200); }
     stopVoice();
@@ -4170,6 +4193,19 @@ app.addEventListener("keydown", (e) => {
 canvas.addEventListener("pointerdown", () => { if (W.run) runJump(); });
 document.addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (["INPUT", "TEXTAREA"].includes(e.target?.tagName)) return;
+  if (U.view === "spelling" && U.sp?.item) {
+    if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); if (!e.repeat) spellKey({ k: e.key.toLowerCase() }); }
+    else if (e.key === "Backspace") { e.preventDefault(); spellKey({ k: "DEL" }); }
+    else if (e.key === "Enter") { e.preventDefault(); if (U.sp.mode === "bee") spellKey({ k: "DONE" }); }
+    return;
+  }
+  if (U.view === "game" && U.game?.kind === "kick" && kick?.phase === "aim") {
+    const spot = { ArrowLeft: [92, 90], ArrowRight: [268, 90], ArrowUp: [180, 60], " ": [180, 100] }[e.key];
+    if (spot) { e.preventDefault(); const svg = document.getElementById("pitch"), m = svg?.getScreenCTM(); if (m) { kickTap = [m.a * spot[0] + m.e, m.d * spot[1] + m.f]; shoot(); } }
+    return;
+  }
+  if (U.view === "states" && U.sg?.part === 2 && /^[1-4]$/.test(e.key)) { const c = U.sg.choices?.[+e.key - 1]; if (c) statesPick({ c }); return; }
   if (W.run) { if (e.key === " " || e.key === "ArrowUp") { runJump(); e.preventDefault(); } else if (e.key === "d" || e.key === "ArrowRight") runDash(); return; }
   if (U.view !== "ride") return;
   const q = curQ(), it = curItem();
