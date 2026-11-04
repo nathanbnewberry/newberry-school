@@ -750,6 +750,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
   body[data-view="store"] .storewrap .itemtext .sub{display:none}
   body[data-view="store"] .storewrap .item .btn,body[data-view="store"] .storewrap .item button{flex:none;width:auto;min-height:38px;padding:4px 7px;font-size:clamp(.72rem,1.100vw,.86rem);white-space:nowrap}
 }
+input,textarea{user-select:text;-webkit-user-select:text}
 .linkwrap{display:grid;place-items:center;flex:1;padding:16px}.linkcard{display:grid;gap:12px;width:min(100%,480px);padding:22px;border-radius:16px;background:var(--paper);color:#1c1712;text-align:center}.linkcard h1{margin:0;font-size:clamp(1.7rem,5vh,2.3rem)}.linkcard p{margin:0}.linkcard input{min-height:54px;font-size:18px;padding:8px 14px;border-radius:10px;border:2px solid #b9ad96;text-align:center;background:#fff;color:#1c1712}.linkmsg{font-size:.95rem;color:#5d564b}.linkcard .link{justify-self:center;color:#5d564b}
 body[data-view="familyLink"] #app{display:flex;flex-direction:column}
 .offlinepill{padding:5px 12px;border-radius:10px;background:rgba(127,182,255,.18);border:2px solid #7fb6ff;font-size:.92rem;font-weight:700;text-align:center}
@@ -1755,7 +1756,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "002eb6201241";
+const GAME_BUILD = "1035b675de49";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1801,7 +1802,7 @@ async function familyFinishLink(code) {
 }
 function familyLinkView() {
   const off = navigator.onLine === false;
-  return `<div class="linkwrap"><div class="linkcard"><h1>Sign in your family</h1><p>Do this once on each iPad or computer. Then Elliot, Finn and Myla keep their progress on every device.</p><input id="famPw" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Family password" value="${esc(U.linkPw || "")}"><p class="linkmsg">${esc(off ? "You need internet to sign in the first time. You can still play, and it saves on this device." : U.linkMsg || "Pick one password for the whole family, at least 6 letters. Use the same one on every device.")}</p>${U.linkCreate ? `<button class="btn go wide" data-act="familyCreate">Create our family</button><button class="btn dark wide" data-act="familyRetry">Try the password again</button>` : `<button class="btn go wide" data-act="familySignIn" ${off ? "disabled" : ""}>Sign in</button>`}<button class="link" data-act="familySkip">Not now</button></div></div>`;
+  return `<div class="linkwrap"><div class="linkcard"><h1>Sign in your family</h1><p>Do this once on each iPad or computer. Then Elliot, Finley and Myla keep their progress on every device.</p><input id="famPw" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Family password" value="${esc(U.linkPw || "")}"><p class="linkmsg">${esc(off ? "You need internet to sign in the first time. You can still play, and it saves on this device." : U.linkMsg || "Pick one password for the whole family, at least 5 letters. Use the same one on every device.")}</p>${U.linkCreate ? `<button class="btn go wide" data-act="familyCreate">Create our family</button><button class="btn dark wide" data-act="familyRetry">Try the password again</button>` : `<button class="btn go wide" data-act="familySignIn" ${off ? "disabled" : ""}>Sign in</button>`}<button class="link" data-act="familySkip">Not now</button></div></div>`;
 }
 function whoView() {
   return `<div class="whohead"><h1>${new Date().getHours() < 12 ? "Good morning!" : new Date().getHours() < 17 ? "Good afternoon!" : "Good evening!"}</h1><p>Tap your name to start your school day.</p></div><div class="whotiles">${familyKids().map((k, i) => `<button class="whotile" data-act="kidUse" data-id="${esc(k.id)}" style="--kid:${KID_COLORS[i % KID_COLORS.length]}"><span>${esc(k.name[0].toUpperCase())}</span><b>${esc(k.name)}</b></button>`).join("")}</div><div class="hud"><span></span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
@@ -4322,7 +4323,7 @@ const acts = {
   async familySignIn() {
     const pw = (document.getElementById("famPw")?.value || "").trim();
     U.linkPw = pw;
-    if (pw.length < 6) { U.linkMsg = "Use at least 6 letters."; return render(); }
+    if (pw.length < 5) { U.linkMsg = "Use at least 5 letters."; return render(); }
     U.linkMsg = "Checking..."; render();
     const code = await familyPasswordCode(pw);
     let found;
