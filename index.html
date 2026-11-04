@@ -905,7 +905,7 @@ function voicePieces(sentence) {
 // VOICE-TEXT-END
 let ac = null, music = 0;
 // Recorded sounds. If one hasn't loaded yet, the game falls back to its old synthesized tone.
-const SFX_FILES = ["coin", "fanfare", "blip", "key", "thud", "soft", "gunshot", "ricochet", "bell", "cheer", "bump", "jump", "ding", "whinny", "gallop", "trail"];
+const SFX_FILES = ["coin", "fanfare", "blip", "key", "thud", "soft", "gunshot", "ricochet", "bell", "cheer", "bump", "jump", "ding", "whinny", "gallop", "trail", "sting", "dash", "rope", "hammer", "moo", "pop"];
 const sfxBuffers = {};
 let sfxLoading = false;
 function loadSfx() {
@@ -1075,7 +1075,7 @@ function fireworks(cv, big) {
   const burst = () => {
     const x = innerWidth * (.15 + Math.random() * .7), y = innerHeight * (.1 + Math.random() * .4), col = pick(cols);
     for (let i = 0; i < 44; i++) { const a = (i / 44) * 6.283, v = 2 + Math.random() * 5; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col }); }
-    beep([[140 + Math.random() * 90, 0, .08, "sawtooth"]]);
+    if (!playSfx("pop", .3)) beep([[140 + Math.random() * 90, 0, .08, "sawtooth"]]);
   };
   let t = 0; const bursts = big ? 6 : 2;
   const timer = setInterval(() => {
@@ -1099,13 +1099,13 @@ function celebrate(amount, big = true) {
   let count = 0;
   partyTimer = setTimeout(() => { clearInterval(count); el.remove(); }, 2800);
   if (!reduced) { try { fireworks(el.querySelector("canvas"), big); } catch (e) {} }
-  [0, 130, 260, 390].forEach((d) => beep([[1319, d / 1000, .07], [1760, d / 1000 + .06, .1]]));
+  if (!playSfx("coin", .85)) [0, 130, 260, 390].forEach((d) => beep([[1319, d / 1000, .07], [1760, d / 1000 + .06, .1]]));
   let n = start; const step = Math.max(1, Math.ceil(amount / 14)), bag = el.querySelector("#bagN");
   count = setInterval(() => { n = Math.min(total, n + step); bag.textContent = n; if (n >= total) clearInterval(count); }, 80);
 }
 function coinPop(amount = 1) {
   const b = document.createElement("div"); b.className = "coinpop"; b.textContent = `+$${amount}`; document.body.appendChild(b);
-  setTimeout(() => b.remove(), 650); beep([[1568, 0, .05]]);
+  setTimeout(() => b.remove(), 650); if (!playSfx("coin", .4)) beep([[1568, 0, .05]]);
 }
 function banner(t) { const b = document.createElement("div"); b.className = "banner pop"; b.textContent = t; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); }
 
@@ -1254,7 +1254,7 @@ function startRun(boosts) {
   startMusic();
 }
 function runJump() { const r = W.run; if (!r || r.over) return; if (r.y === 0) { r.vy = 13.5; if (!playSfx("jump", .6)) beep(BLIP); } }
-function runDash() { const r = W.run; if (!r || r.over || r.boosts <= 0 || r.dash > 0) return; r.boosts--; r.dash = 70; W.boost = 70; W.shake = 8; beep(FANFARE.slice(0, 2)); updateRunUI(); }
+function runDash() { const r = W.run; if (!r || r.over || r.boosts <= 0 || r.dash > 0) return; r.boosts--; r.dash = 70; W.boost = 70; W.shake = 8; if (!playSfx("dash", .8)) beep(FANFARE.slice(0, 2)); updateRunUI(); }
 function runStep() {
   const r = W.run; if (r.over) return;
   r.time--; if (r.flash > 0) r.flash--; if (r.dash > 0) r.dash--; if (r.safe > 0) r.safe--;
@@ -1575,7 +1575,7 @@ function gameTimeBar(items, day) {
   if (!items.length) return "";
   const mins = gameMinutes(items, day), open = beforeGameCutoff();
   const note = mins >= GAME_MINUTES ? "All earned. Great work!" : open ? `Each subject earns ${GAME_PER_SUBJECT} minutes until 1:00` : "Earning stops at 1:00. Your work still counts.";
-  return `<div class="gametime ${open ? "" : "closed"}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5" fill="currentColor"/><path d="M6 12.500h4M8 10.500v4" stroke="#12142b" stroke-width="1.800" stroke-linecap="round"/><circle cx="15.500" cy="11" r="1.300" fill="#12142b"/><circle cx="18" cy="14" r="1.300" fill="#12142b"/></svg><b>Video game time: ${mins} of ${GAME_MINUTES} minutes</b>${open && mins < GAME_MINUTES ? `<strong class="gameclock" id="gameClock">${gameClock(gameSecsLeft())} left</strong>` : ""}<small>${esc(note)}</small></div>`;
+  return `<div class="gametime ${open ? "" : "closed"}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5" fill="currentColor"/><path d="M6 12.500h4M8 10.500v4" stroke="#12142b" stroke-width="1.800" stroke-linecap="round"/><circle cx="15.500" cy="11" r="1.300" fill="#12142b"/><circle cx="18" cy="14" r="1.300" fill="#12142b"/></svg><b>Video game time: ${mins} of ${GAME_MINUTES} minutes</b>${open ? `<strong class="gameclock" id="gameClock">${gameClock(gameSecsLeft())} left</strong>` : ""}<small>${esc(note)}</small></div>`;
 }
 // Pays once for each thing he finishes today, and again when the whole day is done.
 function schoolTick() {
@@ -1598,6 +1598,22 @@ function schoolView() {
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="daygames"><span>More games:</span>${FAMILY_GAMES.filter((g) => !KID_PLANS[KID.id] || KID_PLANS[KID.id].games.includes(g.id)).map((g) => `<a class="gamechip" href="${g.path}"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[g.id]}</svg>${esc(g.name)}</a>`).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
+// iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
+const GAME_BUILD = "f80dcd4ee5da";
+function checkForUpdate() {
+  if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
+  fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
+    v = v.trim();
+    if (!v || v === GAME_BUILD || ["ride", "game", "reading"].includes(U.view)) return;
+    if (sessionStorage.getItem("reloaded-for") === v) return;
+    sessionStorage.setItem("reloaded-for", v);
+    save();
+    location.reload();
+  }).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
+setInterval(checkForUpdate, 300000);
+setTimeout(checkForUpdate, 3000);
 let readTimer = 0, wakeLock = null;
 function readingView() {
   const day = schoolDay(), need = readingNeed(), secs = readingSecs(day), finished = secs >= need, r = 86, len = 2 * Math.PI * r;
@@ -1777,7 +1793,7 @@ function trot(key, idx, pts, go) {
   setTimeout(arrive, 1500);
 }
 function homeView() {
-  return `<div class="hud">${rankHud()}${navRight()}</div>
+  return `<div class="hud">${rankHud()}${navRight()}</div>${gameTimeBar(todaysItems(), schoolDay())}
   ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
@@ -1923,7 +1939,7 @@ function stampedeView(pips) {
 // The caught steer flies over to the pen; drawn on top so it survives the next screen.
 function stCaught(box) {
   const field = document.getElementById("stfield"); if (!field || !box) return;
-  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "LASSOED!"])}</b>`;
+  const el = document.createElement("div"); el.className = "stfly"; el.style.left = `${box.left}px`; el.innerHTML = `${STEER}<b>${pick(["GOT HIM!", "YEEHAW!", "ROPED!", "LASSOED!"])}</b>`; playSfx("rope", .55); if (Math.random() < .12) playSfx("moo", .5);
   field.appendChild(el); setTimeout(() => el.remove(), 750);
 }
 const draftText = (d) => esc(String(d || "").replace("R", " R "));
@@ -2486,7 +2502,7 @@ function openRoom(id) {
   const box = document.createElement("div"); box.id = "roombox"; box.className = "roombox";
   box.innerHTML = `<svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${esc(room.name)}">${room.draw()}</svg><button class="btn dark roomback">&#9664; Back to the ranch</button><div class="roomtitle">${esc(room.name)}</div><p class="roomsay" id="roomSay">${esc(room.hello)}</p>`;
   document.body.appendChild(box);
-  const say = box.querySelector("#roomSay"), talk = (t) => { say.textContent = t; lastSaid = ""; speak(t); };
+  const say = box.querySelector("#roomSay"), talk = (t) => { say.textContent = t; lastSaid = ""; speak(t, false, "nora"); };
   box.querySelector(".roomback").onclick = () => { stopVoice(); box.remove(); };
   box.addEventListener("click", (e) => {
     const t = e.target.closest(".hot"); if (!t) return;
@@ -2904,8 +2920,8 @@ function playNotes(notes, vol = .16) {
 }
 const bumpSound = () => playSfx("bump", .9) || playNotes([[110, 0, .12, "square"], [70, .04, .22, "square"], [45, .1, .28]], .3);
 function sayOw() { try { if (S.voice === false || S.muted) return; playVoice("Ow!", "outlaw"); } catch (e) {} }
-const chaChing = () => playNotes([[1319, 0, .07, "square"], [1760, .07, .07, "square"], [2637, .14, .32], [3520, .14, .32]], .13);
-const duDunDun = () => playNotes([[196, 0, .34, "sawtooth"], [98, 0, .34, "triangle"], [185, .42, .34, "sawtooth"], [92, .42, .34, "triangle"], [147, .84, 1, "sawtooth"], [73, .84, 1, "triangle"]], .2);
+const chaChing = () => playSfx("coin", .55) || playNotes([[1319, 0, .07, "square"], [1760, .07, .07, "square"], [2637, .14, .32], [3520, .14, .32]], .13);
+const duDunDun = () => playSfx("sting", .8) || playNotes([[196, 0, .34, "sawtooth"], [98, 0, .34, "triangle"], [185, .42, .34, "sawtooth"], [92, .42, .34, "triangle"], [147, .84, 1, "sawtooth"], [73, .84, 1, "triangle"]], .2);
 function bellToll() {
   if (S.muted) return;
   if (playSfx("bell", .9)) return;
@@ -3246,7 +3262,7 @@ function pressKey(k) {
     else if (/^\d$/.test(k)) { U.cells[U.cellAt] = k; let nx = 0; while (nx < max && U.cells[nx] !== undefined) nx++; U.cellAt = Math.min(nx, max - 1); }
     syncCellDraft(cb); beep(KEY_TAP); return render();
   }
-  if (k === "R" && (!U.draft || U.draft.includes("R"))) return beep([[220, 0, .06]]);
+  if (k === "R" && (!U.draft || U.draft.includes("R"))) return beep(NOPE);
   if (k === "R") speak("left over");
   if (k === "DEL") U.draft = U.draft.slice(0, -1);
   else if (U.draft.length < 20) U.draft += k;
@@ -3792,7 +3808,7 @@ const acts = {
   },
   backTown() { U.game = null; const l = curLesson(), nx = l && nextRide(l); if (U.view === "rideEnd" && nx) return startRide(l, nx); U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
-  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !ownedHere().includes(g.id)) { S.nuggets -= g.cost; ownedHere().push(g.id); beep(CHIME); save(); const all = RANCH.every((x) => ownedHere().includes(x.id)); U.noraLine = all ? `You got us everything, ${KID.name}! This is the best ranch in the West!` : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
+  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !ownedHere().includes(g.id)) { S.nuggets -= g.cost; ownedHere().push(g.id); if (!playSfx("hammer", .8)) beep(CHIME); save(); const all = RANCH.every((x) => ownedHere().includes(x.id)); U.noraLine = all ? `You got us everything, ${KID.name}! This is the best ranch in the West!` : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
   roomOpen(d) { beep(BLIP); openRoom(d.id); },
   ranchTap() {
     const svg = document.getElementById("ranchLive"), r = U.ranch; if (!svg || !r || !kickTap || performance.now() - (r.dragEnd || -999) < 250) return;
