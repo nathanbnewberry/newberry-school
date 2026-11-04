@@ -1504,7 +1504,7 @@ function buildItems(l, r) {
   if (r.kind === "learn") return left(l.learn.map((c, i) => ({ ...c, idx: i })), "idx");
   return [{ type: "page" }];
 }
-function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false, workedRead: false }); }
+function resetItem() { Object.assign(U, { draft: "", msg: null, mode: "try", step: 0, stepWrong: 0, fills: {}, coachDone: false, wrongNow: 0, proofMiss: 0, earned: 0, mow: 0, deal: 0, off: [], helpN: 0, helped: false, demoStep: 0, solvedNote: "", pz: null, m: null, heard: "", listening: false, strokes: [], stBreak: false, cells: [], cellAt: 0, carries: {}, carryAt: null, spBig: false, workedRead: false, workedLockAt: 0 }); }
 function pageGap(l, r) {
   const lp = LP(l.id);
   if (!r.problems) return Math.max(.02, .9 * (1 - U.i / Math.max(1, U.items.length)));
@@ -1796,7 +1796,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "11b2c19c5c8e";
+const GAME_BUILD = "c6fa1e6756ee";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2629,20 +2629,25 @@ const WHY = {
 let narrateId = 0, narrateTimer = 0;
 const spokenMath = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)R(\d)/g, "$1 remainder $2");
 function stopNarration() { narrateId++; clearTimeout(narrateTimer); document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking")); stopVoice(); }
+const WORKED_MAX_WAIT = 30000;
+const workedOpen = () => U.workedRead || !U.workedLockAt || Date.now() - U.workedLockAt >= WORKED_MAX_WAIT;
+function workedUnlock() { const b = document.getElementById("workedNextBtn"); if (b && b.disabled) { b.disabled = false; b.textContent = nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"; } }
+setInterval(() => { if (U?.mode === "worked" && workedOpen()) workedUnlock(); }, 1000);
 function narrateWorked() {
   const q = curQ(); if (!q || U.mode !== "worked") return;
   stopNarration();
   const id = narrateId, log = U.stepLog || [], items = [...document.querySelectorAll(".recap li")], p = PP(LP(U.lesson), q.id);
-  const lines = [{ t: "Here's how you worked it out." }];
+  const lines = [{ t: `So the answer is ${p.ans}.`, unlock: !WHY[q.skill] }];
+  if (WHY[q.skill]) lines.push({ t: WHY[q.skill], el: document.querySelector(".whybox"), unlock: true });
+  lines.push({ t: "Here's how you worked it out." });
   q.coach.steps.forEach((st, i) => { if (st.label === "Answer") return; const ask = String(st.ask || "").replace(/\s*=\s*\?$/, ""); lines.push({ t: `${st.say ? `${st.say} ` : ""}${ask}${/=\s*\?$/.test(String(st.ask)) ? " is" : ""} ${log[i] || ""}.`, el: items[i] }); });
-  lines.push({ t: `So the answer is ${p.ans}.` });
-  if (WHY[q.skill]) lines.push({ t: WHY[q.skill], el: document.querySelector(".whybox") });
   const chk = document.querySelector(".checkit"); if (chk) lines.push({ t: chk.textContent.replace(/^Check it\s*/, "To check it: "), el: chk });
   let n = 0;
   const next = () => {
     if (id !== narrateId || !document.querySelector(".workedpage")) return;
     document.querySelectorAll(".speaking").forEach((el) => el.classList.remove("speaking"));
-    if (n >= lines.length) { U.workedRead = true; const b = document.getElementById("workedNextBtn"); if (b) { b.disabled = false; b.textContent = nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION"; } return; }
+    if (n >= lines.length) { U.workedRead = true; workedUnlock(); return; }
+    if (lines[n - 1]?.unlock) { U.workedRead = true; workedUnlock(); }
     const line = lines[n++]; line.el?.classList.add("speaking"); line.el?.scrollIntoView?.({ block: "nearest" });
     let moved = false; const go = () => { if (moved) return; moved = true; clearTimeout(narrateTimer); next(); };
     narrateTimer = setTimeout(go, 3000 + line.t.length * 110);
@@ -2660,7 +2665,7 @@ function solveView(l, q) {
     const log = U.stepLog || [];
     const recap = c.steps.map((st, i) => `<li>${st.say ? `<span>${esc(st.say)}</span>` : ""}<b>${esc(st.ask || st.label || "")}${log[i] ? ` <em>${esc(log[i])}</em>` : ""}</b></li>`).join("");
     return hudRide(`<span class="chip">Worked out</span>`) + bubble("You did every step with me. Listen, and I'll show you how it worked.", "", true) +
-      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}<button class="btn go wide workednext" id="workedNextBtn" data-act="workedNext" ${U.workedRead ? "" : "disabled"}>${U.workedRead ? (nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION") : "Listen first..."}</button></div><div class="workedside">${WHY[q.skill] ? `<p class="remember whybox"><b>Why it worked</b> ${esc(WHY[q.skill])}</p>` : ""}${divisionCheck(q, p.ans)}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol></div></div></div>`;
+      `<div class="bookpage workedpage"><div class="workedgrid"><div class="workedside"><div class="rightbanner">&#10003; Answer: ${esc(p.ans)}${q.unit ? ` ${esc(q.unit)}` : ""}</div>${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)}</span></div>${q.book ? "" : `<p class="prompt">${esc(q.prompt)}</p>`}${boardHtml(c, c.steps.length - 1, true)}` : problemHead(q, q.book ? p.ans : null)}<button class="btn go wide workednext" id="workedNextBtn" data-act="workedNext" ${workedOpen() ? "" : "disabled"}>${workedOpen() ? (nextProblemId() ? "NEXT PROBLEM" : "FINISH THIS SECTION") : "Listen first..."}</button></div><div class="workedside">${WHY[q.skill] ? `<p class="remember whybox"><b>Why it worked</b> ${esc(WHY[q.skill])}</p>` : ""}${divisionCheck(q, p.ans)}<div class="bh"><span>How you worked it out</span></div><ol class="recap">${recap}</ol></div></div></div>`;
   }
   if (U.mode === "proof") {
     const pr = q.proof;
@@ -3752,7 +3757,7 @@ function applyStepRight(val) {
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
   if (U.step >= c.steps.length) {
     U.step = c.steps.length - 1; U.cells = []; U.cellAt = 0; U.wrongNow = 0;
-    if (c.reveal) { U.mode = "worked"; if (!p.done) p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
+    if (c.reveal) { U.mode = "worked"; U.workedLockAt = Date.now(); if (!p.done) p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
     U.mode = "try"; U.coachDone = true;
   }
   save(); render();
