@@ -660,6 +660,8 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .lstop{background:rgba(255,255,255,.05);border-radius:14px;padding:8px;color:inherit}button.lstop{cursor:pointer;min-height:44px}
 .skrows{display:grid;gap:6px}.skrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.skrow i.state{font-style:normal}.pdots{display:flex;flex-wrap:wrap;gap:4px}.pdot{display:block;width:16px;height:16px;border-radius:5px}
 .trow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.trow small{display:block;opacity:.8}.tmini{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.tmini svg{width:30px;height:32px}.tcount{font-size:1.4rem;color:var(--gold)}.lnum{font-size:.78rem;opacity:.8}
+.solvedpage .tag:empty{display:none}.solvedpage .pmathbig{padding:0}.solvedpage .vert .slot{color:#1c7a3e}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.solvedpage .rightbanner{padding:2px 8px;font-size:1rem}body[data-view="ride"] #app .nextbtn{min-height:44px}body[data-view="ride"] #app [data-act="redoq"]{min-height:38px;padding:2px 10px}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -2337,7 +2339,18 @@ function struggles() {
 }
 const hardFacts = (lp) => Object.entries(lp.factMiss || {}).sort((a, b) => b[1] - a[1]).slice(0, 5);
 // Equations start big, and any that won't fit their square shrink just enough.
+function fitSolvedPage() {
+  const page = document.querySelector(".solvedpage"); if (!page) return;
+  const big = [...page.querySelectorAll(".pmathbig,.prompt,.answer")], vis = page.querySelector(".vis");
+  for (let i = 0; i < 40 && page.scrollHeight > page.clientHeight + 1; i++) {
+    let moved = false;
+    big.forEach((e) => { const fs = parseFloat(getComputedStyle(e).fontSize); if (fs > 18) { e.style.fontSize = `${fs - 3}px`; moved = true; } });
+    if (!moved) break;
+  }
+  if (vis && page.scrollHeight > page.clientHeight + 1) vis.style.zoom = .7;
+}
 function fitProblemCells() {
+  fitSolvedPage();
   const page = document.querySelector(".problempage"), bodies = [...document.querySelectorAll(".problempage .pgrid .pmath .pbody")];
   if (!page || !bodies.length) return;
   const shrink = (b, by = 2) => { const fs = parseFloat(getComputedStyle(b).fontSize); if (fs <= 18) return false; b.style.setProperty("font-size", `${fs - by}px`, "important"); return true; };
