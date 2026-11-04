@@ -628,6 +628,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .biscuit .again{display:grid;place-items:center;width:48px;height:48px;min-height:48px;padding:0;border-radius:50%;flex:none}.biscuit .again svg{width:26px;height:26px;color:#fff}
 .biscuit{position:relative;background:transparent;padding:0;gap:14px;align-items:center;color:#1c1712}.biscuit>.mascot{order:3;transform:scaleX(-1);flex:none}.biscuit>.saytext{order:1;flex:1;min-width:0;position:relative;background:#fffdf6;border:3px solid #2c1a0e;border-radius:18px;padding:8px 66px 8px 16px;min-height:62px;display:block;align-content:center;line-height:1.3}.biscuit>.saytext::before,.biscuit>.saytext::after{content:"";position:absolute;top:24px;border-style:solid;border-color:transparent}.biscuit>.saytext::before{right:-20px;border-width:11px 0 11px 19px;border-left-color:#2c1a0e}.biscuit>.saytext::after{right:-14px;top:27px;border-width:8px 0 8px 14px;border-left-color:#fffdf6}.biscuit>.bubtns{order:2;position:absolute;top:50%;transform:translateY(-50%);right:calc(var(--horseW,100px) + 24px);z-index:1}.biscuit .again{width:44px;height:44px;min-height:44px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.biscuit{--horseW:68px}}
+.coinpop{left:36%;right:auto;top:calc(60px + env(safe-area-inset-top))}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -840,19 +841,22 @@ function fireworks(cv, big) {
 let partyTimer = 0;
 function celebrate(amount, big = true) {
   document.querySelector(".party")?.remove(); clearTimeout(partyTimer);
+  // Small wins get a quick tag by his money, so nothing big sits over the next problem.
+  if (!big) { if (amount) coinPop(amount); return; }
   const total = S.nuggets, start = Math.max(0, total - amount);
   const el = document.createElement("div"); el.className = "party"; el.setAttribute("aria-live", "polite");
   const coins = Array.from({ length: Math.min(14, 4 + Math.ceil(amount / 3)) }, (_, i) => `<i class="fly" style="left:${42 + Math.random() * 16}%;animation-delay:${i * 70}ms"></i>`).join("");
   el.innerHTML = `<canvas></canvas>${big ? `<div class="dancewrap">${dancer()}</div>` : ""}${amount ? `<div class="payout">+$${amount}</div>` : ""}${coins}<div class="bag"><b>$</b><span id="bagN">${start}</span></div>`;
   document.body.appendChild(el);
-  if (!reduced) fireworks(el.querySelector("canvas"), big);
+  let count = 0;
+  partyTimer = setTimeout(() => { clearInterval(count); el.remove(); }, 2800);
+  if (!reduced) { try { fireworks(el.querySelector("canvas"), big); } catch (e) {} }
   [0, 130, 260, 390].forEach((d) => beep([[1319, d / 1000, .07], [1760, d / 1000 + .06, .1]]));
   let n = start; const step = Math.max(1, Math.ceil(amount / 14)), bag = el.querySelector("#bagN");
-  const count = setInterval(() => { n = Math.min(total, n + step); bag.textContent = n; if (n >= total) clearInterval(count); }, 80);
-  partyTimer = setTimeout(() => { clearInterval(count); el.remove(); }, big ? 2800 : 1300);
+  count = setInterval(() => { n = Math.min(total, n + step); bag.textContent = n; if (n >= total) clearInterval(count); }, 80);
 }
-function coinPop() {
-  const b = document.createElement("div"); b.className = "coinpop"; b.textContent = "+$1"; document.body.appendChild(b);
+function coinPop(amount = 1) {
+  const b = document.createElement("div"); b.className = "coinpop"; b.textContent = `+$${amount}`; document.body.appendChild(b);
   setTimeout(() => b.remove(), 650); beep([[1568, 0, .05]]);
 }
 function banner(t) { const b = document.createElement("div"); b.className = "banner pop"; b.textContent = t; document.body.appendChild(b); setTimeout(() => b.remove(), 2200); }
@@ -2931,7 +2935,7 @@ const acts = {
   },
   leaveRide() { stopNarration(); closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
-  openq(d) { U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
+  openq(d) { clearTimeout(partyTimer); document.querySelector(".party")?.remove(); U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
   closeq() { backToPage(); },
   nextProblem() {
     const id = nextProblemId();
