@@ -1,4 +1,15 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html><html><head><script>
+// Family Games login: this child's saves stay apart from their brothers' and sisters'.
+(function () {
+  var kid = null; try { kid = JSON.parse(localStorage.getItem("family-kid") || "null"); } catch (e) {}
+  if (!kid) { location.replace("../"); return; }
+  window.FG_KID = kid;
+  var base = "lc-profiles-v2", ns = function (k) { return String(k).indexOf(base) === 0 ? k + "::" + kid.id : k; }, P = Storage.prototype, g = P.getItem, s = P.setItem, r = P.removeItem;
+  P.getItem = function (k) { return g.call(this, ns(k)); };
+  P.setItem = function (k, v) { return s.call(this, ns(k), v); };
+  P.removeItem = function (k) { return r.call(this, ns(k)); };
+})();
+</script><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>The Learning Castle</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Pixelify+Sans:wght@400;600;700&display=swap">
 <style>
@@ -2245,7 +2256,7 @@
     clearTimeout(timer);
     var raw = store.getItem(KEY); if (!raw) return;
     var at = +store.getItem(AT) || Date.now();
-    rpc("save_progress", { p_code: code(), p_game: GAME, p_player: "family", p_state: { savedAt: at, data: JSON.parse(raw) }, p_client_updated: at }).catch(function () {});
+    rpc("save_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id, p_state: { savedAt: at, data: JSON.parse(raw) }, p_client_updated: at }).catch(function () {});
   }
   Storage.prototype.setItem = function (k, v) {
     rawSet.call(this, k, v);
@@ -2266,7 +2277,7 @@
     };
     document.body.appendChild(b);
   }
-  rpc("load_progress", { p_code: code(), p_game: GAME, p_player: "family" }).then(function (remote) {
+  rpc("load_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id }).then(function (remote) {
     var localAt = +store.getItem(AT) || 0;
     if (remote && remote.savedAt > localAt) {
       rawSet.call(store, KEY, JSON.stringify(remote.data)); rawSet.call(store, AT, String(remote.savedAt));
@@ -2275,6 +2286,21 @@
     if (store.getItem(KEY) && (!remote || localAt > remote.savedAt)) { if (!localAt) rawSet.call(store, AT, String(Date.now())); push(); }
     if (!remote && !store.getItem(KEY) || !(JSON.parse(store.getItem(KEY)).list || []).length) bringButton();
   }).catch(function () { if (!store.getItem(KEY) || !(JSON.parse(store.getItem(KEY)).list || []).length) bringButton(); });
+})();
+</script>
+<a id="fg-back" href="../?hub=1">&#9664; School Day</a>
+<style>#fg-back{position:fixed;left:50%;top:calc(6px + env(safe-area-inset-top));transform:translateX(-50%);z-index:99998;font:800 14px -apple-system,sans-serif;padding:9px 16px;border-radius:999px;background:#2a9d4a;color:#fff;text-decoration:none;box-shadow:0 2px 6px rgba(0,0,0,.4)}#btn-map-switch{display:none!important}</style>
+<script>
+(function () {
+  var kid = window.FG_KID; if (!kid) return;
+  var d = new Date(), day = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"), key = "family-play::" + kid.id + "::" + day + "::castle";
+  setInterval(function () { if (document.visibilityState === "visible") localStorage.setItem(key, String((+localStorage.getItem(key) || 0) + 15)); }, 15000);
+  var LEVELS = { elliot: "muldiv", finn: "addsub", myla: "shapescolors" }, level = LEVELS[kid.id];
+  if (!/parents=1/.test(location.search)) {
+    var btn = document.querySelector(".profile[data-id]");
+    if (btn) btn.click();
+    else { var nw = document.getElementById("btn-new-knight"); if (nw) nw.click(); var inp = document.getElementById("knight-name"); if (inp) { inp.value = kid.name; inp.readOnly = true; inp.closest(".field").style.display = "none"; } var bk = document.getElementById("btn-back-profiles"); if (bk) bk.style.display = "none"; var lv = level && document.querySelector('input[name=look-lesson][value="' + level + '"]'); if (lv) { lv.checked = true; var row = document.getElementById("sw-lesson"); var holder = row && row.closest(".field"); (holder || row).style.display = "none"; } }
+  }
 })();
 </script>
 </body></html>

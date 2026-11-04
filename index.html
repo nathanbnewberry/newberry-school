@@ -674,6 +674,11 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 @media (orientation:landscape) and (min-width:800px){body[data-view="school"] #app{display:flex;flex-direction:column;gap:8px;overflow:auto}body[data-view="school"] .daycards{flex:1;min-height:0;grid-auto-rows:minmax(96px,1fr)}body[data-view="school"] .daycard{min-height:0}.dayicon{width:clamp(52px,12vh,88px);height:clamp(52px,12vh,88px)}.daytext b{font-size:clamp(1.15rem,3.2vh,1.6rem)}.daybar{height:12px;border-radius:6px}.daycheck{width:clamp(44px,9vh,64px);height:clamp(44px,9vh,64px);font-size:clamp(1.6rem,5vh,2.4rem)}}
 body[data-view="reading"] #app{display:flex;flex-direction:column}
 .daytrail{margin-right:14px}.daytrail>b{right:0;top:-24px;transform:none;line-height:1.2;font-size:1rem}
+.whohead{text-align:center;padding-top:clamp(10px,6vh,50px)}.whohead h1{margin:0;font-size:clamp(2.2rem,8vh,3.6rem)}.whohead p{font-size:1.2rem;margin:8px 0 0}.whotiles{flex:1;display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:center;padding:20px}.whotile{display:grid;justify-items:center;gap:10px;width:clamp(150px,22vw,220px);padding:18px;border-radius:20px;background:var(--paper);color:#1c1712;box-shadow:0 7px 0 #b9ad96;cursor:pointer}.whotile:active{transform:translateY(4px);box-shadow:0 3px 0 #b9ad96}.whotile span{display:grid;place-items:center;width:clamp(84px,14vw,120px);aspect-ratio:1;border-radius:50%;background:var(--kid);color:#fff;font:400 clamp(2.6rem,6vw,4rem) var(--display)}.whotile b{font-size:1.5rem}
+body[data-view="who"] #app{display:flex;flex-direction:column}
+.daygames{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.92rem}.gamechip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:4px 14px;border-radius:999px;background:var(--panel2);color:#fff;font-weight:800;text-decoration:none}.gamechip svg{width:26px;height:26px}.whoami{font-weight:800}
+.kidrow{display:flex;flex-wrap:wrap;gap:8px}.kidchip{min-height:44px;padding:6px 18px;border-radius:999px;background:rgba(128,128,128,.25);color:#fff;font-weight:800}.kidchip.on{background:var(--gold);color:#1c1712}
+.whotiles{gap:clamp(14px,3vw,28px)}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -692,8 +697,21 @@ body[data-view="reading"] #app{display:flex;flex-direction:column}
 <script src="lessons.js?v=a2321b7c70"></script>
 <script>
 const LESSONS = window.LESSONS || [];
-const KEY = "elliot-trail-v1";
-const DOC_PATH = "progress/elliot";
+// Every game on this site reads the signed-in child from here, so nobody picks a player twice.
+const FAMILY_KIDS = [{ id: "elliot", name: "Elliot" }, { id: "finn", name: "Finn" }, { id: "myla", name: "Myla" }];
+function familyKids() { let saved = []; try { const k = JSON.parse(localStorage.getItem("family-kids") || "null"); if (Array.isArray(k)) saved = k; } catch (e) {} return [...FAMILY_KIDS, ...saved.filter((k) => !FAMILY_KIDS.some((d) => d.id === k.id))]; }
+function currentKid() {
+  const kids = familyKids();
+  try { const id = localStorage.getItem("family-kid-id"), k = kids.find((x) => x.id === id); if (k) return k; } catch (e) {}
+  return kids.length === 1 ? kids[0] : null;
+}
+let KID = currentKid();
+const NEEDS_LOGIN = !KID;
+KID = KID || familyKids()[0];
+try { if (!NEEDS_LOGIN) { localStorage.setItem("family-kid-id", KID.id); localStorage.setItem("family-kid", JSON.stringify(KID)); } } catch (e) {}
+document.title = NEEDS_LOGIN ? "Newberry School" : `${KID.name}'s School Day`;
+const KEY = KID.id === "elliot" ? "elliot-trail-v1" : `family-trail-${KID.id}`;
+const DOC_PATH = `progress/${KID.id}`;
 
 // Keep hash() and norm() identical to the copies in tools/build-lessons.mjs.
 function hash(str, seed = 0) {
@@ -720,9 +738,22 @@ let S = blank();
 try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch (e) {}
 let dbDoc = null, cloud = "device", saveTimer = 0;
 // The page can only reach a save with the family's private code. The database does the checking.
-const FAMILY_DB = { url: "https://sqxghmebflleejwvgvif.supabase.co", key: "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8", game: "outlaw-run", player: "elliot" };
+const FAMILY_DB = { url: "https://sqxghmebflleejwvgvif.supabase.co", key: "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8", game: "outlaw-run", player: KID.id };
 const familyRpc = (fn, body, keepalive = false) => fetch(`${FAMILY_DB.url}/rest/v1/rpc/${fn}`, { method: "POST", keepalive, headers: { apikey: FAMILY_DB.key, "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+const familyPin = () => { try { return localStorage.getItem("family-pin") || S.pin; } catch (e) { return S.pin; } };
+const setFamilyPin = (p) => { S.pin = p; try { localStorage.setItem("family-pin", p); } catch (e) {} };
+function saveRoster() { familyCode(); familyRpc("save_progress", { p_code: familyCode(), p_game: "family", p_player: "roster", p_state: { kids: familyKids(), pin: familyPin() }, p_client_updated: Date.now() }).catch(() => {}); }
+async function loadRoster() {
+  const roster = await familyRpc("load_progress", { p_code: familyCode(), p_game: "family", p_player: "roster" }).catch(() => null);
+  if (!roster?.kids?.length) return false;
+  const merged = [...familyKids()]; roster.kids.forEach((k) => { if (!merged.some((m) => m.id === k.id)) merged.push(k); });
+  localStorage.setItem("family-kids", JSON.stringify(merged));
+  if (roster.pin && !localStorage.getItem("family-pin")) localStorage.setItem("family-pin", roster.pin);
+  return true;
+}
 function familyCode() {
+  if (S.familyCode) return S.familyCode;
+  S.familyCode = localStorage.getItem("family-games-code") || "";
   if (S.familyCode) return S.familyCode;
   const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", n = crypto.getRandomValues(new Uint8Array(25));
   S.familyCode = localStorage.getItem("family-games-code") || [...n].map((x, i) => abc[x % abc.length] + (i % 5 === 4 && i < 24 ? "-" : "")).join("");
@@ -745,6 +776,7 @@ async function cloudStart() {
     }
   }
   if (S.updatedAt) cloudSend();
+  if (S.familyCode) { try { localStorage.setItem("family-games-code", S.familyCode); } catch (e) {} await loadRoster(); saveRoster(); }
 }
 function save() {
   S.updatedAt = Date.now();
@@ -1042,7 +1074,7 @@ function worldDraw() {
   W.dust.forEach((d) => { c.fillStyle = `rgba(255,230,190,${d.a})`; c.beginPath(); c.arc(d.x, d.y, 5, 0, 7); c.fill(); });
   if (W.title) {
     c.textAlign = "center"; c.fillStyle = "#ffc42e"; c.font = "400 54px Rye,Georgia,serif"; c.shadowColor = "#000"; c.shadowOffsetY = 4; c.shadowBlur = 0;
-    c.fillText("OUTLAW RUN", 360, H * .34); c.font = "400 19px Rye,Georgia,serif"; c.fillStyle = "#f2f3ff"; c.fillText("Elliot vs. the Math Gang", 360, H * .34 + 28); c.shadowColor = "transparent"; c.shadowOffsetY = 0;
+    c.fillText("OUTLAW RUN", 360, H * .34); c.font = "400 19px Rye,Georgia,serif"; c.fillStyle = "#f2f3ff"; c.fillText(`${KID.name} vs. the Math Gang`, 360, H * .34 + 28); c.shadowColor = "transparent"; c.shadowOffsetY = 0;
   }
   if (U.view === "ride") {
     const text = `$${S.nuggets}`;
@@ -1317,9 +1349,17 @@ const SCHOOL_ICONS = {
   grammar: `<path d="M5 19l1-4L16 5l3 3L9 18z" fill="#ffd23f" stroke="#a97808" stroke-width="1.300"/><path d="M5 19l4-1-3-3z" fill="#3a2412"/>`,
   history: `<path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 0 1-2z" fill="#e9d6a6" stroke="#8a6a3a" stroke-width="1.300"/><path d="M8 9h8M8 12h8M8 15h5" stroke="#8a6a3a" stroke-width="1.300"/>`,
   science: `<path d="M10 3h4M11 3v6l-5 9a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-5-9V3" fill="#d9f2ff" stroke="#1c5a8f" stroke-width="1.400"/><path d="M8 16h8l1.500 3a1 1 0 0 1-1 1H7.500a1 1 0 0 1-1-1z" fill="#39d07a"/>`,
+  castle: `<path d="M4 20V8h3v2h2V8h6v2h2V8h3v12z" fill="#b8c0ca" stroke="#5a6470" stroke-width="1.200"/><path d="M10 20v-5a2 2 0 0 1 4 0v5z" fill="#3a2412"/><path d="M12 8V3l4 1.500L12 6" fill="#c8202c" stroke="#7b1219" stroke-width=".8"/>`,
+  pirates: `<path d="M3 16h18l-2.500 4H5.500z" fill="#6b4423" stroke="#3a2412"/><path d="M12 3v13" stroke="#3a2412" stroke-width="1.500"/><path d="M12 4l7 9h-7z" fill="#fff6e0" stroke="#3a2412"/><path d="M12 5L6 13h6z" fill="#1a120b"/>`,
   task: `<rect x="5" y="4" width="14" height="17" rx="2" fill="#fff" stroke="#6b4423" stroke-width="1.400"/><path d="M8 9l1.500 1.500L12 8M8 15l1.500 1.500L12 14M14 10h3M14 16h3" stroke="#6b4423" stroke-width="1.400" fill="none"/>`,
 };
 const WEEKDAYS = [1, 2, 3, 4, 5];
+const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle/" }, { id: "pirates", name: "Cannon Math Pirates", path: "pirates/" }];
+// Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
+const KID_PLANS = {
+  finn: { on: ["reading", "castle", "pirates"], reading: 15, games: ["castle", "pirates"], focus: "Plus and minus" },
+  myla: { on: ["reading", "castle"], reading: 15, games: ["castle"], focus: "Colors and shapes" },
+};
 const SCHOOL_DEFAULT = [
   { id: "math", name: "Math lesson", icon: "math", kind: "math", on: true, days: WEEKDAYS },
   { id: "reading", name: "Reading", icon: "reading", kind: "reading", on: true, days: WEEKDAYS, minutes: 30 },
@@ -1328,9 +1368,23 @@ const SCHOOL_DEFAULT = [
   { id: "grammar", name: "Grammar", icon: "grammar", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "history", name: "History", icon: "history", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "science", name: "Science", icon: "science", kind: "check", on: false, soon: true, days: WEEKDAYS },
+  { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
+  { id: "pirates", name: "Cannon Math Pirates", icon: "pirates", kind: "game", game: "pirates", on: false, days: WEEKDAYS, minutes: 10 },
 ];
 function schoolPlan() {
-  S.schoolPlan = S.schoolPlan || JSON.parse(JSON.stringify(SCHOOL_DEFAULT));
+  if (!S.schoolPlan) {
+    S.schoolPlan = JSON.parse(JSON.stringify(SCHOOL_DEFAULT));
+    const start = KID_PLANS[KID.id];
+    if (start) S.schoolPlan.forEach((x) => { x.on = start.on.includes(x.id); if (x.kind === "reading") x.minutes = start.reading; });
+  }
+  SCHOOL_DEFAULT.forEach((d) => { if (!S.schoolPlan.some((x) => x.id === d.id)) S.schoolPlan.push(JSON.parse(JSON.stringify(d))); });
+  // Elliot's daily list, set once so a parent's later changes stick.
+  if (KID.id === "elliot" && !S.planSet) {
+    S.planSet = 1;
+    const order = ["spelling", "math", "reading", "grammar", "capitals"];
+    S.schoolPlan.forEach((x) => { if (order.includes(x.id)) x.on = true; });
+    S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
+  }
   return S.schoolPlan;
 }
 const dateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1351,22 +1405,24 @@ function itemStatus(x, day = schoolDay()) {
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
   if (x.kind === "capitals") { const n = Math.min(day.capTries, x.goal); return { done: n >= x.goal, label: `${n} of ${x.goal} capital tries`, pct: n / x.goal }; }
-  return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
+  if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
+  return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
 }
 // Pays once for each thing he finishes today, and again when the whole day is done.
 function schoolTick() {
   if (!LESSONS.length) return;
   const day = schoolDay(), items = todaysItems();
+  FAMILY_GAMES.forEach((g) => { const secs = +localStorage.getItem(`family-play::${KID.id}::${dateKey()}::${g.id}`) || 0; if (secs) { day.gameSecs = day.gameSecs || {}; day.gameSecs[g.id] = secs; } });
   if (day.readFrom && readingSecs(day) >= readingNeed()) { day.readSecs = readingNeed(); day.readFrom = 0; }
   items.forEach((x) => { if (!day.paid[x.id] && itemStatus(x, day).done) { day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5`); beep(CHIME); } });
   if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); confetti(60); beep(FANFARE); banner("School's out! +$25"); }
 }
 function schoolView() {
-  const items = todaysItems(), day = schoolDay(), done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
+  const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const soon = schoolPlan().filter((x) => x.soon && !x.on);
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
-  const line = !items.length ? "No school on the plan today. Enjoy your day, Elliot!" : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : "Howdy, Elliot! Here's today's trail. Pick any one to start.";
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div></div><div class="daycards">${items.map(card).join("")}</div>${soon.length ? `<div class="daysoon"><span>Games coming soon:</span>${soon.map((x) => `<span class="soonchip"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon]}</svg>${esc(x.name)}</span>`).join("")}</div>` : ""}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? "School's out, partner! You finished the whole trail today." : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div></div><div class="daycards">${items.map(card).join("")}</div>${soon.length && !KID_PLANS[KID.id] ? `<div class="daysoon"><span>Games coming soon:</span>${soon.map((x) => `<span class="soonchip"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon]}</svg>${esc(x.name)}</span>`).join("")}</div>` : ""}<div class="daygames"><span>More games:</span>${FAMILY_GAMES.filter((g) => !KID_PLANS[KID.id] || KID_PLANS[KID.id].games.includes(g.id)).map((g) => `<a class="gamechip" href="${g.path}"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[g.id]}</svg>${esc(g.name)}</a>`).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 let readTimer = 0, wakeLock = null;
 function readingView() {
@@ -1377,11 +1433,15 @@ function readingView() {
     const now = readingSecs(); if (now >= readingNeed()) { clearInterval(readTimer); return render(); }
     clock.textContent = mmss(readingNeed() - now); document.getElementById("readRing")?.setAttribute("stroke-dasharray", `${(len * now) / readingNeed()} ${len}`);
   }, 500);
-  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>Reading Time</h2><span></span></div><div class="readwrap"><div class="readring"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="16"/><circle id="readRing" cx="100" cy="100" r="${r}" fill="none" stroke="${finished ? "#39d07a" : "#ffc42e"}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * secs) / need} ${len}" transform="rotate(-90 100 100)"/></svg><div class="readclock"><b id="readClock">${finished ? "&#10003;" : mmss(need - secs)}</b><small>${finished ? "All done!" : day.readFrom ? "Happy reading" : "minutes to read"}</small></div></div><div class="readside"><p>${finished ? "Great reading today, Elliot! That's checked off." : "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting."}</p>${finished ? `<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button>` : `<button class="btn ${day.readFrom ? "dark" : "go"} wide readbtn" data-act="readToggle">${day.readFrom ? "Pause" : secs > 0 ? "Keep reading" : "Start 30 minute timer".replace("30", String(Math.round(need / 60)))}</button>`}</div></div>`;
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>Reading Time</h2><span></span></div><div class="readwrap"><div class="readring"><svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="16"/><circle id="readRing" cx="100" cy="100" r="${r}" fill="none" stroke="${finished ? "#39d07a" : "#ffc42e"}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len * secs) / need} ${len}" transform="rotate(-90 100 100)"/></svg><div class="readclock"><b id="readClock">${finished ? "&#10003;" : mmss(need - secs)}</b><small>${finished ? "All done!" : day.readFrom ? "Happy reading" : "minutes to read"}</small></div></div><div class="readside"><p>${finished ? `Great reading today, ${KID.name}! That's checked off.` : "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting."}</p>${finished ? `<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button>` : `<button class="btn ${day.readFrom ? "dark" : "go"} wide readbtn" data-act="readToggle">${day.readFrom ? "Pause" : secs > 0 ? "Keep reading" : "Start 30 minute timer".replace("30", String(Math.round(need / 60)))}</button>`}</div></div>`;
+}
+const KID_COLORS = ["#c8202c", "#2f7f96", "#2a9d4a", "#a97808", "#7b5ea7", "#d9622b", "#1c5a8f"];
+function whoView() {
+  return `<div class="whohead"><h1>${new Date().getHours() < 12 ? "Good morning!" : new Date().getHours() < 17 ? "Good afternoon!" : "Good evening!"}</h1><p>Tap your name to start your school day.</p></div><div class="whotiles">${familyKids().map((k, i) => `<button class="whotile" data-act="kidUse" data-id="${esc(k.id)}" style="--kid:${KID_COLORS[i % KID_COLORS.length]}"><span>${esc(k.name[0].toUpperCase())}</span><b>${esc(k.name)}</b></button>`).join("")}</div><div class="hud"><span></span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 function titleView() {
   const res = S.resume?.lesson && LESSONS.find((l) => l.id === S.resume.lesson);
-  if (res) return `<div class="console center"><p>Welcome back, Elliot. Everything you did is saved.</p><button class="btn go wide" data-act="resume" style="font-size:1.4rem;min-height:70px">KEEP GOING</button><button class="btn dark wide" data-act="start">Today's school day</button></div>`;
+  if (res) return `<div class="console center"><p>Welcome back, ${KID.name}. Everything you did is saved.</p><button class="btn go wide" data-act="resume" style="font-size:1.4rem;min-height:70px">KEEP GOING</button><button class="btn dark wide" data-act="start">Today's school day</button></div>`;
   return `<div class="console center"><p>Outlaws took over the West, and they only run from one thing: math. Your horse Silver talks. Sorry in advance.</p>
     <button class="btn go wide" data-act="start" style="font-size:1.4rem;min-height:70px">PRESS START</button></div>`;
 }
@@ -1983,8 +2043,8 @@ function shopRow() {
   if (!list.length) return `<p class="sub center">${RANCH.every((g) => ownedHere().includes(g.id)) ? "You built this whole ranch. Nora loves it." : "Finish another section to unlock more for the ranch."}</p>`;
   return `<div class="games">${list.map((g) => `<div class="game shopcard">${ranchPic(g.id)}<h3>${esc(ranchName(g))}</h3><span class="sub">${esc(g.note)}</span><button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${S.nuggets < g.cost ? `Costs $${g.cost}` : `Buy for $${g.cost}`}</button></div>`).join("")}</div>`;
 }
-const NORA_CHEERS = ["You did it, Elliot! We're winning!", "You won this one for us, Elliot!", "Way to go, Elliot! You're my hero!", "You got it, Elliot! I knew you could!"];
-const hugScene = () => `<svg class="hugscene" viewBox="40 -40 220 180" role="img" aria-label="Elliot and Nora hug and jump for joy under fireworks">
+const NORA_CHEERS = [`You did it, ${KID.name}! We're winning!`, `You won this one for us, ${KID.name}!`, `Way to go, ${KID.name}! You're my hero!`, `You got it, ${KID.name}! I knew you could!`];
+const hugScene = () => `<svg class="hugscene" viewBox="40 -40 220 180" role="img" aria-label="${KID.name} and Nora hug and jump for joy under fireworks">
   <g class="fw fw1" transform="translate(74 -6)"><path d="M0-20V-8M0 8V20M-20 0H-8M8 0H20M-14-14L-6-6M6 6L14 14M14-14L6-6M-6 6L-14 14" stroke="#ffd23f" stroke-width="3" stroke-linecap="round"/></g>
   <g class="fw fw2" transform="translate(226 -10)"><path d="M0-22V-9M0 9V22M-22 0H-9M9 0H22M-15-15L-6-6M6 6L15 15M15-15L6-6M-6 6L-15 15" stroke="#ff7a7a" stroke-width="3" stroke-linecap="round"/></g>
   <g class="fw fw3" transform="translate(238 52)"><path d="M0-15V-6M0 6V15M-15 0H-6M6 0H15M-10-10L-4-4M4 4L10 10M10-10L4-4M-4 4L-10 10" stroke="#8fe0ff" stroke-width="2.500" stroke-linecap="round"/></g>
@@ -2146,12 +2206,12 @@ function rewardView() {
 const RANCH = [
   { id: "fence", name: "Split-rail fence", note: "Marks out your land", cost: 30, say: "Now the horses can't wander off!" },
   { id: "well", name: "Water well", note: "Every ranch needs water", cost: 40, say: "Fresh water! You think of everything!" },
-  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 50, say: "My own garden! Thank you, Elliot!" },
+  { id: "garden", name: "Nora's flower garden", note: "Her favorite spot", cost: 50, say: `My own garden! Thank you, ${KID.name}!` },
   { id: "cabin", name: "Log cabin", note: "A home on the ranch", cost: 60, say: "Our very own home! I love it!" },
   { id: "corral", name: "Horse corral", note: "A place for Silver", cost: 70, say: "Silver's going to love it here!" },
   { id: "barn", name: "Red barn", note: "The biggest thing on the ranch", cost: 90, say: "What a beautiful barn!" },
   { id: "windmill", name: "Windmill", note: "You can see it for miles", cost: 110, say: "Look at it! You can see it for miles!" },
-  { id: "doghouse", name: "Dog and doghouse", note: "A loyal ranch dog", cost: 40, say: "A puppy! He's so cute, Elliot!" },
+  { id: "doghouse", name: "Dog and doghouse", note: "A loyal ranch dog", cost: 40, say: `A puppy! He's so cute, ${KID.name}!` },
   { id: "appletree", name: "Apple tree", note: "Fresh apples all fall", cost: 50, say: "Apples for pie! I love this tree!" },
   { id: "coop", name: "Chicken coop", note: "Fresh eggs every morning", cost: 60, say: "Listen to them cluck! Thank you!" },
   { id: "pond", name: "Fishing pond", note: "Catch supper right here", cost: 70, say: "We can go fishing together!" },
@@ -2199,7 +2259,7 @@ const hot = (say, fx, inner) => `<g class="hot ${fx}" data-say="${esc(say)}">${i
 const roomNora = (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="118" rx="34" ry="7" fill="rgba(0,0,0,.25)"/><path d="M-11-10c-4 10-4 24-1 34h7c-3-10-3-22-1-34z" fill="#6b3f1d"/><path d="M-15 16c6-5 24-5 30 0l2 36c4 24 9 48 11 66H-28c2-18 7-42 11-66z" fill="#2f7f96"/><path d="M-14 48c8 3 20 3 28 0v5c-8 3-20 3-28 0z" fill="#fff3d9"/><path d="M-14 18c-3 10-3 22 0 30M14 18c3 10 3 22 0 30" fill="none" stroke="#2f7f96" stroke-width="6.500" stroke-linecap="round"/><rect x="-3" y="5" width="6" height="9" fill="#f0c9a4"/><path d="M-8-6c0-8 4-10 8-10s8 2 8 10c0 6-3 10-8 12-5-2-8-6-8-12z" fill="#f0c9a4"/><path d="M1-6c1-2 4-2 5 0M-6-6c1-2 4-2 5 0" fill="none" stroke="#2a1a0e" stroke-width="1.500" stroke-linecap="round"/><path d="M-3 1c2 4 5 4 7 0z" fill="#b5453f"/><path d="M-9-7c-1-9 5-13 10-12 5 0 8 4 8 8-5-2-8-3-10-5-2 3-5 6-8 9z" fill="#6b3f1d"/></g>`;
 const outdoors = (ground = "#7f9f50") => `<defs><linearGradient id="roomSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5f9fd2"/><stop offset="1" stop-color="#ffe0aa"/></linearGradient></defs><rect width="800" height="450" fill="url(#roomSky)"/><circle cx="660" cy="80" r="42" fill="#ffefa8"/><path d="M0 270l110-90 90 70 130-110 140 110 110-80 220 110v60H0z" fill="#9a7f9c" opacity=".65"/><rect y="280" width="800" height="170" fill="${ground}"/>`;
 const ROOMS = {
-  cabin: { name: "Inside the log cabin", hello: "Welcome home, Elliot! Tap anything.", draw: () => `<rect width="800" height="330" fill="#8a5a30"/>${Array.from({ length: 8 }, (_, n) => `<rect y="${n * 42}" width="800" height="38" rx="14" fill="${n % 2 ? "#9c6a3c" : "#a97648"}"/>`).join("")}<rect y="330" width="800" height="120" fill="#6e4726"/>${Array.from({ length: 9 }, (_, n) => `<path d="M${n * 100} 330L${n * 130 - 120} 450" stroke="#4a2f18" stroke-width="2"/>`).join("")}
+  cabin: { name: "Inside the log cabin", hello: `Welcome home, ${KID.name}! Tap anything.`, draw: () => `<rect width="800" height="330" fill="#8a5a30"/>${Array.from({ length: 8 }, (_, n) => `<rect y="${n * 42}" width="800" height="38" rx="14" fill="${n % 2 ? "#9c6a3c" : "#a97648"}"/>`).join("")}<rect y="330" width="800" height="120" fill="#6e4726"/>${Array.from({ length: 9 }, (_, n) => `<path d="M${n * 100} 330L${n * 130 - 120} 450" stroke="#4a2f18" stroke-width="2"/>`).join("")}
     ${hot("A warm fire keeps us cozy all winter.", "fxglow", `<path d="M60 340V120H250V340z" fill="#8d8a82"/><path d="M60 170h190M60 220h190M60 270h190M120 120v50M190 170v50M110 220v50M180 270v70" stroke="#6b6a64" stroke-width="3"/><rect x="40" y="165" width="230" height="16" fill="#5a3517"/><path d="M100 340V240a55 55 0 0 1 110 0V340z" fill="#1c130b"/><g class="flames"><path d="M115 340c-8-30 12-40 14-70 16 20 34 36 26 70z" fill="#ff7a1a"/><path d="M135 340c-6-20 8-28 14-46 10 16 22 28 14 46z" fill="#ffd23f"/></g>`)}
     ${hot("I baked fresh bread for you!", "fxhop", `<rect x="330" y="290" width="170" height="14" rx="3" fill="#7d4c22"/><path d="M345 304v60M485 304v60" stroke="#5a3517" stroke-width="10"/><ellipse cx="415" cy="280" rx="46" ry="13" fill="#d9a35a"/><path d="M385 276l10-7M410 275l10-7M435 276l10-7" stroke="#a8742f" stroke-width="3"/>`)}
     ${hot("Look at the view from our window!", "fxglow", `<rect x="330" y="80" width="150" height="120" fill="#a8d6f0" stroke="#3f2612" stroke-width="10"/><path d="M405 80v120M330 140h150" stroke="#3f2612" stroke-width="7"/><path d="M340 190l40-40 34 30 30-24 26 34z" fill="#7f9f50"/><path d="M322 74c30 40 30 80 20 130M488 74c-30 40-30 80-20 130" fill="none" stroke="#c8202c" stroke-width="10"/>`)}
@@ -2217,7 +2277,7 @@ const ROOMS = {
   windmill: { name: "At the windmill", hello: "Tap the blades to make them spin faster!", draw: () => `${outdoors()}${hot("Whoosh! It pumps our water all day.", "fxspin", `<path d="M360 430L395 130h30L460 430zM375 340h70M385 260h50M392 190h36M365 410L440 270M455 410L380 270" fill="none" stroke="#5a4632" stroke-width="10"/><g transform="translate(410 120)"><g class="bigblades"><path d="M0 0L-16-110h32zM0 0L110-16v32zM0 0L16 110h-32zM0 0L-110 16v-32z" fill="#e8e3d3" stroke="#5a4632" stroke-width="4"/><circle r="14" fill="#5a4632"/></g></g>`)}${hot("Our water tank is full!", "fxhop", `<path d="M540 300h130v110H540z" fill="#8a6a44"/><path d="M540 330h130M540 380h130" stroke="#3a2412" stroke-width="6"/><ellipse cx="605" cy="300" rx="65" ry="16" fill="#5fa8d6" stroke="#3a2412" stroke-width="4"/>`)}${roomNora(170, 270)}` },
   porch: { name: "On the porch swing", hello: "Sit with me. Tap the swing!", draw: () => `<defs><linearGradient id="roomSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a68"/><stop offset=".6" stop-color="#e8743b"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs><rect width="800" height="450" fill="url(#roomSun)"/><circle cx="600" cy="280" r="60" fill="#ffe08a"/><path d="M0 310l140-60 110 50 150-70 150 70 110-50 140 60v140H0z" fill="#5a2c52"/><path d="M0 0H800V36H0z" fill="#5a3517"/><path d="M50 36V400M750 36V400" stroke="#6e4726" stroke-width="20"/><rect y="400" width="800" height="50" fill="#8a6a3f"/>${hot("This is the best seat on the ranch.", "fxswing", `<g class="bigswing"><path d="M270 36V270M530 36V270" stroke="#3f2612" stroke-width="5"/><rect x="250" y="270" width="300" height="18" rx="4" fill="#b07d3e"/><rect x="250" y="210" width="300" height="14" rx="4" fill="#c8924e"/><path d="M262 224V270M538 224V270M340 224V270M460 224V270" stroke="#8a5a30" stroke-width="7"/><g transform="translate(400 160) scale(.8)"><path d="M-15 16c6-5 24-5 30 0l2 36c4 14 8 34 9 56h-52c1-22 5-42 9-56z" fill="#2f7f96"/><path d="M-8-6c0-8 4-10 8-10s8 2 8 10c0 6-3 10-8 12-5-2-8-6-8-12z" fill="#f0c9a4"/><path d="M-9-7c-1-9 5-13 10-12 5 0 8 4 8 8-5-2-8-3-10-5-2 3-5 6-8 9z" fill="#6b3f1d"/></g></g>`)}` },
   doghouse: { name: "With the ranch dog", hello: "Tap him! He wants to play.", draw: () => `${outdoors()}${hot("Woof! That's his favorite house.", "fxhop", `<path d="M90 400V240L230 130 370 240V400z" fill="#b5442c"/><path d="M60 250L230 110 400 250" fill="none" stroke="#5a3517" stroke-width="22"/><path d="M170 400V310a60 60 0 0 1 120 0V400z" fill="#2c1a0e"/>`)}${hot("Good boy! He's wagging his tail!", "fxhop", `<g transform="translate(500 350)"><ellipse rx="90" ry="50" fill="#a97a48"/><circle cx="-90" cy="-50" r="44" fill="#a97a48"/><circle cx="-104" cy="-58" r="6" fill="#2c1a0e"/><circle cx="-128" cy="-40" r="7" fill="#2c1a0e"/><path d="M-70-90l-36 34 44-6z" fill="#6e4726"/><path d="M60 40v44M-50 40v44M20 40v44M-16 40v44" stroke="#6e4726" stroke-width="16"/><g class="wag"><path d="M88-14C120-30 124-60 112-80" fill="none" stroke="#a97a48" stroke-width="14" stroke-linecap="round"/></g></g>`)}${roomNora(680, 240)}` },
-  appletree: { name: "Under the apple tree", hello: "Tap the apples!", draw: () => `${outdoors()}<ellipse cx="400" cy="420" rx="210" ry="20" fill="rgba(40,30,15,.25)"/><path d="M360 420L374 190h52L440 420z" fill="#6e4726"/><circle cx="270" cy="150" r="110" fill="#3f8a40"/><circle cx="530" cy="150" r="110" fill="#357a39"/><circle cx="400" cy="90" r="120" fill="#4c9a4a"/>${[[250, 130], [320, 60], [400, 150], [480, 70], [560, 150], [300, 200], [510, 215]].map(([x, y], n) => hot(["Crunch! So sweet.", "That one's perfect for pie!", "Catch it, Elliot!"][n % 3], "fxdrop", `<circle cx="${x}" cy="${y}" r="20" fill="#d3241f"/><path d="M${x} ${y - 20}v-9" stroke="#4a2b14" stroke-width="4"/><circle cx="${x - 6}" cy="${y - 6}" r="5" fill="#fff" opacity=".5"/>`)).join("")}${roomNora(640, 260)}` },
+  appletree: { name: "Under the apple tree", hello: "Tap the apples!", draw: () => `${outdoors()}<ellipse cx="400" cy="420" rx="210" ry="20" fill="rgba(40,30,15,.25)"/><path d="M360 420L374 190h52L440 420z" fill="#6e4726"/><circle cx="270" cy="150" r="110" fill="#3f8a40"/><circle cx="530" cy="150" r="110" fill="#357a39"/><circle cx="400" cy="90" r="120" fill="#4c9a4a"/>${[[250, 130], [320, 60], [400, 150], [480, 70], [560, 150], [300, 200], [510, 215]].map(([x, y], n) => hot(["Crunch! So sweet.", "That one's perfect for pie!", `Catch it, ${KID.name}!`][n % 3], "fxdrop", `<circle cx="${x}" cy="${y}" r="20" fill="#d3241f"/><path d="M${x} ${y - 20}v-9" stroke="#4a2b14" stroke-width="4"/><circle cx="${x - 6}" cy="${y - 6}" r="5" fill="#fff" opacity=".5"/>`)).join("")}${roomNora(640, 260)}` },
   coop: { name: "Inside the chicken coop", hello: "Tap the chickens. Watch out, they peck!", draw: () => `<rect width="800" height="450" fill="#c9a06a"/><g stroke="#99733f" stroke-width="3">${Array.from({ length: 8 }, (_, n) => `<path d="M0 ${n * 44}H800"/>`).join("")}</g><rect y="340" width="800" height="110" fill="#d9bf72"/><path d="M60 170h680v20H60z" fill="#6e4726"/><g>${[[160, 160], [300, 160], [440, 160], [580, 160]].map(([x, y], n) => hot(["Bawk bawk!", "She laid an egg!", "Cluck cluck!", "Look at those feathers!"][n], "fxhop", `<g transform="translate(${x} ${y})"><ellipse cy="-22" rx="36" ry="28" fill="#fff" stroke="#9a9184" stroke-width="2"/><circle cx="34" cy="-48" r="17" fill="#fff" stroke="#9a9184" stroke-width="2"/><path d="M50-50l14 5-14 6z" fill="#e8a317"/><path d="M28-64l4-11 5 11 5-8 2 10z" fill="#c8202c"/><circle cx="38" cy="-52" r="2.500" fill="#1c130b"/></g>`)).join("")}</g>${hot("Fresh eggs for breakfast!", "fxhop", `<path d="M160 370h220l-22 50H182z" fill="#8a5a30"/>${[210, 250, 290, 330].map((x) => `<ellipse cx="${x}" cy="364" rx="16" ry="20" fill="#fff5e0"/>`).join("")}`)}${roomNora(610, 260)}` },
   pond: { name: "At the fishing pond", hello: "Tap the water. Maybe a fish will jump!", draw: () => `${outdoors()}<ellipse cx="400" cy="370" rx="370" ry="80" fill="#55752f"/>${hot("Whoa! Did you see that one jump?", "fxfish", `<ellipse cx="400" cy="370" rx="340" ry="66" fill="#3f86b3"/><ellipse cx="300" cy="350" rx="120" ry="16" fill="#8fc8e4" opacity=".55"/><path d="M480 390q30-12 60 0M200 395q24-10 48 0" stroke="#d8f0fa" stroke-width="4" fill="none"/><g class="fish"><ellipse cx="430" cy="340" rx="34" ry="15" fill="#e8743b"/><path d="M398 340l-24-16v32z" fill="#e8743b"/><circle cx="450" cy="336" r="3" fill="#1c130b"/></g>`)}${hot("We'll catch supper together!", "fxhop", `<path d="M650 300L510 180" stroke="#3f2612" stroke-width="7"/><path d="M510 180V340" stroke="#fff" stroke-width="2"/><circle cx="510" cy="340" r="7" fill="#d3241f"/>`)}<path d="M70 330v-90M100 340v-110M45 340v-70" stroke="#55752f" stroke-width="7"/><ellipse cx="70" cy="238" rx="9" ry="22" fill="#6b3f1d"/><ellipse cx="100" cy="228" rx="9" ry="22" fill="#6b3f1d"/>${roomNora(690, 190)}` },
 };
@@ -2361,7 +2421,7 @@ function trophiesView() {
   return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="home">&#9664; Map</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${LESSONS.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} <small>Lesson ${esc(l.bookLesson)}</small></h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
 }
 function ranchView() {
-  return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || "Tap anywhere to ride around our ranch, Elliot!")}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
+  return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || `Tap anywhere to ride around our ranch, ${KID.name}!`)}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
 }
 function storeView() {
   const open = ranchUnlocked();
@@ -2371,7 +2431,7 @@ function storeView() {
     return `<div class="item ${own ? "owned" : ""} ${locked ? "lockeditem" : ""}">${ranchPic(g.id)}<div class="itemtext"><b>${esc(ranchName(g))}</b><span class="sub">${esc(locked ? `Finish ${left} more section${left === 1 ? "" : "s"} to unlock` : g.note)}</span></div>${own ? (g.id === "fence" ? `<span class="builtmark">&#10003; Built</span>` : `<button class="btn small dark" data-act="roomOpen" data-id="${g.id}">Go inside</button>`) : locked ? `<span class="lockmark" aria-label="Locked">&#128274;</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
   const trophies = (S.prizes || []).length;
-  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid slice"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, Elliot!</p>`}</div><div class="shop">${items}</div></div>`;
+  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid slice"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${items}</div></div>`;
 }
 
 /* ---------- parents ---------- */
@@ -2389,7 +2449,7 @@ function statusOf(p) {
 }
 const fmtTime = (secs) => (!secs ? "" : secs < 60 ? "under 1 min" : `${Math.round(secs / 60)} min`);
 function reportText() {
-  const out = [`Elliot's math work, ${new Date().toLocaleDateString()}`, `Brave tries: ${S.brave || 0}`];
+  const out = [`${KID.name}'s math work, ${new Date().toLocaleDateString()}`, `Brave tries: ${S.brave || 0}`];
   LESSONS.forEach((l) => {
     const st = lessonStats(l), lp = LP(l.id); if (!st.done && !lp.factsResult) return;
     out.push("", `LESSON ${l.bookLesson}${st.finished ? " (complete)" : ""}: ${st.done} of ${st.total} done, ${st.solo} with no help, ${plural(st.hints, "hint")}, ${st.wrong} wrong ${st.wrong === 1 ? "try" : "tries"}`);
@@ -2512,8 +2572,8 @@ function howBar(ps) {
 const problemDot = (p) => { const c = p.done && soloDone(p) ? "s-good" : p.done && p.coached ? "s-walk" : p.done ? "s-work" : p.wrong.length || p.steps || p.hints ? "s-open" : "s-none"; return `<i class="pdot ${c}"></i>`; };
 function parentView() {
   if (!U.parentOk) {
-    const creating = !S.pin;
-    return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button></div><div class="console center"><h2>Parents only</h2><p class="sub">${creating ? "Choose a 4-digit PIN. Set this before Elliot plays." : "Enter your 4-digit PIN."}</p>
+    const creating = !familyPin();
+    return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button></div><div class="console center"><h2>Parents only</h2><p class="sub">${creating ? `Choose a 4-digit PIN. Set this before ${KID.name} plays.` : "Enter your 4-digit PIN."}</p>
       <div class="answer">${U.pin ? "&#9679;".repeat(U.pin.length) : `<span class="empty">PIN</span>`}</div><div class="pad pin">${["7", "8", "9", "4", "5", "6", "1", "2", "3", "CLR", "0", "OK"].map((k) => `<button data-act="pin" data-k="${k}">${k === "CLR" ? "C" : k}</button>`).join("")}</div>${U.pinMsg ? `<p>${esc(U.pinMsg)}</p>` : ""}${creating ? "" : `<p class="sub">Forgot it? Tell Claude and a reset can be added.</p>`}</div>`;
   }
   const all = LESSONS.flatMap((l) => l.problems.map((q) => PP(LP(l.id), q.id))).filter((p) => !p.given), done = all.filter((p) => p.done), solo = done.filter(soloDone), hard = struggles().slice(0, 2);
@@ -2524,13 +2584,14 @@ function parentView() {
   const weekDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - d.getDay() + i); return d; });
   const weekCell = (x, d) => { const key = dateKey(d), day = S.days?.[key], future = key > dateKey(); if (!x.days.includes(d.getDay())) return `<i class="wk off"></i>`; if (!day || !x.on) return `<i class="wk later"></i>`; return `<i class="wk ${itemStatus(x, day).done ? "yes" : itemStatus(x, day).pct > 0 ? "part" : key === dateKey() ? "later" : "none"}"></i>`; };
   const planItems = schoolPlan().filter((x) => x.on);
-  const schoolTop = `<div class="panel"><h2>Today's school day</h2>${todaysItems().length ? `<div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i></div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
+  const familyPanel = `<div class="panel"><h2>Viewing ${esc(KID.name)}</h2><div class="kidrow">${familyKids().map((k) => (k.id === KID.id ? `<span class="kidchip on">${esc(k.name)}</span>` : `<button class="kidchip" data-act="kidUse" data-id="${esc(k.id)}">${esc(k.name)}</button>`)).join("")}</div><div class="famrow"><input id="kidNew" type="text" maxlength="20" placeholder="Add a child's name"><button class="btn small" data-act="kidAdd">Add child</button></div><p class="sub"><a href="castle/?parents=1">Learning Castle lesson settings</a></p></div>`;
+  const schoolTop = `${familyPanel}<div class="panel"><h2>Today's school day</h2>${todaysItems().length ? `<div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i></div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
   <div class="panel"><h2>This week</h2><div class="weekgrid" style="--days:7"><span></span>${weekDays.map((d) => `<b>${d.toLocaleDateString(undefined, { weekday: "short" })}</b>`).join("")}${planItems.map((x) => `<span class="wkname">${esc(x.name)}</span>${weekDays.map((d) => weekCell(x, d)).join("")}`).join("")}</div><div class="howkey"><span><i class="wk yes"></i> Done</span><span><i class="wk part"></i> Started</span><span><i class="wk none"></i> Not done</span><span><b>${S.schoolDays || 0}</b> full school days finished</span></div></div>
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
   const top = `<div class="panel"><h2>Lessons done: ${finishedN} of ${LESSONS.length}</h2><p class="sub">Tap a lesson to see how it went.</p>${lessonTrail()}</div>
-  <div class="panel"><h2>How he's doing</h2>${howBar(all)}<div class="pstats">${stat(S.brave || 0, "brave tries")}${stat(count(all, (p) => p.hints), "hints used")}${stat(done.filter((p) => p.coached).length, "walkthroughs")}${stat(Object.keys(S.capitals || {}).length, "capitals learned")}</div>${done.length ? `<div class="ptwo"><div><h3>Strong at</h3>${strongList.length ? `<ul>${strongList.slice(0, 4).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="sub">Not enough solved alone yet.</p>`}</div><div><h3>Needs help with</h3>${hard.length ? `<ul>${hard.map((k) => `<li>${esc(k.name)}</li>`).join("")}</ul><p class="ptry">Try this: ask him to teach you one of these out loud.</p>` : `<p class="sub">Nothing stands out.</p>`}</div></div>` : ""}</div>
+  <div class="panel"><h2>How ${esc(KID.name)} is doing</h2>${howBar(all)}<div class="pstats">${stat(S.brave || 0, "brave tries")}${stat(count(all, (p) => p.hints), "hints used")}${stat(done.filter((p) => p.coached).length, "walkthroughs")}${stat(Object.keys(S.capitals || {}).length, "capitals learned")}</div>${done.length ? `<div class="ptwo"><div><h3>Strong at</h3>${strongList.length ? `<ul>${strongList.slice(0, 4).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="sub">Not enough solved alone yet.</p>`}</div><div><h3>Needs help with</h3>${hard.length ? `<ul>${hard.map((k) => `<li>${esc(k.name)}</li>`).join("")}</ul><p class="ptry">Try this: ask him to teach you one of these out loud.</p>` : `<p class="sub">Nothing stands out.</p>`}</div></div>` : ""}</div>
   <div class="panel"><h2>Trophies: ${LESSONS.reduce((n, l) => n + cityPrizes(l.id).length, 0)}</h2><div class="skrows">${LESSONS.map((l) => { const won = cityPrizes(l.id), cap = US_CAPITALS.find((r) => r[0] === l.place?.state)?.[2]; return `<div class="trow"><div><b>Lesson ${esc(l.bookLesson)}: ${esc(l.town)}</b>${l.place ? `<small>${esc(l.place.state)} &#183; capital: ${esc(cap)}</small>` : ""}</div><span class="tmini">${won.map((p) => `<svg viewBox="-34 -36 68 72" role="img" aria-label="${esc(p)}">${PRIZE_ART[p]}</svg>`).join("") || `<small>None yet</small>`}</span><b class="tcount">${won.length}</b></div>`; }).join("")}</div></div>
-  <div class="panel"><h2>Improvement</h2>${compared.length ? compared.map(({ l, imp }, n) => `<h3>Lesson ${esc(l.bookLesson)} compared with Lesson ${esc(imp.from.bookLesson)}</h3>${n === 0 ? improvementRows(imp) : `<details class="plog"><summary>Show</summary>${improvementRows(imp)}</details>`}`).join("") : `<p class="sub">This appears once he has finished at least 3 problems in two lessons.</p>`}</div>`;
+  <div class="panel"><h2>Improvement</h2>${compared.length ? compared.map(({ l, imp }, n) => `<h3>Lesson ${esc(l.bookLesson)} compared with Lesson ${esc(imp.from.bookLesson)}</h3>${n === 0 ? improvementRows(imp) : `<details class="plog"><summary>Show</summary>${improvementRows(imp)}</details>`}`).join("") : `<p class="sub">This appears once at least 3 problems are finished in two lessons.</p>`}</div>`;
   const lessonPage = (l) => {
     const lp = LP(l.id), mine = l.problems.filter((q) => !PP(lp, q.id).given), fin = mine.filter((q) => PP(lp, q.id).done), report = skillReport(l), ps = mine.map((q) => PP(lp, q.id));
     const secs = count(ps, (p) => p.secs), seen = report.length || fin.length || lp.factsResult, factLine = lp.factsResult ? `<p><b>100 times facts:</b> finished with ${plural(lp.factsResult.miss, "miss").replace("misss", "misses")} in ${fmtTime(lp.factsResult.secs) || "under 1 min"}.${hardFacts(lp).length ? ` Missed most: ${hardFacts(lp).map(([f]) => esc(f)).join(", ")}.` : ""}</p>` : "";
@@ -2539,15 +2600,15 @@ function parentView() {
       return `<tr><td>${esc(q.id)}</td><td class="pq">${esc(q.prompt.slice(0, 70))}${q.prompt.length > 70 ? "..." : ""}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : ""}${p.stepMiss ? `<div class="sub">${plural(p.stepMiss, "missed step")}</div>` : ""}</td><td>${p.hints || ""}</td><td>${fmtTime(p.secs)}</td><td>${when}</td><td>${p.done && !p.given ? `<details class="pwork"><summary>His work</summary>${work.length ? `<ol>${work.map(([a, v, m]) => `<li>${esc(a)} <b>${esc(v.replace("R", " R "))}</b>${m ? ` <span class="sub">after ${plural(m, "miss").replace("misss", "misses")}</span>` : ""}</li>`).join("")}</ol>` : ""}<p>Final answer: <b>${esc(String(p.ans || "").replace("R", " R "))}</b></p></details>` : ""}${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`;
     }).join("");
     const tries = count(ps, (p) => p.wrong.length) + count(ps, (p) => p.stepMiss), assists = ps.filter((p) => p.coached && p.done).length;
-    return `<div class="hud"><button class="btn dark small" data-act="parentLesson" data-id="">&#9664; All lessons</button></div><h1>Lesson ${esc(l.bookLesson)}: ${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</h1><p class="sub">${esc(l.title || "")}</p>${seen ? `<div class="panel"><h2>${fin.length} of ${mine.length} problems finished</h2>${howBar(ps)}<div class="pstats">${stat(tries, "tries that missed")}${stat(count(ps, (p) => p.hints), "hints used")}${stat(assists, "walkthroughs")}${stat(cityPrizes(l.id).length, "trophies")}${stat(fmtTime(secs) || "0 min", "time")}</div></div><div class="panel"><h2>What he worked on</h2>${report.length ? `<div class="skrows">${report.map((k) => `<div class="skrow"><b>${esc(k.name)}</b><span class="pdots">${k.list.map((q) => problemDot(PP(lp, q.id))).join("")}</span><i class="state ${k.verdict[1]}">${k.verdict[0]}</i></div>`).join("")}</div>` : `<p class="sub">No problems tried yet.</p>`}${factLine}</div>` : `<div class="panel"><p>Not started yet.</p></div>`}<details class="plog pfold"><summary>See every problem</summary><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Problem</th><th>How it went</th><th>Wrong tries</th><th>Hints</th><th>Time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></details>`;
+    return `<div class="hud"><button class="btn dark small" data-act="parentLesson" data-id="">&#9664; All lessons</button></div><h1>Lesson ${esc(l.bookLesson)}: ${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</h1><p class="sub">${esc(l.title || "")}</p>${seen ? `<div class="panel"><h2>${fin.length} of ${mine.length} problems finished</h2>${howBar(ps)}<div class="pstats">${stat(tries, "tries that missed")}${stat(count(ps, (p) => p.hints), "hints used")}${stat(assists, "walkthroughs")}${stat(cityPrizes(l.id).length, "trophies")}${stat(fmtTime(secs) || "0 min", "time")}</div></div><div class="panel"><h2>Worked on</h2>${report.length ? `<div class="skrows">${report.map((k) => `<div class="skrow"><b>${esc(k.name)}</b><span class="pdots">${k.list.map((q) => problemDot(PP(lp, q.id))).join("")}</span><i class="state ${k.verdict[1]}">${k.verdict[0]}</i></div>`).join("")}</div>` : `<p class="sub">No problems tried yet.</p>`}${factLine}</div>` : `<div class="panel"><p>Not started yet.</p></div>`}<details class="plog pfold"><summary>See every problem</summary><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Problem</th><th>How it went</th><th>Wrong tries</th><th>Hints</th><th>Time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></details>`;
   };
   const pickedLesson = LESSONS.find((l) => l.id === U.parentLesson);
   if (pickedLesson) return lessonPage(pickedLesson);
   return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Saved online" : "Saved on this device, will retry online"}</span></div><h1>Parent page</h1>
   ${schoolTop}
   ${top}
-  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>His saved progress and family code</summary><div class="panel"><p>His progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open his progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
-  <details class="plog pfold" ${U.copied ? "open" : ""}><summary>Adding a new lesson</summary><div class="panel"><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Copy his progress below and paste it in too, so the help targets what he found hard.</li></ol><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy his progress"}</button></div></div></details>`;
+  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>Saved progress and family code</summary><div class="panel"><p>Progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open saved progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
+  <details class="plog pfold" ${U.copied ? "open" : ""}><summary>Adding a new lesson</summary><div class="panel"><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Copy the progress below and paste it in too, so the help targets what was hard.</li></ol><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy progress"}</button></div></div></details>`;
 }
 
 /* ---------- mini games ---------- */
@@ -2684,10 +2745,10 @@ const OUTLAW_LINES = {
   lose: ["Ya got me. Nora's free to go.", "Ya got me, stranger.", "Well, I'll be. That was quick.", "Aw, shucks. Never saw it comin'."],
 };
 const NORA_LINES = {
-  start: ["Oh no! Save me, Elliot!", "Help! Please save me!", "Oh no! Don't let him take me!", "Elliot, help me!"],
+  start: [`Oh no! Save me, ${KID.name}!`, "Help! Please save me!", "Oh no! Don't let him take me!", `${KID.name}, help me!`],
   win: ["Oh no! Please, try again!", "Oh no! Don't give up, save me!"],
   early: ["Not yet! Wait for the bell!"],
-  lose: ["You got him, Elliot!", "Yes! You're so brave!", "You did it! Keep going!"],
+  lose: [`You got him, ${KID.name}!`, "Yes! You're so brave!", "You did it! Keep going!"],
 };
 function outlawSay(kind) {
   const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay"), n = pick(NORA_LINES[kind]), nel = document.getElementById("noraBub");
@@ -3200,7 +3261,7 @@ function shareReport() {
   const text = reportText();
   const done = () => { U.shared = true; render(); };
   const copy = () => { if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => {}); };
-  if (navigator.share) navigator.share({ title: "Elliot's math work", text }).then(done, (e) => { if (e?.name !== "AbortError") copy(); });
+  if (navigator.share) navigator.share({ title: `${KID.name}'s math work`, text }).then(done, (e) => { if (e?.name !== "AbortError") copy(); });
   else copy();
 }
 const acts = {
@@ -3308,7 +3369,7 @@ const acts = {
     U.famData = remote; U.famMsg = remote ? "" : "No save found for that code. Check it and try again.";
     render();
   },
-  famYes() { S = { ...blank(), ...U.famData, familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "His progress is on this device now."; save(); render(); },
+  async famYes() { localStorage.setItem("family-games-code", U.famCode); S = { ...blank(), ...U.famData, familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "Progress is on this device now."; save(); await loadRoster(); render(); },
   famNo() { U.famData = null; U.famMsg = ""; render(); },
   schoolGo(d) {
     const x = schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
@@ -3316,6 +3377,7 @@ const acts = {
     if (x.kind === "math") { const l = LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "reading") { U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { U.view = "home"; render(); return; }
+    if (x.kind === "game") { save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id]; save(); render();
   },
   async readToggle() {
@@ -3329,6 +3391,9 @@ const acts = {
   planMinutes(d) { const x = schoolPlan().find((y) => y.kind === "reading"); if (x) { x.minutes = Math.max(5, Math.min(90, x.minutes + +d.by)); save(); render(); } },
   planAdd() { const el = document.getElementById("planNew"), name = (el?.value || "").trim(); if (!name) return; schoolPlan().push({ id: `t${Date.now()}`, name: name.slice(0, 50), icon: "task", kind: "check", on: true, custom: true, days: WEEKDAYS }); save(); render(); },
   planDel(d) { S.schoolPlan = schoolPlan().filter((y) => y.id !== d.id); save(); render(); },
+  kidUse(d) { const k = familyKids().find((x) => x.id === d.id); if (!k) return; save(); localStorage.setItem("family-kid-id", k.id); localStorage.setItem("family-kid", JSON.stringify(k)); location.href = `${location.pathname}?hub=1`; },
+  kidOut() { save(); localStorage.removeItem("family-kid-id"); localStorage.removeItem("family-kid"); location.href = location.pathname; },
+  kidAdd() { const el = document.getElementById("kidNew"), name = (el?.value || "").trim().slice(0, 20); if (!name) return; const kids = familyKids(), id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now().toString(36).slice(-4)}`; kids.push({ id, name }); localStorage.setItem("family-kids", JSON.stringify(kids)); saveRoster(); render(); },
   trophyOpen() { U.trophyCity = U.view === "town" ? U.lesson : null; U.view = "trophies"; beep(BLIP); render(); window.scrollTo(0, 0); },
   chartOpen() { beep(BLIP); openChart(); },
   share: shareReport,
@@ -3442,7 +3507,7 @@ const acts = {
   },
   backTown() { U.game = null; const l = curLesson(), nx = l && nextRide(l); if (U.view === "rideEnd" && nx) return startRide(l, nx); U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
-  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !ownedHere().includes(g.id)) { S.nuggets -= g.cost; ownedHere().push(g.id); beep(CHIME); save(); const all = RANCH.every((x) => ownedHere().includes(x.id)); U.noraLine = all ? "You got us everything, Elliot! This is the best ranch in the West!" : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
+  buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !ownedHere().includes(g.id)) { S.nuggets -= g.cost; ownedHere().push(g.id); beep(CHIME); save(); const all = RANCH.every((x) => ownedHere().includes(x.id)); U.noraLine = all ? `You got us everything, ${KID.name}! This is the best ranch in the West!` : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
   roomOpen(d) { beep(BLIP); openRoom(d.id); },
   ranchTap() {
     const svg = document.getElementById("ranchLive"), r = U.ranch; if (!svg || !r || !kickTap || performance.now() - (r.dragEnd || -999) < 250) return;
@@ -3457,8 +3522,8 @@ const acts = {
     if (d.k === "CLR") U.pin = "";
     else if (d.k === "OK") {
       if (U.pin.length !== 4) U.pinMsg = "A PIN has 4 digits.";
-      else if (!S.pin) { S.pin = hash("pin|" + U.pin); U.parentOk = true; U.pinMsg = ""; save(); }
-      else if (S.pin === hash("pin|" + U.pin)) { U.parentOk = true; U.pinMsg = ""; }
+      else if (!familyPin()) { setFamilyPin(hash("pin|" + U.pin)); U.parentOk = true; U.pinMsg = ""; save(); saveRoster(); }
+      else if (familyPin() === hash("pin|" + U.pin)) { U.parentOk = true; U.pinMsg = ""; }
       else U.pinMsg = "That PIN doesn't match.";
       U.pin = "";
     } else if (U.pin.length < 4) U.pin += d.k;
@@ -3545,8 +3610,8 @@ function arrange() {
 function render() {
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["parent", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["who", "parent", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
@@ -3570,6 +3635,8 @@ addEventListener("pagehide", () => { save(); cloudSend(JSON.stringify(S).length 
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") save(); });
 worldSize(200);
 W.ready = true;
+if (NEEDS_LOGIN) U.view = "who";
+else { U.view = "school"; W.title = false; }
 render();
 connect();
 cloudStart();
