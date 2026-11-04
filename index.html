@@ -700,6 +700,17 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .gametime.closed{background:rgba(128,128,128,.16);border-color:rgba(128,128,128,.55)}.gametime.closed svg{color:#9aa0ad}
 .gamechip.lessondone{background:#1f9a4f}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit}
 @media (orientation:landscape) and (min-width:800px){.gamepicks.sixup{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks.sixup .gameart{aspect-ratio:auto;height:clamp(70px,19vh,150px)}.gamepicks.sixup .gametext{padding:5px 10px}.gamepicks.sixup h3{font-size:1.05rem}.gamepicks.sixup .sub{font-size:.82rem}}
+.statesbar{margin:0;font-weight:800;text-align:center;color:var(--gold)}
+.statesmapwrap{position:relative;flex:1;min-height:0;display:flex;justify-content:center}
+.statesmap{display:block;width:100%;height:100%;max-height:calc(var(--appH,100dvh) - 170px);cursor:pointer;touch-action:manipulation;border-radius:12px}
+.stateszoom{position:absolute;left:10px;bottom:10px;width:auto!important}
+.statespart2{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:14px;align-items:center}
+.statesanswers{display:grid;gap:10px}.statesanswers h2{margin:0;text-align:center;font-size:1.6rem}.statesanswer{min-height:58px;font-size:1.2rem}.statesanswer.stgood{outline:3px solid var(--gold)}
+.ust.stright{fill:#39d07a!important}.ust.stwrong{fill:#7fb6ff!important}.ust.stdone{fill:#b6e3a8}.ust.stask{fill:#ffd23f!important}.ust.sthint{fill:#ffd23f!important;animation:sthintpulse 1s ease-in-out infinite}
+@keyframes sthintpulse{50%{fill:#fff3b0}}
+.statesdone{display:grid;gap:12px;justify-items:center;padding:12px}
+body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
+@media (orientation:portrait){.statespart2{grid-template-columns:1fr}body[data-view="states"] #app{overflow:auto}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -788,7 +799,7 @@ function cloudSend(keepalive = false) {
   return familyRpc("save_progress", cloudBody(), keepalive).then(() => { cloud = "synced"; cloudAt = Date.now(); }).catch(() => { cloud = "device"; });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
-const MERGE_KEYS = ["lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
+const MERGE_KEYS = ["statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
 function mergeDeep(a, b) {
   if (a === undefined || a === null) return b;
   if (b === undefined || b === null) return a;
@@ -1568,7 +1579,7 @@ function itemStatus(x, day = schoolDay()) {
     return { done: !!l && n >= must.length, label: n >= must.length ? `${l.town} finished` : `${l.town}: ${n} of ${must.length} sections`, pct: must.length ? n / must.length : 0 };
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
-  if (x.kind === "capitals") { const n = Math.min(day.capTries, x.goal); return { done: n >= x.goal, label: `${n} of ${x.goal} capital tries`, pct: n / x.goal }; }
+  if (x.kind === "capitals") { const g = stateGame(), goal = g.finished ? STATE_PRACTICE_GOAL : STATE_LEARN_GOAL, n = Math.min(day.capTries, goal), p1 = Object.keys(g.part1).length, p2 = Object.keys(g.part2).length; return { done: n >= goal, label: g.finished ? `${n} of ${goal} practice today` : `${p1 < 50 ? `Part 1: ${p1} of 50` : `Part 2: ${p2} of 50`}, ${n} of ${goal} today`, pct: n / goal }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
   return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
 }
@@ -1620,7 +1631,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div>${lessonChips()}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "763b4fc19b6f";
+const GAME_BUILD = "0975ca8baf22";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -1720,6 +1731,107 @@ function usXY(lat, lon, state) {
 }
 const worldPts = () => LESSONS.map((l) => (l.place ? usXY(l.place.lat, l.place.lon, l.place.state) : [487, 305]));
 const STATE_ABBR = Object.fromEntries(US_CAPITALS.map(([st, ab]) => [st, ab]));
+/* ---------- States and Capitals: find every state, then name every capital, then practice daily ---------- */
+const STATE_LEARN_GOAL = 20, STATE_PRACTICE_GOAL = 10;
+const STATE_TINY = new Set(["Connecticut", "Delaware", "Maryland", "Massachusetts", "New Hampshire", "New Jersey", "Rhode Island", "Vermont"]);
+function stateGame() {
+  S.statesGame = S.statesGame || { part1: {}, part2: {} };
+  S.statesGame.part1 = S.statesGame.part1 || {}; S.statesGame.part2 = S.statesGame.part2 || {};
+  return S.statesGame;
+}
+const shuffled = (list) => [...list].sort(() => Math.random() - .5);
+const stateCapital = (name) => US_CAPITALS.find((r) => r[0] === name)?.[2];
+function stateOpen() { stopVoice(); U.sg = { q: [] }; stateNext(); U.view = "states"; render(); window.scrollTo(0, 0); }
+function stateNext() {
+  const g = stateGame(), sg = U.sg, names = US_CAPITALS.map((r) => r[0]);
+  clearTimeout(sg.timer);
+  sg.zoom = false; sg.misses = 0; sg.locked = false; sg.msg = ""; sg.flash = null; sg.hint = false; sg.pickNote = null;
+  let part = 0;
+  if (g.finished) part = Math.random() < .5 ? 1 : 2;
+  else if (names.some((n) => !g.part1[n])) part = 1;
+  else if (names.some((n) => !g.part2[n])) part = 2;
+  if (!part) { g.finished = true; g.finishedAt = Date.now(); earn(100); beep(FANFARE); confetti(80); save(); sg.done = true; lastSaid = ""; return; }
+  if (sg.part !== part && !g.finished) sg.q = [];
+  sg.part = part;
+  const left = g.finished ? names : names.filter((n) => !g[`part${part}`][n]);
+  if (!sg.q.length) sg.q = shuffled(left);
+  sg.name = sg.q.shift();
+  if (part === 2) { const cap = stateCapital(sg.name), others = shuffled(US_CAPITALS.filter((r) => r[0] !== sg.name)).slice(0, 3).map((r) => r[2]); sg.choices = shuffled([cap, ...others]); sg.picked = null; }
+  lastSaid = "";
+}
+function stateAnswered(correct) {
+  const g = stateGame(), sg = U.sg, day = schoolDay();
+  day.capTries++;
+  if (correct) g[`part${sg.part}`][sg.name] = true;
+  else sg.q.push(sg.name);
+  if (sg.part === 2 && correct) S.capitals = { ...S.capitals, [sg.name]: true };
+  if (day.capTries % 10 === 0) { earn(10); banner(`${day.capTries} states today! +$10`); }
+  save(); sg.locked = true;
+  sg.timer = setTimeout(() => { if (U.view !== "states" || U.sg !== sg) return; stateNext(); render(); }, correct ? 1500 : 2600);
+}
+function statesMapTap(e) {
+  const sg = U.sg, svg = document.getElementById("statesMap");
+  if (!sg || sg.locked || sg.part !== 1 || !svg) return;
+  const ctm = svg.getScreenCTM(); if (!ctm) return;
+  const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(ctm.inverse());
+  const near = (list, reach) => { let best = null, dist = reach; list.forEach(([n, st]) => { const d = Math.hypot(st.c[0] - pt.x, st.c[1] - pt.y); if (d < dist) { dist = d; best = n; } }); return best; };
+  const all = Object.entries(US_STATES).filter(([n]) => STATE_ABBR[n]), tiny = all.filter(([n]) => STATE_TINY.has(n));
+  let name = e.target?.dataset?.st || null;
+  if (!sg.zoom) {
+    if ((name && STATE_TINY.has(name)) || (!name && near(tiny, 30))) { sg.zoom = true; sg.msg = "Now tap the state."; lastSaid = ""; beep(BLIP); render(); return; }
+    name = name || near(all, 45);
+  } else {
+    name = near(tiny, 9) || name || near(all, 26);
+  }
+  if (!name) return;
+  if (name === sg.name) {
+    sg.flash = name; sg.locked = true;
+    if (sg.misses < 2) { earn(2); coinPop(2); } else { earn(1); coinPop(1); }
+    beep(CHIME); sg.msg = `Yes! That's ${name}.`; lastSaid = ""; render();
+    stateAnswered(sg.misses < 2);
+    return;
+  }
+  sg.misses++; sg.flash = name; S.brave = (S.brave || 0) + 1;
+  if (sg.misses === 1) { earn(1); coinPop(1); }
+  beep(BLIP);
+  sg.hint = sg.misses >= 2;
+  sg.msg = sg.hint ? `Good try! That's ${name}. Tap the gold one.` : `Good try! That's ${name}. Keep looking.`;
+  lastSaid = ""; save(); render();
+}
+function statesPick(d) {
+  const sg = U.sg; if (!sg || sg.locked || sg.part !== 2) return;
+  const cap = stateCapital(sg.name), right = d.c === cap;
+  sg.picked = d.c; sg.locked = true;
+  if (right) { earn(3); coinPop(3); beep(CHIME); sg.msg = `Yes! ${cap} is the capital of ${sg.name}.`; }
+  else { S.brave = (S.brave || 0) + 1; earn(1); coinPop(1); beep(BLIP); sg.msg = `Good try! The capital of ${sg.name} is ${cap}.`; }
+  lastSaid = ""; render(); stateAnswered(right);
+}
+function statesMapSvg(sg, interactive) {
+  const g = stateGame();
+  const tiny = [...STATE_TINY].map((n) => US_STATES[n].c), xs = tiny.map((c) => c[0]), ys = tiny.map((c) => c[1]);
+  const pad = 26, w0 = Math.max(...xs) - Math.min(...xs) + pad * 2, h0 = Math.max(...ys) - Math.min(...ys) + pad * 2, h = Math.max(h0, w0 * 616 / 1036), w = h * 1036 / 616;
+  const cx = (Math.max(...xs) + Math.min(...xs)) / 2, cy = (Math.max(...ys) + Math.min(...ys)) / 2;
+  const box = sg.zoom ? `${(cx - w / 2).toFixed(0)} ${(cy - h / 2).toFixed(0)} ${w.toFixed(0)} ${h.toFixed(0)}` : "-62 0 1036 616";
+  const shapes = Object.entries(US_STATES).map(([name, st]) => {
+    const on = STATE_ABBR[name], cls = [name === sg.flash ? (name === sg.name ? "stright" : "stwrong") : "", g.finished || !g.part1[name] || sg.part === 2 ? "" : "stdone", interactive && sg.hint && name === sg.name ? "sthint" : "", !interactive && name === sg.name ? "stask" : ""].join(" ");
+    return `<path class="ust ${cls}" d="${st.d}" ${on && interactive ? `data-st="${esc(name)}"` : ""}/>`;
+  }).join("");
+  return `<svg id="${interactive ? "statesMap" : "statesMini"}" class="map usmap statesmap" viewBox="${box}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the United States"><rect x="-62" width="1036" height="616" fill="#8ec1dd"/>${shapes}</svg>`;
+}
+function statesView() {
+  const g = stateGame(), sg = U.sg || (U.sg = { q: [] });
+  if (!sg.name && !sg.done) stateNext();
+  const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>States and Capitals</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
+  if (sg.done) return `${top}${bubble("You know all 50 states and capitals!")}<div class="center statesdone"><div class="big">All 50 done!</div><p>+$100. Now practice a little every day to keep them.</p><button class="btn go wide" data-act="statesPractice">Practice</button><button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  const left = 50 - Object.keys(g[`part${sg.part}`]).length;
+  const label = g.finished ? `Practice: ${Math.min(schoolDay().capTries, STATE_PRACTICE_GOAL)} of ${STATE_PRACTICE_GOAL} today` : `Part ${sg.part} of 2: ${sg.part === 1 ? "Find the state" : "Name the capital"} &#183; ${50 - left} of 50`;
+  if (sg.part === 1) {
+    return `${top}<p class="statesbar">${label}</p>${bubble(sg.msg || `Where is ${sg.name}?`)}<div class="statesmapwrap">${statesMapSvg(sg, true)}<button class="btn dark small stateszoom" data-act="statesZoom">${sg.zoom ? "See the whole map" : "Zoom in on tiny states"}</button></div>`;
+  }
+  const cap = stateCapital(sg.name);
+  return `${top}<p class="statesbar">${label}</p>${bubble(sg.msg || `What's the capital of ${sg.name}?`)}<div class="statespart2"><div class="statesmapwrap">${statesMapSvg(sg, false)}</div><div class="statesanswers"><h2>${esc(sg.name)}</h2>${sg.choices.map((c) => `<button class="btn ${sg.picked ? (c === cap ? "go" : c === sg.picked ? "dark stgood" : "dark") : "dark"} statesanswer" data-act="statesPick" data-c="${esc(c)}" ${sg.picked ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
+}
+document.addEventListener("click", (e) => { if (U?.view === "states" && e.target.closest?.("#statesMap")) statesMapTap(e); });
 function worldMapSvg() {
   const known = S.capitals || {}, pts = worldPts(), current = currentIdx(), here = new Set(LESSONS.map((l) => l.place?.state));
   const shapes = Object.entries(US_STATES).map(([name, st]) => `<path class="ust ${known[name] ? "known" : ""} ${here.has(name) ? "here" : ""}" d="${st.d}" ${STATE_ABBR[name] ? `data-act="stateTap" data-id="${esc(name)}" role="button" aria-label="${esc(name)}"` : ""}/>`).join("");
@@ -1733,37 +1845,10 @@ function worldMapSvg() {
   return `<svg class="map usmap" viewBox="-62 0 1036 616" role="img" aria-label="Map of the United States">
     <rect x="-62" width="1036" height="616" fill="#8ec1dd"/>${shapes}${tags}${stars}${route}${pins}
     <g transform="translate(600 576)"><rect x="-4" y="-22" width="358" height="34" rx="8" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text x="173" y="1" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#ffe7a8">Capitals learned: ${Object.keys(known).length} of 50</text></g>
-    <text x="-46" y="600" font-family="Rye,Georgia,serif" font-size="20" fill="#10395a">Tap any state to learn its capital</text>
+    <text x="-46" y="600" font-family="Rye,Georgia,serif" font-size="20" fill="#10395a">Tap a state to play States and Capitals</text>
     ${riderToken().replace('class="bob" transform="scale(1.35)"', 'class="bob" transform="scale(.42)"')}</svg>`;
 }
 // Asks the capital first, so he gets a real try. A miss still pays and shows the answer.
-function openState(name) {
-  document.getElementById("statecard")?.remove();
-  const row = US_CAPITALS.find((r) => r[0] === name); if (!row) return;
-  const capital = row[2], box = document.createElement("div"); box.id = "statecard"; box.className = "chartbox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", name);
-  const others = US_CAPITALS.filter((r) => r[0] !== name).sort(() => Math.random() - .5).slice(0, 2).map((r) => r[2]);
-  const choices = [capital, ...others].sort(() => Math.random() - .5);
-  let shown = !!S.capitals?.[name], note = "";
-  const cities = LESSONS.filter((l) => l.place?.state === name);
-  const say = (t) => { lastSaid = ""; speak(t); };
-  const draw = () => {
-    box.innerHTML = `<div class="statepanel"><p class="sub">Tap outside to close</p><h2>${esc(name)}</h2>${shown ? `<p class="statecap">&#9733; Capital: <b>${esc(capital)}</b></p>${note ? `<p>${esc(note)}</p>` : ""}` : `<h3>What's the capital of ${esc(name)}?</h3><div class="statepicks">${choices.map((c) => `<button class="btn dark" data-cap="${esc(c)}">${esc(c)}</button>`).join("")}</div>`}${cities.length ? `<h3>Lessons in ${esc(name)}</h3><div class="statepicks">${cities.map((l) => `<button class="btn go" data-go="${esc(l.id)}">${esc(l.town)} &#183; Lesson ${esc(l.bookLesson)}${lessonFinished(l) ? " &#10003;" : ""}</button>`).join("")}</div>` : ""}</div>`;
-  };
-  box.addEventListener("click", (e) => {
-    if (e.target === box) { box.remove(); render(); return; }
-    const go = e.target.closest("[data-go]"); if (go) { box.remove(); return acts.town({ id: go.dataset.go }); }
-    const pick = e.target.closest("[data-cap]"); if (!pick) return;
-    if (pick.dataset.cap === capital) {
-      S.capitals = { ...S.capitals, [name]: true }; earn(3); coinPop(3); beep(CHIME); note = "You got it! +$3"; say(`Yes! ${capital} is the capital of ${name}.`);
-      const n = Object.keys(S.capitals).length; if (n % 5 === 0) { earn(10); banner(`${n} capitals learned! +$10`); confetti(30); }
-    } else {
-      S.brave = (S.brave || 0) + 1; earn(1); coinPop(1); beep(BLIP); note = "Good try! Now you know it, so come back and get it next time."; say(`Good try! The capital of ${name} is ${capital}.`);
-    }
-    schoolDay().capTries++; shown = true; save(); draw();
-  });
-  draw(); document.body.appendChild(box);
-  say(shown ? `${name}. The capital is ${capital}.` : `What's the capital of ${name}?`);
-}
 const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]].map(([x, y]) => [x * K, y]);
 function townMapSvg(l) {
   const lp = LP(l.id), nx = nextRide(l);
@@ -3683,7 +3768,7 @@ const acts = {
     render();
   },
   askMic() { openAskPanel(); },
-  stateTap(d) { beep(BLIP); openState(d.id); },
+  stateTap() { beep(BLIP); stateOpen(); },
   parentLesson(d) { U.parentLesson = d.id || null; beep(BLIP); render(); window.scrollTo(0, 0); },
   async famCheck() {
     const code = (document.getElementById("famIn")?.value || "").trim().toUpperCase();
@@ -3700,7 +3785,7 @@ const acts = {
     beep(BLIP);
     if (x.kind === "math") { const l = LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "reading") { U.view = "reading"; render(); return; }
-    if (x.kind === "capitals") { U.view = "home"; render(); return; }
+    if (x.kind === "capitals") { stateOpen(); return; }
     if (x.kind === "game") { save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id]; save(); render();
   },
@@ -3815,6 +3900,9 @@ const acts = {
     if (d.g === "duel") { duel = { shots: [], n: Math.min(+d.n, 5), state: "intro" }; drawScore("dscore", duel.shots, duel.n); }
   },
   openGame(d) { save(); location.href = `${d.g}/`; },
+  statesPick,
+  statesZoom() { const sg = U.sg; if (!sg || sg.locked) return; sg.zoom = !sg.zoom; beep(BLIP); render(); },
+  statesPractice() { U.sg = { q: [] }; stateNext(); render(); },
   leaveGame() {
     const paid = U.game && !U.game.free;
     if (kick) { kick.phase = "done"; kick = null; }
@@ -3937,8 +4025,8 @@ function arrange() {
 function render() {
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["who", "parent", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["who", "parent", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
