@@ -662,6 +662,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .trow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.trow small{display:block;opacity:.8}.tmini{display:flex;flex-wrap:wrap;gap:4px;align-items:center}.tmini svg{width:30px;height:32px}.tcount{font-size:1.4rem;color:var(--gold)}.lnum{font-size:.78rem;opacity:.8}
 .solvedpage .tag:empty{display:none}.solvedpage .pmathbig{padding:0}.solvedpage .vert .slot{color:#1c7a3e}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.solvedpage .rightbanner{padding:2px 8px;font-size:1rem}body[data-view="ride"] #app .nextbtn{min-height:44px}body[data-view="ride"] #app [data-act="redoq"]{min-height:38px;padding:2px 10px}}
+.famcode{font:800 clamp(1rem,2.6vw,1.5rem) ui-monospace,Menlo,monospace;letter-spacing:.04em;color:var(--gold);word-break:break-all;margin:0;user-select:all;-webkit-user-select:all}.famrow{display:flex;gap:8px;flex-wrap:wrap}.famrow input{flex:1;min-width:220px;min-height:44px;font-size:16px;padding:6px 10px;border-radius:8px;border:2px solid var(--line)}.famrow .btn{width:auto}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -707,8 +708,36 @@ const blank = () => ({ nuggets: 0, xp: 0, owned: [], worn: {}, lessons: {}, goal
 let S = blank();
 try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch (e) {}
 let dbDoc = null, cloud = "device", saveTimer = 0;
+// The page can only reach a save with the family's private code. The database does the checking.
+const FAMILY_DB = { url: "https://sqxghmebflleejwvgvif.supabase.co", key: "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8", game: "outlaw-run", player: "elliot" };
+const familyRpc = (fn, body, keepalive = false) => fetch(`${FAMILY_DB.url}/rest/v1/rpc/${fn}`, { method: "POST", keepalive, headers: { apikey: FAMILY_DB.key, "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
+function familyCode() {
+  if (S.familyCode) return S.familyCode;
+  const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", n = crypto.getRandomValues(new Uint8Array(25));
+  S.familyCode = [...n].map((x, i) => abc[x % abc.length] + (i % 5 === 4 && i < 24 ? "-" : "")).join("");
+  return S.familyCode;
+}
+let cloudTimer = 0, cloudAt = 0;
+const cloudBody = () => ({ p_code: familyCode(), p_game: FAMILY_DB.game, p_player: FAMILY_DB.player, p_state: S, p_client_updated: S.updatedAt || 0 });
+function cloudSend(keepalive = false) {
+  clearTimeout(cloudTimer);
+  return familyRpc("save_progress", cloudBody(), keepalive).then(() => { cloud = "synced"; cloudAt = Date.now(); }).catch(() => { cloud = "device"; });
+}
+const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
+async function cloudStart() {
+  if (S.familyCode) {
+    const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
+    if (remote && (remote.updatedAt || 0) > (S.updatedAt || 0)) {
+      S = { ...blank(), ...remote };
+      try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+      if (["home", "title", "parent"].includes(U.view)) render();
+    }
+  }
+  if (S.updatedAt) cloudSend();
+}
 function save() {
   S.updatedAt = Date.now();
+  cloudSoon();
   if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, stepLog: U.stepLog, fills: U.fills, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   if (!dbDoc) return;
@@ -1426,7 +1455,10 @@ const townSpot = (l) => { const at = l.rides.find((r) => r.id === S.atRide?.[l.i
 function trot(key, idx, pts, go) {
   if (U.trotting) return;
   U.trotting = true;
-  placeToken(key, idx, pts, () => { U.trotting = false; go(); });
+  let gone = false;
+  const arrive = () => { if (gone) return; gone = true; U.trotting = false; go(); };
+  placeToken(key, idx, pts, arrive);
+  setTimeout(arrive, 1500);
 }
 function homeView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>
@@ -2423,8 +2455,9 @@ function parentView() {
   };
   const pickedLesson = LESSONS.find((l) => l.id === U.parentLesson);
   if (pickedLesson) return lessonPage(pickedLesson);
-  return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Syncs to your account" : "Saved on this device"}</span></div><h1>Parent page</h1>
+  return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Saved online" : "Saved on this device, will retry online"}</span></div><h1>Parent page</h1>
   ${top}
+  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>His saved progress and family code</summary><div class="panel"><p>His progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open his progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
   <details class="plog pfold" ${U.copied ? "open" : ""}><summary>Adding a new lesson</summary><div class="panel"><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Copy his progress below and paste it in too, so the help targets what he found hard.</li></ol><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy his progress"}</button></div></div></details>`;
 }
 
@@ -3178,6 +3211,16 @@ const acts = {
   askMic() { openAskPanel(); },
   stateTap(d) { beep(BLIP); openState(d.id); },
   parentLesson(d) { U.parentLesson = d.id || null; beep(BLIP); render(); window.scrollTo(0, 0); },
+  async famCheck() {
+    const code = (document.getElementById("famIn")?.value || "").trim().toUpperCase();
+    U.famData = null; U.famCode = code; U.famMsg = "Looking...";
+    render();
+    const remote = code.length >= 24 ? await familyRpc("load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null) : null;
+    U.famData = remote; U.famMsg = remote ? "" : "No save found for that code. Check it and try again.";
+    render();
+  },
+  famYes() { S = { ...blank(), ...U.famData, familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "His progress is on this device now."; save(); render(); },
+  famNo() { U.famData = null; U.famMsg = ""; render(); },
   trophyOpen() { U.trophyCity = U.view === "town" ? U.lesson : null; U.view = "trophies"; beep(BLIP); render(); window.scrollTo(0, 0); },
   chartOpen() { beep(BLIP); openChart(); },
   share: shareReport,
@@ -3407,18 +3450,19 @@ function render() {
   markWord();
   if (U.view === "ride" || U.view === "town") save();
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
-  if (U.view === "home" && document.getElementById("token")) placeToken("world", worldSpot(), worldPts());
-  if (U.view === "town" && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), TOWN_PTS); }
+  if (U.view === "home" && !U.trotting && document.getElementById("token")) placeToken("world", worldSpot(), worldPts());
+  if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), TOWN_PTS); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
 setAppHeight();
 addEventListener("resize", setAppHeight); addEventListener("orientationchange", () => setTimeout(setAppHeight, 250)); window.visualViewport?.addEventListener("resize", setAppHeight);
-addEventListener("pagehide", save);
+addEventListener("pagehide", () => { save(); cloudSend(JSON.stringify(S).length < 60000); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") save(); });
 worldSize(200);
 W.ready = true;
 render();
 connect();
+cloudStart();
 </script>
 </body></html>
