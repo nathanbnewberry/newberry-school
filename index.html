@@ -619,6 +619,8 @@ body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="tr
 .bookpage:has(.vis.notenough) .move{display:none}.vis.notenough{padding:4px 12px;gap:2px 4px}
 @media (orientation:landscape) and (min-width:800px) and (max-height:780px){.vis.notenough .nespot{min-height:22px}.vis.notenough .nespot svg{width:18px;height:22px}.vis.notenough .dcoin,.vis.notenough .neempty{width:18px;height:18px}.bookpage:has(.vis.notenough) .bboard,.bookpage:has(.vis.notenough) .board{font-size:.82em}}
 html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roomback{left:calc(88px + env(safe-area-inset-left))}html.fs .ranchfull .norasay{left:250px}html.fs .scratch.big{padding-left:92px}
+.hintbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;width:auto;min-height:50px;padding:6px 18px;background:var(--gold);color:var(--ink);box-shadow:0 4px 0 var(--gold-deep);font-size:1.15rem}.hintbtn svg{width:26px;height:26px;flex:none}.hintbtn.nudgeme{animation:pulse 1s ease-in-out 3}.helprow .explainbtn{flex:2}
+@media (orientation:landscape) and (min-width:800px) and (max-height:700px){.bookpage .helper{padding:3px 8px;gap:2px}.bookpage .helper p{margin:0;font-size:.85rem;line-height:1.15}.bookpage .helper .btn{min-height:36px;padding:2px 10px;margin:0}.bookpage .helper .chips{min-height:0;margin:0}}
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1421,8 +1423,8 @@ function openChart() {
   });
 }
 function helpRow(q) {
-  const explain = U.mode === "try" && !U.coachDone && q.coach;
-  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
+  const explain = U.mode === "try" && !U.coachDone && q.coach, hintable = q.coach && (explain || U.mode === "coach");
+  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${hintable ? `<button class="btn hintbtn ${U.stepWrong || U.wrongNow ? "nudgeme" : ""}" data-act="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-4 12.700c.8.600 1 1.300 1 2.300h6c0-1 .2-1.700 1-2.300A7 7 0 0 0 12 2z" fill="currentColor"/><path d="M9.500 20h5M10.500 22.500h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Hint</button>` : ""}${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button><button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
 }
 function spadPrompt() {
   const q = curQ(), it = curItem();
@@ -1623,7 +1625,7 @@ function solveView(l, q) {
   }
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
-    return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg ? "shake" : "") +
+    return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt">${esc(s.ask)}</div>${c.boards?.length ? "" : scratchHtml()}
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
@@ -1631,7 +1633,7 @@ function solveView(l, q) {
   }
   if (q.match) return hudRide() + bubble(U.msg || "Tap a word on the left, then tap its match on the right. I'll draw the arrow.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
   const stuck = U.wrongNow >= 3;
-  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "Stuck? Tap Explain it."]));
+  const txt = U.msg || (U.coachDone ? (c.end || "You've got what you need. Give me the answer.") : q.choices ? "Look carefully. One shot before I step in." : pick(["Your shot. Use the scratch pad if you need it.", "Work it out on the scratch pad, then shoot.", "Stuck? Tap Hint."]));
   if (U.lineFor !== `${q.id}|${U.msg}|${U.coachDone}`) { U.line = txt; U.lineFor = `${q.id}|${U.msg}|${U.coachDone}`; }
   const help = U.coachDone && stuck ? `<button class="btn dark" data-act="flag">Get a parent</button>` : "";
   const later = "";
@@ -1639,8 +1641,8 @@ function solveView(l, q) {
   const readIt = !q.book && !U.msg && !U.coachDone;
   const say = (t, cls) => { const html = bubble(t, cls, readIt); if (readIt) { U.lastBubble = q.prompt; speak(q.prompt); } return html; };
   if (q.paper) return top + bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
-  if (q.choices) return top + say(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
-  return top + say(U.line, U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
+  if (q.choices) return top + say(U.line, U.msg && U.msg !== U.hintText ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
+  return top + say(U.line, U.msg && U.msg !== U.hintText ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
     ${q.book ? "" : `<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : q.extra || [])}
     <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
 }
@@ -2548,6 +2550,56 @@ function spokenNumber(t) {
 }
 const AGAIN_OPENERS = ["Sure thing, partner. Try it this way.", "Okay, let's look at it differently.", "That's fair. Here's another way to see it.", "Let's slow it down."];
 // Builds a new explanation of the current step from its own numbers. Never computes the step's result.
+// Silver's hints: the first says why and how, the next starts the work, and neither says the answer.
+const firstCounts = (by, n) => Array.from({ length: n }, (_, i) => (i + 1) * by).join(", ");
+function hintLine(s, q, level) {
+  const ask = String(s.ask || ""), whole = (...xs) => xs.every((x) => x === undefined || /^\d+$/.test(x));
+  let m = ask.match(/([\d.,]+) × ([\d.,]+)(?: \+ ([\d.,]+))? = \?/);
+  if (m && whole(m[1], m[2], m[3])) {
+    const a = +m[1], b = +m[2], carry = m[3] ? ` Then add the ${m[3]} you carried.` : "", by = Math.max(a, b), times = Math.min(a, b);
+    if (!a || !b) return `Why: zero groups means no coins at all, so the times part is nothing. How: that leaves only what you carried, if you carried anything.`;
+    const big = a >= 10 && a % 10 === 0 ? a : b >= 10 && b % 10 === 0 ? b : 0;
+    if (big) {
+      const other = big === a ? b : a, zeros = String(big).match(/0+$/)[0], d = big / 10 ** zeros.length, onEnd = zeros.length === 1 ? "a 0" : `${zeros.length} zeros`;
+      if (!level) return `Why: ${big} is just ${d} with ${onEnd} on the end, so the zeros are easy to save for later. How: do ${d} × ${other} first, then put ${onEnd} on the end of what you get.${carry}`;
+      return d * other > 9 && d > 1 ? `Start with ${d} × ${other}. Count by ${other}s: ${firstCounts(other, d - 1)}, and one more ${other}. Then put ${onEnd} on the end.${carry}` : `Start with ${d} × ${other}, which is easy. Then put ${onEnd} on the end.${carry}`;
+    }
+    if (!level) return `Why: ${a} × ${b} means ${a} groups of ${b}, and we want how many in all. How: count by ${by}s, ${times} ${times === 1 ? "time" : "times"}, and keep track on your fingers.${carry}`;
+    return times === 1 ? `One group of ${by} is just ${by}.${carry}` : `Here's a start: ${firstCounts(by, times - 1)}. That's ${times - 1} ${times === 2 ? "group" : "groups"} of ${by}. Add one more ${by}.${carry}`;
+  }
+  m = ask.match(/How many (\d+)s fit in (\d+)\?/);
+  const div = m ? [+m[2], +m[1]] : (ask.match(/(\d+) ÷ (\d+) = \?/) || []).slice(1).map(Number);
+  if (div.length === 2 && div[1]) {
+    const [n, d] = div, fit = Math.floor(n / d);
+    if (n < d) return `Why: each group needs ${d}, and you only have ${n}. How: ask yourself if you can fill even one group.`;
+    if (!level) return `Why: we're sharing equally, so we see how many full groups of ${d} we can make from ${n}. How: count by ${d}s and stop before you go past ${n}. The number of counts is your answer.`;
+    if (fit > 5) { const k = [10, 5, 2].find((x) => n - x * d >= d); return `Use big bites. ${k} groups use up ${k * d}, and that leaves ${n - k * d}. How many more groups fit in ${n - k * d}? Add them to the ${k}.`; }
+    return fit < 2 ? `One group uses ${d}. Could you make a second group without going past ${n}?` : `Here's a start: ${firstCounts(d, Math.max(1, fit - 2))}. Keep counting by ${d}s until you can't go any higher without passing ${n}. How many numbers did you say?`;
+  }
+  m = ask.match(/([\d.,]+) − ([\d.,]+) = \?/);
+  if (m && whole(m[1], m[2])) {
+    const a = +m[1], b = +m[2], gap = a - b, t = b - b % 10;
+    if (!gap) return `Why: you're taking away everything you have. How: picture ${a} coins and spend all ${b} of them. How many are in your hand?`;
+    if (!level) return `Why: taking away shows what's left after you use some. How: start at ${b} and count up to ${a}. The number of counts is your answer.`;
+    if (gap > 10 && t && b % 10) return `Take it in two bites. First take away ${t}, which leaves ${a - t}. Now take away ${b % 10} more.`;
+    return gap > 2 ? `Start at ${b} and put up a finger for each number: ${b + 1}, ${b + 2}. Keep going until you say ${a}. Count your fingers.` : `Start at ${b} and put up a finger for each number until you say ${a}. Count your fingers.`;
+  }
+  m = ask.match(/([\d.,]+(?: \+ [\d.,]+)+) = \?/);
+  const parts = m ? m[1].split(" + ") : [];
+  if (parts.length > 1 && whole(...parts)) {
+    const p = parts.map(Number);
+    if (p.length > 2) return !level ? `Why: adding puts all the piles into one. How: don't do them all at once. Add two, then add the next one to that.` : `First, ${p[0]} + ${p[1]} makes ${p[0] + p[1]}. Now add the ${p[2]} to that.${p.length > 3 ? " Then keep going." : ""}`;
+    const hi = Math.max(...p), lo = Math.min(...p), t = lo - lo % 10;
+    if (!level) return `Why: adding puts two piles into one. How: keep ${hi} in your head and count up ${lo} more.`;
+    if (lo < 10) return lo > 2 ? `Start at ${hi} and count up ${lo} times: ${hi + 1}, ${hi + 2}. Keep going and use your fingers.` : `Start at ${hi} and count up ${lo} on your fingers.`;
+    if (lo % 10) return `Take it in two bites. ${hi} + ${t} makes ${hi + t}. Now add the ${lo % 10}.`;
+    return hi % 10 ? `Count up by tens from ${hi}: ${hi + 10}. Keep going until you've added ${lo}.` : `Think in tens. ${hi / 10} tens and ${lo / 10} tens. How many tens is that? Then put the 0 back.`;
+  }
+  const story = String(q.prompt || "").split(/(?<=[.?!])\s+/).pop();
+  if (!level) return `${s.say ? `Here's why: ${s.say}` : `Here's what the problem wants: ${story}`} How: ${s.nudge || "Read it slowly and take one small piece at a time."}`;
+  return `Here's what the problem wants: ${story} ${s.nudge || ""}`.trim();
+}
+function showHint(t) { U.hintText = t; U.msg = t; render(); }
 function tutorLine(s, q, level) {
   const ask = String(s.ask || "");
   let m = ask.match(/^(\d+) × (\d+)(?: \+ (\d+))? = \?$/);
@@ -2879,6 +2931,24 @@ const acts = {
   key(d) { pressKey(d.k); },
   check: checkFinal,
   checkProof,
+  hint() {
+    const q = curQ(); if (!q?.coach) return;
+    if (U.mode === "try") {
+      if (U.tryHint !== q.id) { U.tryHint = q.id; return showHint(`Here's how to start. ${hintLine(q.coach.steps[0], q, 0)} Tap Hint again and we'll do it together.`); }
+      U.tryHint = null; U.hintKey = null; startCoach();
+    }
+    if (U.mode !== "coach") return;
+    const st = q.coach.steps[U.step], key = `${q.id}|${U.step}`;
+    if (U.hintKey !== key) { U.hintKey = key; U.hintN = 0; }
+    const level = U.hintN++ % 3;
+    if (level === 1 && st.choices) {
+      const wrong = st.choices.map(String).filter((c) => !U.off.includes(c) && hash(`${U.lesson}|${q.id}.${U.step}|pick|${c}`) !== st.sealed);
+      if (wrong.length > 1) { U.off.push(wrong[0]); return showHint(`I crossed one out, so there's less to pick from. ${st.nudge}`); }
+    }
+    if (level === 2 && st.help) { U.stepWrong = Math.max(U.stepWrong, 2); U.helped = false; U.helpN = 0; return showHint("Let's do it with your hands. Tap the button under the question and watch the numbers."); }
+    if (level === 2) { U.stepWrong = Math.max(U.stepWrong, 3); return showHint(`This one's tough, and that's okay. ${st.nudge} Still stuck? Tap Get a parent under the question.`); }
+    showHint(hintLine(st, q, level));
+  },
   checkStep() { if (!norm(U.draft)) { U.msg = "Type your answer first, boss."; return render(); } checkStepTyped(); },
   coach: startCoach,
   stepPick(d) {
