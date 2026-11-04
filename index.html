@@ -769,7 +769,7 @@ body[data-view="spelling"] #app{display:flex;flex-direction:column;gap:6px;overf
 }
 input,textarea{user-select:text;-webkit-user-select:text}
 body[data-coach="1"] #topbar .saytext{font-size:clamp(1.02rem,2.3vh,1.2rem);line-height:1.25}
-.spcoach{min-height:44px;margin-top:6px;font-size:1.05rem}
+.smallbtns{display:inline-flex;gap:6px;align-items:center}.padicon svg{width:60%;height:60%;display:block;margin:auto}
 .ctx.stepask{font-size:clamp(1.25rem,2.9vh,1.65rem);font-weight:700;line-height:1.3}
 .workednext[disabled]{opacity:.55;cursor:default}
 body.stillnow *{animation:none!important;transition:none!important}
@@ -785,6 +785,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
 .gridlab{display:inline-grid;grid-template-columns:auto auto;gap:4px;align-items:center;font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .scratch.big,.split.hasScratch>.left>.scratch.big{height:auto!important;grid-template-rows:auto auto minmax(0,1fr)!important}.scratch.big .spbigq{align-self:start}
+.biscuit.haspad>.saytext{padding-right:118px!important}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -1639,7 +1640,9 @@ const MASCOT = `<svg class="mascot" viewBox="0 0 110 130" data-act="biscuitTap" 
 </g></svg>`;
 const MIC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 const REPLAY_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.500-5.800" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round"/><path d="M20.500 2.500v5.500H15" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again" aria-label="Say it again">${REPLAY_ICON}</button></span></div></div>`; };
+// A scratch pad button beside the speaker on any math problem being worked.
+const padIconHtml = () => (typeof U !== "undefined" && U.view === "ride" && U.qid && ["try", "coach"].includes(U.mode) && !lettersNow() && !curQ()?.choices ? `<button class="again padicon" data-act="spBig" aria-label="Open the scratch pad"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h11l3 3v15H5zM8 9h8M8 13h8M8 17h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg></button>` : "");
+const bubble = (t, extra = "", quiet = false) => { if (!quiet) { speak(t); U.lastBubble = t; } return `<div class="biscuit ${extra} ${padIconHtml() ? "haspad" : ""}">${MASCOT}<div class="saytext" data-say="${esc(t)}">${wordsHtml(t)}</div><div class="bubtns"><span class="smallbtns"><button class="again" data-act="again" aria-label="Say it again">${REPLAY_ICON}</button>${padIconHtml()}</span></div></div>`; };
 /* ---------- school day ---------- */
 const SCHOOL_ICONS = {
   math: `<path d="M4 6h16v12H4z" fill="#2f5f46"/><path d="M7 10h4M9 8v4M14 10h4M7 15l3-2M7 13l3 2M14 14h4M14 16h4" stroke="#fff" stroke-width="1.600" stroke-linecap="round"/>`,
@@ -1802,7 +1805,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "b0998a86d2dc";
+const GAME_BUILD = "698c653a3f05";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2683,7 +2686,7 @@ function solveView(l, q) {
     const s = c.steps[U.step], txt = U.msg || [U.step === 0 ? U.coachIntro : "", s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
-      ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt stepask">${esc(s.ask)}</div>${c.boards?.length ? (U.spBig ? scratchHtml() : `<button class="btn dark wide spcoach" data-act="spBig">Scratch paper</button>`) : scratchHtml()}
+      ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt stepask">${esc(s.ask)}</div>${c.boards?.length ? (U.spBig ? scratchHtml() : "") : scratchHtml()}
       ${s.choices ? `<div class="choices">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
