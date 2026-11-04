@@ -1758,7 +1758,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead"><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "fae923b41536";
+const GAME_BUILD = "76db2266d652";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2332,9 +2332,9 @@ const curItemIsStampede = () => U.view === "ride" && !U.qid && U.items?.[U.i]?.t
 function openChart() {
   if (curItemIsStampede()) clearTimeout(stTimer);
   document.getElementById("chartbox")?.remove();
-  const nums = Array.from({ length: 12 }, (_, i) => i + 1);
+  const table = sheetTable(curLesson()?.factsList), nums = table === undefined ? Array.from({ length: 12 }, (_, i) => i + 1) : Array.from({ length: 11 }, (_, i) => i), rows = table === undefined ? nums : [table];
   const box = document.createElement("div"); box.id = "chartbox"; box.className = "chartbox"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "Multiplication chart");
-  box.innerHTML = `<div class="chartpanel"><div class="charthead"><h2>Multiplication Chart</h2><p id="chartsay">Tap a square to light it up. Tap outside to close.</p></div><div class="chartgrid"><span class="chd cx">×</span>${nums.map((c) => `<span class="chd" data-c="${c}">${c}</span>`).join("")}${nums.map((r) => `<span class="chd" data-r="${r}">${r}</span>${nums.map((c) => `<button class="cc2 ${r === c ? "diag" : ""}" data-r="${r}" data-c="${c}">${r * c}</button>`).join("")}`).join("")}</div></div>`;
+  box.innerHTML = `<div class="chartpanel"><div class="charthead"><h2>Multiplication Chart</h2><p id="chartsay">Tap a square to light it up. Tap outside to close.</p></div><div class="chartgrid" ${table === undefined ? "" : `style="grid-template-columns:repeat(${nums.length + 1},minmax(0,1fr));grid-auto-rows:clamp(52px,12vh,84px)"`}><span class="chd cx">×</span>${nums.map((c) => `<span class="chd" data-c="${c}">${c}</span>`).join("")}${rows.map((r) => `<span class="chd" data-r="${r}">${r}</span>${nums.map((c) => `<button class="cc2 ${r === c ? "diag" : ""}" data-r="${r}" data-c="${c}">${r * c}</button>`).join("")}`).join("")}</div></div>`;
   document.body.appendChild(box);
   const say = box.querySelector("#chartsay");
   box.addEventListener("click", (e) => {
@@ -2365,10 +2365,14 @@ function scratchHtml() {
   const big = U.spBig;
   return `${big ? `<div class="spback" data-act="spBig"></div>` : ""}<div class="scratch ${big ? "big" : ""}"><div class="schead"><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}" aria-label="Pen">${SP_ICON("M4 20l1-5L16 4l4 4L9 19zM14 6l4 4")}</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}" aria-label="Eraser">${SP_ICON("M8 20l-4-4 10-11 7 6-8 9zM9 10l7 6M8 20h12")}</button><button data-act="spClear" aria-label="Clear the pad">${SP_ICON("M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v5M14 11v5")}</button><button class="spsize" data-act="spBig" aria-label="${big ? "Make the pad smaller" : "Make the pad full screen"}">${big ? SP_ICON("M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5") : SP_ICON("M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5")}</button></div>${big ? `<p class="spbigq">${esc(spadPrompt())}</p>` : ""}<div class="spwrap"><canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas><p class="sphint" id="sphint">Work it out here with your finger</p></div></div>`;
 }
+const factsLesson = () => { const cur = curLesson(); return cur?.rides?.some((r) => r.kind === "facts") ? cur : withSubject("math", () => LESSONS[currentIdx()]); };
+const factsCount = () => factsLesson()?.factsList?.length || 100;
+// The one times table a facts sheet is built on, such as 7 for the sevens sheet.
+const sheetTable = (list) => list?.[0]?.find((n) => list.every((x) => x.includes(n)));
 function factsState() {
-  const lp = LP(U.lesson);
-  if (!lp.facts || lp.facts.done) {
-    const sheet = curLesson()?.factsList, order = sheet ? sheet.map((x) => [...x]) : [];
+  const lp = LP(U.lesson), sheetNow = curLesson()?.factsList;
+  if (!lp.facts || lp.facts.done || (sheetNow && lp.facts.order?.length !== sheetNow.length)) {
+    const sheet = sheetNow, order = sheet ? sheet.map((x) => [...x]) : [];
     if (!sheet) {
       for (let a = 0; a < 10; a++) for (let b = 0; b < 10; b++) order.push([a, b]);
       for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
@@ -2749,7 +2753,7 @@ function rideEndView() {
   <p class="tag">Build the ${esc(l.town)} ${esc(ranchLook().home)}</p>${shopRow()}
   <p class="tag">Or head to the Saloon and play a game</p>
   <div class="games gamepicks small">
-    ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${LESSONS[currentIdx()]?.factsList?.length || 100} steers.`)}
+    ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${factsCount()} steers.`)}
     ${gameCard("run", `data-act="game" data-g="run" data-n="${shots}"`, "Boost Run", "Land on guys, win a prize.")}
     ${gameCard("gallery", `data-act="game" data-g="gallery" data-n="${shots}"`, "Shooting Gallery", "Hit the targets.")}
     ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", "Save Nora.")}
@@ -2889,7 +2893,7 @@ function arcadeView() {
   return `<div class="hud storehud">${bigMapBtn()}<h2>${GAMES_NAME}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   <p class="center sub">Play as much as you want. Coins you grab in Boost Run count as money.</p>
   <div class="games gamepicks sixup">
-    ${LESSONS.length ? gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${LESSONS[currentIdx()]?.factsList?.length || 100} steers. Beat your time.`) : ""}
+    ${LESSONS.length ? gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${factsCount()} steers. Beat your time.`) : ""}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "3 lives. Land on guys, win a prize.")}
     ${gameCard("gallery", 'data-act="game" data-g="gallery" data-n="5" data-free="1"', "Shooting Gallery", "Step right up! Hit every target at the fair.")}
     ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", "Beat the outlaw on the draw and save Nora.")}
@@ -3311,7 +3315,7 @@ function parentView() {
   <div class="panel"><h2>Improvement</h2>${compared.length ? compared.map(({ l, imp }, n) => `<h3>Lesson ${esc(l.bookLesson)} compared with Lesson ${esc(imp.from.bookLesson)}</h3>${n === 0 ? improvementRows(imp) : `<details class="plog"><summary>Show</summary>${improvementRows(imp)}</details>`}`).join("") : `<p class="sub">This appears once at least 3 problems are finished in two lessons.</p>`}</div>`;
   const lessonPage = (l) => {
     const lp = LP(l.id), mine = l.problems.filter((q) => !PP(lp, q.id).given), fin = mine.filter((q) => PP(lp, q.id).done), report = skillReport(l), ps = mine.map((q) => PP(lp, q.id));
-    const secs = count(ps, (p) => p.secs), seen = report.length || fin.length || lp.factsResult, factLine = lp.factsResult ? `<p><b>100 times facts:</b> finished with ${plural(lp.factsResult.miss, "miss").replace("misss", "misses")} in ${fmtTime(lp.factsResult.secs) || "under 1 min"}.${hardFacts(lp).length ? ` Missed most: ${hardFacts(lp).map(([f]) => esc(f)).join(", ")}.` : ""}</p>` : "";
+    const secs = count(ps, (p) => p.secs), seen = report.length || fin.length || lp.factsResult, factLine = lp.factsResult ? `<p><b>${l.factsList?.length || 100} times facts:</b> finished with ${plural(lp.factsResult.miss, "miss").replace("misss", "misses")} in ${fmtTime(lp.factsResult.secs) || "under 1 min"}.${hardFacts(lp).length ? ` Missed most: ${hardFacts(lp).map(([f]) => esc(f)).join(", ")}.` : ""}</p>` : "";
     const rows = l.problems.map((q) => {
       const p = PP(lp, q.id), [t, c] = howItWent(p), work = (p.work || []).filter(Boolean), when = p.doneAt ? new Date(p.doneAt).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
       return `<tr><td>${esc(q.id)}</td><td class="pq">${esc(q.prompt.slice(0, 70))}${q.prompt.length > 70 ? "..." : ""}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : ""}${p.stepMiss ? `<div class="sub">${plural(p.stepMiss, "missed step")}</div>` : ""}</td><td>${p.hints || ""}</td><td>${fmtTime(p.secs)}</td><td>${when}</td><td>${p.done && !p.given ? `<details class="pwork"><summary>His work</summary>${work.length ? `<ol>${work.map(([a, v, m]) => `<li>${esc(a)} <b>${esc(v.replace("R", " R "))}</b>${m ? ` <span class="sub">after ${plural(m, "miss").replace("misss", "misses")}</span>` : ""}</li>`).join("")}</ol>` : ""}<p>Final answer: <b>${esc(String(p.ans || "").replace("R", " R "))}</b></p></details>` : ""}${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`;
@@ -4235,7 +4239,7 @@ const acts = {
     const b = el.closest(".biscuit"); if (b) { b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop"); }
   },
   stGo() { U.stBreak = false; U.factT = Date.now(); U.stBorn = 0; render(); },
-  stPlay() { const l = curLesson(); startRide(l, l.rides.find((r) => r.kind === "facts")); },
+  stPlay() { const l = factsLesson(); if (!l) return; setSubject("math"); U.lesson = l.id; startRide(l, l.rides.find((r) => r.kind === "facts")); },
   spTool(d, el) { U.spTool = d.t; el.parentElement.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.t === d.t)); },
   spClear() { U.strokes = []; initScratch(); },
   cell(d) { U.cellAt = +d.i; U.carryAt = null; render(); },
