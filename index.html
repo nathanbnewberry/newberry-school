@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Outlaw Run"><link rel="manifest" href="manifest.webmanifest"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><script>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="School Day"><link rel="manifest" href="manifest.webmanifest"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta http-equiv="cache-control" content="no-cache"><style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style></head><body><script>
 // If the game can't draw itself, say so instead of leaving a blank screen.
 (function () {
   var errs = [];
@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=4d6867a5a2"></script>
+<script src="lessons.js?v=068318c65d"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1827,6 +1827,7 @@ const TY_FINGER = { q: 0, a: 0, z: 0, w: 1, s: 1, x: 1, e: 2, d: 2, c: 2, r: 3, 
 const TY_NAMES = ["left pinky", "left ring finger", "left middle finger", "left pointer finger", "right pointer finger", "right middle finger", "right ring finger", "right pinky"];
 const TY_COLORS = ["#e8637a", "#f09a3e", "#e8c93e", "#58c26a", "#46b6c9", "#5a8fe8", "#9a6ee8", "#e06ed0"];
 const tyFingerOf = (k) => TY_FINGER[k] ?? 0;
+const tyHasKeyboard = () => { try { return localStorage.getItem('family-real-keyboard') === '1'; } catch (e) { return false; } };
 function tyOpen() {
   stopVoice(); S.typing = S.typing || {};
   U.ty = { phase: "hands" };
@@ -1919,11 +1920,11 @@ function tyKeysHtml() {
 }
 function typingView() {
   const t = U.ty || { phase: "hands" }, top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>Space Typing</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-  if (t.phase === "hands") return `${top}${bubble("Here's where your fingers live. Each finger has its own keys.")}<div class="tylearn">${tyHandsSvg()}${tyKeysHtml()}<ol class="tysteps"><li>Left hand: fingers on <b>A S D F</b>. Right hand: fingers on <b>J K L</b> and the key next to L.</li><li>Feel the little bumps on <b>F</b> and <b>J</b>. They let your pointer fingers find home without looking.</li><li>Each finger only reaches for keys in its own color, then comes back home. Thumbs rest on the space bar.</li></ol><p class="tynote">A real keyboard is best for this. On the screen, tap with the finger that matches the color.</p><button class="btn go wide" data-act="tyReady">Fingers on home. I'm ready!</button></div>`;
+  if (t.phase === "hands") return `${top}${bubble("Here's where your fingers live. Each finger has its own keys.")}<div class="tylearn">${tyHandsSvg()}${tyKeysHtml()}<ol class="tysteps"><li>Left hand: fingers on <b>A S D F</b>. Right hand: fingers on <b>J K L</b> and the key next to L.</li><li>Feel the little bumps on <b>F</b> and <b>J</b>. They let your pointer fingers find home without looking.</li><li>Each finger only reaches for keys in its own color, then comes back home. Thumbs rest on the space bar.</li></ol><p class="tynote">Use the real keyboard. Press any letter on it and the keys on the screen go away.</p><button class="btn go wide" data-act="tyReady">Fingers on home. I'm ready!</button></div>`;
   if (t.phase === "done") return `${top}${bubble("Sector clear! Great flying.")}<div class="center statesdone"><div class="big">${t.wpm} words a minute</div><p>${t.acc}% of your keys were right. Your best is ${S.typing.bestWpm} words a minute.</p><button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="tyAgain">Fly again</button><button class="btn dark wide" data-act="tyHands">Show me the fingers</button></div>`;
   const lvl = TY_LEVELS[t.level] || TY_LEVELS[0], say = t.stage === "drill" ? `Warm up the cannons on ${lvl.name}.` : t.levelUp ? "Nice and clean! You just unlocked more keys. Now blast your spelling words." : "Blast your spelling words.";
   const stars = Array.from({ length: 34 }, (_, i) => `<circle cx="${(i * 53) % 400}" cy="${(i * 97) % 300}" r="${i % 3 ? 1 : 1.700}" fill="#fff" opacity="${i % 3 ? .5 : .9}"/>`).join("");
-  return `${top}${bubble(say, "", true)}<div class="tygame"><div class="tyscene" id="tyScene"><svg class="tystars" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stars}</svg><div class="tyrock" id="tyRock"><span id="tyWord"></span></div><svg class="tyship" viewBox="0 0 60 70" aria-hidden="true"><path d="M30 2c9 9 13 22 13 36l-3 16H20l-3-16C17 24 21 11 30 2z" fill="#dfe7f2" stroke="#1c2b44" stroke-width="2"/><circle cx="30" cy="28" r="7" fill="#5ab0ee" stroke="#1c2b44" stroke-width="2"/><path d="M17 36L4 56l14-3M43 36l13 20-14-3" fill="#c8202c" stroke="#1c2b44" stroke-width="2"/><path d="M24 55l6 13 6-13z" fill="#ff9d2e"/></svg></div><div class="typanel"><div class="typrog"><i style="width:${(t.count / t.total) * 100}%"></i><b>${t.count} of ${t.total} asteroids</b></div><p class="tyhint" id="tyHint"></p>${tyHandsSvg()}${tyKeysHtml()}</div></div>`;
+  return `${top}${bubble(say, "", true)}<div class="tygame"><div class="tyscene" id="tyScene"><svg class="tystars" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${stars}</svg><div class="tyrock" id="tyRock"><span id="tyWord"></span></div><svg class="tyship" viewBox="0 0 60 70" aria-hidden="true"><path d="M30 2c9 9 13 22 13 36l-3 16H20l-3-16C17 24 21 11 30 2z" fill="#dfe7f2" stroke="#1c2b44" stroke-width="2"/><circle cx="30" cy="28" r="7" fill="#5ab0ee" stroke="#1c2b44" stroke-width="2"/><path d="M17 36L4 56l14-3M43 36l13 20-14-3" fill="#c8202c" stroke="#1c2b44" stroke-width="2"/><path d="M24 55l6 13 6-13z" fill="#ff9d2e"/></svg></div><div class="typanel"><div class="typrog"><i style="width:${(t.count / t.total) * 100}%"></i><b>${t.count} of ${t.total} asteroids</b></div><p class="tyhint" id="tyHint"></p>${tyHandsSvg()}${tyHasKeyboard() ? "" : tyKeysHtml()}</div></div>`;
 }
 // Friday review: the problems he needed help with this week, tried again on his own.
 const REVIEW_MAX = 8;
@@ -2105,7 +2106,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8d9d1b74b3e9";
+const GAME_BUILD = "9f7b1f9b9062";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2748,9 +2749,11 @@ function scratchHtml() {
   return `${big ? `<div class="spback" data-act="spBig"></div>` : ""}<div class="scratch ${big ? "big" : ""}"><div class="schead"><button data-act="spTool" data-t="pen" class="${U.spTool !== "erase" ? "on" : ""}" aria-label="Pen">${SP_ICON("M4 20l1-5L16 4l4 4L9 19zM14 6l4 4")}</button><button data-act="spTool" data-t="erase" class="${U.spTool === "erase" ? "on" : ""}" aria-label="Eraser">${SP_ICON("M8 20l-4-4 10-11 7 6-8 9zM9 10l7 6M8 20h12")}</button><button data-act="spClear" aria-label="Clear the pad">${SP_ICON("M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13M10 11v5M14 11v5")}</button><button class="spsize" data-act="spBig" aria-label="Put the scratch paper away">${SP_ICON("M5 12h14")}</button></div>${big ? `<p class="spbigq">${esc(spadPrompt())}</p>` : ""}<div class="spwrap"><canvas id="spad" aria-label="Scratch pad. Draw with your finger."></canvas><p class="sphint" id="sphint">Work it out here with your finger</p></div></div>`;
 }
 const factsLesson = () => { const cur = curLesson(); return cur?.rides?.some((r) => r.kind === "facts") ? cur : withSubject("math", () => LESSONS[currentIdx()]); };
+const factAnswer = ([a, b, op]) => (op === "-" ? a - b : a * b);
+const factSign = ([, , op]) => (op === "-" ? "−" : "×");
 const factsCount = () => factsLesson()?.factsList?.length || 100;
 // The one times table a facts sheet is built on, such as 7 for the sevens sheet.
-const sheetTable = (list) => list?.[0]?.find((n) => list.every((x) => x.includes(n)));
+const sheetTable = (list) => { const times = list?.filter((x) => x[2] !== "-"); return times?.[0]?.find((n) => times.every((x) => x.includes(n))); };
 function factsState() {
   const lp = LP(U.lesson), sheetNow = curLesson()?.factsList;
   if (!lp.facts || lp.facts.done || (sheetNow && lp.facts.order?.length !== sheetNow.length)) {
@@ -2784,7 +2787,7 @@ function stampedeView(pips) {
   const dots = Array.from({ length: f.order.length }, (_, i) => `<i class="${i < f.i ? "on" : ""}"></i>`).join("");
   const total = f.order.length, tick = total >= 50 ? 10 : 5, count = `<div class="stcount" role="img" aria-label="${f.i} roped, ${total - f.i} to go"><div class="stnum"><b>${f.i}</b><small>roped</small></div><div class="stbar" style="--seg:${(tick / total) * 100}%"><i style="width:${(f.i / total) * 100}%"></i></div><div class="stnum left"><b>${total - f.i}</b><small>to go</small></div></div>`;
   return hudRide() + bubble(U.msg || "Type the answer to rope him before he hits the fence!", U.msg ? "shake" : "", !U.msg) +
-    `<div class="bookpage stgame"><div class="stfield" id="stfield">${count}<div class="stpen"><div class="stdots">${dots}</div></div><div class="stfence"></div><div class="steer ${gold ? "gold" : ""}" id="steer" style="animation-duration:${U.stDur}ms;animation-delay:-${now - U.stBorn}ms">${STEER}<div class="stsign">${a} × ${b} = <span>${esc(U.draft) || "?"}</span></div></div></div><div class="stinfo"><span class="chip ${streak >= 5 ? "hot" : ""}">Rope streak ${streak}</span>${gold ? `<span class="chip gold">Gold steer: +$3</span>` : ""}${last ? `<span class="chip">Last time ${fmtTime(last.secs)}</span>` : ""}</div><button class="btn dark wide stchart" data-act="chartOpen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg>Times chart</button>${padHtml()}</div>`;
+    `<div class="bookpage stgame"><div class="stfield" id="stfield">${count}<div class="stpen"><div class="stdots">${dots}</div></div><div class="stfence"></div><div class="steer ${gold ? "gold" : ""}" id="steer" style="animation-duration:${U.stDur}ms;animation-delay:-${now - U.stBorn}ms">${STEER}<div class="stsign">${a} ${factSign(f.order[f.i])} ${b} = <span>${esc(U.draft) || "?"}</span></div></div></div><div class="stinfo"><span class="chip ${streak >= 5 ? "hot" : ""}">Rope streak ${streak}</span>${gold ? `<span class="chip gold">Gold steer: +$3</span>` : ""}${last ? `<span class="chip">Last time ${fmtTime(last.secs)}</span>` : ""}</div><button class="btn dark wide stchart" data-act="chartOpen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg>Times chart</button>${padHtml()}</div>`;
 }
 // The rope flies out, loops the steer and hauls it back to the pen. Drawn over the page so typing the next answer can't cut it off.
 function stCaught(box) {
@@ -4168,14 +4171,14 @@ function checkEntryAuto() {
   if (U.qid) {
     return false;
   }
-  if (it.type === "stampede") { const f = factsState(), [a, b] = f.order[f.i]; if (U.draft.length >= String(a * b).length) { checkStampede(); return true; } return false; }
+  if (it.type === "stampede") { const f = factsState(); if (U.draft.length >= String(factAnswer(f.order[f.i])).length) { checkStampede(); return true; } return false; }
   if (it.type === "fact" && norm(U.draft).length >= it.w.len) { checkFact(); return true; }
   if (it.type === "num" && U.draft.length >= it.len) { checkLearnNum(); return true; }
   return false;
 }
 function checkStampede() {
-  const f = factsState(), [a, b] = f.order[f.i];
-  if (U.draft === String(a * b)) {
+  const f = factsState(), fact = f.order[f.i], [a, b] = fact, takeAway = fact[2] === "-";
+  if (U.draft === String(factAnswer(fact))) {
     f.secs += Math.min(30, Math.round((Date.now() - (U.factT || Date.now())) / 1000)); U.factT = Date.now();
     const field = document.getElementById("stfield")?.getBoundingClientRect(), steer = document.getElementById("steer")?.getBoundingClientRect();
     const box = field && steer ? { left: steer.left - field.left } : null, gold = (f.i + 1) % 10 === 0;
@@ -4190,8 +4193,8 @@ function checkStampede() {
   }
   const typedFact = U.draft;
   f.miss++; U.stepWrong++; wrongFx(); U.draft = "";
-  { const lp = LP(U.lesson), key = `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; lp.factTyped = lp.factTyped || {}; lp.factTyped[key] = [...(lp.factTyped[key] || []), typedFact].slice(-12); }
-  U.msg = `You typed ${typedFact}. ` + (a === 0 || b === 0 ? "Good try! Zero groups means nothing, so times zero is always zero." : b === 1 || a === 1 ? "Good try! Times one keeps the number the same." : `Good try! ${a} × ${b} means ${a} jumps of ${b}. Count them.`);
+  { const lp = LP(U.lesson), key = takeAway ? `${a} − ${b}` : `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; lp.factTyped = lp.factTyped || {}; lp.factTyped[key] = [...(lp.factTyped[key] || []), typedFact].slice(-12); }
+  U.msg = `You typed ${typedFact}. ` + (takeAway ? (b === 0 ? "Good try! Taking away zero leaves the number the same." : a === b ? "Good try! A number take away itself leaves nothing." : `Good try! Start at ${b} and count up to ${a}. How many counts?`) : a === 0 || b === 0 ? "Good try! Zero groups means nothing, so times zero is always zero." : b === 1 || a === 1 ? "Good try! Times one keeps the number the same." : `Good try! ${a} × ${b} means ${a} jumps of ${b}. Count them.`);
   save(); render();
 }
 function checkFact() {
@@ -4892,7 +4895,11 @@ document.addEventListener("keydown", (e) => {
   if (e.target?.id === "famPw" && e.key === "Enter") { e.preventDefault(); return U.linkCreate ? acts.familyCreate() : acts.familySignIn(); }
   if (["INPUT", "TEXTAREA"].includes(e.target?.tagName) && e.target.id !== "spellSink") return;
   if (U.view === "typing" && U.ty?.phase === "play") {
-    if (/^[a-zA-Z]$/.test(e.key)) { e.preventDefault(); if (!e.repeat) tyKey(e.key); }
+    if (/^[a-zA-Z]$/.test(e.key)) {
+      e.preventDefault();
+      if (!tyHasKeyboard()) { try { localStorage.setItem('family-real-keyboard', '1'); } catch (err) {} document.querySelector(".typanel .tykb")?.remove(); }
+      if (!e.repeat) tyKey(e.key);
+    }
     else if (e.key === " ") e.preventDefault();
     return;
   }
