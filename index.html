@@ -684,7 +684,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .daycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.daycard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:88px;padding:10px 14px;border-radius:16px;background:var(--paper);color:#1c1712;box-shadow:0 5px 0 #b9ad96;text-align:left;cursor:pointer}.daycard:active{transform:translateY(3px);box-shadow:0 2px 0 #b9ad96}.daycard.done{background:#c9f0d3;box-shadow:0 5px 0 #1f9a4f}.dayicon{width:52px;height:52px}.daytext{display:grid;gap:3px;min-width:0}.daytext b{font-size:1.2rem}.daytext small{font-size:.92rem;font-weight:600;color:#5d564b}.daybar{display:block;height:8px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}.daybar em{display:block;height:100%;background:#1f9a4f}.daycheck{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:3px solid #8a7a55;font-size:1.6rem;font-weight:800;color:#fff}.daycard.done .daycheck{background:#1f9a4f;border-color:#1f9a4f}
 .daysoon{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.9rem}.soonchip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);opacity:.75}.soonchip svg{width:22px;height:22px}
 .readwrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(18px,5vw,60px);flex:1;padding:8px}.readring{position:relative;width:clamp(220px,58vh,400px);aspect-ratio:1}.readring svg{width:100%;height:100%;display:block}.readclock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center}.readclock b{font:400 clamp(3rem,13vh,5.5rem) var(--display);color:var(--gold)}.readclock small{font-weight:700}.readside{display:grid;gap:14px;width:min(100%,380px);text-align:center}.readside p{margin:0;font-size:1.15rem;line-height:1.4}.readbtn{min-height:76px;font-size:1.4rem}
-.dayrow{display:grid;grid-template-columns:32px minmax(0,1fr) minmax(0,1.2fr) auto;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}.dayrow svg{width:30px;height:30px}.dayrow i.state{font-style:normal}.dayrow small{opacity:.85}.daycard.next{outline:5px solid var(--gold);outline-offset:-1px}.daycards:has(.next) .daycard:not(.next):not(.done){opacity:.9}@media (orientation:landscape) and (min-width:800px){body[data-view="school"] .daycards:has(.daycard:nth-child(7)){grid-template-columns:repeat(4,minmax(0,1fr))}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycard{gap:8px;padding:8px 10px;grid-template-columns:44px minmax(0,1fr) 34px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .dayicon{width:44px;height:44px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext b{font-size:1.1rem;line-height:1.25}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext small{font-size:.85rem;line-height:1.3}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycheck{width:34px;height:34px;font-size:1.1rem}}.nextchip{display:inline-block;width:max-content;padding:2px 10px;border-radius:999px;background:#1c1712;color:var(--gold);font-size:.82rem;font-weight:800;margin-bottom:2px}.runbar{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:2px 14px;margin-top:4px;padding:3px 14px;border-radius:12px;background:rgba(255,196,46,.14);color:#fff}.runbar b{font-size:1rem}body[data-view="states"] .runpill{left:auto;right:12px}.runbar small{opacity:.85}.runbar.done{background:rgba(57,208,122,.2)}.runtick{font-variant-numeric:tabular-nums}.runpill{position:fixed;left:12px;bottom:10px;z-index:15;padding:7px 14px;border-radius:999px;background:#1c1712;color:var(--gold);font:700 .95rem var(--body);box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:none}.runpill.go{pointer-events:auto;background:var(--gold);color:#1c1712;min-height:44px;cursor:pointer}.spinbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:20px}.spinpic{width:min(300px,42vh);height:auto}.spinner{animation:spinto .55s ease-out}@keyframes spinto{from{transform:rotate(var(--from))}}.spinside{display:grid;gap:10px;min-width:260px}.spinnow{font-size:1.15rem;line-height:1.5;margin:0}.pad .spacek{font-size:.95rem}.choices:has(button:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}.tygame{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:12px}.tyscene{position:relative;overflow:hidden;border-radius:14px;background:linear-gradient(#070b24,#1a1140);min-height:240px}.tystars{position:absolute;inset:0;width:100%;height:100%}.tyship{position:absolute;left:50%;bottom:8px;width:74px;transform:translateX(-50%)}.tyrock{position:absolute;left:50%;top:0;transform:translateX(-50%);display:grid;place-items:center;min-width:120px;min-height:96px;padding:14px 24px;border-radius:48% 52% 45% 55%;background:radial-gradient(circle at 35% 30%,#a58d76,#5d4a3b);border:3px solid #2c2118;animation:tydrop 18s linear forwards}@keyframes tydrop{from{top:2%}to{top:58%}}.tyrock.boom{animation:tyboom .32s ease-out forwards}@keyframes tyboom{to{transform:translateX(-50%) scale(1.8);opacity:0;filter:brightness(3)}}#tyWord{font:800 clamp(1.5rem,3.600vh,2.200rem) var(--body);letter-spacing:.04em;color:#fff;white-space:nowrap}#tyWord b{font-weight:800}#tyWord b.hit{color:#58e08a}#tyWord b.now{color:#ffd76a;text-decoration:underline}.tyshot{position:absolute;left:50%;bottom:78px;width:5px;height:60%;margin-left:-2px;background:linear-gradient(#ffe066,#ff5a3c);border-radius:3px;animation:tyshot .2s linear forwards}@keyframes tyshot{from{opacity:1;transform:scaleY(.2);transform-origin:bottom}to{opacity:0;transform:scaleY(1);transform-origin:bottom}}.typanel{display:flex;flex-direction:column;gap:8px;min-height:0;justify-content:space-between}.typrog{position:relative;height:26px;border-radius:13px;background:rgba(255,255,255,.14);overflow:hidden}.typrog i{position:absolute;inset:0 auto 0 0;background:#39b56a}.typrog b{position:relative;display:block;text-align:center;line-height:26px;font-size:.95rem;color:#fff}.tyhint{margin:0;text-align:center;font-size:1.15rem;font-weight:700;color:#fff}.tyhandsvg{display:block;width:100%;max-width:330px;max-height:22vh;margin:0 auto}.tyfing{opacity:.45;transition:opacity .1s}.tyfing.on{opacity:1}.tylearn .tyfing{opacity:1}.tykb{display:grid;gap:6px}.tyrow{display:flex;justify-content:center;gap:5px}.tyrow.in1{padding:0 4%}.tyrow.in2{padding:0 12%}.tyk{position:relative;flex:1;min-width:0;min-height:clamp(40px,7.500vh,58px);padding:0;border:0;border-radius:9px;border-bottom:6px solid var(--fc);background:#30352f;color:#fff;font:800 clamp(1rem,2.800vh,1.400rem) var(--body);touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:pointer}.tyk.bump::after{content:"";position:absolute;left:30%;right:30%;bottom:5px;height:3px;border-radius:2px;background:#fff}.tyk.target{background:var(--fc);color:#1c1712;box-shadow:0 0 0 3px #fff}.tyk.oops{background:#6a3a3a}.tylearn{max-width:760px;margin:0 auto;width:100%;display:grid;gap:10px;overflow:auto}.tysteps{margin:0;padding-left:24px;display:grid;gap:6px;color:#fff;font-size:1.05rem;line-height:1.4}.tynote{margin:0;color:#fff;opacity:.8;font-size:.95rem}body[data-view="typing"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}body[data-view="typing"] .runpill{display:none}@media (orientation:portrait){body[data-view="typing"] #app{overflow:auto}.tygame{grid-template-columns:1fr}.tyscene{height:32vh}}.daytext{display:grid;gap:4px;align-content:center}.daytext b{line-height:1.2}.daytext small{line-height:1.3}.keepgo{display:grid;gap:6px;justify-items:center;padding:8px 12px;border-radius:12px;background:rgba(57,208,122,.16);border:2px solid #39d07a;color:#fff;text-align:center}.keepgo b{font-size:1.05rem}.keepbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.keepbtns .btn{min-height:44px;padding:8px 16px}.keepline{margin:0;font-weight:700;color:#39d07a;font-size:1.05rem;text-align:center}.bookpage .prompt.bigq{font-size:clamp(2.2rem,7vh,3.6rem);text-align:center;font-weight:700;margin:auto 0}.split>.left:has(.bigq){display:flex;flex-direction:column;min-height:100%}.split>.left:has(.bigq) .prompt.bigq{flex:1;display:flex;flex-wrap:wrap;gap:0 .3em;align-items:center;justify-content:center;align-content:center}.choices.longc,.split>.right .choices.longc{grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:auto!important;max-height:none;flex:0 0 auto}.choices.longc button,.split>.right .choices.longc button{min-height:64px;padding:10px 16px;font-size:clamp(1.05rem,2.600vh,1.3rem);line-height:1.3}.console.split>.left:has(>.ctx:only-child){display:flex;align-items:center;justify-content:center}.console.split>.left>.ctx:only-child{width:100%;padding:28px 20px;font-size:clamp(1.8rem,5vh,2.800rem);line-height:1.25}.praiseline{font-size:1.1rem;font-weight:600;margin:8px 0;padding-left:12px;border-left:4px solid var(--gold)}.dayrow .daytime{grid-column:2/-1;opacity:1;font-size:.9rem}.dayrow .daytime.warn{color:#ffb199;font-weight:700}.dayrow.timesonly{grid-template-columns:minmax(0,1fr)}.dayrow.timesonly .daytime{grid-column:1}
+.dayrow{display:grid;grid-template-columns:32px minmax(0,1fr) minmax(0,1.2fr) auto;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}.dayrow svg{width:30px;height:30px}.dayrow i.state{font-style:normal}.dayrow small{opacity:.85}.daycard.next{outline:5px solid var(--gold);outline-offset:-1px}.daycards:has(.next) .daycard:not(.next):not(.done){opacity:.9}@media (orientation:landscape) and (min-width:800px){body[data-view="school"] .daycards:has(.daycard:nth-child(7)){grid-template-columns:repeat(4,minmax(0,1fr))}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycard{gap:8px;padding:8px 10px;grid-template-columns:44px minmax(0,1fr) 34px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .dayicon{width:44px;height:44px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext b{font-size:1.1rem;line-height:1.25}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext small{font-size:.85rem;line-height:1.3}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycheck{width:34px;height:34px;font-size:1.1rem}}.nextchip{display:inline-block;width:max-content;padding:2px 10px;border-radius:999px;background:#1c1712;color:var(--gold);font-size:.82rem;font-weight:800;margin-bottom:2px}.runbar{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:2px 14px;margin-top:4px;padding:3px 14px;border-radius:12px;background:rgba(255,196,46,.14);color:#fff}.runbar b{font-size:1rem}body[data-view="states"] .runpill{left:auto;right:12px}.runbar small{opacity:.85}.runbar.done{background:rgba(57,208,122,.2)}.runtick{font-variant-numeric:tabular-nums}.runpill{position:fixed;left:12px;bottom:10px;z-index:15;padding:7px 14px;border-radius:999px;background:#1c1712;color:var(--gold);font:700 .95rem var(--body);box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:none}.runpill.go{pointer-events:auto;background:var(--gold);color:#1c1712;min-height:44px;cursor:pointer}.spinbox{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:20px}.spinpic{width:min(300px,42vh);height:auto}.spinner{animation:spinto .55s ease-out}@keyframes spinto{from{transform:rotate(var(--from))}}.spinside{display:grid;gap:10px;min-width:260px}.spinnow{font-size:1.15rem;line-height:1.5;margin:0}.pad .spacek{font-size:.95rem}.choices:has(button:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}.tygame{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:12px}.tyscene{position:relative;overflow:hidden;border-radius:14px;background:linear-gradient(#070b24,#1a1140);min-height:240px}.tystars{position:absolute;inset:0;width:100%;height:100%}.tyship{position:absolute;left:50%;bottom:8px;width:74px;transform:translateX(-50%)}.tyrock{position:absolute;left:50%;top:0;transform:translateX(-50%);display:grid;place-items:center;min-width:120px;min-height:96px;padding:14px 24px;border-radius:48% 52% 45% 55%;background:radial-gradient(circle at 35% 30%,#a58d76,#5d4a3b);border:3px solid #2c2118;animation:tydrop 18s linear forwards}@keyframes tydrop{from{top:2%}to{top:58%}}.tyrock.boom{animation:tyboom .14s ease-out forwards}@keyframes tyboom{to{transform:translateX(-50%) scale(1.8);opacity:0;filter:brightness(3)}}#tyWord{font:800 clamp(1.5rem,3.600vh,2.200rem) var(--body);letter-spacing:.04em;color:#fff;white-space:nowrap}#tyWord b{font-weight:800}#tyWord b.hit{color:#58e08a}#tyWord b.now{color:#ffd76a;text-decoration:underline}.tyshot{position:absolute;left:50%;bottom:78px;width:5px;height:60%;margin-left:-2px;background:linear-gradient(#ffe066,#ff5a3c);border-radius:3px;animation:tyshot .2s linear forwards}@keyframes tyshot{from{opacity:1;transform:scaleY(.2);transform-origin:bottom}to{opacity:0;transform:scaleY(1);transform-origin:bottom}}.typanel{display:flex;flex-direction:column;gap:8px;min-height:0;justify-content:space-between}.typrog{position:relative;height:26px;border-radius:13px;background:rgba(255,255,255,.14);overflow:hidden}.typrog i{position:absolute;inset:0 auto 0 0;background:#39b56a}.typrog b{position:relative;display:block;text-align:center;line-height:26px;font-size:.95rem;color:#fff}.tyhint{margin:0;text-align:center;font-size:1.15rem;font-weight:700;color:#fff}.tyhandsvg{display:block;width:100%;max-width:330px;max-height:22vh;margin:0 auto}.tyfing .tybadge{opacity:.5}.tyfing text{opacity:.6}.tyfing.on .fg{fill:var(--fc)}.tyfing.on .tybadge,.tyfing.on text{opacity:1}.tylearn .tyfing .tybadge,.tylearn .tyfing text{opacity:1}.tykb{display:grid;gap:6px}.tyrow{display:flex;justify-content:center;gap:5px}.tyrow.in1{padding:0 4%}.tyrow.in2{padding:0 12%}.tyk{position:relative;flex:1;min-width:0;min-height:clamp(40px,7.500vh,58px);padding:0;border:0;border-radius:9px;border-bottom:6px solid var(--fc);background:#30352f;color:#fff;font:800 clamp(1rem,2.800vh,1.400rem) var(--body);touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:pointer}.tyk.bump::after{content:"";position:absolute;left:30%;right:30%;bottom:5px;height:3px;border-radius:2px;background:#fff}.tyk.target{background:var(--fc);color:#1c1712;box-shadow:0 0 0 3px #fff}.tyk.oops{background:#6a3a3a}.tylearn{max-width:760px;margin:0 auto;width:100%;display:grid;gap:10px;overflow:auto}.tysteps{margin:0;padding-left:24px;display:grid;gap:6px;color:#fff;font-size:1.05rem;line-height:1.4}.tynote{margin:0;color:#fff;opacity:.8;font-size:.95rem}body[data-view="typing"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}body[data-view="typing"] .runpill{display:none}@media (orientation:portrait){body[data-view="typing"] #app{overflow:auto}.tygame{grid-template-columns:1fr}.tyscene{height:32vh}}.daytext{display:grid;gap:4px;align-content:center}.daytext b{line-height:1.2}.daytext small{line-height:1.3}.keepgo{display:grid;gap:6px;justify-items:center;padding:8px 12px;border-radius:12px;background:rgba(57,208,122,.16);border:2px solid #39d07a;color:#fff;text-align:center}.keepgo b{font-size:1.05rem}.keepbtns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.keepbtns .btn{min-height:44px;padding:8px 16px}.keepline{margin:0;font-weight:700;color:#39d07a;font-size:1.05rem;text-align:center}.bookpage .prompt.bigq{font-size:clamp(2.2rem,7vh,3.6rem);text-align:center;font-weight:700;margin:auto 0}.split>.left:has(.bigq){display:flex;flex-direction:column;min-height:100%}.split>.left:has(.bigq) .prompt.bigq{flex:1;display:flex;flex-wrap:wrap;gap:0 .3em;align-items:center;justify-content:center;align-content:center}.choices.longc,.split>.right .choices.longc{grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:auto!important;max-height:none;flex:0 0 auto}.choices.longc button,.split>.right .choices.longc button{min-height:64px;padding:10px 16px;font-size:clamp(1.05rem,2.600vh,1.3rem);line-height:1.3}.console.split>.left:has(>.ctx:only-child){display:flex;align-items:center;justify-content:center}.console.split>.left>.ctx:only-child{width:100%;padding:28px 20px;font-size:clamp(1.8rem,5vh,2.800rem);line-height:1.25}.dloop{display:flex;justify-content:center;gap:8px;font-family:var(--body)}.dstep{display:grid;justify-items:center;gap:2px;padding:6px 10px;min-width:74px;border-radius:12px;background:#ece6d6;color:#6b6456}.dstep b{font-size:1.5rem;line-height:1}.dstep small{font-size:.78rem;font-weight:700}.dstep.on{background:#ffd76a;color:#1c1712;box-shadow:0 0 0 3px #1c1712}.typanel:not(:has(.tykb)){justify-content:flex-start;gap:24px}.typanel:not(:has(.tykb)) .tyhandsvg{max-width:560px;max-height:52vh}.typanel:not(:has(.tykb)) .tyhint{font-size:1.5rem}.praiseline{font-size:1.1rem;font-weight:600;margin:8px 0;padding-left:12px;border-left:4px solid var(--gold)}.dayrow .daytime{grid-column:2/-1;opacity:1;font-size:.9rem}.dayrow .daytime.warn{color:#ffb199;font-weight:700}.dayrow.timesonly{grid-template-columns:minmax(0,1fr)}.dayrow.timesonly .daytime{grid-column:1}
 .weekgrid{display:grid;grid-template-columns:minmax(110px,1.6fr) repeat(7,minmax(26px,1fr));gap:6px;align-items:center;justify-items:center}.weekgrid .wkname{justify-self:start;font-weight:700;font-size:.92rem}.weekgrid>b{font-size:.78rem}.wk{display:inline-block;width:20px;height:20px;border-radius:6px;background:rgba(128,128,128,.28)}.wk.yes{background:#39d07a}.wk.part{background:#ffd56b}.wk.none{background:#ff9d7a}.wk.later{background:rgba(128,128,128,.28)}.wk.off{background:transparent}
 .planrows{display:grid;gap:8px}.planrow{display:grid;grid-template-columns:62px minmax(120px,1fr) auto auto auto;align-items:center;gap:10px}.plantog{min-height:40px;border-radius:999px;background:rgba(128,128,128,.3);color:#fff;font-weight:800}.plantog.on{background:#1f9a4f}.plandays{display:flex;gap:3px}.plandays button{width:32px;height:36px;border-radius:7px;background:rgba(128,128,128,.25);color:#fff;font-weight:800}.plandays button.on{background:var(--gold);color:#1c1712}.planmin{display:inline-flex;align-items:center;gap:6px;font-weight:700}.planmin button{width:34px;height:34px;border-radius:50%;background:rgba(128,128,128,.3);color:#fff;font-weight:800}
 .dayhead h2{margin-bottom:26px}.dayhorse{width:44px;margin-left:-22px}
@@ -965,7 +965,7 @@ setTimeout(() => { try { if (familyLinked() && !localStorage.getItem("family-all
 function save() {
   S.updatedAt = Date.now();
   cloudSoon();
-  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, stepLog: U.stepLog, fills: U.fills, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
+  if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, stepLog: U.stepLog, fills: U.fills, boardMode: U.boardMode, boardStage: U.boardStage, broughtAt: U.broughtAt, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
   if (!dbDoc) return;
   clearTimeout(saveTimer);
@@ -1883,7 +1883,8 @@ function tyPaint() {
   if (hint && next) hint.innerHTML = `Use your <b style="color:${TY_COLORS[f]}">${TY_NAMES[f]}</b> for <b>${esc(next.toUpperCase())}</b>`;
 }
 function tyKey(raw) {
-  const t = U.ty; if (t?.phase !== "play" || t.locked) return;
+  const t = U.ty; if (t?.phase !== "play") return;
+  if (t.locked) { (t.waiting = t.waiting || []).push(raw); return; }
   const k = String(raw).toLowerCase(), want = t.cur[t.pos];
   if (t.stage === "words" && !t.startAt) t.startAt = Date.now();
   if (k !== want) { t.misses++; if (t.stage === "words") t.wordMisses++; t.wrong = k; beep(KEY_TAP); return tyPaint(); }
@@ -1899,20 +1900,27 @@ function tyKey(raw) {
   const day = schoolDay(); day.typeN = Math.max(day.typeN || 0, t.count);
   if (t.stage === "words") { earn(1); coinPop(1); }
   beep(CHIME); save();
-  setTimeout(() => { if (U.ty === t && U.view === "typing") tyNext(); }, 320);
+  setTimeout(() => { if (U.ty === t && U.view === "typing") { tyNext(); const held = t.waiting || []; t.waiting = []; held.forEach(tyKey); } }, 140);
 }
 document.addEventListener("pointerdown", (e) => {
   const key = e.target.closest?.(".tyk");
   if (key && U?.view === "typing") { e.preventDefault(); tyKey(key.dataset.k); }
 }, true);
 function tyHandsSvg() {
-  const hand = (x, fingers, flip) => {
-    const w = 26, gap = 5, tops = flip ? [18, 8, 4, 12] : [12, 4, 8, 18];
-    const parts = fingers.map((f, i) => { const fx = x + i * (w + gap), lab = "ASDFJKL;"[f]; return `<g class="tyfing" data-f="${f}"><rect x="${fx}" y="${tops[i]}" width="${w}" height="${78 - tops[i]}" rx="12" fill="${TY_COLORS[f]}" stroke="#1c1712" stroke-width="2"/><text x="${fx + w / 2}" y="${tops[i] + 22}" text-anchor="middle" font-size="16" font-weight="800" fill="#1c1712">${lab}</text></g>`; }).join("");
-    const palmW = 4 * w + 3 * gap, thumbX = flip ? x - 14 : x + palmW - 12, tilt = flip ? 28 : -28;
-    return `<rect x="${x}" y="66" width="${palmW}" height="50" rx="16" fill="#f0c9a4" stroke="#1c1712" stroke-width="2"/><rect x="${thumbX}" y="76" width="26" height="46" rx="12" fill="#f0c9a4" stroke="#1c1712" stroke-width="2" transform="rotate(${tilt} ${thumbX + 13} 100)"/>${parts}`;
+  const SKIN = "#efc3a0", LINE = "#9c6a48", W = 340;
+  // Fingers run pinky to pointer on the left hand, and the right hand is its mirror image.
+  const fing = [{ x: 14, w: 21, top: 54 }, { x: 38, w: 23, top: 36 }, { x: 64, w: 24, top: 26 }, { x: 91, w: 24, top: 38 }];
+  const finger = (f, spot, mirror, id) => {
+    const x = mirror ? W - spot.x - spot.w : spot.x, cx = x + spot.w / 2, r = spot.w / 2, t = spot.top, kn = t + (108 - t) * .38, kn2 = t + (108 - t) * .68;
+    return `<g class="tyfing" data-f="${f}" style="--fc:${TY_COLORS[f]}"><path class="fg" d="M${x} 112V${t + r}a${r} ${r} 0 0 1 ${spot.w} 0V112z" fill="${SKIN}" stroke="${LINE}" stroke-width="1.800"/><path d="M${cx - r * .55} ${t + r * 1.15}c0-${r * .95} ${r * 1.1}-${r * .95} ${r * 1.1} 0v${r * .55}c-${r * .3} ${r * .22}-${r * .8} ${r * .22}-${r * 1.1} 0z" fill="#fbe6d8" stroke="${LINE}" stroke-width="1"/><path d="M${x + 4} ${kn}q${r - 4} 3 ${spot.w - 8} 0M${x + 4} ${kn2}q${r - 4} 3 ${spot.w - 8} 0" fill="none" stroke="${LINE}" stroke-width="1" opacity=".55"/><circle class="tybadge" cx="${cx}" cy="${t - 11}" r="10.500" fill="${TY_COLORS[f]}" stroke="#1c1712" stroke-width="1.500"/><text x="${cx}" y="${t - 6}" text-anchor="middle" font-size="14" font-weight="800" fill="#1c1712">${"ASDFJKL;"[f]}</text></g>`;
   };
-  return `<svg class="tyhandsvg" viewBox="0 0 330 128" role="img" aria-label="Two hands. Left fingers rest on A S D F, right fingers rest on J K L and semicolon.">${hand(8, [0, 1, 2, 3], false)}${hand(182, [4, 5, 6, 7], true)}</svg>`;
+  const hand = (fingers, mirror) => {
+    const X = (x) => (mirror ? W - x : x);
+    const palm = `M${X(14)} 104L${X(13)} 128C${X(14)} 146 ${X(30)} 156 ${X(40)} 166H${X(96)}C${X(106)} 152 ${X(122)} 138 ${X(120)} 108L${X(115)} 104z`;
+    const thumb = mirror ? `translate(${W - 118} 108) rotate(-34)` : `translate(118 108) rotate(34)`;
+    return `<path d="${palm}" fill="${SKIN}" stroke="${LINE}" stroke-width="1.800" stroke-linejoin="round"/>${fingers.map((f, i) => finger(f, fing[mirror ? 3 - i : i], mirror)).join("")}<path d="M${X(14)} 112H${X(115)}" stroke="${SKIN}" stroke-width="5"/><path d="M${X(34)} 134C${X(52)} 126 ${X(84)} 124 ${X(104)} 118" fill="none" stroke="${LINE}" stroke-width="1" opacity=".5"/><g transform="${thumb}"><path d="M-11 -2V${36}a11 11 0 0 0 22 0V-2z" fill="${SKIN}" stroke="${LINE}" stroke-width="1.800"/><path d="M-6 ${30}c0 8 12 8 12 0v-5c-3-2-9-2-12 0z" fill="#fbe6d8" stroke="${LINE}" stroke-width="1"/></g>`;
+  };
+  return `<svg class="tyhandsvg" viewBox="0 0 ${W} 172" role="img" aria-label="Two hands. Left fingers rest on A S D F, right fingers rest on J K L and semicolon.">${hand([0, 1, 2, 3], false)}${hand([4, 5, 6, 7], true)}</svg>`;
 }
 function tyKeysHtml() {
   const key = (c) => { const f = TY_FINGER[c]; return `<button class="tyk ${c === "f" || c === "j" ? "bump" : ""}" data-k="${c}" aria-label="${c.toUpperCase()}" style="--fc:${f === undefined ? "#8a8f8a" : TY_COLORS[f]}">${c.toUpperCase()}</button>`; };
@@ -2113,7 +2121,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div>${all ? keepGoingRow(items) : ""}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "3ecba74c3b05";
+const GAME_BUILD = "996403be31fe";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2754,8 +2762,8 @@ function openChart() {
   });
 }
 function helpRow(q) {
-  const explain = U.mode === "try" && !U.coachDone && q.coach, hintable = q.coach && (explain || U.mode === "coach");
-  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${hintable ? `<button class="btn hintbtn ${U.stepWrong || U.wrongNow ? "nudgeme" : ""}" data-act="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-4 12.700c.8.600 1 1.300 1 2.300h6c0-1 .2-1.700 1-2.300A7 7 0 0 0 12 2z" fill="currentColor"/><path d="M9.500 20h5M10.500 22.500h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Hint</button>` : ""}${explain ? `<button class="btn go explainbtn" data-act="coach">Explain it, step by step</button>` : ""}${SUBJECT === "math" ? `<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>` : ""}${padIconHtml()}<button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
+  const explain = (U.mode === "try" && !U.coachDone && q.coach) || U.boardMode, hintable = q.coach && (explain || U.mode === "coach");
+  return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${hintable ? `<button class="btn hintbtn ${U.stepWrong || U.wrongNow ? "nudgeme" : ""}" data-act="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-4 12.700c.8.600 1 1.300 1 2.300h6c0-1 .2-1.700 1-2.300A7 7 0 0 0 12 2z" fill="currentColor"/><path d="M9.500 20h5M10.500 22.500h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Hint</button>` : ""}${explain ? `<button class="btn go explainbtn" data-act="${U.boardMode ? "boardExplain" : "coach"}">Explain it, step by step</button>` : ""}${SUBJECT === "math" ? `<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>` : ""}${padIconHtml()}<button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
 }
 function spadPrompt() {
   const q = curQ(), it = curItem();
@@ -2888,9 +2896,9 @@ function boardHtml(c, stepIdx, finished) {
   const s = c.steps[Math.min(stepIdx, c.steps.length - 1)], bi = s.board || 0, b = c.boards[bi];
   if (!b) return "";
   const shown = {};
-  c.steps.forEach((st, i) => { if (i <= stepIdx && (st.board || 0) === bi && st.show) st.show.forEach(([id, val]) => { shown[id] = val; }); });
+  c.steps.forEach((st, i) => { if (i <= stepIdx && (st.board || 0) === bi && st.show) st.show.forEach(([id, val]) => { if (!(i === stepIdx && bringPending(st) && /^b\d/.test(id))) shown[id] = val; }); });
   const hidden = new Set(); c.steps.forEach((st, i) => { if (i <= stepIdx && (st.board || 0) === bi && st.hide) st.hide.forEach((id) => hidden.add(id)); });
-  const live = finished ? null : s, hot = new Set(live?.hot || []), target = live?.put?.[0];
+  const live = finished ? null : s, hot = new Set(U.boardMode && U.boardStage === 2 ? [] : live?.hot || []), target = live && bringPending(live) ? bringCell(live)[0] : live?.put?.[0];
   const out = [];
   b.rows.forEach((row) => {
     if (row.rule) { out.push(`<span class="brule"></span>`); return; }
@@ -3042,6 +3050,7 @@ function solveView(l, q) {
       `<div class="bookpage"><div class="bh"><span>Prove it: a new problem, same idea</span></div>${pr.picture ? visual(pr.picture) : ""}${pr.book ? `<div class="pmathbig">${bookMath(pr.book, U.draft, true)}</div>` : `<p class="prompt" data-say="${esc(pr.prompt)}">${wordsHtml(pr.prompt)}</p>`}${scratchHtml()}
       ${pr.choices ? `<div class="choices">${pr.choices.map((o) => `<button data-act="proofPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${pr.book ? "" : `<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${cellBook() ? `<p class="tag dk">Boxes fill from the right. Tap a small top box to write a carry.</p>` : ""}${padHtml(cellBook() ? [] : pr.extra || [])}<button class="btn go wide" data-act="checkProof">SHOOT</button>`}</div>`;
   }
+  if (U.mode === "coach" && U.boardMode) return boardView(q, c);
   if (U.mode === "coach") {
     const s = c.steps[U.step], txt = U.msg || [U.step === 0 ? U.coachIntro : "", s.say, s.ask].filter(Boolean).join(" "), showTool = U.stepWrong >= 2 && !s.choices;
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
@@ -3666,11 +3675,13 @@ function reportText() {
   return out.join("\n");
 }
 // A problem counts as proof only if he got it with no hints and no walkthrough.
-const soloDone = (p) => p.done && !p.given && !p.coached && !p.hints;
+const soloDone = (p) => p.done && !p.given && !p.coached && !p.hints && !p.boardHelp;
 function howItWent(p) {
   const tries = (p.tries || p.wrong.length + 1) - 1;
   if (p.given) return ["Done in his book", "s-none"];
   if (p.accepted) return ["Parent accepted", "s-good"];
+  if (p.board && soloDone(p)) return ["On the division board, alone", "s-good"];
+  if (p.board && !p.coached) return ["On the division board, a little help", "s-work"];
   if (soloDone(p)) return !tries && !p.stepMiss ? ["Alone, first try", "s-good"] : [`Alone, after ${Math.max(tries, p.stepMiss || 0) + 1} tries`, "s-good"];
   if (p.done && !p.coached) return [`With ${p.hints} ${p.hints === 1 ? "hint" : "hints"}`, "s-work"];
   if (p.done) return ["Walked through it", "s-work"];
@@ -4136,9 +4147,41 @@ function skillLink(q) {
   }
   return "";
 }
+// The division board: he fills in the work himself, with the four steps lit beside it. Help fades as he gets it.
+// Stage 1: steps lit up and spots drawn. Stage 2: spots only. Stage 3: the plain answer box.
+const isDivBoard = (q) => !!q?.coach?.boards?.length && q.keys !== "letters" && q.coach.steps.some((s) => s.label === "Divide");
+const divStage = () => Math.min(3, S.divBoard?.stage || 1);
+const DIV_CLEAN_TO_MOVE = 3;
+const bringCell = (s) => s?.show?.find(([id]) => /^b\d/.test(id));
+const bringPending = (s) => U.boardMode && bringCell(s) && !U.broughtAt?.[U.step];
+function divTally(good) {
+  const d = (S.divBoard = S.divBoard || { stage: 1, clean: 0 });
+  if (good) { d.clean = (d.clean || 0) + 1; if (d.clean >= DIV_CLEAN_TO_MOVE) { d.stage = Math.min(3, (d.stage || 1) + 1); d.clean = 0; } }
+  else { d.stage = Math.max(1, (d.stage || 1) - 1); d.clean = 0; }
+}
+function boardStart() { U.boardMode = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.draft = ""; U.msg = null; U.off = []; U.stepLog = []; U.fills = {}; U.broughtAt = {}; U.boardStage = divStage(); U.coachDone = false; }
+function boardFinish() {
+  const q = curQ(), c = q.coach, p = PP(LP(U.lesson), q.id);
+  U.boardMode = false; U.step = c.steps.length - 1;
+  if (!p.done) { p.board = true; p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); divTally(!p.boardHelp && !p.hints && (p.stepMiss || 0) <= 1); }
+  finishProblem(!p.stepMiss && !p.boardHelp && !p.hints, false);
+}
+function boardView(q, c) {
+  const s = c.steps[U.step], stage = U.boardStage || 1, pending = bringPending(s), act = pending ? 3 : s.label === "Divide" || s.label === "Not enough" ? 0 : s.label === "Multiply" ? 1 : s.label === "Subtract" ? 2 : -1;
+  const names = ["Divide", "Multiply", "Subtract", "Bring down"], marks = ["÷", "×", "−", "↓"];
+  const loop = stage === 1 ? `<div class="dloop" role="img" aria-label="Divide, multiply, subtract, bring down">${marks.map((m, i) => `<span class="dstep ${i === act ? "on" : ""}"><b>${m}</b><small>${names[i]}</small></span>`).join("")}</div>` : "";
+  // The moves themselves get no question unless he's stuck. Writing the answer always gets its instruction.
+  const showAsk = act < 0 || U.stepWrong >= 2, ask = pending ? "Type the next number from the top row." : s.ask;
+  const line = U.msg || (stage === 1 ? "Your board. Do the step that's lit up." : "Your board. You know the steps.");
+  const head = q.book ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null);
+  const needShoot = pending ? false : !s.put?.length;
+  return hudRide(`<span class="chip">Your board</span>`) + bubble(line, U.msg && U.msg !== U.hintText ? "shake" : "", !U.msg) + `<div class="bookpage">${head}${loop}${boardHtml(c, U.step)}${showAsk ? `<div class="ctx lt stepask">${esc(ask)}</div>` : ""}${showAsk && !pending && s.visual ? visual(s.visual) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}${needShoot ? `<button class="btn go wide" data-act="checkStep">SHOOT</button>` : ""}</div>`;
+}
 function startCoach() {
   const q = curQ(), p = PP(LP(U.lesson), q.id);
   if (!q.coach) return;
+  if (isDivBoard(q) && !p.done) divTally(false);
+  U.boardMode = false; U.fills = {};
   U.coachIntro = skillLink(q);
   if (!p.done) p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
 }
@@ -4151,6 +4194,8 @@ function applyStepRight(val) {
   if (!p.done) (p.work = p.work || [])[U.step] = [s.ask || "", String(val), U.stepWrong];
   if (U.stepWrong === 0) { earn(1); coinPop(); correctFx(); } else { earn(2); coinPop(2); comeback(); correctFx("COMEBACK!"); }
   U.draft = ""; U.msg = null; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.mow = 0; U.deal = 0; U.step++;
+  // On his own board he's already done the work, so the proving picture stays in Explain.
+  if (U.boardMode) { while (c.steps[U.step]?.label === "Prove it") U.step++; if (U.step >= c.steps.length) return boardFinish(); }
   if (U.step >= c.steps.length) {
     U.step = c.steps.length - 1; U.cells = []; U.cellAt = 0; U.wrongNow = 0;
     if (c.reveal) { U.mode = "worked"; U.workedLockAt = Date.now(); if (!p.done) p.ans = unseal(`${U.lesson}|${q.id}`, c.reveal); beep(CHIME); save(); render(); setTimeout(narrateWorked, 500); return; }
@@ -4162,12 +4207,18 @@ function stepWrong(choice) {
   const q = curQ(), s = q.coach.steps[U.step], p = PP(LP(U.lesson), q.id);
   U.lastWrong = choice || U.draft; U.lastWrongFor = q.id; U.lastTrap = s.nudge;
   U.stepWrong++; if (!p.done) p.stepMiss = (p.stepMiss || 0) + 1; U.helped = false; U.helpN = 0;
+  if (U.boardMode && U.stepWrong === 2 && !p.done) p.boardHelp = (p.boardHelp || 0) + 1;
   if (s.label && !p.done) { p.missBy = p.missBy || {}; p.missBy[s.label] = (p.missBy[s.label] || 0) + 1; }
   if (choice) U.off.push(choice);
   U.msg = `${braveLine()} ${s.nudge}`; if (!lettersNow() || s.choices) U.draft = ""; wrongFx(); save(); render();
 }
 function checkStepTyped() {
   const q = curQ(), s = q.coach.steps[U.step];
+  if (bringPending(s)) {
+    if (U.draft === String(bringCell(s)[1])) { U.broughtAt[U.step] = true; U.stepWrong = 0; U.draft = ""; U.msg = null; earn(1); coinPop(); correctFx(); save(); return render(); }
+    const p = PP(LP(U.lesson), q.id); U.stepWrong++; if (!p.done) p.stepMiss = (p.stepMiss || 0) + 1; if (U.stepWrong === 2 && !p.done) p.boardHelp = (p.boardHelp || 0) + 1;
+    U.msg = `${braveLine()} Look at the top row. Find the next number you haven't used yet.`; U.draft = ""; wrongFx(); save(); return render();
+  }
   if (seal(U.lesson, `${q.id}.${U.step}`, U.draft) === s.sealed) applyStepRight(U.draft); else stepWrong();
 }
 function finishProblem(clean, proved) {
@@ -4218,6 +4269,7 @@ function checkProof() {
 function checkEntryAuto() {
   const it = curItem();
   if (U.qid) {
+    if (U.boardMode && U.mode === "coach") { const s = curQ().coach.steps[U.step], len = bringPending(s) ? 1 : s.put?.length; if (len && U.draft.length >= len) { checkStepTyped(); return true; } }
     return false;
   }
   if (it.type === "stampede") { const f = factsState(); if (U.draft.length >= String(factAnswer(f.order[f.i])).length) { checkStampede(); return true; } return false; }
@@ -4631,7 +4683,8 @@ const acts = {
   },
   leaveRide() { stopNarration(); closeTimer(); U.view = "town"; U.qid = null; U.combo = 0; save(); render(); window.scrollTo(0, 0); },
   next() { nextItem(); },
-  openq(d) { clearTimeout(partyTimer); document.querySelector(".party")?.remove(); U.qid = d.id; resetItem(); U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } render(); window.scrollTo(0, 0); },
+  openq(d) { clearTimeout(partyTimer); document.querySelector(".party")?.remove(); U.qid = d.id; resetItem(); U.boardMode = false; U.qStart = Date.now(); const p = PP(LP(U.lesson), d.id); if (p.done) { U.mode = "solved"; U.earned = 0; } else if (isDivBoard(curQ()) && divStage() < 3) boardStart(); render(); window.scrollTo(0, 0); },
+  boardExplain() { startCoach(); },
   closeq() { backToPage(); },
   nextProblem() {
     const id = nextProblemId();
@@ -4955,10 +5008,11 @@ document.addEventListener("keydown", (e) => {
   if (e.target?.id === "famPw" && e.key === "Enter") { e.preventDefault(); return U.linkCreate ? acts.familyCreate() : acts.familySignIn(); }
   if (["INPUT", "TEXTAREA"].includes(e.target?.tagName) && e.target.id !== "spellSink") return;
   if (U.view === "typing" && U.ty?.phase === "play") {
-    if (/^[a-zA-Z]$/.test(e.key)) {
+    const letter = /^[a-zA-Z]$/.test(e.key) ? e.key : /^Key[A-Z]$/.test(e.code || "") ? e.code.slice(3) : "";
+    if (letter) {
       e.preventDefault();
       if (!tyHasKeyboard()) { try { localStorage.setItem('family-real-keyboard', '1'); } catch (err) {} document.querySelector(".typanel .tykb")?.remove(); }
-      if (!e.repeat) tyKey(e.key);
+      if (!e.repeat) tyKey(letter);
     }
     else if (e.key === " ") e.preventDefault();
     return;
@@ -5054,7 +5108,12 @@ function spellFocus() {
   let box = document.getElementById("spellSink");
   if (U?.view !== "spelling" && U?.view !== "typing") { if (box && document.activeElement === box) box.blur(); return; }
   if (!box) {
-    box = document.createElement("input"); box.id = "spellSink"; box.readOnly = true; box.tabIndex = -1;
+    box = document.createElement("input"); box.id = "spellSink"; box.tabIndex = -1;
+    // If the keyboard sends text without a usable key press, pick the letters up here.
+    box.addEventListener("input", () => {
+      const got = box.value.replace(/[^a-zA-Z]/g, ""); box.value = "";
+      [...got].forEach((c) => { if (U.view === "typing") tyKey(c); else if (U.view === "spelling" && U.sp?.item) { realKeyboard = true; spellKey({ k: c.toLowerCase() }); } });
+    });
     box.setAttribute("inputmode", "none"); box.setAttribute("aria-hidden", "true"); box.setAttribute("autocomplete", "off"); box.setAttribute("autocapitalize", "none");
     box.style.cssText = "position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;border:0;padding:0;font-size:16px;pointer-events:none";
     document.body.appendChild(box);
@@ -5062,6 +5121,7 @@ function spellFocus() {
   if (document.activeElement !== box) box.focus({ preventScroll: true });
 }
 document.addEventListener("pointerup", () => setTimeout(spellFocus, 0), true);
+setInterval(() => { if (U?.view === "typing" || U?.view === "spelling") spellFocus(); }, 1000);
 addEventListener("focus", () => setTimeout(spellFocus, 0));
 let lastRenderedView = "";
 function render() {
