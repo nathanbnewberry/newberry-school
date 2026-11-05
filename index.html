@@ -2003,16 +2003,24 @@ function pnSetupRoad() {
 }
 function pnFit() { const cv = pnCv; if (!cv?.isConnected) return; const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.height * dpr)); cv.dpr = dpr; }
 window.addEventListener("resize", () => { if (U?.view === "piano") pnFit(); });
-// Drums keep the beat. With the microphone on, only the hi-hat plays, since a pitched drum could sound like a note.
+// Drums keep the beat, loud enough to play along to. They stay out of the listening's way: the kick drum is
+// too low for the note finder (it only hears 120 Hz and up), and the snare and hi-hat are short bursts of
+// noise with no pitch, over before a note can count. Beat volume is Loud, Soft or Off (S.pianoBeat).
+const PN_BEAT_VOL = { loud: 1, soft: .45, off: 0 };
+let pnBus = null;
 function pnDrum(b) {
-  const c = pnAudio(); if (!c || S.muted) return;
+  const c = pnAudio(), vol = PN_BEAT_VOL[S.pianoBeat || "loud"] ?? 1; if (!c || S.muted || !vol) return;
   const now = c.currentTime;
-  if (!pnNoise) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
-  const hit = (type, freq, vol, len) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); sr.buffer = pnNoise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(.001, now + len); sr.connect(f); f.connect(g); g.connect(c.destination); sr.start(now); sr.stop(now + len + .02); };
-  hit("highpass", 7000, pnMic ? .07 : .12, .05);
-  if (pnMic) return;
-  if (b % 2) hit("bandpass", 1800, .4, .14);
-  else { const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(140, now); o.frequency.exponentialRampToValueAtTime(45, now + .12); g.gain.setValueAtTime(.8, now); g.gain.exponentialRampToValueAtTime(.001, now + .2); o.connect(g); g.connect(c.destination); o.start(now); o.stop(now + .22); }
+  if (!pnBus || pnBus.context !== c) { const g = c.createGain(), comp = c.createDynamicsCompressor(); g.gain.value = 2.2; comp.threshold.value = -10; comp.ratio.value = 4; g.connect(comp); comp.connect(c.destination); pnBus = g; }
+  if (!pnNoise || pnNoise.sampleRate !== c.sampleRate) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
+  const noise = (type, freq, v, len) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); sr.buffer = pnNoise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(v * vol, now); g.gain.exponentialRampToValueAtTime(.001, now + len); sr.connect(f); f.connect(g); g.connect(pnBus); sr.start(now); sr.stop(now + len + .02); };
+  const bar = ((b % 4) + 4) % 4;
+  noise("highpass", 7000, .35, .04);
+  if (bar === 1 || bar === 3) noise("bandpass", 1800, .7, .07);
+  const o = c.createOscillator(), g = c.createGain(), start = bar === 0 ? 100 : 90;
+  o.frequency.setValueAtTime(start, now); o.frequency.exponentialRampToValueAtTime(40, now + .1);
+  g.gain.setValueAtTime((bar === 0 ? 1.2 : .9) * vol, now); g.gain.exponentialRampToValueAtTime(.001, now + .16);
+  o.connect(g); g.connect(pnBus); o.start(now); o.stop(now + .18);
 }
 function pnBurst(m, col, count) {
   const pn = U.pn, ln = pnLaneOf(pnFold(m)); if (!ln) return; const pt = pnPoint(ln[0], 0); if (!pt) return;
@@ -2314,7 +2322,7 @@ function pianoView() {
     return `<div class="pnhud"><button class="pnback" data-act="pnMenu">&#9664; Songs</button><b class="pnlogo">PIANO <span>HERO</span></b>${coins}</div><div class="pnres"><div class="pnrescard">${pnArt(song.id)}<div><div class="pnstars">${starsHtml}</div><h3>${esc(line)}</h3><div class="big">${pn.finishing ? "Song learned!" : `${pn.pct}%`}</div>${pn.newHi ? `<p class="pnhi">New high score!</p>` : ""}<div class="pnstats"><span><b>${pn.score.toLocaleString()}</b>Score</span><span><b>${pn.best}</b>Best streak</span>${gradesHtml}</div><p>${pn.finishing ? `+$${song.pay}. You played the whole song from memory.` : pn.good ? "of your notes were right. +$5" : "of your notes were right. Get to 80% to move on. +$1"}</p></div></div><div class="pnresbtns">${pn.good && pn.stepN < steps.length - 1 ? `<button class="btn go" data-act="pnGo" data-n="${nextN}">&#9654; Next: ${esc(steps[nextN].name)}</button>` : ""}<button class="btn ${pn.good ? "dark" : "go"}" data-act="pnGo" data-n="${pn.stepN}">&#8635; Play it again</button><button class="btn dark" data-act="pnMenu">All songs</button></div></div>`;
   }
   const road = `<div class="pnroad"><canvas id="pnRoad" aria-label="Notes coming down the highway"></canvas></div>`;
-  return `<div class="pnplay"><div class="pnbar"><button class="pnback" data-act="pnMenu" aria-label="Back to songs">&#9664;</button><span class="pnnow"><b>${esc(song.title)}</b> &middot; ${esc(pn.step.name)}</span><span id="pnHint" class="pnhint"></span>${pn.step.t === "wait" || pn.step.t === "lesson" ? `<button class="pnhear" data-act="pnHear">&#128266; Hear it</button>` : ""}${micRow}<div class="pnprog"><i id="pnProg"></i></div>${pn.step.t === "lesson" ? `<span class="pnsay">${esc(pn.say)}</span>` : ""}</div>${road}${pnKeysSvg(pn.hand)}</div>`;
+  return `<div class="pnplay"><div class="pnbar"><button class="pnback" data-act="pnMenu" aria-label="Back to songs">&#9664;</button><span class="pnnow"><b>${esc(song.title)}</b> &middot; ${esc(pn.step.name)}</span><span id="pnHint" class="pnhint"></span>${pn.step.t === "wait" || pn.step.t === "lesson" ? `<button class="pnhear" data-act="pnHear">&#128266; Hear it</button>` : ""}${pn.step.t === "beat" ? `<button class="pnhear" data-act="pnBeatVol">&#129345; Beat: ${{ loud: "Loud", soft: "Soft", off: "Off" }[S.pianoBeat || "loud"]}</button>` : ""}${micRow}<div class="pnprog"><i id="pnProg"></i></div>${pn.step.t === "lesson" ? `<span class="pnsay">${esc(pn.say)}</span>` : ""}</div>${road}${pnKeysSvg(pn.hand)}</div>`;
 }
 document.addEventListener("touchstart", (e) => {
   const key = e.target.closest?.(".pnk");
@@ -2701,7 +2709,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "159060765f08";
+const GAME_BUILD = "98d1f60a2e0e";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5498,6 +5506,7 @@ const acts = {
   pnMenu() { cancelAnimationFrame(pnRaf); U.pn = { screen: "menu" }; render(); },
   pnGo(d) { pnStart(+d.n); },
   pnSong(d) { S.piano = S.piano || {}; S.piano.cur = d.id; save(); render(); },
+  pnBeatVol() { const order = ["loud", "soft", "off"]; S.pianoBeat = order[(order.indexOf(S.pianoBeat || "loud") + 1) % 3]; save(); render(); },
   pnAdd() { U.pn = { screen: "add", addBpm: 80 }; render(); },
   pnAddSave() {
     const pn = U.pn, title = document.getElementById("pnAddTitle")?.value.trim() || "", text = document.getElementById("pnAddNotes")?.value || "", bpm = +document.getElementById("pnAddBpm")?.value || 80;
