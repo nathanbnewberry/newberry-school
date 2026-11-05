@@ -2113,7 +2113,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div>${all ? keepGoingRow(items) : ""}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1d5ab5162e40";
+const GAME_BUILD = "8fbdc28cccf7";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3358,7 +3358,7 @@ const GAL_ART = {
   bad: `${GAL_POST}<path d="M-22-22c0-12 8-16 22-16s22 4 22 16z" fill="#4a2020" stroke="#3a2412" stroke-width="2"/><circle cy="-50" r="16" fill="#dcb48a" stroke="#3a2412" stroke-width="2"/><path d="M-16-48c0 12 8 18 16 18s16-6 16-18c-10 3-22 3-32 0z" fill="#c8202c" stroke="#3a2412" stroke-width="1.5"/><path d="M-10-56l7 3M10-56l-7 3" stroke="#16151b" stroke-width="2.5" stroke-linecap="round"/><circle cx="-6" cy="-52" r="1.8" fill="#16151b"/><circle cx="6" cy="-52" r="1.8" fill="#16151b"/><path d="M-27-61c8-3 46-3 54 0-5 4-49 4-54 0z" fill="#16151b"/><path d="M-13-61c0-14 4-17 8-15 3 2 7 2 10 0 4-2 8 1 8 15z" fill="#16151b"/>`,
 };
 const GAL_POINTS = { bull: 1, deer: 2, coyote: 3, bad: 5 };
-const GAL_RIBBON = 30;
+const GAL_RIBBON = 50;
 const gameArt = {
   stampede: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaD" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3b26a"/><stop offset="1" stop-color="#ffe2a8"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaD)"/><rect y="70" width="200" height="40" fill="#c9a15f"/><path d="M0 72h36M0 86h36M10 62v42M28 62v42" stroke="#5a3517" stroke-width="4"/><g class="artsteer"><g transform="translate(120 72) scale(.6)"><rect x="-32" y="10" width="9" height="30" fill="#5a3517"/><rect x="24" y="10" width="9" height="30" fill="#5a3517"/><ellipse cy="0" rx="44" ry="24" fill="#8a5a2b"/><ellipse cx="-42" cy="-10" rx="18" ry="16" fill="#7d4c22"/><path d="M-52-22c-10-1-13-10-9-17 1 8 6 10 14 11zM-32-24c9-3 12-11 8-18-1 8-6 9-13 12z" fill="#f1e2c6"/></g></g><path class="artrope" d="M20 30C50 10 70 30 96 52" fill="none" stroke="#b08a4e" stroke-width="2.500"/><g transform="translate(120 24)"><rect x="-30" y="-14" width="60" height="26" rx="6" fill="#fbf3df" stroke="#5a3517" stroke-width="2"/><text y="5" text-anchor="middle" font-size="15" font-weight="800" fill="#2c1a0e">7 × 8</text></g></svg>`,
   run: `<svg class="gameart" preserveAspectRatio="xMidYMid slice" viewBox="0 0 200 110" aria-hidden="true"><defs><linearGradient id="gaS" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2a63"/><stop offset=".6" stop-color="#b5546a"/><stop offset="1" stop-color="#ffb860"/></linearGradient></defs><rect width="200" height="110" fill="url(#gaS)"/><circle cx="150" cy="66" r="18" fill="#ffe08a"/><path d="M0 84l26-26h26l18 26zM110 84l18-20h30l18 20z" fill="#5a2c52"/><rect y="84" width="200" height="26" fill="#3a1c30"/><g transform="translate(150 92)"><rect x="-5" y="-28" width="10" height="18" fill="#4a2020"/><circle cy="-33" r="5" fill="#dcb48a"/><path d="M-11-37h22M-5-37v-6h10v6" stroke="#16151b" stroke-width="3"/><path d="M-3-10V4M3-10V4" stroke="#2b2b2b" stroke-width="3"/></g><g class="artjump"><g transform="translate(60 62) scale(1.05)"><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#8fb7dc"/><circle cx="-2" cy="-35" r="6" fill="#f4cda8"/><rect x="-8" y="-38" width="12" height="4" fill="#15171b"/><path d="M-13-41H9" stroke="#fbfbf7" stroke-width="3"/><rect x="-7" y="-48" width="10" height="7" rx="2" fill="#fbfbf7"/></g></g><circle class="artcoin" cx="112" cy="40" r="7" fill="#ffc42e" stroke="#b9840f"/></svg>`,
@@ -3974,7 +3974,7 @@ function outlawSay(kind) {
 }
 // Shooting Gallery: 30 seconds of tin targets. A miss costs nothing, so he can tap as much as he likes.
 function startGallery() {
-  gal = { on: false, left: 30, score: 0, hits: 0, last: 0, w: 640, h: 300, items: [], rows: [{ y: 180, dir: 1, speed: 74, gap: 0 }, { y: 262, dir: -1, speed: 104, gap: .5 }] };
+  gal = { on: false, left: 30, score: 0, hits: 0, last: 0, w: 640, h: 300, items: [], rows: [{ y: 180, dir: 1, speed: 100, gap: 0 }, { y: 262, dir: -1, speed: 140, gap: .5 }] };
   const svg = document.getElementById("galScene");
   svg.addEventListener("pointerdown", (e) => { e.preventDefault(); galTap(e); });
   document.getElementById("galIntro").addEventListener("pointerdown", (e) => { e.preventDefault(); galBegin(); });
@@ -4024,7 +4024,7 @@ function galTap(e) {
   if (!gal.on) return galBegin();
   galFit();
   const x = (e.clientX - gal.left0) / gal.scale, y = (e.clientY - gal.top0) / gal.scale;
-  let best = null, dist = 40;
+  let best = null, dist = 29;
   gal.items.forEach((t) => { if (t.dead) return; const d = Math.hypot(t.x - x, t.y - 44 - y); if (d < dist) { dist = d; best = t; } });
   gunshot(.4);
   const fx = document.getElementById("galFx");
