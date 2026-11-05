@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=34bd583312"></script>
+<script src="lessons.js?v=a828f2ad30"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -2338,7 +2338,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div>${all ? keepGoingRow(items) : ""}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "e14b26fdb797";
+const GAME_BUILD = "dd7abfb3c3cb";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3161,6 +3161,7 @@ function divisionCheck(q, ans) {
   return `<p class="remember checkit"><b>Check it</b> ${whole} × ${d[0]} = ${whole * d[0]}${rem ? `, plus ${rem} left over makes ${whole * d[0] + rem}` : ""}. That's the number you started with!</p>`;
 }
 const WHY = {
+  "Mixed numbers on a number line": "It worked because the whole number tells which number the arrow has passed, and the fraction tells how far it has gone toward the next one.",
   "Helping and main verbs": "It worked because a helping verb always has another verb after it, and a main verb can stand alone.",
   "Adverbs": "It worked because the word told how something was done, and that's the job of an adverb.",
   "Adjectives": "It worked because each of those words describes a noun, telling what kind it is.",
@@ -3273,7 +3274,7 @@ function solveView(l, q) {
     return hudRide(`<span class="chip">Step ${U.step + 1} of ${c.steps.length}</span>`) + bubble(txt, U.msg && U.msg !== U.hintText ? "shake" : "") +
       `<div class="bookpage">${c.boards?.length ? `<div class="bh"><span>Problem ${esc(q.id)} ${q.refs ? `<i>(${esc(q.refs)})</i>` : ""}</span>${focusDots(q)}</div>` : problemHead(q, null)}${q.picture && !s.visual ? visual(q.picture) : ""}${s.noBoard ? "" : boardHtml(c, U.step)}${visual(s.visual)}
       ${s.label ? `<p class="move">${esc(s.label)}</p>` : ""}<div class="ctx lt stepask">${esc(s.ask)}</div>${c.boards?.length ? (U.spBig ? scratchHtml() : "") : scratchHtml()}
-      ${s.choices ? `<div class="choices ${s.choices.some((o) => o.length > 30) ? "longc" : ""}">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml(s.extra || [])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
+      ${s.choices ? `<div class="choices ${s.choices.some((o) => o.length > 30) ? "longc" : ""}">${s.choices.map((o) => `<button data-act="stepPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>` : `${showTool ? helperHtml(s) : ""}<div class="answer mini" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Type it</span>`}</div>${padHtml([...new Set([...(s.extra || []), ...(q.extra || []).filter((k) => k === "/" || k === " ")])])}<button class="btn go wide" data-act="checkStep">SHOOT</button>`}
       ${U.stepWrong >= 3 ? `<button class="link dk" data-act="flag">Get a parent, save this one</button>` : ""}</div>`;
   }
   if (q.match) return hudRide() + bubble(U.msg || "Tap a word on the left, then tap its match on the right. I'll draw the arrow.", U.msg ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${matchHtml(q.match)}</div>`;
