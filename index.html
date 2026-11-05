@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=a92d9c037a"></script>
+<script src="lessons.js?v=34bd583312"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1628,7 +1628,7 @@ function visual(v) {
   if (v.type === "numline") {
     const W = 340, x0 = 40, x1 = 300, n = v.segs || 0, ax = x0 + ((x1 - x0) * (v.at ?? 0.5));
     const ticks = Array.from({ length: n + 1 }, (_, i) => { const x = x0 + ((x1 - x0) * i) / (n || 1); return `<path d="M${x} 46v${i === 0 || i === n ? 20 : 12}" stroke="#2c1a0e" stroke-width="2"/>`; }).join("");
-    return `<div class="vis"><svg viewBox="0 0 ${W} 96" style="width:100%;max-width:440px" role="img" aria-label="A number line from ${v.from} to ${v.to} with an arrow pointing to a spot between them"><path d="M12 52H328" stroke="#2c1a0e" stroke-width="2.500"/><path d="M12 52l9-5v10zM328 52l-9-5v10z" fill="#2c1a0e"/>${n ? ticks : `<path d="M${x0} 42v20M${x1} 42v20" stroke="#2c1a0e" stroke-width="2"/>`}<path d="M${ax} 8V36" stroke="#c8202c" stroke-width="3.500"/><path d="M${ax - 7} 28L${ax} 40l7-12z" fill="#c8202c"/><text x="${x0}" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#2c1a0e">${v.from}</text><text x="${x1}" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#2c1a0e">${v.to}</text></svg></div>`;
+    return `<div class="vis"><svg viewBox="0 0 ${W} 96" style="width:100%;max-width:440px" role="img" aria-label="A number line from ${v.from} to ${v.to} with an arrow pointing to a spot between them"><path d="M12 52H328" stroke="#2c1a0e" stroke-width="2.500"/><path d="M12 52l9-5v10zM328 52l-9-5v10z" fill="#2c1a0e"/>${v.spaces ? Array.from({ length: n }, (_, i) => `<rect x="${x0 + ((x1 - x0) * i) / n}" y="46" width="${(x1 - x0) / n}" height="12" fill="${i % 2 ? "#5a8fe8" : "#58c26a"}" opacity=".8"/>`).join("") : ""}${v.hops ? Array.from({ length: Math.round((v.at ?? 0) * n) }, (_, i) => { const a = x0 + ((x1 - x0) * i) / n, w = (x1 - x0) / n; return `<path d="M${a} 46q${w / 2} -16 ${w} 0" fill="none" stroke="#d99a06" stroke-width="3.500"/>`; }).join("") : ""}${n ? ticks : `<path d="M${x0} 42v20M${x1} 42v20" stroke="#2c1a0e" stroke-width="2"/>`}<path d="M${ax} 8V36" stroke="#c8202c" stroke-width="3.500"/><path d="M${ax - 7} 28L${ax} 40l7-12z" fill="#c8202c"/><text x="${x0}" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#2c1a0e">${v.from}</text><text x="${x1}" y="88" text-anchor="middle" font-size="17" font-weight="700" fill="#2c1a0e">${v.to}</text></svg></div>`;
   }
   if (v.type === "triPyr") {
     const s = 44, h = 38, tri = (x, y, up, on) => `<path d="${up ? `M${x} ${y}l${s / 2} ${h}h${-s}z` : `M${x} ${y + h}l${s / 2} ${-h}h${-s}z`}" fill="${on ? "#7f97b8" : "#fff"}" stroke="#2c3a4d" stroke-width="2.500" stroke-linejoin="round"/>`;
@@ -2145,7 +2145,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div>${all ? keepGoingRow(items) : ""}<div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "7b6c3cf1d94c";
+const GAME_BUILD = "bf08c6e24658";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
