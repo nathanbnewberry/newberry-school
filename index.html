@@ -1884,10 +1884,13 @@ async function pnMicOn() {
   const pn = U.pn; if (!navigator.mediaDevices?.getUserMedia) { pn.micMsg = "This device can't listen. Tap the keys on the screen instead."; return render(); }
   // iPads only let sound start during a tap, so the listening audio starts right now, before waiting for permission.
   // It gets its own audio, apart from the game's sounds, so the iPad can't mix up the two.
+  // The game keeps iPads in "playback" so voices play with the silent switch on. That mode blocks the
+  // microphone ("AudioSession category is not compatible with audio capture"), so switch before listening.
+  try { if (navigator.audioSession) navigator.audioSession.type = "play-and-record"; } catch (e) {}
   const A = window.AudioContext || window.webkitAudioContext; let c = null;
   try { c = new A(); c.resume(); } catch (e) {}
   try {
-    pnDiag({ step: "asking", ctxBefore: c?.state || "none" });
+    pnDiag({ step: "asking", ctxBefore: c?.state || "none", session: navigator.audioSession?.type || "none", err: "" });
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
     catch (e1) { if (e1?.name === "NotAllowedError" || e1?.name === "SecurityError") throw e1; stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
@@ -1896,7 +1899,7 @@ async function pnMicOn() {
     if (!c) c = new A();
     if (c.state !== "running") { try { await c.resume(); } catch (e) {} }
     const an = c.createAnalyser(); an.fftSize = 4096; const src = c.createMediaStreamSource(stream); src.connect(an);
-    pnMicOff();
+    pnMicOff(true);
     pnMic = { stream, ctx: c, src, an, buf: new Float32Array(an.fftSize), last: 0, lastAt: 0, cand: 0, env: 0, quiet: true, startedAt: Date.now(), loudest: 0 };
     pnMic.timer = setInterval(pnListen, 60);
     pnDiag({ step: "listening", ctx: c.state, rate: c.sampleRate, loudest: 0, loudFrames: 0, pitched: 0, notes: "" }); save();
@@ -1904,12 +1907,12 @@ async function pnMicOn() {
     pn.micMsg = "";
     const cur = U.pn; if (cur?.screen === "play" && cur.needMic) { cur.needMic = false; if (cur.step.t === "beat") { cur.startAt = Date.now() + (4 * 60000) / cur.step.bpm; cur.tick = -99; } }
     render();
-  } catch (e) { try { c?.close(); } catch (er) {} pnDiag({ step: "error", err: `${e?.name || ""}: ${e?.message || e}`.slice(0, 160) }); save(); pn.micMsg = "help"; render(); }
+  } catch (e) { try { c?.close(); } catch (er) {} audioForPlaying(); pnDiag({ step: "error", err: `${e?.name || ""}: ${e?.message || e}`.slice(0, 160) }); save(); pn.micMsg = "help"; render(); }
 }
 // If the iPad paused the listening audio, any tap wakes it.
 document.addEventListener("pointerdown", () => { if (pnMic?.ctx && pnMic.ctx.state !== "running") pnMic.ctx.resume().catch(() => {}); }, true);
 const pnMicHelp = () => `<div class="pnhelp"><b>Let Piano Hero hear the piano</b><ol><li>In Safari, tap the <b>page menu</b> at the left of the address bar (it looks like <b>aA</b> or a small square).</li><li>Tap <b>Website Settings</b>.</li><li>Set <b>Microphone</b> to <b>Allow</b>.</li><li>Reload the page, then tap <b>Start listening</b>.</li></ol><small><b>Using Chrome?</b> Open the iPad's Settings app, scroll down to Chrome (in newer iPads, Apps, then Chrome), and turn on Microphone. Then close Chrome fully and open it again. Still nothing in Safari? On the iPad, open Settings, then Safari (in newer iPads, Apps, then Safari), then Microphone, and pick Allow. If Screen Time is on, also check Settings, Screen Time, Content &amp; Privacy Restrictions, Microphone.</small><button class="btn go" data-act="pnMic">Try listening again</button></div>`;
-function pnMicOff() { if (!pnMic) return; clearInterval(pnMic.timer); pnMic.stream?.getTracks?.().forEach((t) => t.stop()); try { pnMic.ctx?.close(); } catch (e) {} pnMic = null; }
+function pnMicOff(keepSession) { if (!pnMic) return; clearInterval(pnMic.timer); pnMic.stream?.getTracks?.().forEach((t) => t.stop()); try { pnMic.ctx?.close(); } catch (e) {} pnMic = null; if (!keepSession) audioForPlaying(); }
 function pnListen() {
   if (U.view !== "piano") return pnMicOff();
   const mic = pnMic; if (!mic || U.pn?.hearing) return;
@@ -2626,7 +2629,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "9e1edbb92b3a";
+const GAME_BUILD = "e4cbb55d218a";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
