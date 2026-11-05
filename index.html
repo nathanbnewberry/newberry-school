@@ -684,7 +684,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .daycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.daycard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:88px;padding:10px 14px;border-radius:16px;background:var(--paper);color:#1c1712;box-shadow:0 5px 0 #b9ad96;text-align:left;cursor:pointer}.daycard:active{transform:translateY(3px);box-shadow:0 2px 0 #b9ad96}.daycard.done{background:#c9f0d3;box-shadow:0 5px 0 #1f9a4f}.dayicon{width:52px;height:52px}.daytext{display:grid;gap:3px;min-width:0}.daytext b{font-size:1.2rem}.daytext small{font-size:.92rem;font-weight:600;color:#5d564b}.daybar{display:block;height:8px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}.daybar em{display:block;height:100%;background:#1f9a4f}.daycheck{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:3px solid #8a7a55;font-size:1.6rem;font-weight:800;color:#fff}.daycard.done .daycheck{background:#1f9a4f;border-color:#1f9a4f}
 .daysoon{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.9rem}.soonchip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);opacity:.75}.soonchip svg{width:22px;height:22px}
 .readwrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(18px,5vw,60px);flex:1;padding:8px}.readring{position:relative;width:clamp(220px,58vh,400px);aspect-ratio:1}.readring svg{width:100%;height:100%;display:block}.readclock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center}.readclock b{font:400 clamp(3rem,13vh,5.5rem) var(--display);color:var(--gold)}.readclock small{font-weight:700}.readside{display:grid;gap:14px;width:min(100%,380px);text-align:center}.readside p{margin:0;font-size:1.15rem;line-height:1.4}.readbtn{min-height:76px;font-size:1.4rem}
-.dayrow{display:grid;grid-template-columns:32px minmax(0,1fr) minmax(0,1.2fr) auto;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}.dayrow svg{width:30px;height:30px}.dayrow i.state{font-style:normal}.dayrow small{opacity:.85}.dayrow .daytime{grid-column:2/-1;opacity:1;font-size:.9rem}.dayrow .daytime.warn{color:#ffb199;font-weight:700}.dayrow.timesonly{grid-template-columns:minmax(0,1fr)}.dayrow.timesonly .daytime{grid-column:1}
+.dayrow{display:grid;grid-template-columns:32px minmax(0,1fr) minmax(0,1.2fr) auto;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--line)}.dayrow svg{width:30px;height:30px}.dayrow i.state{font-style:normal}.dayrow small{opacity:.85}.daycard.next{outline:5px solid var(--gold);outline-offset:-1px}.daycards:has(.next) .daycard:not(.next):not(.done){opacity:.9}@media (orientation:landscape) and (min-width:800px){body[data-view="school"] .daycards:has(.daycard:nth-child(7)){grid-template-columns:repeat(4,minmax(0,1fr))}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycard{gap:8px;padding:8px 10px;grid-template-columns:44px minmax(0,1fr) 34px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .dayicon{width:44px;height:44px}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext b{font-size:1.05rem;line-height:1.15}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daytext small{font-size:.8rem;line-height:1.2}body[data-view="school"] .daycards:has(.daycard:nth-child(7)) .daycheck{width:34px;height:34px;font-size:1.1rem}}.nextchip{display:inline-block;width:max-content;padding:2px 10px;border-radius:999px;background:#1c1712;color:var(--gold);font-size:.82rem;font-weight:800;margin-bottom:2px}.runbar{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;gap:2px 14px;margin-top:4px;padding:3px 14px;border-radius:12px;background:rgba(255,196,46,.14);color:#fff}.runbar b{font-size:1rem}body[data-view="states"] .runpill{left:auto;right:12px}.runbar small{opacity:.85}.runbar.done{background:rgba(57,208,122,.2)}.runtick{font-variant-numeric:tabular-nums}.runpill{position:fixed;left:12px;bottom:10px;z-index:15;padding:7px 14px;border-radius:999px;background:#1c1712;color:var(--gold);font:700 .95rem var(--body);box-shadow:0 2px 8px rgba(0,0,0,.4);pointer-events:none}.runpill.go{pointer-events:auto;background:var(--gold);color:#1c1712;min-height:44px;cursor:pointer}.praiseline{font-size:1.1rem;font-weight:600;margin:8px 0;padding-left:12px;border-left:4px solid var(--gold)}.dayrow .daytime{grid-column:2/-1;opacity:1;font-size:.9rem}.dayrow .daytime.warn{color:#ffb199;font-weight:700}.dayrow.timesonly{grid-template-columns:minmax(0,1fr)}.dayrow.timesonly .daytime{grid-column:1}
 .weekgrid{display:grid;grid-template-columns:minmax(110px,1.6fr) repeat(7,minmax(26px,1fr));gap:6px;align-items:center;justify-items:center}.weekgrid .wkname{justify-self:start;font-weight:700;font-size:.92rem}.weekgrid>b{font-size:.78rem}.wk{display:inline-block;width:20px;height:20px;border-radius:6px;background:rgba(128,128,128,.28)}.wk.yes{background:#39d07a}.wk.part{background:#ffd56b}.wk.none{background:#ff9d7a}.wk.later{background:rgba(128,128,128,.28)}.wk.off{background:transparent}
 .planrows{display:grid;gap:8px}.planrow{display:grid;grid-template-columns:62px minmax(120px,1fr) auto auto auto;align-items:center;gap:10px}.plantog{min-height:40px;border-radius:999px;background:rgba(128,128,128,.3);color:#fff;font-weight:800}.plantog.on{background:#1f9a4f}.plandays{display:flex;gap:3px}.plandays button{width:32px;height:36px;border-radius:7px;background:rgba(128,128,128,.25);color:#fff;font-weight:800}.plandays button.on{background:var(--gold);color:#1c1712}.planmin{display:inline-flex;align-items:center;gap:6px;font-weight:700}.planmin button{width:34px;height:34px;border-radius:50%;background:rgba(128,128,128,.3);color:#fff;font-weight:800}
 .dayhead h2{margin-bottom:26px}.dayhorse{width:44px;margin-left:-22px}
@@ -1539,7 +1539,7 @@ function pageGap(l, r) {
 function startRide(l, r) {
   const today = schoolDay(), isGrammar = l.subject === "grammar", todays = isGrammar ? today.grammarLesson : today.mathLesson;
   if (!todays || todays === l.id) stampKind(isGrammar ? "grammar" : "math", today);
-  U.lesson = l.id; U.ride = r.id; U.items = buildItems(l, r); U.i = 0; U.qid = null; U.solvedRun = 0; U.drawT = 0;
+  U.rv = null; U.lesson = l.id; U.ride = r.id; U.items = buildItems(l, r); U.i = 0; U.qid = null; U.solvedRun = 0; U.drawT = 0;
   W.theme = r.theme || "west"; W.gap = pageGap(l, r); W.targetGap = W.gap; resetItem(); U.view = "ride"; render(); window.scrollTo(0, 0);
 }
 function nextItem() {
@@ -1693,6 +1693,7 @@ const SCHOOL_DEFAULT = [
   { id: "grammar", name: "Grammar", icon: "grammar", kind: "grammar", on: false, days: WEEKDAYS },
   { id: "history", name: "History", icon: "history", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "science", name: "Science", icon: "science", kind: "check", on: false, soon: true, days: WEEKDAYS },
+  { id: "review", name: "Friday review", icon: "task", kind: "review", on: false, days: [5] },
   { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
   { id: "pirates", name: "Cannon Math Pirates", icon: "pirates", kind: "game", game: "pirates", on: false, days: WEEKDAYS, minutes: 10 },
 ];
@@ -1725,6 +1726,8 @@ function schoolPlan() {
     S.schoolPlan.forEach((x) => { if (order.includes(x.id)) x.on = true; });
     S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
   }
+  // Friday review is for children with lessons, set once so a parent's later changes stick.
+  if (!S.reviewSet) { S.reviewSet = 1; const r = S.schoolPlan.find((x) => x.id === "review"); if (r) r.on = ALL_LESSONS.some((l) => (l.kid || "elliot") === KID.id && !l.skip); }
   return S.schoolPlan;
 }
 const dateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -1738,6 +1741,106 @@ const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
   piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
 };
+// The run clock: from the first thing started today to the last thing finished.
+function runOf(day) {
+  const recs = Object.values(day?.times || {}), starts = recs.map((r) => r.start).filter(Boolean), ends = recs.map((r) => r.end).filter(Boolean);
+  if (!starts.length) return null;
+  const start = Math.min(...starts), done = !!day.allPaid && ends.length > 0;
+  return { start, done, secs: Math.max(0, ((done ? Math.max(...ends) : Date.now()) - start) / 1000), overlap: recs.some((r) => r.together), counted: starts.length };
+}
+// A run with two timers going at once doesn't count, so a best can only be beaten by really doing the work.
+function bestRun(exceptKey = dateKey()) {
+  const runs = Object.entries(S.days || {}).filter(([k]) => k !== exceptKey).map(([, d]) => runOf(d)).filter((r) => r && r.done && !r.overlap && r.counted >= 2).map((r) => r.secs);
+  return runs.length ? Math.min(...runs) : 0;
+}
+const runClock = (secs) => { const t = Math.floor(secs); return t >= 3600 ? gameClock(t) : `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+function runBar(items, day) {
+  if (!items.length) return "";
+  const run = runOf(day), best = bestRun(), bestTxt = best ? `<small>Your best run: ${runClock(best)}</small>` : "";
+  if (!run) return `<div class="runbar"><b>Your run clock starts when you start your first subject.</b>${bestTxt}</div>`;
+  if (run.done) { const beat = !run.overlap && best && run.secs < best; return `<div class="runbar done"><b>${beat ? "New best run!" : "Run finished!"} ${runClock(run.secs)}</b>${beat ? "" : bestTxt}</div>`; }
+  return `<div class="runbar"><b>Today's run: <span class="runtick">${runClock(run.secs)}</span></b>${run.overlap ? "<small>Best runs only count with one timer going at a time.</small>" : bestTxt}</div>`;
+}
+setInterval(() => {
+  const els = document.querySelectorAll(".runtick"); if (!els.length || typeof S === "undefined") return;
+  const run = runOf(schoolDay()); if (run) els.forEach((el) => { el.textContent = runClock(run.secs); });
+}, 1000);
+// What to do next: a running timer, then anything started and not finished, then the next on the list.
+function nextUp(items = todaysItems(), day = schoolDay()) {
+  const open = items.filter((x) => !itemStatus(x, day).done);
+  return open.find((x) => TIMERS[x.id] && day[TIMERS[x.id].from]) || open.find((x) => day.times?.[x.id]?.start) || open[0] || null;
+}
+const PILL_WORK = ["ride", "rideEnd", "town", "spelling", "states", "reading", "lessonReview", "reward"], PILL_AWAY = ["home", "ranch", "store", "trophies"];
+function runPill() {
+  const work = PILL_WORK.includes(U.view), away = PILL_AWAY.includes(U.view); if (!work && !away) return "";
+  const items = todaysItems(), day = schoolDay(); if (!items.length) return "";
+  const done = items.filter((x) => itemStatus(x, day).done).length, next = nextUp(items, day), run = runOf(day);
+  if (next && (away || U.justDone)) return `<button class="runpill go" data-act="schoolGo" data-id="${esc(next.id)}">${U.justDone ? `${esc(U.justDone)} done! ` : ""}Next up: ${esc(next.name)} &#9654;</button>`;
+  if (!run || !work) return "";
+  return `<div class="runpill"><span class="runtick">${runClock(run.secs)}</span> &#183; ${done} of ${items.length} done</div>`;
+}
+// Friday review: the problems he needed help with this week, tried again on his own.
+const REVIEW_MAX = 8;
+function reviewPicks() {
+  const since = Date.now() - 7 * 86400000, out = [];
+  ALL_LESSONS.filter((l) => (l.kid || "elliot") === KID.id && !l.skip).forEach((l) => {
+    const lp = S.lessons[l.id]; if (!lp) return;
+    (l.problems || []).forEach((q) => {
+      const p = lp.problems?.[q.id]; if (!p?.done || p.given || p.accepted || p.paper || q.match || q.paper || q.tap || q.given || (p.doneAt || 0) < since) return;
+      const help = (p.coached ? 3 : 0) + (p.hints || 0) + (p.wrong?.length || 0) + (p.stepMiss || 0);
+      if (help) out.push({ key: `${l.id}|${q.id}`, help });
+    });
+  });
+  return out.sort((a, b) => b.help - a.help).slice(0, REVIEW_MAX).map((x) => x.key);
+}
+function reviewList(day) {
+  if (!day.reviewList && S.days?.[dateKey()] === day) day.reviewList = reviewPicks();
+  return day.reviewList || [];
+}
+function reviewNext(say = "") {
+  const day = schoolDay(), key = reviewList(day).find((k) => !day.review?.[k]);
+  resetItem(); U.spBig = false;
+  if (!key) { U.rv = null; U.qid = null; setSubject("math"); U.view = "school"; save(); return render(); }
+  const at = key.indexOf("|"), l = ALL_LESSONS.find((x) => x.id === key.slice(0, at)), q = l && qOf(l, key.slice(at + 1));
+  if (!q) { day.review = day.review || {}; day.review[key] = "gone"; return reviewNext(say); }
+  setSubject(l.subject || "math"); U.lesson = l.id; U.qid = q.id; U.mode = "try"; U.items = [{ type: "page" }]; U.i = 0; U.rv = { key, misses: 0 }; U.msg = say; U.view = "ride"; render(); window.scrollTo(0, 0);
+}
+function reviewCheck(picked) {
+  const q = curQ(), l = curLesson(), rv = U.rv, day = schoolDay(), val = picked ?? (q.exact ? normExact(U.draft) : norm(U.draft));
+  if (!val) { U.msg = "Type your answer first, boss."; return render(); }
+  const sealed = q.exact ? hash(`${l.id}|${q.id}|${val}`) : seal(l.id, q.id, val);
+  day.review = day.review || {};
+  if (q.sealed.includes(sealed)) { day.review[rv.key] = rv.misses ? "tries" : "alone"; earn(5); beep(CHIME); save(); return reviewNext("Got it on your own. Next one."); }
+  rv.misses++; wrongFx();
+  if (rv.misses >= 2) { day.review[rv.key] = "help"; save(); return reviewNext("That one's still tricky, and that's okay. I told your parents so you can go over it together."); }
+  if (q.choices) U.off.push(U.draft);
+  U.msg = `Good try. ${q.traps?.[sealed] || "Take another look and try again."}`; U.draft = q.keys === "letters" ? U.draft : ""; U.cells = []; U.cellAt = 0; U.carries = {}; save(); render();
+}
+function reviewView() {
+  const q = curQ(), day = schoolDay(), list = reviewList(day), n = list.filter((k) => day.review?.[k]).length;
+  if (U.rv.said !== q.id) { U.rv.said = q.id; lastSaid = ""; speak(q.prompt); }
+  const chart = SUBJECT === "math" ? `<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>` : "";
+  const work = q.choices ? `<div class="choices">${q.choices.map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>`
+    : `${q.book ? "" : `<div class="answer" id="ans">${U.draft ? draftText(U.draft) : `<span class="empty">Your answer</span>`}</div>`}${padHtml(cellBook() ? [] : q.extra || [])}<div class="actions"><button class="btn go" data-act="check">SHOOT</button></div>`;
+  return `<div class="hud"><button class="btn mapbig" data-act="reviewLeave">&#9664; School Day</button><h2>Friday Review</h2><span class="chip">${n + 1} of ${list.length}</span></div>${bubble(U.msg || "Remember this one? Show me you've got it now.", U.msg && U.msg.startsWith("Good try") ? "shake" : "", true)}<div class="bookpage">${problemHead(q, U.draft)}${visual(q.picture)}${scratchHtml()}${work}<div class="helprow">${chart}${padIconHtml()}</div></div>`;
+}
+// One or two true, specific things to say tonight, written from what actually happened today.
+function tonightPraise() {
+  const today = dateKey(), day = S.days?.[today], lines = [], stamp = (t) => t && dateKey(new Date(t)) === today;
+  const solved = ALL_LESSONS.filter((l) => (l.kid || "elliot") === KID.id && !l.skip).flatMap((l) => (l.problems || []).map((q) => ({ l, q, p: S.lessons[l.id]?.problems?.[q.id] }))).filter((x) => x.p && stamp(x.p.doneAt) && !x.p.given);
+  const run = day && runOf(day), best = bestRun(), items = todaysItems();
+  if (run?.done && !run.overlap && best && run.secs < best) lines.push(`You got through all of your school in ${runClock(run.secs)}, your fastest run yet. You stayed locked in.`);
+  const back = solved.find((x) => x.p.wrong?.length && !x.p.coached && !x.p.hints);
+  if (back) lines.push(`You missed problem ${back.q.id} at first and kept going until you got it with no help. That's how people get really good at things.`);
+  const reviewed = Object.values(day?.review || {}).filter((v) => v === "alone" || v === "tries").length;
+  if (reviewed) lines.push(`On Friday review you went back to ${reviewed} ${reviewed === 1 ? "problem" : "problems"} that were hard this week and got ${reviewed === 1 ? "it" : "them"} on your own. You really learned ${reviewed === 1 ? "that" : "those"}.`);
+  const solo = solved.filter((x) => soloDone(x.p)).length;
+  if (solo >= 3) lines.push(`You solved ${solo} problems all by yourself today. I saw that.`);
+  if (day?.allPaid) lines.push(items.every((x) => day.gameTime?.[x.id]) ? `You finished everything on your list before 1:00. You got it done and earned your free time.` : `You finished everything on your list today, even when it took a while.`);
+  if (!lines.length && solved.length) lines.push(`You worked through ${solved.length} ${solved.length === 1 ? "problem" : "problems"} today and kept showing up for the hard parts.`);
+  if (!lines.length && day && items.some((x) => itemStatus(x, day).done)) lines.push(`You got your ${items.find((x) => itemStatus(x, day).done).name.toLowerCase()} done today. Thanks for getting after it.`);
+  return lines.slice(0, 2);
+}
 // When each subject was started and finished today, for the Parent page.
 const dayTimes = (id, day = schoolDay()) => { day.times = day.times || {}; return (day.times[id] = day.times[id] || {}); };
 const stampStart = (id, day = schoolDay()) => { const r = dayTimes(id, day); if (!r.start && !r.end) r.start = Date.now(); return r; };
@@ -1769,6 +1872,7 @@ function itemStatus(x, day = schoolDay()) {
     return { done: !!l && n >= must.length, label: n >= must.length ? `${l.town} finished` : `${l.town}: ${n} of ${must.length} sections`, pct: must.length ? n / must.length : 0 };
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.kind === "review") { const list = reviewList(day), n = list.filter((k) => day.review?.[k]).length; return { done: n >= list.length, label: !list.length ? "Nothing to go back over. Clean week!" : n >= list.length ? `${list.length} problems reviewed` : `${n} of ${list.length} problems`, pct: list.length ? n / list.length : 1 }; }
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
   if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), bee = spellBeeDay(); return { done: bee ? !!day.spellBee : n >= total || !!day.spellBee, label: bee ? (day.spellBee ? "Spelling bee done" : "Spelling bee day") : `${n} of ${total} words today`, pct: bee ? (day.spellBee ? 1 : 0) : n / total }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
@@ -1811,7 +1915,7 @@ function schoolTick() {
     if (!itemStatus(x, day).done) return;
     let extra = "";
     if (open && !day.gameTime?.[x.id]) { day.gameTime = day.gameTime || {}; const had = gameMinutes(items, day); day.gameTime[x.id] = true; const got = gameMinutes(items, day) - had; if (got) extra = ` and ${got} game minutes`; save(); }
-    if (!day.paid[x.id]) { const r = dayTimes(x.id, day); if (!r.end) r.end = Date.now(); day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5${extra}`); beep(CHIME); }
+    if (!day.paid[x.id]) { const r = dayTimes(x.id, day); if (!r.end) r.end = Date.now(); U.justDone = x.name; day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5${extra}`); beep(CHIME); }
   });
   if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); confetti(60); beep(FANFARE); banner("School's out! +$25"); }
 }
@@ -1830,14 +1934,15 @@ function lessonReviewView() {
 const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
 const saveStatusText = () => !familyLinked() ? "" : navigator.onLine === false ? "" : cloud === "synced" ? "Saved for the whole family" : "Saving...";
 function schoolView() {
-  setSubject("math");
+  setSubject("math"); U.justDone = "";
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
-  const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
+  const next = nextUp(items, day), ordered = next ? [next, ...items.filter((x) => x !== next)] : items;
+  const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? (KNIGHT ? "Your quest is done for today. Well fought, knight." : "School's out, partner! You finished the whole trail today.") : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : KNIGHT ? `Hail, Sir ${KID.name}. Here's today's quest. Pick any one to start.` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}</div><div class="daycards">${items.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "a31ef8394dd2";
+const GAME_BUILD = "033594102ecf";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -2745,6 +2850,7 @@ function solveView(l, q) {
     <div class="actions"><button class="btn go" data-act="check">SHOOT</button>${help}</div>${stuck && !U.coachDone ? "" : ""}${later}</div>`;
 }
 function rideView() {
+  if (U.rv && U.qid) return reviewView();
   const l = curLesson(), r = rideOf(l, U.ride), it = U.items[U.i];
   if (U.qid) {
     const q = qOf(l, U.qid), html = solveView(l, q);
@@ -3445,7 +3551,9 @@ function parentView() {
   const weekCell = (x, d) => { const key = dateKey(d), day = S.days?.[key], future = key > dateKey(); if (!x.days.includes(d.getDay())) return `<i class="wk off"></i>`; if (!day || !x.on) return `<i class="wk later"></i>`; return `<i class="wk ${itemStatus(x, day).done ? "yes" : itemStatus(x, day).pct > 0 ? "part" : key === dateKey() ? "later" : "none"}"></i>`; };
   const planItems = schoolPlan().filter((x) => x.on);
   const familyPanel = `<div class="panel"><h2>Viewing ${esc(KID.name)}</h2><div class="kidrow">${familyKids().map((k) => (k.id === KID.id ? `<span class="kidchip on">${esc(k.name)}</span>` : `<button class="kidchip" data-act="kidUse" data-id="${esc(k.id)}">${esc(k.name)}</button>`)).join("")}</div><div class="famrow"><input id="kidNew" type="text" maxlength="20" placeholder="Add a child's name"><button class="btn small" data-act="kidAdd">Add child</button></div><p class="sub"><a href="castle/?parents=1">Learning Castle lesson settings</a></p></div>`;
-  const schoolTop = `${familyPanel}<div class="panel"><h2>Today's school day</h2>${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i>${timesHtml(x, schoolDay())}</div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
+  const praise = tonightPraise(), reviewDone = Object.entries(schoolDay().review || {});
+  const praisePanel = `<div class="panel praise"><h2>Tonight's praise</h2>${praise.length ? `<p class="sub">Written from what ${esc(KID.name)} really did today. Say it in your own words, and look at the work together if you can.</p>${praise.map((t) => `<p class="praiseline">"${esc(t)}"</p>`).join("")}` : `<p class="sub">This fills in as ${esc(KID.name)} finishes work today.</p>`}${reviewDone.length ? `<p class="sub"><strong>Friday review:</strong> ${reviewDone.filter(([, v]) => v === "alone").length} on the first try, ${reviewDone.filter(([, v]) => v === "tries").length} on the second, ${reviewDone.filter(([, v]) => v === "help").length} to go over together${reviewDone.some(([, v]) => v === "help") ? `: problem ${reviewDone.filter(([, v]) => v === "help").map(([k]) => esc(k.split("|")[1])).join(", ")}` : ""}.</p>` : ""}</div>`;
+  const schoolTop = `${familyPanel}${praisePanel}<div class="panel"><h2>Today's school day</h2>${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i>${timesHtml(x, schoolDay())}</div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
   <div class="panel"><h2>This week</h2><div class="weekgrid" style="--days:7"><span></span>${weekDays.map((d) => `<b>${d.toLocaleDateString(undefined, { weekday: "short" })}</b>`).join("")}${planItems.map((x) => `<span class="wkname">${esc(x.name)}</span>${weekDays.map((d) => weekCell(x, d)).join("")}`).join("")}</div><div class="howkey"><span><i class="wk yes"></i> Done</span><span><i class="wk part"></i> Started</span><span><i class="wk none"></i> Not done</span><span><b>${S.schoolDays || 0}</b> full school days finished</span></div>${earlierTimes(weekDays, planItems)}</div>
   ${spellList() ? spellLog() : ""}
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
@@ -3834,6 +3942,7 @@ function finishProblem(clean, proved) {
 }
 function checkFinal() {
   const q = curQ(); if (!q) return;
+  if (U.rv) return reviewCheck();
   const l = curLesson(), p = PP(LP(l.id), q.id), val = q.exact ? normExact(U.draft) : norm(U.draft);
   if (!val) { U.msg = "Type your answer first, boss."; return render(); }
   const sealed = q.exact ? hash(`${l.id}|${q.id}|${val}`) : seal(l.id, q.id, val);
@@ -4352,9 +4461,11 @@ const acts = {
   },
   async famYes() { localStorage.setItem("family-games-code", U.famCode); try { localStorage.setItem(`${KEY}-before-join`, JSON.stringify(S)); } catch (e) {} S = { ...mergeSaves(S, U.famData, true), familyCode: U.famCode, pin: S.pin || U.famData.pin }; U.famData = null; U.famMsg = "Progress is on this device now."; save(); await loadRoster(); render(); },
   famNo() { U.famData = null; U.famMsg = ""; render(); },
+  reviewLeave() { U.rv = null; U.qid = null; resetItem(); setSubject("math"); U.view = "school"; render(); },
   schoolGo(d) {
     const x = schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
-    beep(BLIP);
+    beep(BLIP); U.justDone = "";
+    if (x.kind === "review") { if (!reviewList(day).length) return render(); stampStart(x.id, day); reviewNext(); return; }
     if (x.kind === "grammar") { setSubject("grammar"); const l = ALL_LESSONS.find((y) => y.id === day.grammarLesson) || LESSONS[currentIdx()]; if (!l) { setSubject("math"); return; } U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "math") { setSubject("math"); const l = ALL_LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "reading" || x.id === "piano") { U.timerId = x.id; U.view = "reading"; render(); return; }
@@ -4691,7 +4802,7 @@ function render() {
   const views = { who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
-  try { app.innerHTML = views[U.view]() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
+  try { app.innerHTML = views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
   fitProblemCells();
