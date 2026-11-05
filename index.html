@@ -1879,6 +1879,7 @@ function pnDetect(buf, rate) {
   const a = d[best - 1], m = d[best], c = d[best + 1], div = 2 * (2 * m - a - c), off = div ? (a - c) / div : 0;
   return rate / (best + (Math.abs(off) < 1 ? off : 0));
 }
+const pnDiag = (patch) => { S.pianoDiag = Object.assign(S.pianoDiag && S.pianoDiag.build === GAME_BUILD ? S.pianoDiag : { build: GAME_BUILD }, patch, { at: new Date().toISOString(), ua: navigator.userAgent.slice(0, 160) }); };
 async function pnMicOn() {
   const pn = U.pn; if (!navigator.mediaDevices?.getUserMedia) { pn.micMsg = "This device can't listen. Tap the keys on the screen instead."; return render(); }
   // iPads only let sound start during a tap, so the listening audio starts right now, before waiting for permission.
@@ -1886,18 +1887,24 @@ async function pnMicOn() {
   const A = window.AudioContext || window.webkitAudioContext; let c = null;
   try { c = new A(); c.resume(); } catch (e) {}
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    pnDiag({ step: "asking", ctxBefore: c?.state || "none" });
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e1) { if (e1?.name === "NotAllowedError" || e1?.name === "SecurityError") throw e1; stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    const tr = stream.getAudioTracks()[0], set = tr?.getSettings?.() || {};
+    pnDiag({ step: "stream", track: tr ? `${tr.readyState}${tr.muted ? " muted" : ""} ${tr.label || ""}`.trim() : "none", trackRate: set.sampleRate || 0, ec: String(set.echoCancellation), ns: String(set.noiseSuppression) });
     if (!c) c = new A();
     if (c.state !== "running") { try { await c.resume(); } catch (e) {} }
     const an = c.createAnalyser(); an.fftSize = 4096; const src = c.createMediaStreamSource(stream); src.connect(an);
     pnMicOff();
     pnMic = { stream, ctx: c, src, an, buf: new Float32Array(an.fftSize), last: 0, lastAt: 0, cand: 0, env: 0, quiet: true, startedAt: Date.now(), loudest: 0 };
     pnMic.timer = setInterval(pnListen, 60);
+    pnDiag({ step: "listening", ctx: c.state, rate: c.sampleRate, loudest: 0, loudFrames: 0, pitched: 0, notes: "" }); save();
     try { localStorage.setItem("family-piano-mic", "1"); } catch (e) {}
     pn.micMsg = "";
     const cur = U.pn; if (cur?.screen === "play" && cur.needMic) { cur.needMic = false; if (cur.step.t === "beat") { cur.startAt = Date.now() + (4 * 60000) / cur.step.bpm; cur.tick = -99; } }
     render();
-  } catch (e) { try { c?.close(); } catch (er) {} pn.micMsg = "help"; render(); }
+  } catch (e) { try { c?.close(); } catch (er) {} pnDiag({ step: "error", err: `${e?.name || ""}: ${e?.message || e}`.slice(0, 160) }); save(); pn.micMsg = "help"; render(); }
 }
 // If the iPad paused the listening audio, any tap wakes it.
 document.addEventListener("pointerdown", () => { if (pnMic?.ctx && pnMic.ctx.state !== "running") pnMic.ctx.resume().catch(() => {}); }, true);
@@ -1911,20 +1918,23 @@ function pnListen() {
   let sum = 0; for (let i = 0; i < mic.buf.length; i++) sum += mic.buf[i] * mic.buf[i];
   const rms = Math.sqrt(sum / mic.buf.length), lvl = document.getElementById("pnLvl"); if (lvl) lvl.style.width = `${Math.min(100, rms * 1500).toFixed(0)}%`;
   mic.loudest = Math.max(mic.loudest || 0, rms);
+  mic.frames = (mic.frames || 0) + 1; if (rms >= .003) mic.loud = (mic.loud || 0) + 1;
+  if (mic.frames % 80 === 0) { pnDiag({ ctx: mic.ctx?.state, loudest: +mic.loudest.toFixed(5), loudFrames: mic.loud || 0, frames: mic.frames, pitched: mic.pitched || 0, notes: (mic.heard || []).join(" ") }); save(); }
   if (hear && mic.ctx && mic.ctx.state !== "running") hear.textContent = "Tap the screen to wake the microphone";
   else if (hear && mic.loudest < .0005 && Date.now() - mic.startedAt > 4000) hear.textContent = "No sound is coming in. Try Safari, or close and reopen Chrome.";
-  const attack = rms > mic.env * 1.35 && rms > .012;
-  const quietNow = rms < .006;
+  const attack = rms > mic.env * 1.35 && rms > .006;
+  const quietNow = rms < .003;
   mic.env = Math.max(rms, mic.env * .82);
   if (quietNow) { mic.last = 0; mic.cand = 0; return; }
   const f = pnDetect(mic.buf, (mic.ctx || pnCtx).sampleRate); if (!f) return;
   const m = Math.round(69 + 12 * Math.log2(f / 440));
+  mic.pitched = (mic.pitched || 0) + 1;
   // A note counts once it's held for two listens. The same note again needs a new strike.
   if (m !== mic.cand) { mic.cand = m; mic.fresh = attack; return; }
   const now = Date.now(), newNote = m !== mic.last || attack || mic.fresh;
   mic.fresh = false;
   if (!newNote || now - mic.lastAt < 130) return;
-  mic.last = m; mic.lastAt = now;
+  mic.last = m; mic.lastAt = now; mic.heard = [...(mic.heard || []), PN_NAMES[((m % 12) + 12) % 12] + Math.floor(m / 12 - 1)].slice(-16);
   const label = document.getElementById("pnHear"); if (label) label.textContent = `I hear: ${PN_NAMES[((m % 12) + 12) % 12]}`;
   pnPress(m, true);
 }
@@ -2181,18 +2191,20 @@ function pnEnd() {
   save(); render();
 }
 // The right hand from above: thumb on C, pinky on G. [note, tip x, tip y, base x, base y, base width, tip width]
-const PN_HAND = [[60, 58, 176, 190, 296, 54, 40], [62, 150, 136, 168, 258, 46, 36], [64, 250, 120, 250, 252, 48, 38], [65, 350, 134, 330, 256, 46, 36], [67, 446, 166, 398, 266, 40, 30]];
+const PN_HAND = [[60, 70, 204, 168, 300, 60, 48], [62, 150, 136, 168, 258, 46, 36], [64, 250, 120, 250, 252, 48, 38], [65, 350, 134, 330, 256, 46, 36], [67, 446, 166, 398, 266, 40, 30]];
 function pnFinger([, tx, ty, bx, by, wb, wt]) {
   const L = Math.hypot(tx - bx, ty - by), ux = (tx - bx) / L, uy = (ty - by) / L, nx = -uy, ny = ux;
   const p = (x, y) => `${x.toFixed(1)} ${y.toFixed(1)}`;
   return `M${p(bx + (nx * wb) / 2, by + (ny * wb) / 2)}L${p(tx + (nx * wt) / 2, ty + (ny * wt) / 2)}C${p(tx + (nx * wt) / 2 + ux * wt * .7, ty + (ny * wt) / 2 + uy * wt * .7)} ${p(tx - (nx * wt) / 2 + ux * wt * .7, ty - (ny * wt) / 2 + uy * wt * .7)} ${p(tx - (nx * wt) / 2, ty - (ny * wt) / 2)}L${p(bx - (nx * wb) / 2, by - (ny * wb) / 2)}Z`;
 }
 function pnHandSvg() {
-  const palm = "M150 246Q250 232 430 256Q448 300 420 352H214Q186 330 176 300Q160 280 150 246Z";
-  const shapes = `<path d="${palm}"/>${PN_HAND.map((f) => `<path class="pnfg" data-m="${f[0]}" d="${pnFinger(f)}"/>`).join("")}`;
+  const palm = "M150 246Q250 232 430 256Q448 300 420 352H230Q196 346 178 318Q160 290 150 246Z";
+  const pad = `<ellipse cx="196" cy="306" rx="46" ry="34" transform="rotate(-38 196 306)"/>`;
+  const shapes = `<path d="${palm}"/>${pad}${PN_HAND.map((f) => `<path class="pnfg" data-m="${f[0]}" d="${pnFinger(f)}"/>`).join("")}`;
   const details = PN_HAND.map(([m, tx, ty, bx, by, wb, wt]) => {
     const L = Math.hypot(tx - bx, ty - by), ux = (tx - bx) / L, uy = (ty - by) / L, nx = -uy, ny = ux, ang = (Math.atan2(uy, ux) * 180) / Math.PI + 90;
     const crease = (t, w) => { const cx = tx - ux * L * t, cy = ty - uy * L * t; return `<path d="M${(cx - (nx * w) / 2).toFixed(1)} ${(cy - (ny * w) / 2).toFixed(1)}q${(ux * 3).toFixed(1)} ${(uy * 3).toFixed(1)} ${(nx * w).toFixed(1)} ${(ny * w).toFixed(1)}"/>`; };
+    if (m === 60) return `<g class="pnfd">${crease(.45, wt * .6)}<ellipse cx="${(tx - ux * wt * .1 + nx * 4).toFixed(1)}" cy="${(ty - uy * wt * .1 + ny * 4).toFixed(1)}" rx="${(wt * .26).toFixed(1)}" ry="${(wt * .36).toFixed(1)}" transform="rotate(${(ang + 20).toFixed(0)} ${(tx - ux * wt * .1 + nx * 4).toFixed(1)} ${(ty - uy * wt * .1 + ny * 4).toFixed(1)})"/><path d="M150 320q30 26 70 26"/></g>`;
     return `<g class="pnfd">${crease(.3, wt * .55)}${crease(.62, wb * .5)}<ellipse cx="${(tx - ux * wt * .05).toFixed(1)}" cy="${(ty - uy * wt * .05).toFixed(1)}" rx="${(wt * .3).toFixed(1)}" ry="${(wt * .4).toFixed(1)}" transform="rotate(${ang.toFixed(0)} ${(tx - ux * wt * .05).toFixed(1)} ${(ty - uy * wt * .05).toFixed(1)})"/></g>`;
   }).join("");
   const lit = PN_HAND.map((f) => `<path class="pnfc" data-m="${f[0]}" d="${pnFinger(f)}" style="--c:${PN_COLORS[f[0]]}"/>`).join("");
@@ -2399,10 +2411,10 @@ function tyKeyboardSvg() {
   const keys = rows.map(([letters, x0, y]) => [...letters].map((c, i) => key(c, x0 + i * 100, y)).join("")).join("") + `<g class="tyspace"><rect x="290" y="248" width="460" height="62" rx="11"/><text x="520" y="285" text-anchor="middle">space</text></g>`;
   // Both hands as see-through outlines of real hands, fingertips on the home keys, thumbs on the space bar.
   // [finger, tip x, tip y, base x, base y, base width, tip width]. The right hand mirrors the left.
-  const LEFT = [[0, 91, 150, 142, 282, 40, 32], [1, 191, 136, 206, 268, 46, 36], [2, 291, 132, 280, 266, 48, 38], [3, 391, 138, 352, 272, 48, 38], [-1, 446, 292, 342, 340, 54, 40]];
+  const LEFT = [[0, 91, 150, 142, 282, 40, 32], [1, 191, 136, 206, 268, 46, 36], [2, 291, 132, 280, 266, 48, 38], [3, 391, 138, 352, 272, 48, 38], [-1, 452, 300, 362, 350, 58, 46]];
   const RIGHT = LEFT.map(([f, tx, ty, bx, by, wb, wt]) => [f < 0 ? -2 : 7 - f, 1082 - tx, ty, 1082 - bx, by, wb, wt]);
   const palmL = "M118 278Q240 256 384 280Q396 330 362 372H150Q116 330 118 278Z", palmR = "M964 278Q842 256 698 280Q686 330 720 372H932Q966 330 964 278Z";
-  const shape = (list, palm) => `<path d="${palm}"/>${list.map((f) => `<path d="${pnFinger([0, ...f.slice(1)])}"/>`).join("")}`;
+  const shape = (list, palm) => `<path d="${palm}"/><ellipse cx="${palm === palmL ? 350 : 732}" cy="330" rx="44" ry="30" transform="rotate(${palm === palmL ? 32 : -32} ${palm === palmL ? 350 : 732} 330)"/>${list.map((f) => `<path d="${pnFinger([0, ...f.slice(1)])}"/>`).join("")}`;
   const ghost = shape(LEFT, palmL) + shape(RIGHT, palmR);
   const lit = [...LEFT, ...RIGHT].filter((f) => f[0] >= 0).map((f) => { const [n, tx, ty, bx, by] = f, L = Math.hypot(tx - bx, ty - by), x = tx - ((tx - bx) / L) * 34, y = ty - ((ty - by) / L) * 34; return `<g class="tyfing" data-f="${n}" style="--fc:${TY_COLORS[n]}"><path class="fg" d="${pnFinger([0, ...f.slice(1)])}"/><circle class="tydot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11"/></g>`; }).join("");
   const outline = `<defs><filter id="tyOutline" x="-5%" y="-5%" width="110%" height="110%"><feMorphology in="SourceAlpha" operator="dilate" radius="2.5" result="d"/><feComposite in="d" in2="SourceAlpha" operator="out" result="o"/><feFlood flood-color="#ffffff"/><feComposite in2="o" operator="in" result="line"/><feGaussianBlur in="line" stdDeviation="2.5" result="glow"/><feMerge><feMergeNode in="glow"/><feMergeNode in="line"/></feMerge></filter></defs>`;
@@ -2614,7 +2626,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "90b0d7fb317c";
+const GAME_BUILD = "9e1edbb92b3a";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
