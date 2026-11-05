@@ -1881,30 +1881,43 @@ function pnDetect(buf, rate) {
 }
 async function pnMicOn() {
   const pn = U.pn; if (!navigator.mediaDevices?.getUserMedia) { pn.micMsg = "This device can't listen. Tap the keys on the screen instead."; return render(); }
+  // iPads only let sound start during a tap, so the listening audio starts right now, before waiting for permission.
+  // It gets its own audio, apart from the game's sounds, so the iPad can't mix up the two.
+  const A = window.AudioContext || window.webkitAudioContext; let c = null;
+  try { c = new A(); c.resume(); } catch (e) {}
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-    const c = pnAudio(), an = c.createAnalyser(); an.fftSize = 4096; const src = c.createMediaStreamSource(stream); src.connect(an);
-    pnMic = { stream, an, buf: new Float32Array(an.fftSize), last: 0, lastAt: 0, cand: 0, env: 0, quiet: true };
+    if (!c) c = new A();
+    if (c.state !== "running") { try { await c.resume(); } catch (e) {} }
+    const an = c.createAnalyser(); an.fftSize = 4096; const src = c.createMediaStreamSource(stream); src.connect(an);
+    pnMicOff();
+    pnMic = { stream, ctx: c, src, an, buf: new Float32Array(an.fftSize), last: 0, lastAt: 0, cand: 0, env: 0, quiet: true, startedAt: Date.now(), loudest: 0 };
     pnMic.timer = setInterval(pnListen, 60);
     try { localStorage.setItem("family-piano-mic", "1"); } catch (e) {}
     pn.micMsg = "";
     const cur = U.pn; if (cur?.screen === "play" && cur.needMic) { cur.needMic = false; if (cur.step.t === "beat") { cur.startAt = Date.now() + (4 * 60000) / cur.step.bpm; cur.tick = -99; } }
     render();
-  } catch (e) { pn.micMsg = "help"; render(); }
+  } catch (e) { try { c?.close(); } catch (er) {} pn.micMsg = "help"; render(); }
 }
+// If the iPad paused the listening audio, any tap wakes it.
+document.addEventListener("pointerdown", () => { if (pnMic?.ctx && pnMic.ctx.state !== "running") pnMic.ctx.resume().catch(() => {}); }, true);
 const pnMicHelp = () => `<div class="pnhelp"><b>Let Piano Hero hear the piano</b><ol><li>In Safari, tap the <b>page menu</b> at the left of the address bar (it looks like <b>aA</b> or a small square).</li><li>Tap <b>Website Settings</b>.</li><li>Set <b>Microphone</b> to <b>Allow</b>.</li><li>Reload the page, then tap <b>Start listening</b>.</li></ol><small><b>Using Chrome?</b> Open the iPad's Settings app, scroll down to Chrome (in newer iPads, Apps, then Chrome), and turn on Microphone. Then close Chrome fully and open it again. Still nothing in Safari? On the iPad, open Settings, then Safari (in newer iPads, Apps, then Safari), then Microphone, and pick Allow. If Screen Time is on, also check Settings, Screen Time, Content &amp; Privacy Restrictions, Microphone.</small><button class="btn go" data-act="pnMic">Try listening again</button></div>`;
-function pnMicOff() { if (!pnMic) return; clearInterval(pnMic.timer); pnMic.stream.getTracks().forEach((t) => t.stop()); pnMic = null; }
+function pnMicOff() { if (!pnMic) return; clearInterval(pnMic.timer); pnMic.stream?.getTracks?.().forEach((t) => t.stop()); try { pnMic.ctx?.close(); } catch (e) {} pnMic = null; }
 function pnListen() {
   if (U.view !== "piano") return pnMicOff();
   const mic = pnMic; if (!mic || U.pn?.hearing) return;
   mic.an.getFloatTimeDomainData(mic.buf);
+  const hear = document.getElementById("pnHear");
   let sum = 0; for (let i = 0; i < mic.buf.length; i++) sum += mic.buf[i] * mic.buf[i];
   const rms = Math.sqrt(sum / mic.buf.length), lvl = document.getElementById("pnLvl"); if (lvl) lvl.style.width = `${Math.min(100, rms * 1500).toFixed(0)}%`;
+  mic.loudest = Math.max(mic.loudest || 0, rms);
+  if (hear && mic.ctx && mic.ctx.state !== "running") hear.textContent = "Tap the screen to wake the microphone";
+  else if (hear && mic.loudest < .0005 && Date.now() - mic.startedAt > 4000) hear.textContent = "No sound is coming in. Try Safari, or close and reopen Chrome.";
   const attack = rms > mic.env * 1.35 && rms > .012;
   const quietNow = rms < .006;
   mic.env = Math.max(rms, mic.env * .82);
   if (quietNow) { mic.last = 0; mic.cand = 0; return; }
-  const f = pnDetect(mic.buf, pnCtx.sampleRate); if (!f) return;
+  const f = pnDetect(mic.buf, (mic.ctx || pnCtx).sampleRate); if (!f) return;
   const m = Math.round(69 + 12 * Math.log2(f / 440));
   // A note counts once it's held for two listens. The same note again needs a new strike.
   if (m !== mic.cand) { mic.cand = m; mic.fresh = attack; return; }
@@ -2601,7 +2614,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "63712ef859df";
+const GAME_BUILD = "90b0d7fb317c";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
