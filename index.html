@@ -2026,7 +2026,7 @@ async function pnMicOn() {
     pnDiag({ step: "listening", ctx: c.state, rate: c.sampleRate, loudest: 0, loudFrames: 0, pitched: 0, notes: "" }); save();
     try { localStorage.setItem("family-piano-mic", "1"); } catch (e) {}
     pn.micMsg = "";
-    const cur = U.pn; if (cur?.screen === "play" && cur.needMic) { cur.needMic = false; if (cur.step.t === "beat") { cur.startAt = Date.now() + (4 * 60000) / cur.step.bpm; cur.tick = -99; } }
+    const cur = U.pn; if (cur?.screen === "play" && cur.needMic) { cur.needMic = false; if (cur.step.t === "beat") { cur.cursor = -4; cur.tick = -99; } }
     render();
   } catch (e) { try { c?.close(); } catch (er) {} audioForPlaying(); pnDiag({ step: "error", err: `${e?.name || ""}: ${e?.message || e}`.slice(0, 160) }); save(); pn.micMsg = "help"; render(); }
 }
@@ -2055,13 +2055,23 @@ function pnAmp(buf, rate, f) {
 // Is this letter sounding right now, in any octave from C3 to B5? It must carry a real share of the sound and
 // beat the keys a half step either side, so a neighbor or a note still ringing can't pass for it.
 // It allows a quarter of a half step either way for a piano that isn't perfectly tuned.
-function pnSounding(buf, rate, pc, rms) {
+function pnSounding(buf, rate, pc, rms, recent = []) {
   let best = null;
-  for (const m of [pc + 48, pc + 60, pc + 72]) {
-    const f = 440 * 2 ** ((m - 69) / 12), a = Math.max(pnAmp(buf, rate, f * 2 ** (-.25 / 12)), pnAmp(buf, rate, f), pnAmp(buf, rate, f * 2 ** (.25 / 12)));
-    const side = Math.max(pnAmp(buf, rate, f * 2 ** (-1 / 12)), pnAmp(buf, rate, f * 2 ** (1 / 12)));
-    const ok = a > .2 * rms * Math.SQRT2 && a > 1.4 * side;
-    if (!best || (ok && !best.ok) || (ok === best.ok && a > best.a)) best = { m, a, ok };
+  for (const m of [pc + 48, pc + 60, pc + 72, pc + 84]) {
+    const f = 440 * 2 ** ((m - 69) / 12), aL = pnAmp(buf, rate, f * 2 ** (-.25 / 12)), a0 = pnAmp(buf, rate, f), aR = pnAmp(buf, rate, f * 2 ** (.25 / 12)), a = Math.max(aL, a0, aR);
+    // The keys a half step either side, unless one was just played and is still ringing (E then F, B then C).
+    const lowPc = (pc + 11) % 12, highPc = (pc + 1) % 12;
+    const side = Math.max(recent.includes(lowPc) ? 0 : pnAmp(buf, rate, f * 2 ** (-1 / 12)), recent.includes(highPc) ? 0 : pnAmp(buf, rate, f * 2 ** (1 / 12)));
+    const den = 2 * (2 * a0 - aL - aR), off = den > 0 ? Math.max(-40, Math.min(40, ((aR - aL) / den) * 25)) : 0;
+    // A voice's overtone can land right on a note, but a voice always has its own lower pitch underneath at a half
+    // or a third of it. A piano note doesn't, unless that lower key was just played (like a left-hand chord).
+    const half = pnAmp(buf, rate, f / 2), third = pnAmp(buf, rate, f / 3), pcThird = (((pc - 7) % 12) + 12) % 12;
+    const under = (half > .5 * a && !recent.includes(pc)) || (third > .5 * a && !recent.includes(pcThird));
+    // ...and it has to sit right on the note's pitch (within about a quarter of a half step), not slide through it.
+    const ok = a > .28 * rms * Math.SQRT2 && a > 1.6 * side && !under && Math.abs(off) < 28;
+    // "loose" is the gentler test used for a note just played again, where a fresh strike at that exact pitch is proof enough.
+    const loose = a > .2 * rms * Math.SQRT2 && a > 1.4 * side;
+    if (!best || (ok && !best.ok) || (ok === best.ok && a > best.a)) best = { m, a, ok, off, loose };
   }
   return best;
 }
@@ -2089,7 +2099,7 @@ function pnListen() {
   if (rms < .0025) { mic.last = 0; mic.lastPc = -1; mic.cand = 0; return; }
   const heard = (m, how) => {
     const pc = ((m % 12) + 12) % 12;
-    mic.last = m; mic.lastPc = pc; mic.lastAt = now; mic.acceptAt = now; mic.low = rms; mic.recent = [pc, ...(mic.recent || [])].slice(0, 3); mic.pcPrev = undefined; mic.pcLow = undefined;
+    mic.last = m; mic.lastPc = pc; mic.lastAt = now; mic.acceptAt = now; mic.low = rms; mic.recent = [pc, ...(mic.recent || [])].slice(0, 4); mic.pcPrev = undefined; mic.pcLow = undefined;
     mic.heard = [...(mic.heard || []), `${PN_NAMES[pc]}${Math.floor(m / 12 - 1)}${how}`].slice(-16);
     if (hear) hear.textContent = `I hear: ${PN_NAMES[pc]}`;
     pnPress(m, true);
@@ -2098,7 +2108,7 @@ function pnListen() {
   const chord = U.pn?.screen === "lesson" ? pnLesItem() : null;
   if (Array.isArray(chord)) {
     if ((mic.struck || 0) > (mic.acceptAt || 0) - 50 && now - (mic.acceptAt || 0) > 250) {
-      const all = chord.every((m) => { const r = pnSounding(mic.buf, rate, ((m % 12) + 12) % 12, rms * .45); return r.ok; });
+      const all = chord.every((m) => { const r = pnSounding(mic.buf, rate, ((m % 12) + 12) % 12, rms * .45, chord.map((x) => ((x % 12) + 12) % 12)); return r.ok; });
       if (all) { mic.acceptAt = now; mic.lastPc = -1; mic.recent = chord.map((m) => ((m % 12) + 12) % 12); if (hear) hear.textContent = "I hear: a chord!"; return pnLesHit("chord"); }
     }
     return;
@@ -2106,17 +2116,30 @@ function pnListen() {
   // 1. The right note, checked directly.
   const exp = pnExpected(), struckSince = (mic.struck || 0) > (mic.acceptAt || 0);
   if ((U.pn?.screen === "play" || U.pn?.screen === "lesson") && exp.size && now - (mic.acceptAt || 0) > 110) {
+    mic.okPrev = mic.okPrev || {};
     for (const pc of exp) {
-      const r = pnSounding(mic.buf, rate, pc, rms);
+      const r = pnSounding(mic.buf, rate, pc, rms, mic.recent || []), was = mic.okPrev[pc];
+      // A piano note holds one exact pitch, so it must pass on two checks in a row at the same pitch, soon after
+      // a key was struck. Talking slides around in pitch and doesn't pass.
+      const same = r.ok && was && was.m === r.m && now - was.at < 140 && Math.abs(r.off - was.off) < 10;
+      // Three steady listens, or two when the note clearly rules the sound right after a fresh strike (fast songs).
+      const run = same ? (was.n || 1) + 1 : r.ok ? 1 : 0, strong = r.a > .45 * rms * Math.SQRT2;
+      const steady = run >= 3 || (run >= 2 && strong && now - Math.max(mic.struck || 0, (mic.offAt || {})[pc] || 0) < 200);
+      mic.okPrev[pc] = r.ok ? { m: r.m, at: now, off: r.off, n: run } : null;
+      // The note appearing out of nothing is a key being struck too, even when the overall loudness barely changes.
+      mic.offAt = mic.offAt || {}; if (!r.ok) mic.offAt[pc] = now;
+      const appeared = now - (mic.offAt[pc] || 0) < 320;
       // The same note again: it has to be struck again, which shows as that pitch jumping back up.
       // (A ringing note only fades.) The first 150 ms after a note are skipped while it finishes sounding.
       if (pc === mic.lastPc) {
-        if (now - (mic.acceptAt || 0) < 150) continue;
+        // Keep watching this pitch's loudness every listen, so the next strike's jump is never missed.
         const a = r.a, prevA = mic.pcPrev ?? a, lowA = Math.min(mic.pcLow ?? a, a);
-        mic.pcPrev = a; mic.pcLow = lowA;
-        if (!(r.ok && a > prevA * 1.2 && a > lowA * 1.3 && a - prevA > .001)) continue;
-      }
-      if (r.ok) { mic.pitched = (mic.pitched || 0) + 1; return heard(r.m, ""); }
+        mic.pcPrev = a; mic.pcLow = now - (mic.acceptAt || 0) < 120 ? a : lowA;
+        if (now - (mic.acceptAt || 0) < 120) continue;
+        if (r.loose && a > prevA * 1.2 && a > lowA * 1.3 && a - prevA > .001) mic.repeatArm = now;
+        if (!(r.loose && now - (mic.repeatArm || 0) < 200 && (now - (mic.struck || 0) < 300 || a > prevA * 1.2))) continue;
+      } else if (!(steady && (now - (mic.struck || 0) < 450 || appeared))) continue;
+      mic.pitched = (mic.pitched || 0) + 1; mic.repeatArm = 0; return heard(r.m, "");
     }
   }
   // 2. Anything else: a pitch guess that has to hold steady and follow a strike. Skipped right after a beat tick.
@@ -2129,6 +2152,7 @@ function pnListen() {
   const playing = U.pn?.screen === "play" || (U.pn?.screen === "lesson" && pnLesItem() !== "any");
   if (playing && exp.has(pc)) return; // the direct check above decides the right notes
   if (playing && (mic.recent || []).includes(pc)) return; // still ringing from a moment ago
+  if (playing && !pnSounding(mic.buf, rate, pc, rms, mic.recent || []).ok) return; // not a clean note: an overtone or a blur
   if (mic.candN < (playing ? 6 : 2) || !mic.candStruck) return;
   if (pc === mic.lastPc && !struckSince) return;
   if (now - (mic.acceptAt || 0) < 130) return;
@@ -2163,7 +2187,7 @@ function pnLesMetro() {
 function pnLesGo(les, step = 0) {
   stopVoice(); pnPrepSounds();
   U.pn = { screen: "lesson", les, step, pos: 0, wrong: 0, flash: "" };
-  render(); pnLesSay(); pnLesMetro();
+  render(); pnLesMetro();
   if (PN_COURSE[les].steps[step].need && !pnMic) pnMicOn();
 }
 function pnLesSay() { const pn = U.pn, st = PN_COURSE[pn.les].steps[pn.step]; try { playVoice(st.say, "david"); } catch (e) {} }
@@ -2199,7 +2223,7 @@ function pnLesView() {
   return `<div class="pnles"><div class="pnlesbar"><button class="pnicon" data-act="pnMenu" aria-label="Back to Piano School">&#10005;</button><b>Lesson ${pn.les + 1}: ${esc(L.title)}</b><span class="pnlesdots">${dots}</span>${st.metro ? `<i class="pnbeatdot" id="pnBeatDot"></i>` : ""}</div>
     <div class="pnlescard"><div class="pnlessay">${esc(st.say)}</div>${st.fingers ? PN_FINGER_PIC : ""}${chips}${status}</div>
     ${pnLesKeysSvg(st, it, pn.wrong)}
-    <div class="pnlesbtns">${pn.step > 0 ? `<button class="btn dark" data-act="pnLesBack">&#9664; Back</button>` : "<span></span>"}<button class="btn dark" data-act="pnLesSay">&#128266; Say it again</button>${st.metro ? `<button class="btn dark" data-act="pnBeatVol">&#129345; Beat: ${PN_BEAT_NAMES[pnBeatStyle()]}</button>` : ""}${st.need ? `<button class="btn dark" data-act="pnLesHear">&#127925; Hear it</button>` : ""}${!st.need || pn.tried ? `<button class="btn go" data-act="pnLesNext">${last ? "Finish lesson &#127942;" : "Next &#9654;"}</button>` : `<button class="link" data-act="pnLesNext">Skip</button>`}</div>
+    <div class="pnlesbtns">${pn.step > 0 ? `<button class="btn dark" data-act="pnLesBack">&#9664; Back</button>` : "<span></span>"}${st.metro ? `<button class="btn dark" data-act="pnBeatVol">&#129345; Beat: ${PN_BEAT_NAMES[pnBeatStyle()]}</button>` : ""}${st.need ? `<button class="btn dark" data-act="pnLesHear">&#127925; Hear it</button>` : ""}${!st.need || pn.tried ? `<button class="btn go" data-act="pnLesNext">${last ? "Finish lesson &#127942;" : "Next &#9654;"}</button>` : `<button class="link" data-act="pnLesNext">Skip</button>`}</div>
     ${st.need ? `<div class="pnmic">${pnMic ? `<span class="pnlive"><i></i>Listening</span><span class="pnlvl"><i id="pnLvl"></i></span><span id="pnHear">Play a key</span>` : `<button class="btn go" data-act="pnMic">&#127908; Start listening to my piano</button>`}</div>` : ""}</div>`;
 }
 function pnOpen() { stopVoice(); pnRec(); U.pn = { screen: "menu" }; U.view = "piano"; render(); window.scrollTo(0, 0); }
@@ -2217,7 +2241,7 @@ function pnStart(stepN, lessonN = 0) {
 }
 // Piano Hero plays like Guitar Hero: glowing gems ride a lit highway down to the keys.
 // The highway is as wide as the keyboard, one lane per key from C to the next C, black keys too.
-const PN_WINDOW = .4, PN_MIC_LAG = .15, PN_STAR_NOTES = 12;
+const PN_WINDOW = .4, PN_MIC_LAG = .26, PN_STAR_NOTES = 12;
 const PN_PC_COLORS = { 0: "#e8637a", 2: "#f09a3e", 4: "#e8c93e", 5: "#58c26a", 7: "#5a8fe8", 9: "#9a6ae8", 11: "#e86ac8" };
 const pnColor = (m) => PN_PC_COLORS[((m % 12) + 12) % 12] || "#8f96b8";
 const PN_WHITE_AT = { 0: 0, 2: 1, 4: 2, 5: 3, 7: 4, 9: 5, 11: 6, 12: 7 }, PN_BLACK_AT = { 1: 1, 3: 2, 6: 4, 8: 5, 10: 6 };
@@ -2246,9 +2270,9 @@ function pnGetBus(c) {
 // Beat sounds: a wooden metronome click by default, or drums, softer click, or off.
 // The click is pitched high (about 1,700 and 2,300 Hz), above every note the note finder listens for
 // (it checks up to B5, 988 Hz), so it can never count as a note.
-const PN_BEAT_STYLES = ["click", "drums", "soft", "off"], PN_BEAT_NAMES = { click: "Click", drums: "Drums", soft: "Soft", off: "Off" };
-const pnBeatStyle = () => (PN_BEAT_STYLES.includes(S.pianoBeat) ? S.pianoBeat : "click");
-const PN_BEAT_VOL = { click: 1, drums: 1, soft: .45, off: 0 };
+const PN_BEAT_STYLES = ["snare", "click", "drums", "soft", "off"], PN_BEAT_NAMES = { snare: "Snare", click: "Click", drums: "Drums", soft: "Soft", off: "Off" };
+const pnBeatStyle = () => (PN_BEAT_STYLES.includes(S.pianoBeat) && S.pianoBeat !== "click" ? S.pianoBeat : S.pianoBeat === "click" && S.pianoBeatPicked ? "click" : "snare");
+const PN_BEAT_VOL = { snare: 1, click: 1, drums: 1, soft: .45, off: 0 };
 let pnBus = null, pnTickAt = 0;
 function pnDrum(b) {
   const style = pnBeatStyle(), c = pnAudio(), vol = PN_BEAT_VOL[style]; if (!c || S.muted || !vol) return;
@@ -2258,6 +2282,12 @@ function pnDrum(b) {
   if (!pnNoise || pnNoise.sampleRate !== c.sampleRate) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
   const noise = (type, freq, v, len) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); sr.buffer = pnNoise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(v * vol, now); g.gain.exponentialRampToValueAtTime(.001, now + len); sr.connect(f); f.connect(g); g.connect(pnBus); sr.start(now); sr.stop(now + len + .02); };
   const bar = ((b % 4) + 4) % 4;
+  if (style === "snare" || style === "soft") {
+    // A snare: a crack of bright noise and a short rattle of wires, punchier on beat 1.
+    const acc = bar === 0 ? 1.25 : 1;
+    noise("bandpass", 2200, .9 * acc, .11); noise("highpass", 5500, .45 * acc, .07); noise("bandpass", 1200, .35 * acc, .05);
+    return;
+  }
   if (style !== "drums") {
     // A woodblock tick, with a brighter tock on beat 1: a quick pitched knock plus a tiny click of air.
     const f = bar === 0 ? 2300 : 1700, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
@@ -2276,6 +2306,7 @@ function pnDrum(b) {
 }
 const PN_CHEERS = { perfect: ["Perfect!", "Perfect! Keep going!"], good: ["Great job!", "That's it!", "Keep going!", "Nice playing!"], x2: ["Nice streak!"], x3: ["You're rolling now!"], x4: ["You're on fire!"], ten: ["Ten in a row! Keep it going!"], star: ["Star power!"], lost: ["Shake it off. Keep going!"], end: ["You rocked it!"], high: ["New high score!"] };
 function pnCheer(kind, force) {
+  return; // Voices are off in Piano Hero for now; the words on screen stay.
   const pn = U.pn, now = Date.now(), list = PN_CHEERS[kind]; if (!list || S.muted) return;
   if (!force && now - (U.pnCheerAt || 0) < 3500) return;
   U.pnCheerAt = now; const line = list[Math.floor(Math.random() * list.length)];
@@ -2342,11 +2373,16 @@ function pnFrameStart() { cancelAnimationFrame(pnRaf); pnRaf = requestAnimationF
 function pnFrame(now) {
   const pn = U.pn; if (U.view !== "piano" || pn?.screen !== "play") return;
   const dt = Math.min(.05, ((now || performance.now()) - (pn.lastT || now || 0)) / 1000) || .016; pn.lastT = now || performance.now();
-  if (pn.needMic && pn.step.t === "beat") pn.startAt = Date.now() + (4 * 60000) / pn.step.bpm;
   if (pn.step.t === "beat") {
-    const spb = 60 / pn.step.bpm, beat = (Date.now() - pn.startAt) / 1000 / spb;
-    pn.cursor = beat;
-    const tick = Math.floor(beat); if (tick !== pn.tick && beat >= -4) { pn.tick = tick; pnDrum(tick); }
+    const spb = 60 / (pn.step.bpm * (pn.speed || 1));
+    if (pn.needMic) pn.cursor = -4;
+    else {
+      const n = pn.notes.find((x) => !x.done), holdAt = n ? n.beat : Infinity;
+      if (pn.cursor + dt / spb >= holdAt) { pn.cursor = holdAt; if (!pn.holding) { pn.holding = true; pn.holdFrom = Date.now(); } }
+      else { pn.cursor += dt / spb; pn.holding = false; }
+    }
+    const beat = pn.cursor;
+    const tick = Math.floor(beat); if (tick !== pn.tick && beat >= -4 && !pn.holding) { pn.tick = tick; pnDrum(tick); }
     const lag = PN_WINDOW + (pnMic ? PN_MIC_LAG : 0);
     pn.notes.forEach((n) => { if (!n.done && (beat - n.beat) * spb > lag) pnResolve(n, null); });
     while (pn.idx < pn.notes.length && pn.notes[pn.idx].done) pn.idx++;
@@ -2498,7 +2534,7 @@ function pnPaint() {
     document.querySelectorAll(".pnf,.pnfc").forEach((f) => f.classList.toggle("on", +f.dataset.m === lit || +f.dataset.m === pn.demo));
   }
   const hint = document.getElementById("pnHint"), name = n ? PN_NAMES[pnFold(n.m) % 12] : "", fin = n && pn.fingers ? PN_FINGER[pnFold(n.m)] : 0;
-  const html = pn.needMic ? "Turn on listening to start" : pn.tapNote ? "Play it on your real piano!" : pn.hearing ? "Listen and watch the keys" : pn.step.t === "memory" ? (pn.idx === 0 && n ? `Starts on <b>${name}</b>` : pnMemHint(pn) >= 2 && n ? `Try <b>${name}</b>` : pnMemHint(pn) === 1 ? `Stuck? Look for the glow. ${pn.idx} of ${pn.notes.length}` : `${pn.idx} of ${pn.notes.length} notes`) : beat ? `${pn.notes.filter((x) => x.hit).length} of ${pn.notes.length} notes` : n ? `Next: <b>${name}</b>${fin ? `, finger <b>${fin}</b>` : ""}` : "";
+  const html = pn.needMic ? "Turn on listening to start" : pn.tapNote ? "Play it on your real piano!" : pn.hearing ? "Listen and watch the keys" : pn.step.t === "memory" ? (pn.idx === 0 && n ? `Starts on <b>${name}</b>` : pnMemHint(pn) >= 2 && n ? `Try <b>${name}</b>` : pnMemHint(pn) === 1 ? `Stuck? Look for the glow. ${pn.idx} of ${pn.notes.length}` : `${pn.idx} of ${pn.notes.length} notes`) : beat ? (pn.holding && n ? `Waiting for you: <b>${name}</b>` : `${pn.notes.filter((x) => x.hit).length} of ${pn.notes.length} notes${(pn.speed || 1) < .99 ? ` &middot; speed ${Math.round(pn.speed * 100)}%` : ""}`) : n ? `Next: <b>${name}</b>${fin ? `, finger <b>${fin}</b>` : ""}` : "";
   if (hint && hint.innerHTML !== html) hint.innerHTML = html;
   const prog = document.getElementById("pnProg"); if (prog) prog.style.width = `${(pn.notes.filter((x) => x.done).length / pn.notes.length) * 100}%`;
 }
@@ -2513,10 +2549,17 @@ function pnPress(m, fromMic) {
   pn.pressed = k; clearTimeout(pn.pressT); pn.pressT = setTimeout(() => { if (U.pn === pn) { pn.pressed = 0; pnPaint(); } }, 160);
   pn.flare[k] = Math.max(pn.flare[k] || 0, .45);
   if (pn.step.t === "beat") {
-    const spb = 60 / pn.step.bpm, at = pn.cursor - PN_MIC_LAG / spb;
+    const spb = 60 / (pn.step.bpm * (pn.speed || 1)), at = pn.cursor - PN_MIC_LAG / spb;
     let hit = null, gap = 9;
     pn.notes.forEach((n) => { const off = Math.abs(n.beat - at) * spb; if (!n.done && same(n.m, m) && off <= PN_WINDOW && off < gap) { gap = off; hit = n; } });
-    if (hit) pnResolve(hit, PN_GRADES.find((g) => gap <= g[1])[0]);
+    // Played after the song had to wait: it counts, but as late, and the song slows a little.
+    if (!hit && pn.holding) { const n = pn.notes.find((x) => !x.done); if (n && same(n.m, m)) hit = n; }
+    if (hit) {
+      const late = pn.holding && Date.now() - (pn.holdFrom || 0) > 250;
+      if (late) { hit.late = true; pn.lateHits = (pn.lateHits || 0) + 1; pn.onTime = 0; pn.combo = 0; pn.speed = Math.max(.55, (pn.speed || 1) * .9); pnResolve(hit, "GOOD"); }
+      else { pn.onTime = (pn.onTime || 0) + 1; if (pn.onTime % 8 === 0 && (pn.speed || 1) < 1) pn.speed = Math.min(1, pn.speed + .05); pnResolve(hit, PN_GRADES.find((g) => gap <= g[1])[0]); }
+      pn.holding = false;
+    }
     return pnPaint();
   }
   const n = pn.notes[pn.idx]; if (!n) return;
@@ -2557,7 +2600,7 @@ function pnEnd() {
   const pn = U.pn, rec = pnRec(), total = pn.notes.length, stepN = pn.stepN;
   cancelAnimationFrame(pnRaf);
   if (pn.step.t === "lesson" && pn.lessonN < PN_LESSON.length - 1) { earn(1); coinPop(); return pnStart(stepN, pn.lessonN + 1); }
-  const pct = Math.round((pn.hits / (pn.step.t === "beat" ? total : pn.hits + pn.misses)) * 100), good = pct >= 80;
+  const pct = Math.round(((pn.step.t === "beat" ? pn.hits - (pn.lateHits || 0) : pn.hits) / (pn.step.t === "beat" ? total : pn.hits + pn.misses)) * 100), good = pct >= 80;
   const finishing = good && pn.step.t === "memory" && !rec.learned, stars = pnStarsFor(pct);
   if (good) { rec.step = Math.max(rec.step, stepN + 1); earn(5); beep(CHIME); confetti(30 + stars * 10); } else { earn(1); }
   if (finishing) { rec.learned = true; earn(pnSong().pay || 10); beep(FANFARE); confetti(90); }
@@ -3039,7 +3082,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "5bd75a4fb7dd";
+const GAME_BUILD = "6f0b8ce832f1";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5855,7 +5898,7 @@ const acts = {
   pnLesGo(d) { pnLesGo(+d.n); },
   pnShelf(d) { U.pnShelf = d.id; render(); },
   pnIdea(d) { const pn = U.pn; pn.addTitle = d.t; pn.addMsg = `Find the letter notes for ${d.t}, then paste them in the box.`; render(); window.open(`https://www.google.com/search?q=${encodeURIComponent(`${d.t} easy piano letter notes`)}`, "_blank", "noopener"); },
-  pnBeatVol() { const i = PN_BEAT_STYLES.indexOf(pnBeatStyle()); S.pianoBeat = PN_BEAT_STYLES[(i + 1) % PN_BEAT_STYLES.length]; save(); render(); pnPrepSounds(); pnDrum(0); },
+  pnBeatVol() { const i = PN_BEAT_STYLES.indexOf(pnBeatStyle()); S.pianoBeat = PN_BEAT_STYLES[(i + 1) % PN_BEAT_STYLES.length]; S.pianoBeatPicked = 1; save(); render(); pnPrepSounds(); pnDrum(0); },
   pnAdd() { U.pn = { screen: "add", addBpm: 80 }; render(); },
   pnAddSave() {
     const pn = U.pn, title = document.getElementById("pnAddTitle")?.value.trim() || "", text = document.getElementById("pnAddNotes")?.value || "", bpm = +document.getElementById("pnAddBpm")?.value || 80;
