@@ -1719,7 +1719,7 @@ const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle
 // Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
 const KID_PLANS = {
   finn: { on: ["spelling", "math", "reading", "grammar", "capitals", "piano"], reading: 30, games: [], focus: "" },
-  myla: { on: ["reading", "castle"], reading: 15, games: ["castle"], focus: "Colors and shapes" },
+  myla: { on: ["reading", "castle", "piano"], reading: 15, piano: 10, games: ["castle"], focus: "Colors and shapes" },
 };
 const SCHOOL_DEFAULT = [
   { id: "math", name: "Math lesson", icon: "math", kind: "math", on: true, days: WEEKDAYS },
@@ -1744,6 +1744,8 @@ function schoolPlan() {
   SCHOOL_DEFAULT.forEach((d) => { if (!S.schoolPlan.some((x) => x.id === d.id)) S.schoolPlan.push(JSON.parse(JSON.stringify(d))); });
   // Piano is daily for Elliot and Finn, set once so a parent's later changes stick.
   if ((KID.id === "elliot" || KID.id === "finn") && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) p.on = true; }
+  // Myla starts piano at 10 minutes a day (Nathan, 2026-11-05). Set once so a parent's later changes stick.
+  if (KID.id === "myla" && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) { p.on = true; p.minutes = KID_PLANS.myla.piano; } }
   // Grammar used to be a checkbox too. Now it runs lessons on the same engine as math.
   S.schoolPlan.forEach((x) => { if (x.id === "grammar" && lessonsIn("grammar").length) { x.kind = "grammar"; delete x.soon; } });
   // Spelling used to be a checkbox. Now it's a game, so saved plans pick that up.
@@ -2709,7 +2711,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Sign out</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "98d1f60a2e0e";
+const GAME_BUILD = "43ef866f7f76";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
