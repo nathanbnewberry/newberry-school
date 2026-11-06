@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=40679da6d3"></script>
+<script src="lessons.js?v=40c63c38e5"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1518,10 +1518,12 @@ function rideDone(l, r) { return !!LP(l.id).rides[r.id]; }
 const optionalRide = (r) => r.kind === "warmup";
 function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !optionalRide(r) && !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
 const lessonLabel = (l) => esc(l?.test ? l.bookLesson : `Lesson ${l?.bookLesson}`);
+// A lesson with onlyOn (a test day) is today's stop only on that date, finished or not (Test 14, 2026-11-06).
+const isCurrent = (l) => l.current && (!l.onlyOn || l.onlyOn === dateKey());
 function lessonFinished(l) { return l.rides.every((r) => optionalRide(r) || rideDone(l, r)); }
 // The lesson marked current is today's stop. After that, the first lesson still unfinished.
 function currentIdx() {
-  const today = LESSONS.findIndex((l) => l.current && !lessonFinished(l));
+  const today = LESSONS.findIndex((l) => isCurrent(l) && !lessonFinished(l));
   if (today >= 0) return today;
   const open = LESSONS.findIndex((l) => !lessonFinished(l));
   return open < 0 ? Math.max(0, LESSONS.length - 1) : open;
@@ -3106,7 +3108,7 @@ function undoneTimers(day) {
 function switchDayLessons(day) {
   undoneTimers(day);
   [["math", "mathLesson"], ["grammar", "grammarLesson"]].forEach(([id, field]) => {
-    const fresh = withSubject(id, () => LESSONS.find((l) => l.current && !lessonFinished(l)));
+    const fresh = withSubject(id, () => LESSONS.find((l) => isCurrent(l) && !lessonFinished(l)));
     const was = day[field] && ALL_LESSONS.find((l) => l.id === day[field]);
     if (fresh && was && was.id !== fresh.id && ((lessonFinished(was) && !was.test) || (fresh.test && !lessonFinished(fresh)))) { day[field] = fresh.id; day.switched = day.switched || {}; day.switched[id] = Date.now(); save(); }
     const at = day.switched?.[id]; if (!at) return;
@@ -3162,7 +3164,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "4a41fed13a39";
+const GAME_BUILD = "04dfcd0ff767";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6125,7 +6127,7 @@ const acts = {
       const p = PP(LP(U.lesson), q.id); if (!p.done) p.hints = (p.hints || 0) + 1;
       if (U.testHint?.id !== q.id) U.testHint = { id: q.id, n: 0 };
       const n = U.testHint.n++;
-      return showHint(n === 0 ? `Here's the rule. ${q.rule} Tap Hint again for an example.` : n === 1 ? `Here's an example with other numbers. ${q.example}` : `That's every hint on a test. Read the rule again: ${q.rule} Then give it your best try.`);
+      return showHint(n === 0 ? `Here's the rule. ${q.rule} Tap Hint again for an example.` : n === 1 ? `Here's an example with other numbers. ${q.example}` : `That's every hint on a test. Read the rule again. ${q.rule} Then give it your best try.`);
     }
     if (!q?.coach) return;
     { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
