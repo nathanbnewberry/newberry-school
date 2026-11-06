@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=aafd53b9e5"></script>
+<script src="lessons.js?v=40679da6d3"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1517,6 +1517,7 @@ const qOf = (l, id) => l.problems.find((p) => p.id === id);
 function rideDone(l, r) { return !!LP(l.id).rides[r.id]; }
 const optionalRide = (r) => r.kind === "warmup";
 function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !optionalRide(r) && !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
+const lessonLabel = (l) => esc(l?.test ? l.bookLesson : `Lesson ${l?.bookLesson}`);
 function lessonFinished(l) { return l.rides.every((r) => optionalRide(r) || rideDone(l, r)); }
 // The lesson marked current is today's stop. After that, the first lesson still unfinished.
 function currentIdx() {
@@ -1571,6 +1572,19 @@ function endRide() {
 /* ---------- pictures ---------- */
 function visual(v) {
   if (!v) return "";
+  // Test 14: a number line from -5 to 5 with an arrow, a centimeter and millimeter ruler, and a 6 by 3 rectangle.
+  if (v.type === "t14line") {
+    const X = (n) => 40 + (n + 5) * 26;
+    const ticks = Array.from({ length: 11 }, (_, i) => i - 5).map((n) => `<path d="M${X(n)} 52v${n % 5 === 0 ? 18 : 12}" stroke="#2c1a0e" stroke-width="2"/>${n % 5 === 0 ? `<text x="${X(n)}" y="90" text-anchor="middle" font-size="16" font-weight="700" fill="#2c1a0e">${n < 0 ? "\u2212" + -n : n}</text>` : ""}`).join("");
+    return `<div class="vis"><svg viewBox="0 0 340 100" style="width:100%;max-width:440px" role="img" aria-label="A number line from minus 5 to 5 with an arrow pointing at one of the marks"><path d="M14 58H326" stroke="#2c1a0e" stroke-width="2.500"/><path d="M14 58l9-5v10zM326 58l-9-5v10z" fill="#2c1a0e"/>${ticks}<path d="M${X(-4)} 10V40" stroke="#c8202c" stroke-width="3"/><path d="M${X(-4) - 6} 34l6 10 6-10z" fill="#c8202c"/></svg></div>`;
+  }
+  if (v.type === "t14ruler") {
+    let mm = "", cm = "";
+    for (let m = 0; m <= 60; m++) { const x = 30 + m * 4.6; mm += `<path d="M${x} 30v${m % 10 === 0 ? 14 : m % 5 === 0 ? 10 : 6}" stroke="#2c1a0e" stroke-width="${m % 10 === 0 ? 1.8 : 1}"/>${m % 10 === 0 && m ? `<text x="${x}" y="22" text-anchor="middle" font-size="12" font-weight="700" fill="#2c1a0e">${m}</text>` : ""}`; }
+    for (let c = 0; c <= 6; c++) { const x = 30 + c * 46; cm += `<path d="M${x} 82v12" stroke="#2c1a0e" stroke-width="1.8"/>${c ? `<text x="${x}" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="#2c1a0e">${c}</text>` : ""}`; }
+    return `<div class="vis"><svg viewBox="0 0 340 120" style="width:100%;max-width:460px" role="img" aria-label="A line segment between a millimeter ruler on top and a centimeter ruler below, both starting at zero"><rect x="22" y="4" width="300" height="44" fill="#fff" stroke="#2c1a0e" stroke-width="1.5"/><text x="34" y="22" font-size="12" font-weight="700" fill="#2c1a0e">mm</text>${mm}<path d="M30 64H${30 + 50 * 4.6}" stroke="#1c5a8f" stroke-width="5" stroke-linecap="butt"/><rect x="22" y="80" width="300" height="36" fill="#fff" stroke="#2c1a0e" stroke-width="1.5"/><text x="34" y="110" font-size="12" font-weight="700" fill="#2c1a0e">cm</text>${cm}</svg></div>`;
+  }
+  if (v.type === "t14rect") return `<div class="vis"><svg viewBox="0 0 260 130" style="width:100%;max-width:320px" role="img" aria-label="A rectangle 6 centimeters long and 3 centimeters wide"><rect x="30" y="30" width="168" height="84" fill="#fff" stroke="#2c1a0e" stroke-width="3"/><text x="114" y="22" text-anchor="middle" font-size="16" font-weight="700" fill="#2c1a0e">6 cm</text><text x="206" y="77" font-size="16" font-weight="700" fill="#2c1a0e">3 cm</text></svg></div>`;
   if (v.type === "clock") {
     const hA = ((v.hour % 12) + v.minute / 60) * 30 - 90, mA = v.minute * 6 - 90;
     const hand = (a, l, w) => `<line x1="80" y1="80" x2="${80 + l * Math.cos((a * Math.PI) / 180)}" y2="${80 + l * Math.sin((a * Math.PI) / 180)}" stroke="#2c1a0e" stroke-width="${w}" stroke-linecap="round"/>`;
@@ -3094,7 +3108,7 @@ function switchDayLessons(day) {
   [["math", "mathLesson"], ["grammar", "grammarLesson"]].forEach(([id, field]) => {
     const fresh = withSubject(id, () => LESSONS.find((l) => l.current && !lessonFinished(l)));
     const was = day[field] && ALL_LESSONS.find((l) => l.id === day[field]);
-    if (fresh && was && was.id !== fresh.id && lessonFinished(was)) { day[field] = fresh.id; day.switched = day.switched || {}; day.switched[id] = Date.now(); save(); }
+    if (fresh && was && was.id !== fresh.id && ((lessonFinished(was) && !was.test) || (fresh.test && !lessonFinished(fresh)))) { day[field] = fresh.id; day.switched = day.switched || {}; day.switched[id] = Date.now(); save(); }
     const at = day.switched?.[id]; if (!at) return;
     const r = day.times?.[id];
     if (r?.end && r.end < at) delete r.end;
@@ -3127,7 +3141,7 @@ function lessonReviewView() {
     if (!r.problems) return `<button class="revride ${done ? "done" : ""}" data-act="reviewRide" data-id="${esc(r.id)}">${done ? "&#10003; " : ""}${esc(r.name)}</button>`;
     return `<div class="revsec"><h3>${done ? "&#10003; " : ""}${esc(r.name)}</h3><div class="revgrid">${r.problems.map((id) => { const p = PP(lp, id); return `<button class="revq ${p.done ? "done" : ""}" data-act="reviewQ" data-id="${esc(id)}" data-r="${esc(r.id)}"><b>${esc(id)}</b><span>${p.done && p.ans ? esc(p.ans) : p.done ? "&#10003;" : "&#8230;"}</span></button>`; }).join("")}</div></div>`;
   }).join("");
-  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${l.subject === "grammar" ? `Grammar: ${esc(l.town)}` : `${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; Lesson ${esc(l.bookLesson)}`}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${l.subject === "grammar" ? `Grammar: ${esc(l.town)}` : `${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; ${lessonLabel(l)}`}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${bubble(`Here's everything you did in ${l.town}. Tap any problem to see it again.`, "", true)}
   <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="ranch">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
 }
@@ -3148,7 +3162,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "7991cba1b628";
+const GAME_BUILD = "4a41fed13a39";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3816,9 +3830,9 @@ function pageView(l, r) {
       <span class="pbody">${math ? bookMath(q.book, p.done ? p.ans || "" : null, false) : esc(q.prompt)}${!math && p.done && p.ans ? `<em class="pans">${esc(p.ans)}</em>` : ""}</span>
       ${q.refs ? `<i class="prefs">${esc(q.refs)}</i>` : ""}${p.done ? `<span class="stamp">&#10003;</span>` : ""}</button>`;
   }).join("");
-  const explain = nextUp?.coach ? `<button class="btn go pgexplain" data-act="explainNext" data-id="${esc(nextUp.id)}">Silver explains problem ${esc(nextUp.id)}</button>` : "";
+  const explain = nextUp?.coach && !l.test ? `<button class="btn go pgexplain" data-act="explainNext" data-id="${esc(nextUp.id)}">Silver explains problem ${esc(nextUp.id)}</button>` : "";
   return hudRide() + bubble(done === 0 ? "Here's your page. Pick any problem. Each one you crack knocks out an outlaw." : pick(["Nice. Pick your next target.", "Keep going, outlaws are sweating.", "Which one's next, boss?"])) +
-    `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>Lesson ${esc(l.bookLesson)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div>${explain}</div>${progressTrail(r, lp)}<div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
+    `<div class="bookpage problempage"><div class="pghead"><div class="pgtitle"><b>${esc(r.section || r.name)}</b><span>${lessonLabel(l)}${r.page ? `, page ${esc(r.page)}` : ""}</span></div>${explain}</div>${progressTrail(r, lp)}<div class="pgrid ${r.columns ? "cols" : ""}">${cells}</div></div>`;
 }
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const curItemIsStampede = () => U.view === "ride" && !U.qid && U.items?.[U.i]?.type === "stampede";
@@ -3844,7 +3858,7 @@ function openChart() {
   });
 }
 function helpRow(q) {
-  const explain = (U.mode === "try" && !U.coachDone && q.coach) || U.boardMode, hintable = q.coach && (explain || U.mode === "coach");
+  const explain = (U.mode === "try" && !U.coachDone && q.coach) || U.boardMode, hintable = (q.coach && (explain || U.mode === "coach")) || (curLesson()?.test && U.mode === "try" && q.rule);
   return `<div class="helprow">${U.heard ? `<p class="heard">You asked: "${esc(U.heard)}"</p>` : ""}${hintable ? `<button class="btn hintbtn ${U.stepWrong || U.wrongNow ? "nudgeme" : ""}" data-act="hint"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-4 12.700c.8.600 1 1.300 1 2.300h6c0-1 .2-1.700 1-2.300A7 7 0 0 0 12 2z" fill="currentColor"/><path d="M9.500 20h5M10.500 22.500h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Hint</button>` : ""}${explain ? `<button class="btn go explainbtn" data-act="${U.boardMode ? "boardExplain" : "coach"}">Explain it, step by step</button>` : ""}${SUBJECT === "math" ? `<button class="chartbtn" data-act="chartOpen" aria-label="Multiplication chart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h18v18H3zM3 9h18M3 15h18M9 3v18M15 3v18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>` : ""}${padIconHtml()}<button class="micbtn" data-act="askMic" aria-label="Ask Silver">${MIC_ICON}</button></div>`;
 }
 function spadPrompt() {
@@ -4708,7 +4722,7 @@ function trophiesView() {
   }
   const shelves = LESSONS.length ? LESSONS : [QUEST_HOME];
   const total = shelves.reduce((n, l) => n + cityPrizes(l.id).length, 0);
-  return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="home">&#9664; Map</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${shelves.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} ${l.bookLesson ? `<small>Lesson ${esc(l.bookLesson)}</small>` : ""}</h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
+  return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="home">&#9664; Map</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${shelves.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} ${l.bookLesson ? `<small>${lessonLabel(l)}</small>` : ""}</h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
 }
 function ranchView() {
   return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || `Tap anywhere to ride around our ranch, ${KID.name}!`)}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
@@ -4856,7 +4870,7 @@ function improvements(l) {
 function lessonTrail() {
   return `<div class="ltrail">${LESSONS.map((l) => {
     const st = lessonStats(l), rideList = l.rides.filter((r) => !optionalRide(r)), sections = rideList.filter((r) => rideDone(l, r)).length, pct = rideList.length ? Math.round((sections / rideList.length) * 100) : 0, r = 26, len = 2 * Math.PI * r;
-    return `<${U.view === "parent" ? `button data-act="parentLesson" data-id="${esc(l.id)}"` : "div"} class="lstop ${st.finished ? "ldone" : ""}"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="8"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${st.finished ? "#39d07a" : "#ffc42e"}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(len * pct) / 100} ${len}" transform="rotate(-90 32 32)"/>${st.finished ? `<path d="M21 33l8 8 14-16" fill="none" stroke="#39d07a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>` : `<text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${pct}%</text>`}</svg><b>${esc(l.town)}</b><small class="lnum">Lesson ${esc(l.bookLesson)}</small><span>${st.finished ? esc(l.badge?.name || "Complete") : `${sections} of ${rideList.length} sections`}</span></${U.view === "parent" ? "button" : "div"}>`;
+    return `<${U.view === "parent" ? `button data-act="parentLesson" data-id="${esc(l.id)}"` : "div"} class="lstop ${st.finished ? "ldone" : ""}"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" fill="none" stroke="rgba(128,128,128,.3)" stroke-width="8"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${st.finished ? "#39d07a" : "#ffc42e"}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(len * pct) / 100} ${len}" transform="rotate(-90 32 32)"/>${st.finished ? `<path d="M21 33l8 8 14-16" fill="none" stroke="#39d07a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>` : `<text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">${pct}%</text>`}</svg><b>${esc(l.town)}</b><small class="lnum">${lessonLabel(l)}</small><span>${st.finished ? esc(l.badge?.name || "Complete") : `${sections} of ${rideList.length} sections`}</span></${U.view === "parent" ? "button" : "div"}>`;
   }).join("")}</div>`;
 }
 const CHANGE_WORD = { better: "Better", same: "Same", worse: "Needs work" };
@@ -4902,8 +4916,8 @@ function parentView() {
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
   const top = `${lessonsIn("grammar").length ? `<div class="revbtns subjecttabs"><button class="btn ${SUBJECT === "math" ? "go" : "dark"}" data-act="parentSubject" data-s="math">Math</button><button class="btn ${SUBJECT === "grammar" ? "go" : "dark"}" data-act="parentSubject" data-s="grammar">Grammar</button></div>` : ""}<div class="panel"><h2>${SUBJECT === "grammar" ? "Grammar lessons" : "Lessons"} done: ${finishedN} of ${LESSONS.length}</h2><p class="sub">Tap a lesson to see how it went.</p>${lessonTrail()}</div>
   <div class="panel"><h2>How ${esc(KID.name)} is doing</h2>${howBar(all)}<div class="pstats">${stat(S.brave || 0, "brave tries")}${stat(count(all, (p) => p.hints), "hints used")}${stat(done.filter((p) => p.coached).length, "walkthroughs")}${stat(Object.keys(S.capitals || {}).length, "capitals learned")}</div>${done.length ? `<div class="ptwo"><div><h3>Strong at</h3>${strongList.length ? `<ul>${strongList.slice(0, 4).map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p class="sub">Not enough solved alone yet.</p>`}</div><div><h3>Needs help with</h3>${hard.length ? `<ul>${hard.map((k) => `<li>${esc(k.name)}</li>`).join("")}</ul><p class="ptry">Try this: ask him to teach you one of these out loud.</p>` : `<p class="sub">Nothing stands out.</p>`}</div></div>` : ""}</div>
-  <div class="panel"><h2>Trophies: ${LESSONS.reduce((n, l) => n + cityPrizes(l.id).length, 0)}</h2><div class="skrows">${LESSONS.map((l) => { const won = cityPrizes(l.id), cap = US_CAPITALS.find((r) => r[0] === l.place?.state)?.[2]; return `<div class="trow"><div><b>Lesson ${esc(l.bookLesson)}: ${esc(l.town)}</b>${l.place ? `<small>${esc(l.place.state)} &#183; capital: ${esc(cap)}</small>` : ""}</div><span class="tmini">${won.map((p) => `<svg viewBox="-34 -36 68 72" role="img" aria-label="${esc(p)}">${PRIZE_ART[p]}</svg>`).join("") || `<small>None yet</small>`}</span><b class="tcount">${won.length}</b></div>`; }).join("")}</div></div>
-  <div class="panel"><h2>Improvement</h2>${compared.length ? compared.map(({ l, imp }, n) => `<h3>Lesson ${esc(l.bookLesson)} compared with Lesson ${esc(imp.from.bookLesson)}</h3>${n === 0 ? improvementRows(imp) : `<details class="plog"><summary>Show</summary>${improvementRows(imp)}</details>`}`).join("") : `<p class="sub">This appears once at least 3 problems are finished in two lessons.</p>`}</div>`;
+  <div class="panel"><h2>Trophies: ${LESSONS.reduce((n, l) => n + cityPrizes(l.id).length, 0)}</h2><div class="skrows">${LESSONS.map((l) => { const won = cityPrizes(l.id), cap = US_CAPITALS.find((r) => r[0] === l.place?.state)?.[2]; return `<div class="trow"><div><b>${lessonLabel(l)}: ${esc(l.town)}</b>${l.place ? `<small>${esc(l.place.state)} &#183; capital: ${esc(cap)}</small>` : ""}</div><span class="tmini">${won.map((p) => `<svg viewBox="-34 -36 68 72" role="img" aria-label="${esc(p)}">${PRIZE_ART[p]}</svg>`).join("") || `<small>None yet</small>`}</span><b class="tcount">${won.length}</b></div>`; }).join("")}</div></div>
+  <div class="panel"><h2>Improvement</h2>${compared.length ? compared.map(({ l, imp }, n) => `<h3>${lessonLabel(l)} compared with Lesson ${esc(imp.from.bookLesson)}</h3>${n === 0 ? improvementRows(imp) : `<details class="plog"><summary>Show</summary>${improvementRows(imp)}</details>`}`).join("") : `<p class="sub">This appears once at least 3 problems are finished in two lessons.</p>`}</div>`;
   const lessonPage = (l) => {
     const lp = LP(l.id), mine = l.problems.filter((q) => !PP(lp, q.id).given), fin = mine.filter((q) => PP(lp, q.id).done), report = skillReport(l), ps = mine.map((q) => PP(lp, q.id));
     const secs = count(ps, (p) => p.secs), seen = report.length || fin.length || lp.factsResult, factLine = lp.factsResult ? `<p><b>${l.factsList?.length || 100} times facts:</b> finished with ${plural(lp.factsResult.miss, "miss").replace("misss", "misses")} in ${fmtTime(lp.factsResult.secs) || "under 1 min"}.${hardFacts(lp).length ? ` Missed most: ${hardFacts(lp).map(([f]) => esc(f)).join(", ")}.` : ""}</p>` : "";
@@ -4912,7 +4926,7 @@ function parentView() {
       return `<tr><td>${esc(q.id)}</td><td class="pq">${esc(q.prompt.slice(0, 70))}${q.prompt.length > 70 ? "..." : ""}</td><td><span class="state ${c}">${t}</span></td><td>${p.wrong.length ? esc(p.wrong.join(", ")) : ""}${p.stepMiss ? `<div class="sub">${plural(p.stepMiss, "missed step")}</div>` : ""}</td><td>${p.hints || ""}</td><td>${fmtTime(p.secs)}</td><td>${when}</td><td>${p.done && !p.given ? `<details class="pwork"><summary>His work</summary>${work.length ? `<ol>${work.map(([a, v, m]) => `<li>${esc(a)} <b>${esc(v.replace("R", " R "))}</b>${m ? ` <span class="sub">after ${plural(m, "miss").replace("misss", "misses")}</span>` : ""}</li>`).join("")}</ol>` : ""}<p>Final answer: <b>${esc(String(p.ans || "").replace("R", " R "))}</b></p></details>` : ""}${!p.done && p.wrong.length ? `<button class="mini" data-act="accept" data-l="${esc(l.id)}" data-id="${esc(q.id)}">His answer was right</button>` : ""}</td></tr>`;
     }).join("");
     const tries = count(ps, (p) => p.wrong.length) + count(ps, (p) => p.stepMiss), assists = ps.filter((p) => p.coached && p.done).length;
-    return `<div class="hud"><button class="btn dark small" data-act="parentLesson" data-id="">&#9664; All lessons</button></div><h1>Lesson ${esc(l.bookLesson)}: ${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</h1><p class="sub">${esc(l.title || "")}</p>${seen ? `<div class="panel"><h2>${fin.length} of ${mine.length} problems finished</h2>${howBar(ps)}<div class="pstats">${stat(tries, "tries that missed")}${stat(count(ps, (p) => p.hints), "hints used")}${stat(assists, "walkthroughs")}${stat(cityPrizes(l.id).length, "trophies")}${stat(fmtTime(secs) || "0 min", "time")}</div></div><div class="panel"><h2>Worked on</h2>${report.length ? `<div class="skrows">${report.map((k) => `<div class="skrow"><b>${esc(k.name)}</b><span class="pdots">${k.list.map((q) => problemDot(PP(lp, q.id))).join("")}</span><i class="state ${k.verdict[1]}">${k.verdict[0]}</i></div>`).join("")}</div>` : `<p class="sub">No problems tried yet.</p>`}${factLine}</div>` : `<div class="panel"><p>Not started yet.</p></div>`}<details class="plog pfold"><summary>See every problem</summary><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Problem</th><th>How it went</th><th>Wrong tries</th><th>Hints</th><th>Time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></details>`;
+    return `<div class="hud"><button class="btn dark small" data-act="parentLesson" data-id="">&#9664; All lessons</button></div><h1>${lessonLabel(l)}: ${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</h1><p class="sub">${esc(l.title || "")}</p>${seen ? `<div class="panel"><h2>${fin.length} of ${mine.length} problems finished</h2>${howBar(ps)}<div class="pstats">${stat(tries, "tries that missed")}${stat(count(ps, (p) => p.hints), "hints used")}${stat(assists, "walkthroughs")}${stat(cityPrizes(l.id).length, "trophies")}${stat(fmtTime(secs) || "0 min", "time")}</div></div><div class="panel"><h2>Worked on</h2>${report.length ? `<div class="skrows">${report.map((k) => `<div class="skrow"><b>${esc(k.name)}</b><span class="pdots">${k.list.map((q) => problemDot(PP(lp, q.id))).join("")}</span><i class="state ${k.verdict[1]}">${k.verdict[0]}</i></div>`).join("")}</div>` : `<p class="sub">No problems tried yet.</p>`}${factLine}</div>` : `<div class="panel"><p>Not started yet.</p></div>`}<details class="plog pfold"><summary>See every problem</summary><div class="panel"><div class="tablewrap"><table><thead><tr><th>#</th><th>Problem</th><th>How it went</th><th>Wrong tries</th><th>Hints</th><th>Time</th><th>Date</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div></details>`;
   };
   const pickedLesson = LESSONS.find((l) => l.id === U.parentLesson);
   if (pickedLesson) return lessonPage(pickedLesson);
@@ -6105,7 +6119,15 @@ const acts = {
   redoq() { resetItem(); U.earned = 0; U.tryHint = null; U.hintKey = null; U.qStart = Date.now(); beep(BLIP); render(); window.scrollTo(0, 0); },
   learnHint() { const it = curItem(); if (it?.nudge) { U.msg = it.nudge; lastSaid = ""; beep(BLIP); render(); } },
   hint() {
-    const q = curQ(); if (!q?.coach) return;
+    const q = curQ();
+    if (curLesson()?.test && !q?.coach && q?.rule) {
+      // A test never walks him through. First the rule, then an example with other numbers, then he's on his own.
+      const p = PP(LP(U.lesson), q.id); if (!p.done) p.hints = (p.hints || 0) + 1;
+      if (U.testHint?.id !== q.id) U.testHint = { id: q.id, n: 0 };
+      const n = U.testHint.n++;
+      return showHint(n === 0 ? `Here's the rule. ${q.rule} Tap Hint again for an example.` : n === 1 ? `Here's an example with other numbers. ${q.example}` : `That's every hint on a test. Read the rule again: ${q.rule} Then give it your best try.`);
+    }
+    if (!q?.coach) return;
     { const p = PP(LP(U.lesson), q.id), by = U.mode === "coach" ? q.coach.steps[U.step]?.label : "Getting started"; if (!p.done) { p.hints = (p.hints || 0) + 1; if (by) { p.hintBy = p.hintBy || {}; p.hintBy[by] = (p.hintBy[by] || 0) + 1; } } }
     if (U.mode === "try") {
       if (U.tryHint !== q.id) { U.tryHint = q.id; return showHint(q.rule ? `Here's the rule. ${q.rule} For example: ${q.example} Tap Hint again and we'll do it together.` : `Here's how to start. ${hintLine(q.coach.steps[0], q, 0)} Tap Hint again and we'll do it together.`); }
