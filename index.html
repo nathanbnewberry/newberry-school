@@ -1864,9 +1864,9 @@ function pnMySong(r) {
   return { id: r.id, title: r.title || "My song", by: "Added by our family", bpm: r.bpm || 80, parts: parts.length ? parts : ["C"], all: lines.join(" ") || "C", pay: 10, mine: true, any: true };
 }
 const pnSongs = () => [...PN_SONGS, ...Object.values(S.mySongs || {}).filter((r) => r && !r.gone && r.text).map(pnMySong)];
-// Songs that only use C to G in one hand are ready after Right hand home. Songs that use A, B or black keys are
-// ready after Find C, when they know every key's name. Songs the family adds are ready after Find C too.
-const pnNeedsLesson = (g) => (g.any || g.mine ? "c" : "rh");
+// Songs that only use C to G in one hand are ready after Right hand home. Songs with any other key (A, B, high C
+// or a black key) are ready after Crossing over, which teaches the thumb-under to reach all eight keys.
+const pnNeedsLesson = (g) => { try { return pnNotesOf(g, g.all).some((n) => ![60, 62, 64, 65, 67].includes(n.m)) ? "cross" : "rh"; } catch (e) { return "cross"; } };
 const PN_SHELVES = [["all", "All songs"], ["xmas", "&#127876; Christmas"], ["classic", "Classics"], ["mine", "My songs"]];
 const pnInShelf = (g, f) => f === "all" || (f === "xmas" ? g.xmas || g.id === "bells" : f === "mine" ? g.mine : !g.xmas && g.id !== "bells" && !g.mine);
 // Pop songs kids love, as ideas for Add a song. Only the names live here: their notes come from the family.
@@ -1903,6 +1903,19 @@ const PN_COURSE = [
     { say: "Try it: play up, one finger at a time. C, D, E, F, G.", need: [60, 62, 64, 65, 67], keys: { 60: 1, 62: 2, 64: 3, 65: 4, 67: 5 } },
     { say: "Now come back down. G, F, E, D, C. Keep your fingers curved and let each finger do the work, not your arm.", need: [67, 65, 64, 62, 60], keys: { 60: 1, 62: 2, 64: 3, 65: 4, 67: 5 } },
     { say: "Skips next. Play C, E, G. Fingers 1, 3 and 5. You skip a key each time.", need: [60, 64, 67], keys: { 60: 1, 64: 3, 67: 5 } },
+  ] },
+  { id: "cross", title: "Crossing over: all 8 keys", ico: "&#127752;", steps: [
+    { say: "You have five fingers, but from C up to the next C there are eight keys. So how do pianists play them all without jumping? They tuck the thumb under.", keys: { 60: "", 62: "", 64: "", 65: "", 67: "", 69: "", 71: "", 72: "" }, letters: true },
+    { say: "After G come A and B, and then C again. The letters just start over: C, D, E, F, G, A, B, C.", keys: { 67: "", 69: "", 71: "", 72: "" }, letters: true },
+    { say: "Here's the plan. Fingers 1, 2, 3 play C, D, E. Then your thumb slides under your hand to land on F. Then fingers 2, 3, 4, 5 play G, A, B, C.", keys: { 60: 1, 62: 2, 64: 3, 65: 1, 67: 2, 69: 3, 71: 4, 72: 5 } },
+    { say: "Try it: play C, D, E with fingers 1, 2, 3. Then stop, with finger 3 still on E.", need: [60, 62, 64], keys: { 60: 1, 62: 2, 64: 3 } },
+    { say: "Now the trick. Keep finger 3 on E. Swing your thumb under your hand, like a tunnel, and play F with your thumb.", need: [65], keys: { 64: 3, 65: 1 } },
+    { say: "Your hand moved over without jumping! Now finish going up: G, A, B, C, with fingers 2, 3, 4, 5.", need: [67, 69, 71, 72], keys: { 65: 1, 67: 2, 69: 3, 71: 4, 72: 5 } },
+    { say: "Try the whole thing smoothly: C, D, E, thumb under, F, G, A, B, C.", need: [60, 62, 64, 65, 67, 69, 71, 72], keys: { 60: 1, 62: 2, 64: 3, 65: 1, 67: 2, 69: 3, 71: 4, 72: 5 } },
+    { say: "Coming down works backward. Start with your pinky on the high C. Play C, B, A, G, F with fingers 5, 4, 3, 2, 1.", need: [72, 71, 69, 67, 65], keys: { 72: 5, 71: 4, 69: 3, 67: 2, 65: 1 } },
+    { say: "Now cross finger 3 over your thumb to land on E. Then play D and C with fingers 2 and 1.", need: [64, 62, 60], keys: { 65: 1, 64: 3, 62: 2, 60: 1 } },
+    { say: "All the way down: C, B, A, G, F, cross over, E, D, C.", need: [72, 71, 69, 67, 65, 64, 62, 60], keys: { 60: 1, 62: 2, 64: 3, 65: 1, 67: 2, 69: 3, 71: 4, 72: 5 } },
+    { say: "That's the C major scale, the most famous warm up in piano. Joy to the World starts on high C and walks down these same keys, so now you're ready for it!" },
   ] },
   { id: "beat", title: "Feel the beat", ico: "&#129345;", steps: [
     { say: "Music has a steady beat, like a heartbeat. Listen to the drum and count along out loud: 1, 2, 3, 4.", metro: 72 },
@@ -2302,15 +2315,14 @@ function pnResolve(n, grade, waitMode) {
     if (pn.combo % 10 === 0 && !KID.parent) { earn(1); pn.streakCoins = (pn.streakCoins || 0) + 1; }
     if (pn.combo === 25 || pn.combo === 50 || pn.combo === 100) { playSfx("cheer", .5); confetti(pn.combo >= 50 ? 70 : 40); }
     pnBurst(n.m, n.star || pn.starOn ? "#bfe9ff" : pnColor(n.m), pn.starOn ? 26 : 16); pn.flare[pnFold(n.m)] = 1;
-    pnPop(grade, g[3]);
+    { const ln = pnLaneOf(pnFold(n.m)); if (ln) (pn.beams = pn.beams || []).push({ lx: ln[0], w: ln[1], col: grade === "PERFECT" ? "#ffffff" : g[3], life: .45 }); }
     if (pnMult(pn) > before) pnCheer(pnMult(pn) >= 4 ? "x4" : pnMult(pn) === 3 ? "x3" : "x2", true);
     else if (pn.combo % 10 === 0) pnCheer("ten", true);
     else if (grade === "PERFECT" && !pn.saidPerfect) { pn.saidPerfect = true; pnCheer("perfect", true); }
     else if (pn.combo > 0 && pn.combo % 6 === 0) pnCheer(grade === "PERFECT" ? "perfect" : "good");
     if (pnMult(pn) > before) pnShout(`x${pnMult(pn)} MULTIPLIER!`, PN_MULT_COLORS[Math.min(3, Math.floor(pn.combo / 8))]);
-    else if (pn.combo === 25) pnShout("25 NOTE STREAK! ON FIRE!", "#ff7a3c");
-    else if (pn.combo % 10 === 0) pnShout(KID.parent ? `${pn.combo} NOTE STREAK!` : `${pn.combo} STREAK! +$1`, pn.combo >= 30 ? "#ff9d2e" : "#ffd76a");
-  } else { n.missed = true; if (!waitMode) pn.misses++; if (pn.combo >= 8) { pnShout("Streak ended. Start a new one!", "#c9c3e8"); pnCheer("lost"); } pn.combo = 0; }
+    else if (pn.combo % 10 === 0) pn.boltBurst = 1; // a big crack of lightning every 10 in a row
+  } else { n.missed = true; if (!waitMode) pn.misses++; if (pn.combo >= 8) pnCheer("lost"); pn.combo = 0; }
   if (n.star && !pn.starOn) {
     const grp = pn.notes.filter((x) => x.star && Math.floor(x.beat / 4) === Math.floor(n.beat / 4));
     if (grp.every((x) => x.done) && grp.every((x) => x.hit && !x.flub)) { pn.star = Math.min(1, pn.star + .5); if (pn.star < 1) pnShout("STAR PHRASE!", "#bfe9ff"); }
@@ -2399,6 +2411,21 @@ function pnDraw(dt) {
   const [lx0, ly] = P(0, 0), [lx1] = P(1, 0), nextN = pn.notes[pn.idx], nextM = nextN && !nextN.done ? pnFold(nextN.m) : -1;
   const fl = pn.flash || 0; pn.flash = Math.max(0, fl - dt * 4); pn.kick = Math.max(0, (pn.kick || 0) - dt * 5);
   c.save(); c.shadowColor = pn.starOn ? "#7cf2ff" : fl ? "#ffffff" : "#ffd76a"; c.shadowBlur = 14 + pulse * 16 + fl * 30; c.fillStyle = fl > .3 ? "#ffffff" : pn.starOn ? "#bff4ff" : "#ffd76a"; c.fillRect(lx0, ly - 2 - fl * 3, lx1 - lx0, 4 + fl * 6); c.restore();
+  // A beam of light shoots up the lane of every note hit.
+  pn.beams = (pn.beams || []).filter((q) => (q.life -= dt) > 0);
+  pn.beams.forEach((q) => { const k = q.life / .45, [xa, ya] = P(q.lx - q.w * .3, 0), [xb] = P(q.lx + q.w * .3, 0), [xc, yc] = P(q.lx - q.w * .08, far * (1 - k * .2)), [xd] = P(q.lx + q.w * .08, far * (1 - k * .2)); c.save(); c.globalAlpha = k * .75; const gr = c.createLinearGradient(0, ya, 0, yc); gr.addColorStop(0, q.col); gr.addColorStop(1, "rgba(255,255,255,0)"); c.fillStyle = gr; c.shadowColor = q.col; c.shadowBlur = 24; c.beginPath(); c.moveTo(xa, ya); c.lineTo(xc, yc); c.lineTo(xd, yc); c.lineTo(xb, ya); c.closePath(); c.fill(); c.restore(); });
+  // Lightning: once a streak passes 10, bolts crackle along the highway, more often as the streak grows,
+  // and every 10 in a row a big bolt cracks across the whole line.
+  pn.bolts = (pn.bolts || []).filter((q) => (q.life -= dt) > 0);
+  if (pn.combo >= 10 && Math.random() < dt * Math.min(9, 1.5 + (pn.combo - 10) * .25)) {
+    const side = Math.random() < .5 ? 0 : 1, a0 = Math.random() * far * .9, pts = [];
+    for (let k = 0; k <= 7; k++) { const a = a0 - (a0 + .1) * (k / 7), [x, y] = P(side + (side ? -1 : 1) * Math.random() * .06, a); pts.push([x + (Math.random() - .5) * 18, y]); }
+    pn.bolts.push({ pts, life: .18, col: pn.combo >= 24 ? "#ffd76a" : "#9fe6ff" });
+  }
+  if (pn.boltBurst) { pn.boltBurst = 0; for (let b = 0; b < 3; b++) { const pts = []; for (let k = 0; k <= 12; k++) { const [x, y] = P(k / 12, .05); pts.push([x, y - Math.random() * 40 - (k % 2) * 12]); } pn.bolts.push({ pts, life: .3, col: "#ffffff" }); } }
+  pn.bolts.forEach((q) => { c.save(); c.globalAlpha = Math.min(1, q.life * 8); c.strokeStyle = q.col; c.shadowColor = q.col; c.shadowBlur = 20; c.lineWidth = 3; c.lineJoin = "round"; c.beginPath(); q.pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); c.lineWidth = 1.2; c.strokeStyle = "#ffffff"; c.stroke(); c.restore(); });
+  // The highway's edges glow brighter as the streak grows.
+  if (pn.combo >= 5) { const glow = Math.min(1, pn.combo / 30); c.save(); c.strokeStyle = pn.combo >= 24 ? "#ff9d2e" : "#9fe6ff"; c.shadowColor = c.strokeStyle; c.shadowBlur = 10 + glow * 25; c.globalAlpha = .4 + glow * .5 + pulse * .2; c.lineWidth = 2 + glow * 4; poly([P(0, far), P(1, far), P(1, 0), P(0, 0)]); c.stroke(); c.restore(); }
   // On fire: flames run up both sides of the highway at the x4 multiplier.
   if (pn.combo >= 24) {
     for (let k = 0; k < 14; k++) {
@@ -2422,7 +2449,7 @@ function pnDraw(dt) {
   pn.floats.forEach((q) => { c.save(); c.globalAlpha = Math.min(1, q.life * 2); c.fillStyle = q.col; c.shadowColor = "#000"; c.shadowBlur = 6; c.font = `900 ${Math.round(22 * q.big)}px ${pnFont}`; c.textAlign = "center"; c.fillText(q.text, q.x, q.y - (1 - q.life / .9) * 70); c.restore(); });
   if (pn.combo >= 5) { const sc = 1 + (pn.kick || 0) * .25, onFire = pn.combo >= 24; c.save(); c.translate(W / 2, H * .16); c.scale(sc, sc); c.textAlign = "center"; c.globalAlpha = .9; c.fillStyle = onFire ? "#ff9d2e" : "#ffffff"; c.shadowColor = onFire ? "#ff5a1e" : "#8a7cff"; c.shadowBlur = 18; c.font = `900 ${Math.round(Math.min(64, W / 16))}px ${pnFont}`; c.fillText(String(pn.combo), 0, 0); c.font = `800 ${Math.round(Math.min(18, W / 50))}px ${pnFont}`; c.fillText(onFire ? "ON FIRE!" : "NOTE STREAK", 0, Math.min(40, W / 26)); c.restore(); }
   pn.pops = pn.pops.filter((q) => (q.life -= dt) > 0);
-  pn.pops.slice(-1).forEach((q) => { c.globalAlpha = Math.min(1, q.life * 2.5); c.fillStyle = q.col; c.font = `900 ${Math.round(Math.min(38, W / 24))}px ${pnFont}`; c.fillText(q.text, W / 2, hitY - 70 - (1 - q.life / .8) * 40); });
+  pn.pops.slice(0, 0).forEach((q) => { c.globalAlpha = Math.min(1, q.life * 2.5); c.fillStyle = q.col; c.font = `900 ${Math.round(Math.min(38, W / 24))}px ${pnFont}`; c.fillText(q.text, W / 2, hitY - 70 - (1 - q.life / .8) * 40); });
   if (pn.shout && (pn.shout.life -= dt) > 0) { const q = pn.shout, sc = 1 + Math.max(0, q.life - 1.3) * 2; c.globalAlpha = Math.min(1, q.life * 1.5); c.fillStyle = q.col; c.save(); c.translate(W / 2, H * .34); c.scale(sc, sc); c.shadowColor = q.col; c.shadowBlur = 16; c.font = `900 ${Math.round(Math.min(52, W / 18))}px ${pnFont}`; c.fillText(q.text, 0, 0); c.restore(); }
   c.globalAlpha = 1;
   if (pn.step.t === "memory") {
@@ -3012,7 +3039,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1d14a54e7ce1";
+const GAME_BUILD = "5bd75a4fb7dd";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
