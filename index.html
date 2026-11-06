@@ -2106,7 +2106,8 @@ function pnListen() {
       if (r.ok) { mic.pitched = (mic.pitched || 0) + 1; return heard(r.m, ""); }
     }
   }
-  // 2. Anything else: a pitch guess that has to hold steady and follow a strike.
+  // 2. Anything else: a pitch guess that has to hold steady and follow a strike. Skipped right after a beat tick.
+  if (now - pnTickAt < 150) return;
   const f = pnDetect(mic.buf, rate); if (!f) return;
   const m = Math.round(69 + 12 * Math.log2(f / 440)), pc = ((m % 12) + 12) % 12;
   mic.pitched = (mic.pitched || 0) + 1;
@@ -2185,7 +2186,7 @@ function pnLesView() {
   return `<div class="pnles"><div class="pnlesbar"><button class="pnicon" data-act="pnMenu" aria-label="Back to Piano School">&#10005;</button><b>Lesson ${pn.les + 1}: ${esc(L.title)}</b><span class="pnlesdots">${dots}</span>${st.metro ? `<i class="pnbeatdot" id="pnBeatDot"></i>` : ""}</div>
     <div class="pnlescard"><div class="pnlessay">${esc(st.say)}</div>${st.fingers ? PN_FINGER_PIC : ""}${chips}${status}</div>
     ${pnLesKeysSvg(st, it, pn.wrong)}
-    <div class="pnlesbtns">${pn.step > 0 ? `<button class="btn dark" data-act="pnLesBack">&#9664; Back</button>` : "<span></span>"}<button class="btn dark" data-act="pnLesSay">&#128266; Say it again</button>${st.need ? `<button class="btn dark" data-act="pnLesHear">&#127925; Hear it</button>` : ""}${!st.need || pn.tried ? `<button class="btn go" data-act="pnLesNext">${last ? "Finish lesson &#127942;" : "Next &#9654;"}</button>` : `<button class="link" data-act="pnLesNext">Skip</button>`}</div>
+    <div class="pnlesbtns">${pn.step > 0 ? `<button class="btn dark" data-act="pnLesBack">&#9664; Back</button>` : "<span></span>"}<button class="btn dark" data-act="pnLesSay">&#128266; Say it again</button>${st.metro ? `<button class="btn dark" data-act="pnBeatVol">&#129345; Beat: ${PN_BEAT_NAMES[pnBeatStyle()]}</button>` : ""}${st.need ? `<button class="btn dark" data-act="pnLesHear">&#127925; Hear it</button>` : ""}${!st.need || pn.tried ? `<button class="btn go" data-act="pnLesNext">${last ? "Finish lesson &#127942;" : "Next &#9654;"}</button>` : `<button class="link" data-act="pnLesNext">Skip</button>`}</div>
     ${st.need ? `<div class="pnmic">${pnMic ? `<span class="pnlive"><i></i>Listening</span><span class="pnlvl"><i id="pnLvl"></i></span><span id="pnHear">Play a key</span>` : `<button class="btn go" data-act="pnMic">&#127908; Start listening to my piano</button>`}</div>` : ""}</div>`;
 }
 function pnOpen() { stopVoice(); pnRec(); U.pn = { screen: "menu" }; U.view = "piano"; render(); window.scrollTo(0, 0); }
@@ -2229,15 +2230,30 @@ function pnGetBus(c) {
   if (!pnBus || pnBus.context !== c) { const g = c.createGain(), comp = c.createDynamicsCompressor(); g.gain.value = 3.4; comp.threshold.value = -8; comp.knee.value = 4; comp.ratio.value = 12; comp.attack.value = .002; comp.release.value = .12; g.connect(comp); comp.connect(c.destination); pnBus = g; }
   return pnBus;
 }
-const PN_BEAT_VOL = { loud: 1, soft: .45, off: 0 };
-let pnBus = null;
+// Beat sounds: a wooden metronome click by default, or drums, softer click, or off.
+// The click is pitched high (about 1,700 and 2,300 Hz), above every note the note finder listens for
+// (it checks up to B5, 988 Hz), so it can never count as a note.
+const PN_BEAT_STYLES = ["click", "drums", "soft", "off"], PN_BEAT_NAMES = { click: "Click", drums: "Drums", soft: "Soft", off: "Off" };
+const pnBeatStyle = () => (PN_BEAT_STYLES.includes(S.pianoBeat) ? S.pianoBeat : "click");
+const PN_BEAT_VOL = { click: 1, drums: 1, soft: .45, off: 0 };
+let pnBus = null, pnTickAt = 0;
 function pnDrum(b) {
-  const c = pnAudio(), vol = PN_BEAT_VOL[S.pianoBeat || "loud"] ?? 1; if (!c || S.muted || !vol) return;
+  const style = pnBeatStyle(), c = pnAudio(), vol = PN_BEAT_VOL[style]; if (!c || S.muted || !vol) return;
+  pnTickAt = Date.now();
   const now = c.currentTime;
   pnGetBus(c);
   if (!pnNoise || pnNoise.sampleRate !== c.sampleRate) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; }
   const noise = (type, freq, v, len) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); sr.buffer = pnNoise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(v * vol, now); g.gain.exponentialRampToValueAtTime(.001, now + len); sr.connect(f); f.connect(g); g.connect(pnBus); sr.start(now); sr.stop(now + len + .02); };
   const bar = ((b % 4) + 4) % 4;
+  if (style !== "drums") {
+    // A woodblock tick, with a brighter tock on beat 1: a quick pitched knock plus a tiny click of air.
+    const f = bar === 0 ? 2300 : 1700, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(f, now); o2.type = "triangle"; o2.frequency.setValueAtTime(f * 1.5, now);
+    g.gain.setValueAtTime(.0001, now); g.gain.exponentialRampToValueAtTime((bar === 0 ? .9 : .65) * vol, now + .002); g.gain.exponentialRampToValueAtTime(.001, now + .06);
+    o.connect(g); o2.connect(g); g.connect(pnBus); o.start(now); o2.start(now); o.stop(now + .08); o2.stop(now + .08);
+    noise("bandpass", 4000, .25, .015);
+    return;
+  }
   noise("highpass", 7000, .35, .04);
   if (bar === 1 || bar === 3) noise("bandpass", 1800, .7, .07);
   const o = c.createOscillator(), g = c.createGain(), start = bar === 0 ? 100 : 90;
@@ -2609,7 +2625,7 @@ function pianoView() {
     return `<div class="pnhud"><button class="pnback" data-act="pnMenu">&#9664; Songs</button><b class="pnlogo">PIANO <span>HERO</span></b>${coins}</div><div class="pnres"><div class="pnrescard">${pnArt(song.id)}<div><div class="pnstars">${starsHtml}</div><h3>${esc(line)}</h3><div class="big">${pn.finishing ? "Song learned!" : `${pn.pct}%`}</div>${pn.newHi ? `<p class="pnhi">New high score!</p>` : ""}<div class="pnstats"><span><b>${pn.score.toLocaleString()}</b>Score</span><span><b>${pn.best}</b>Best streak</span>${pn.streakCoins ? `<span><b style="color:#ffd76a">+$${pn.streakCoins}</b>Streak coins</span>` : ""}${gradesHtml}</div><p>${pn.finishing ? `+$${song.pay}. You played the whole song from memory.` : pn.good ? "of your notes were right. +$5" : "of your notes were right. Get to 80% to move on. +$1"}</p></div></div><div class="pnresbtns">${pn.good && pn.stepN < steps.length - 1 ? `<button class="btn go" data-act="pnGo" data-n="${nextN}">&#9654; Next: ${esc(steps[nextN].name)}</button>` : ""}<button class="btn ${pn.good ? "dark" : "go"}" data-act="pnGo" data-n="${pn.stepN}">&#8635; Play it again</button><button class="btn dark" data-act="pnMenu">All songs</button></div></div>`;
   }
   const road = `<div class="pnroad"><canvas id="pnRoad" aria-label="Notes coming down the highway"></canvas></div>`;
-  return `<div class="pnplay"><div class="pnside"><button class="pnicon" data-act="pnMenu" aria-label="Back to songs" title="Songs">&#10005;</button><button class="pnicon" data-act="pnRestart" aria-label="Start this part over" title="Start over">&#8635;</button></div><div class="pnbar">${pnTimerChip()}<span class="pnnow"><b>${esc(song.title)}</b> &middot; ${esc(pn.step.name)}</span><span id="pnHint" class="pnhint"></span>${pn.step.t === "wait" || pn.step.t === "lesson" ? `<button class="pnhear" data-act="pnHear">&#128266; Hear it</button>` : ""}${pn.step.t === "beat" ? `<button class="pnhear" data-act="pnBeatVol">&#129345; Beat: ${{ loud: "Loud", soft: "Soft", off: "Off" }[S.pianoBeat || "loud"]}</button>` : ""}${micRow}<div class="pnprog"><i id="pnProg"></i></div>${pn.step.t === "lesson" ? `<span class="pnsay">${esc(pn.say)}</span>` : ""}</div>${road}${pnKeysSvg(pn.hand)}</div>`;
+  return `<div class="pnplay"><div class="pnside"><button class="pnicon" data-act="pnMenu" aria-label="Back to songs" title="Songs">&#10005;</button><button class="pnicon" data-act="pnRestart" aria-label="Start this part over" title="Start over">&#8635;</button></div><div class="pnbar">${pnTimerChip()}<span class="pnnow"><b>${esc(song.title)}</b> &middot; ${esc(pn.step.name)}</span><span id="pnHint" class="pnhint"></span>${pn.step.t === "wait" || pn.step.t === "lesson" ? `<button class="pnhear" data-act="pnHear">&#128266; Hear it</button>` : ""}${pn.step.t === "beat" ? `<button class="pnhear" data-act="pnBeatVol">&#129345; Beat: ${PN_BEAT_NAMES[pnBeatStyle()]}</button>` : ""}${micRow}<div class="pnprog"><i id="pnProg"></i></div>${pn.step.t === "lesson" ? `<span class="pnsay">${esc(pn.say)}</span>` : ""}</div>${road}${pnKeysSvg(pn.hand)}</div>`;
 }
 document.addEventListener("touchstart", (e) => {
   const key = e.target.closest?.(".pnk");
@@ -2996,7 +3012,7 @@ function schoolView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "dfed720965f6";
+const GAME_BUILD = "1d14a54e7ce1";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5812,7 +5828,7 @@ const acts = {
   pnLesGo(d) { pnLesGo(+d.n); },
   pnShelf(d) { U.pnShelf = d.id; render(); },
   pnIdea(d) { const pn = U.pn; pn.addTitle = d.t; pn.addMsg = `Find the letter notes for ${d.t}, then paste them in the box.`; render(); window.open(`https://www.google.com/search?q=${encodeURIComponent(`${d.t} easy piano letter notes`)}`, "_blank", "noopener"); },
-  pnBeatVol() { const order = ["loud", "soft", "off"]; S.pianoBeat = order[(order.indexOf(S.pianoBeat || "loud") + 1) % 3]; save(); render(); },
+  pnBeatVol() { const i = PN_BEAT_STYLES.indexOf(pnBeatStyle()); S.pianoBeat = PN_BEAT_STYLES[(i + 1) % PN_BEAT_STYLES.length]; save(); render(); pnPrepSounds(); pnDrum(0); },
   pnAdd() { U.pn = { screen: "add", addBpm: 80 }; render(); },
   pnAddSave() {
     const pn = U.pn, title = document.getElementById("pnAddTitle")?.value.trim() || "", text = document.getElementById("pnAddNotes")?.value || "", bpm = +document.getElementById("pnAddBpm")?.value || 80;
