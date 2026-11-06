@@ -2309,10 +2309,11 @@ function pnDrum(b) {
   o.connect(g); g.connect(pnBus); o.start(now); o.stop(now + .18);
 }
 const PN_CHEERS = { perfect: ["Perfect!", "Perfect! Keep going!"], good: ["Great job!", "That's it!", "Keep going!", "Nice playing!"], x2: ["Nice streak!"], x3: ["You're rolling now!"], x4: ["You're on fire!"], ten: ["Ten in a row! Keep it going!"], star: ["Star power!"], lost: ["Shake it off. Keep going!"], end: ["You rocked it!"], high: ["New high score!"] };
+// The rockstar voice speaks only at big moments, so it never covers the song (Nathan, 2026-11-06).
+const PN_SPEAK = new Set(["x4", "ten", "star", "end", "high"]);
 function pnCheer(kind, force) {
-  return; // Voices are off in Piano Hero for now; the words on screen stay.
-  const pn = U.pn, now = Date.now(), list = PN_CHEERS[kind]; if (!list || S.muted) return;
-  if (!force && now - (U.pnCheerAt || 0) < 3500) return;
+  const pn = U.pn, now = Date.now(), list = PN_CHEERS[kind]; if (!list || S.muted || !PN_SPEAK.has(kind)) return;
+  if (kind !== "end" && kind !== "high" && now - (U.pnCheerAt || 0) < 8000) return;
   U.pnCheerAt = now; const line = list[Math.floor(Math.random() * list.length)];
   pnSayLoud(line);
 }
@@ -2320,10 +2321,10 @@ const pnClips = {};
 async function pnSayLoud(line) {
   const c = pnAudio(); if (!c) return;
   try {
-    const url = `voice/${voiceClip("david", line)}.mp3`;
+    const url = `voice/${voiceClip("rock", line)}.mp3`;
     if (!pnClips[url]) pnClips[url] = fetch(url).then((r) => (r.ok ? r.arrayBuffer() : null)).then((b) => (b ? new Promise((ok, no) => c.decodeAudioData(b, ok, no)) : null)).catch(() => null);
     const buf = await pnClips[url]; if (!buf) return;
-    const src = c.createBufferSource(), g = c.createGain(); g.gain.value = 1.3; src.buffer = buf; src.connect(g); g.connect(pnGetBus(c)); src.start();
+    const src = c.createBufferSource(), g = c.createGain(); g.gain.value = .8; src.buffer = buf; src.connect(g); g.connect(pnGetBus(c)); src.start();
   } catch (e) {}
 }
 function pnSparkle(mult) {
@@ -3128,7 +3129,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "cc5c14b15aea";
+const GAME_BUILD = "0f532246cdf2";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
