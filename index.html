@@ -3331,7 +3331,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "90276a8406a3";
+const GAME_BUILD = "1152e5267995";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4321,10 +4321,10 @@ function homeView() {
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 const ranchStop = (x, y, w) => { const h = w * .6; return `<g class="stop" data-act="view" data-v="store" role="button" tabindex="0" aria-label="The family ranch. Tap to build."><rect x="${x - 4}" y="${y - 4}" width="${w + 8}" height="${h + 8}" rx="8" fill="#3a2412"/>${ranchSvg(`x="${x}" y="${y}" width="${w}" height="${h}"`)}<g transform="translate(${x + w / 2} ${y + h + 6})"><rect x="-68" y="-13" width="136" height="26" rx="6" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="6" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="14" fill="#ffe7a8">Family Ranch</text></g></g>`; };
-const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span>${U.view === "school" ? "" : `<button class="btn go small" data-act="view" data-v="school">School Day</button>`}<button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>${GAMES_NAME}</button>${LESSONS.length ? `<button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>General Store</button>` : ""}</span>`;
+const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span>${U.view === "school" ? "" : `<button class="btn go small" data-act="view" data-v="school">School Day</button>`}<button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>Games</button>${LESSONS.length ? `<button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>Store</button>` : ""}</span>`;
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
-  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" || l.place ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}${(() => { const o = l.hostId ? ALL_LESSONS.find((x) => x.id === l.hostId) : ALL_LESSONS.find((x) => x.hostId === l.id && (x.kid || "elliot") === KID.id); return o ? `<button class="btn dark small" data-act="town" data-id="${esc(o.id)}">${o.subject === "grammar" ? `Schoolhouse: ${esc(o.town)}` : `&#9664; Back to ${esc(o.town)}`}</button>` : ""; })()}</span>${navRight()}</div>
+  return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
   ${(l.subject || "math") === "grammar" ? schoolRoom(l) : townMapSvg(l)}
   ${l.problems.some((q) => PP(lp, q.id).done) ? `<button class="btn dark wide" data-act="lessonReview" data-id="${esc(l.id)}">See all the work and the ranch</button>` : ""}
@@ -5044,13 +5044,13 @@ function gameEndView() {
   const ranch = e.saved ? card(ranchSvg(), 'data-act="view" data-v="store"', "Build the ranch", "first") : "";
   const again = g ? card(gameArt[g.kind] || tiles, `data-act="game" data-g="${g.kind}" data-n="5" data-free="1"`, "Play again", e.saved ? "" : "first") : "";
   const another = card(tiles, 'data-act="view" data-v="arcade"', "Pick a new game");
-  const onward = g?.free ? card(mapArt, 'data-act="view" data-v="home"', "Back to the map") : done && !LP(l.id).completed ? card(mapArt, 'data-act="reward"', "Claim your badge", "first") : card(mapArt, 'data-act="backTown"', "Back to the map");
+  const onward = g?.free ? card(mapArt, 'data-act="view" data-v="school"', "Back to School Day") : done && !LP(l.id).completed ? card(mapArt, 'data-act="reward"', "Claim your badge", "first") : card(mapArt, 'data-act="backTown"', "Back to the map");
   return `<div class="endhead pop"><div class="big">${esc(e.title)}</div><p>${esc(e.line)}</p></div><div class="endcards">${ranch}${again}${another}${onward}</div>`;
 }
 const saveCode = () => { const { resume, ...rest } = S; return "OUTLAW1:" + btoa(unescape(encodeURIComponent(JSON.stringify(rest)))); };
 function moveView() {
   const d = U.moveData;
-  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="home">Map</button><h2>Move to a new iPad</h2><span></span></div>
+  return `<div class="hud"><button class="btn dark small" data-act="view" data-v="school">&#9664; Back</button><h2>Move to a new iPad</h2><span></span></div>
   ${U.moveMsg ? `<div class="ctx">${esc(U.moveMsg)}</div>` : ""}
   <div class="panel"><h2>On the OLD iPad</h2><p class="sub">This iPad has: $${S.nuggets}, rank ${RANKS[rankOf(S.xp)][0]}. Send this save code to the new iPad by AirDrop or text.</p><textarea id="moveOut" readonly>${esc(saveCode())}</textarea><div class="hud"><button class="btn small" data-act="moveCopy">Send save code</button><button class="btn small dark" data-act="moveClip">Copy it</button></div></div>
   <div class="panel"><h2>On the NEW iPad</h2><p class="sub">Paste the save code here. This replaces what's on this iPad.</p><textarea id="moveIn" placeholder="Paste the save code"></textarea>
@@ -5299,7 +5299,7 @@ function refundRetiredGear() {
   S.owned = (S.owned || []).filter((id) => { if (RETIRED_GEAR[id]) { back += RETIRED_GEAR[id]; if (S.worn) delete S.worn[id]; return false; } return true; });
   if (back) { S.nuggets += back; save(); }
 }
-const bigMapBtn = () => `<button class="btn mapbig" ${U.lesson ? `data-act="town" data-id="${esc(U.lesson)}"` : `data-act="view" data-v="home"`}>&#9664; Map</button>`;
+const bigMapBtn = () => `<button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button>`;
 const PRIZE_ART = {
   "Courage Cup": `<path d="M-15-26H15C15-7 9 3 0 6-9 3-15-7-15-26z" fill="#6fc3ff" stroke="#1c5a8f" stroke-width="2"/><path d="M-15-22h-8c0 12 5 16 11 17M15-22h8c0 12-5 16-11 17" fill="none" stroke="#1c5a8f" stroke-width="4"/><path d="M0-21l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1z" fill="#fff"/><rect x="-4" y="6" width="8" height="10" fill="#1c5a8f"/><path d="M-15 25l3-9h24l3 9z" fill="#6b3f1d"/>`,
   "Never Quit Badge": `<path d="M0-28L24-18V4C24 18 10 26 0 30-10 26-24 18-24 4V-18z" fill="#c8202c" stroke="#7b1219" stroke-width="2"/><path d="M-12 2l9 9L14-11" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`,
@@ -5324,7 +5324,7 @@ function trophiesView() {
   }
   const shelves = LESSONS.length ? LESSONS : [QUEST_HOME];
   const total = shelves.reduce((n, l) => n + cityPrizes(l.id).length, 0);
-  return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="home">&#9664; Map</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${shelves.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} ${l.bookLesson ? `<small>${lessonLabel(l)}</small>` : ""}</h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
+  return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${shelves.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} ${l.bookLesson ? `<small>${lessonLabel(l)}</small>` : ""}</h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
 }
 function ranchView() {
   return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || `Tap anywhere to ride around our ranch, ${KID.name}!`)}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
@@ -6479,7 +6479,7 @@ const acts = {
   },
   start() { U.view = "school"; W.title = false; beep(FANFARE); render(); },
   view(d) { stopMusic(); U.view = d.v; U.pin = ""; U.pinMsg = ""; render(); window.scrollTo(0, 0); if (d.v === "parent") pull(); },
-  leaveParent() { U.parentOk = false; U.view = "home"; U.confirmReset = false; U.pin = ""; render(); },
+  leaveParent() { U.parentOk = false; U.view = "school"; U.confirmReset = false; U.pin = ""; render(); },
   mute() { S.muted = !S.muted; if (S.muted) stopMusic(); save(); render(); },
   lessonReview(d) { stopVoice(); setSubject(ALL_LESSONS.find((l) => l.id === d.id)?.subject || "math"); U.lesson = d.id; S.atTown = d.id; U.qid = null; U.view = "lessonReview"; W.theme = "west"; save(); beep(BLIP); render(); window.scrollTo(0, 0); },
   reviewTown() { U.view = "town"; render(); window.scrollTo(0, 0); },
@@ -7047,14 +7047,16 @@ function render() {
   if (U.view === "school" && lastRenderedView !== "school") setTimeout(cloudSync, 0);
   if (U.view !== "school") U.dayOff = 0; // Leaving School Day always comes back to today.
   lastRenderedView = U.view;
-  if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
+  if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "school";
+  // The US map isn't a place to go any more (Nathan, 2026-11-09); it only lives in the States and Capitals game.
+  if (U.view === "home") U.view = "school";
   W.title = U.view === "title";
   canvas.hidden = ["arcade", "bible", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
   const views = { piano: pianoView, typing: typingView, verse: verseView, bible: bibleView, who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = (U.preview ? `<div class="previewbar"><b>Parent preview.</b> Nothing here is saved. <button class="btn dark small" data-act="previewEnd">End preview</button></div>` : "") + views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
-  catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
+  catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="school">Back to the map</button></div>`; }
   arrange();
   fitProblemCells();
   startRanchCam();
