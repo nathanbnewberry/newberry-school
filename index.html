@@ -776,7 +776,7 @@ body.stillnow *{animation:none!important;transition:none!important}
 .stlasso{position:fixed;z-index:40;pointer-events:none;overflow:hidden}.stlasso svg{position:absolute;inset:0}.stpull{position:absolute;transform-origin:50% 60%}.stpull svg{position:static;width:100%;display:block}.stpull b{position:absolute;left:-20px;right:-20px;top:-32px;text-align:center;font:400 1.6rem var(--display);color:#c8202c}
 .stcount{position:absolute;left:176px;right:10px;top:8px;z-index:3;display:flex;align-items:center;gap:10px;background:rgba(251,243,223,.94);border:3px solid #5a3517;border-radius:14px;padding:4px 12px;color:#1c1712}.stnum{display:grid;justify-items:center;line-height:1;min-width:44px}.stnum b{font:800 1.7rem var(--body);color:#2f7f4a}.stnum.left b{color:#b4411a}.stnum small{font-size:.72rem;font-weight:700}.stbar{position:relative;flex:1;height:18px;border-radius:9px;background:#e3d4ad;overflow:hidden}.stbar i{display:block;height:100%;background:linear-gradient(#ffd96a,#e8a317);transition:width .35s ease}.stbar::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 calc(var(--seg) - 2px),rgba(90,53,23,.45) calc(var(--seg) - 2px) var(--seg))}
 .savewarn{display:block;width:100%;background:#b5362a;color:#fff;font-weight:800;padding:12px;border-radius:10px;margin:6px 0}.savedline{margin:0;font-size:.85rem;font-weight:700;color:#7fd492;text-align:right;min-height:1.1em}
-.spellprog{display:flex;align-items:center;gap:10px;min-width:0}.spellprogbar{flex:1;min-width:60px;height:14px;border-radius:7px;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);overflow:hidden}.spellprogbar i{display:block;height:100%;border-radius:7px;background:#3fa45b;transition:width .4s ease}.spellprog b{white-space:nowrap;font-size:.95rem}.spellprog.near .spellprogbar i{background:#e8a317}
+.spellgraderow{display:flex;align-items:center;gap:18px}.spellgraderow .spellgrade{width:96px;height:96px;margin:0;flex:none}.spellgraderow .spellgrade b{font-size:2.8rem}.spellgrade{display:inline-grid;place-items:center;width:132px;height:132px;border-radius:50%;margin:0 auto 6px;background:#1f9a4f;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.25)}.spellgrade b{font:900 4rem/1 var(--title,Georgia),serif}.spellgrade span{font:800 1.1rem var(--body)}.spellgrade.gB{background:#2a7fd0}.spellgrade.gC{background:#c88a10}.spellgrade.gD,.spellgrade.gF{background:#8a5cc8}.spellprog{display:flex;align-items:center;gap:10px;min-width:0}.spellprogbar{flex:1;min-width:60px;height:14px;border-radius:7px;background:rgba(255,255,255,.2);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3);overflow:hidden}.spellprogbar i{display:block;height:100%;border-radius:7px;background:#3fa45b;transition:width .4s ease}.spellprog b{white-space:nowrap;font-size:.95rem}.spellprog.near .spellprogbar i{background:#e8a317}
 .linkwrap{display:grid;place-items:center;flex:1;padding:16px}.linkcard{display:grid;gap:12px;width:min(100%,480px);padding:22px;border-radius:16px;background:var(--paper);color:#1c1712;text-align:center}.linkcard h1{margin:0;font-size:clamp(1.7rem,5vh,2.3rem)}.linkcard p{margin:0}.linkcard input{min-height:54px;font-size:18px;padding:8px 14px;border-radius:10px;border:2px solid #b9ad96;text-align:center;background:#fff;color:#1c1712}.linkmsg{font-size:.95rem;color:#5d564b}.linkcard .link{justify-self:center;color:#5d564b}
 body[data-view="familyLink"] #app{display:block;height:auto;overflow:visible}
 html:has(body[data-view="familyLink"]),body[data-view="familyLink"]{height:auto!important;min-height:100%;overflow:auto!important}
@@ -3064,7 +3064,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "typing") { const goal = tyGoal(), n = Math.min(day.typeN || 0, goal); return { done: !!day.typeDone, label: day.typeDone ? `${day.typeWpm || 0} words a minute, ${day.typeAcc || 0}% right` : `${n} of ${goal} asteroids`, pct: day.typeDone ? 1 : n / goal }; }
   if (x.kind === "review") { const list = reviewList(day), n = list.filter((k) => day.review?.[k]).length; return { done: n >= list.length, label: !list.length ? "Nothing to go back over. Clean week!" : n >= list.length ? `${list.length} problems reviewed` : `${n} of ${list.length} problems`, pct: list.length ? n / list.length : 1 }; }
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
-  if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), bee = spellBeeDay(); return { done: bee ? !!day.spellBee : n >= total || !!day.spellBee, label: bee ? (day.spellBee ? "Spelling bee done" : "Spelling bee day") : `${n} of ${total} words today`, pct: bee ? (day.spellBee ? 1 : 0) : n / total }; }
+  if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), d = new Date(`${Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()}T12:00`), bee = spellBeeDay(d), pre = spellPracticeDay(d), g = day.spellGrade; if (bee) return { done: !!day.spellBee, label: day.spellBee ? (g ? `Spelling test: ${g.letter} (${g.right} of ${g.total})` : "Spelling test done") : "Spelling test day", pct: day.spellBee ? 1 : 0 }; if (pre) return { done: (n >= total || !!day.spellBee) && !!day.spellPretest, label: day.spellPretest ? `Practice test: ${day.spellPretest.right} of ${day.spellPretest.total}` : n >= total ? "Now the practice test" : `${n} of ${total} words today`, pct: (Math.min(n, total) / total) * .8 + (day.spellPretest ? .2 : 0) }; return { done: n >= total || !!day.spellBee, label: `${n} of ${total} words today`, pct: n / total }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
@@ -3164,7 +3164,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "04dfcd0ff767";
+const GAME_BUILD = "bce1942309af";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3481,7 +3481,7 @@ const SPELLING_LISTS = [
     { w: "squirm", s: "The worm began to squirm on the grass." },
   ] },
 ];
-const SPELL_LINES = { 0: "Look at the word, then copy it.", 1: "Look hard. It's about to hide.", 2: "Now spell it from memory.", bee: "Spelling bee time. No help on this one." };
+const SPELL_LINES = { 0: "Look at the word, then copy it.", 1: "Look hard. It's about to hide.", 2: "Now spell it from memory.", bee: "Spelling test time. No help on this one.", pretest: "Practice test. Just like Friday, but it doesn't count." };
 const spellLists = () => SPELLING_LISTS.filter((l) => (l.kid || "elliot") === KID.id);
 const spellList = () => spellLists()[0];
 // A word missed on a list's bee moves to the next list, and keeps moving until a bee gets it right.
@@ -3503,24 +3503,31 @@ function spellRec(w) {
 const spellBees = () => { spellRec(spellList().words[0].w); return S.spelling.lists[spellList().id].bees; };
 const spellMastered = () => spellActive().filter((x) => spellRec(x.w).level >= 3).length;
 const spellBeeDay = (d = new Date()) => d.getDay() === 5;
-function spellSay() { const sp = U.sp, it = sp?.item; if (!it) return; const line = sp.mode === "bee" ? `${it.w}. ${it.s}` : `${SPELL_LINES[Math.min(2, sp.level)]} ${it.w}. ${it.s}`; U.lastBubble = line; lastSaid = line; try { if (!S.muted && S.voice !== false) playVoice(line, "david"); } catch (e) {} }
-function spellOpen(mode = "practice", extra = false) {
+// Friday's spelling test is built up to all week (Nathan, 2026-11-09): a missed word comes back once more the same day,
+// Thursday has a practice test with no grade, and Friday starts with a warm-up on any word that isn't solid yet.
+const spellPracticeDay = (d = new Date()) => d.getDay() === 4;
+const spellTesting = (sp) => sp?.mode === "bee" || sp?.mode === "pretest";
+const spellShaky = () => spellActive().filter((x) => spellRec(x.w).level < 3);
+function spellGrade(right, total) { const pct = total ? Math.round((right * 100) / total) : 0; return { pct, letter: pct >= 90 ? "A" : pct >= 80 ? "B" : pct >= 70 ? "C" : pct >= 60 ? "D" : "F" }; }
+function spellSay() { const sp = U.sp, it = sp?.item; if (!it) return; const line = spellTesting(sp) ? `${it.w}. ${it.s}` : `${SPELL_LINES[Math.min(2, sp.level)]} ${it.w}. ${it.s}`; U.lastBubble = line; lastSaid = line; try { if (!S.muted && S.voice !== false) playVoice(line, "david"); } catch (e) {} }
+function spellOpen(mode = "practice", extra = false, only = null) {
   stopVoice();
-  const words = shuffled(spellActive()), today = schoolDay().spellToday || [];
-  const queue = mode === "bee" ? words : [...words].sort((a, b) => spellRec(a.w).level - spellRec(b.w).level).filter((x) => extra || !today.includes(x.w));
-  U.sp = { mode, extra, queue, goals: 0, right: [], missed: [] };
+  const words = shuffled(only ? spellActive().filter((x) => only.includes(x.w)) : mode === "warmup" ? spellShaky() : spellActive()), today = schoolDay().spellToday || [];
+  const queue = spellTesting({ mode }) || mode === "warmup" || only ? words : [...words].sort((a, b) => spellRec(a.w).level - spellRec(b.w).level).filter((x) => extra || !today.includes(x.w));
+  U.sp = { mode, extra, queue, goals: 0, right: [], missed: [], retried: [] };
   U.view = "spelling"; spellNext(); render(); window.scrollTo(0, 0);
 }
 function spellNext() {
   const sp = U.sp, day = schoolDay();
   clearTimeout(sp.timer); sp.typed = ""; sp.misses = 0; sp.hint = false; sp.scored = false; sp.shake = false; sp.locked = false;
   if (!sp.queue.length) {
-    if (sp.mode === "bee") { sp.item = null; sp.screen = "beeDone"; spellFinishBee(); return; }
+    if (spellTesting(sp)) { sp.item = null; sp.screen = "beeDone"; spellFinishBee(); return; }
+    if (sp.mode === "warmup") { sp.item = null; sp.screen = "ready"; stopVoice(); return; }
     if (!sp.extra) { sp.item = null; sp.screen = "today"; stopVoice(); return; }
     sp.queue = shuffled(spellActive());
   }
-  sp.screen = null; sp.item = sp.queue.shift(); sp.level = spellRec(sp.item.w).level; sp.hidden = sp.mode === "bee" || sp.level >= 2;
-  if (sp.mode === "practice" && sp.level === 1) sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.hidden = true; render(); } }, 3500);
+  sp.screen = null; sp.item = sp.queue.shift(); sp.level = spellRec(sp.item.w).level; sp.hidden = spellTesting(sp) || sp.level >= 2;
+  if (!spellTesting(sp) && sp.level === 1) sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.hidden = true; render(); } }, 3500);
   spellSay();
 }
 // A clean word earns an easier shot, because the keeper covers less of the goal.
@@ -3543,11 +3550,17 @@ function spellScene() {
   kickBall(96 + 84 * pct, 228 - 23 * pct, .9 + .1 * pct); kickShadow(96 + 84 * pct, 242 - 21 * pct, 14); kickerAt(60 + 68 * pct, 250 - 2 * pct); placeKeeper(180);
 }
 function spellFinishBee() {
-  const sp = U.sp, day = schoolDay(), n = sp.right.length, total = n + sp.missed.length;
-  spellBees().push({ date: dateKey(), right: n, total, missed: sp.missed.map((x) => x.w), typed: sp.missed.map((x) => x.typed) });
+  const sp = U.sp, day = schoolDay(), n = sp.right.length, total = n + sp.missed.length, g = spellGrade(n, total);
   sp.missed.forEach((x) => { const r = spellRec(x.w); r.level = Math.min(r.level, 1); });
-  day.spellBee = true; earn(n * 3); if (n === total) { beep(FANFARE); confetti(80); } else beep(CHIME);
+  if (sp.mode === "pretest") {
+    day.spellPretest = { right: n, total, missed: sp.missed.map((x) => x.w) }; earn(n);
+    if (n === total) { beep(FANFARE); confetti(60); } else beep(CHIME);
+    save(); lastSaid = ""; stopVoice(); return;
+  }
+  spellBees().push({ date: dateKey(), right: n, total, pct: g.pct, grade: g.letter, missed: sp.missed.map((x) => x.w), typed: sp.missed.map((x) => x.typed) });
+  day.spellBee = true; day.spellGrade = { right: n, total, ...g }; earn(n * 3); if (n === total) { beep(FANFARE); confetti(80); } else { beep(CHIME); if (g.pct >= 80) confetti(40); }
   save(); lastSaid = ""; stopVoice();
+  try { if (!S.muted && S.voice !== false) playVoice(`You got ${n} out of ${total}. That's ${/[AF]/.test(g.letter) ? "an" : "a"} ${g.letter}!`, "david"); } catch (e) {}
 }
 function spellGoal(clean) {
   const sp = U.sp, it = sp.item, r = spellRec(it.w), day = schoolDay();
@@ -3555,6 +3568,7 @@ function spellGoal(clean) {
   day.spellToday = [...new Set([...(day.spellToday || []), it.w])]; day.spellWords = day.spellToday.length;
   if (clean) r.cleanRounds++;
   if (sp.misses <= (r.level >= 2 ? 0 : 1)) r.level = Math.min(3, r.level + 1);
+  if (!clean && !sp.retried.includes(it.w)) { sp.retried.push(it.w); sp.queue.push(it); }
   const pay = clean ? 4 : 2; earn(pay); coinPop(pay); beep(CHIME);
   sp.clean = clean; lastSaid = ""; try { if (!S.muted && S.voice !== false) playVoice("Nice spelling. Now take your shot.", "david"); } catch (e) {}
   save(); render();
@@ -3562,19 +3576,19 @@ function spellGoal(clean) {
 }
 function spellKey(d) {
   const sp = U.sp; if (!sp?.item || sp.locked) return;
-  const k = d.k === "RETURN" && sp.mode === "bee" ? "DONE" : d.k, it = sp.item, r = spellRec(it.w);
+  const k = d.k === "RETURN" && spellTesting(sp) ? "DONE" : d.k, it = sp.item, r = spellRec(it.w);
   if (k === "SPACE") { beep(KEY_TAP); return; }
   if (k === "RETURN") { beep(KEY_TAP); spellSay(); return; }
-  if (sp.mode === "bee") {
+  if (spellTesting(sp)) {
     if (k === "DEL") sp.typed = sp.typed.slice(0, -1);
     else if (k === "DONE") {
       if (!sp.typed) return;
       const right = sp.typed === it.w; sp.locked = true;
       (right ? sp.right : sp.missed).push({ w: it.w, typed: sp.typed });
-      if (!right) { r.typed = [...new Set([...r.typed, sp.typed])].slice(-6); r.misses++; }
-      sp.scored = right; sp.beeMsg = right ? "Nice spelling. Now take your shot." : "Good try. We'll practice that one."; playSfx(right ? "coin" : "soft", .7);
+      if (!right && sp.mode === "bee") { r.typed = [...new Set([...r.typed, sp.typed])].slice(-6); r.misses++; }
+      sp.scored = right; sp.beeMsg = right ? (sp.mode === "pretest" ? "Got it!" : "Nice spelling. Now take your shot.") : "Good try. We'll practice that one."; playSfx(right ? "coin" : "soft", .7);
       save(); render();
-      sp.timer = setTimeout(() => { if (U.sp !== sp || U.view !== "spelling") return; sp.beeMsg = ""; if (right) return spellShot(true); spellNext(); render(); }, 1400);
+      sp.timer = setTimeout(() => { if (U.sp !== sp || U.view !== "spelling") return; sp.beeMsg = ""; if (right && sp.mode === "bee") return spellShot(true); spellNext(); render(); }, right && sp.mode === "pretest" ? 700 : 1400);
       return;
     } else if (sp.typed.length < it.w.length + 3) sp.typed += k;
     beep(KEY_TAP); render(); return;
@@ -3596,29 +3610,31 @@ function spellKey(d) {
 function spellingView() {
   const sp = U.sp || (spellOpen(), U.sp), day = schoolDay(), list = spellList(), active = spellActive(), mastered = spellMastered();
   const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>${esc(list.title)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-  const beeBtn = `<button class="btn go wide" data-act="spellBee">Take the Spelling Bee</button>`;
-  if (sp.screen === "today") return `${top}${bubble("That's all your words for today. Nice work.")}<div class="center statesdone"><div class="big">${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"} today!</div><p>${mastered} of ${active.length} words known from memory.</p>${spellBeeDay() || mastered === active.length ? beeBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
-  if (sp.screen === "allDone") return `${top}${bubble("You know every word from memory. Time for the bee.")}<div class="center statesdone"><div class="big">All ${active.length} words!</div>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
-  if (sp.screen === "beeDone") return `${top}${bubble("Spelling bee finished. Good work.")}<div class="center statesdone"><div class="big">${sp.right.length} of ${sp.right.length + sp.missed.length} goals!</div><p>+$${sp.right.length * 3}${sp.missed.length ? `. We'll practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.` : ". A perfect bee!"}</p><button class="btn go wide" data-act="view" data-v="school">Back to School Day</button></div>`;
-  const it = sp.item, w = it.w, slots = sp.mode === "bee" ? Array.from({ length: Math.max(w.length, sp.typed.length) }, (_, i) => sp.typed[i] || "") : w.split("").map((_, i) => sp.typed[i] || "");
+  const beeBtn = `<button class="btn go wide" data-act="spellBee">Take the Spelling Test</button>`, preBtn = `<button class="btn go wide" data-act="spellPretest">Take the practice test</button>`;
+  if (sp.screen === "today") return `${top}${bubble("That's all your words for today. Nice work.")}<div class="center statesdone"><div class="big">${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"} today!</div><p>${mastered} of ${active.length} words known from memory.</p>${spellBeeDay() && !day.spellBee ? beeBtn : spellPracticeDay() && !day.spellPretest ? `<p>Tomorrow is the spelling test. Try a practice test now. It doesn't count.</p>${preBtn}` : !spellBeeDay() && mastered === active.length ? preBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back to School Day</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
+  if (sp.screen === "ready") return `${top}${bubble("Warm-up done. You know these words. Time to show it.")}<div class="center statesdone"><div class="big">Ready for your test!</div><p>${mastered} of ${active.length} words known from memory.</p>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  if (sp.screen === "allDone") return `${top}${bubble("You know every word from memory. Time for the test.")}<div class="center statesdone"><div class="big">All ${active.length} words!</div>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  if (sp.screen === "beeDone" && sp.mode === "pretest") { const pr = day.spellPretest || { right: sp.right.length, total: sp.right.length + sp.missed.length }; return `${top}${bubble(sp.missed.length ? "Good practice. Let's fix the ones you missed, so tomorrow is easy." : "Every word right. You're ready for tomorrow!")}<div class="center statesdone"><div class="big">${pr.right} of ${pr.total} on the practice test</div>${sp.missed.length ? `<p>Let's practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.</p><button class="btn go wide" data-act="spellFix">Practice those words</button>` : ""}<button class="btn ${sp.missed.length ? "dark" : "go"} wide" data-act="view" data-v="school">Back to School Day</button></div>`; }
+  if (sp.screen === "beeDone") { const g = spellGrade(sp.right.length, sp.right.length + sp.missed.length); return `${top}${bubble(sp.missed.length ? `You got ${/[AF]/.test(g.letter) ? "an" : "a"} ${g.letter}! Every word you missed comes back to practice.` : "A perfect test! Every single word.")}<div class="center statesdone"><div class="spellgrade g${g.letter}"><b>${g.letter}</b><span>${g.pct}%</span></div><div class="big">${sp.right.length} of ${sp.right.length + sp.missed.length} words right</div><p>+$${sp.right.length * 3}${sp.missed.length ? `. We'll practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.` : ""}</p><button class="btn go wide" data-act="view" data-v="school">Back to School Day</button></div>`; }
+  const it = sp.item, w = it.w, slots = spellTesting(sp) ? Array.from({ length: Math.max(w.length, sp.typed.length) }, (_, i) => sp.typed[i] || "") : w.split("").map((_, i) => sp.typed[i] || "");
   const nextL = w[sp.typed.length];
   setTimeout(spellScene, 0);
   const show = sp.mode === "practice" && !sp.hidden;
-  const say = sp.mode === "bee" ? sp.beeMsg || SPELL_LINES.bee : sp.scored ? "Nice spelling. Now take your shot." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
+  const say = spellTesting(sp) ? sp.beeMsg || SPELL_LINES[sp.mode] : sp.scored ? "Nice spelling. Now take your shot." : sp.hint ? `The next letter is ${nextL.toUpperCase()}.` : sp.shake ? "Good try. Try another letter." : SPELL_LINES[Math.min(2, sp.level)];
   const letterKeys = (row) => row.split("").map((c) => `<button class="spellk" data-act="spellKey" data-k="${c}" aria-label="${c}">${c}</button>`).join("");
   const backIcon = `<svg viewBox="0 0 28 20" aria-hidden="true"><path d="M9 1.500h15a2.500 2.500 0 0 1 2.500 2.500v12a2.500 2.500 0 0 1-2.500 2.500H9L1.500 10z" fill="none" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/><path d="M12.500 6.500l7 7M19.500 6.500l-7 7" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/></svg>`;
-  const kb = `<div class="spellrow">${letterKeys("qwertyuiop")}</div><div class="spellrow inset">${letterKeys("asdfghjkl")}</div><div class="spellrow"><span class="spellgap"></span>${letterKeys("zxcvbnm")}<button class="spellk fn back" data-act="spellKey" data-k="DEL" aria-label="Backspace">${backIcon}</button></div><div class="spellrow"><button class="spellk space" data-act="spellKey" data-k="SPACE" aria-label="Space">space</button><button class="spellk fn ret ${sp.mode === "bee" ? "go" : ""}" data-act="spellKey" data-k="RETURN" aria-label="Return">return</button></div>`;
-  const count = sp.mode === "bee" ? `Bee: word ${sp.right.length + sp.missed.length + 1} of ${active.length}` : `${Math.min(day.spellWords || 0, active.length)} of ${active.length} words today &#183; ${mastered} of ${active.length} from memory`;
-  const doneN = sp.mode === "bee" ? sp.right.length + sp.missed.length : Math.min(day.spellWords || 0, active.length), leftN = active.length - doneN;
+  const kb = `<div class="spellrow">${letterKeys("qwertyuiop")}</div><div class="spellrow inset">${letterKeys("asdfghjkl")}</div><div class="spellrow"><span class="spellgap"></span>${letterKeys("zxcvbnm")}<button class="spellk fn back" data-act="spellKey" data-k="DEL" aria-label="Backspace">${backIcon}</button></div><div class="spellrow"><button class="spellk space" data-act="spellKey" data-k="SPACE" aria-label="Space">space</button><button class="spellk fn ret ${spellTesting(sp) ? "go" : ""}" data-act="spellKey" data-k="RETURN" aria-label="Return">return</button></div>`;
+  const count = spellTesting(sp) ? `${sp.mode === "pretest" ? "Practice test" : "Test"}: word ${sp.right.length + sp.missed.length + 1} of ${active.length}` : `${Math.min(day.spellWords || 0, active.length)} of ${active.length} words today &#183; ${mastered} of ${active.length} from memory`;
+  const doneN = spellTesting(sp) ? sp.right.length + sp.missed.length : Math.min(day.spellWords || 0, active.length), leftN = active.length - doneN;
   const progLabel = sp.extra && !leftN ? "Bonus kicks" : !leftN ? "Done for today" : leftN <= 3 ? `Almost done! ${leftN} to go` : `${leftN} words to go`;
   const prog = `<div class="spellprog ${leftN && leftN <= 3 ? "near" : ""}" role="progressbar" aria-valuemin="0" aria-valuemax="${active.length}" aria-valuenow="${doneN}" aria-label="${doneN} of ${active.length} words done"><div class="spellprogbar"><i style="width:${active.length ? (doneN / active.length) * 100 : 0}%"></i></div><b>${progLabel}</b></div>`;
-  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<div class="spellgame"><div class="spellscene">${kickScene().replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"').replace('id="pitch"', 'id="spellPitch"')}</div><div class="spellside">${prog}<p class="statesbar">${count} &#183; ${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"}</p><div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><p class="spellhelp">${sp.mode === "bee" ? "Tap return when you're done." : "Tap return to hear it again."}</p><div class="spellkb">${kb}</div></div></div>`;
+  return `${top}${bubble(say, sp.shake ? "shake" : "", true)}<div class="spellgame"><div class="spellscene">${kickScene().replace('preserveAspectRatio="xMidYMid slice"', 'preserveAspectRatio="xMidYMid meet"').replace('id="pitch"', 'id="spellPitch"')}</div><div class="spellside">${prog}<p class="statesbar">${count} &#183; ${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"}</p><div class="spellword ${show ? "" : "gone"}">${show ? esc(w) : `<button class="btn dark small" data-act="spellSayAgain">Hear it again</button>`}</div><div class="spellslots ${sp.shake ? "shake" : ""}">${slots.map((c, i) => `<span class="${c ? "on" : ""} ${sp.hint && i === sp.typed.length ? "hinted" : ""}">${esc(c || (sp.hint && i === sp.typed.length ? nextL : ""))}</span>`).join("")}</div><p class="spellhelp">${spellTesting(sp) ? "Tap return when you're done." : "Tap return to hear it again."}</p><div class="spellkb">${kb}</div></div></div>`;
 }
 function spellLog() {
   const list = spellList(), bees = spellBees(), active = spellActive();
   const rows = active.map((x) => { const r = spellRec(x.w), status = r.level >= 3 ? "From memory" : r.level === 2 ? "Almost" : r.level === 1 ? "Learning" : r.rounds ? "Started" : "Not started"; return `<tr><td><b>${esc(x.w)}</b>${x.carried ? " <small>(from last week)</small>" : ""}</td><td>${status}</td><td>${r.rounds}</td><td>${r.misses}</td><td>${esc(r.typed.join(", "))}</td></tr>`; }).join("");
-  const beeRows = bees.map((b) => `<li>${esc(b.date)}: ${b.right} of ${b.total}${b.missed.length ? `, missed ${b.missed.map(esc).join(", ")}` : ""}</li>`).join("");
-  return `<div class="panel"><h2>Spelling: ${esc(list.title)}</h2><p class="sub">${spellMastered()} of ${active.length} words known from memory.${active.some((x) => x.carried) ? ` ${active.filter((x) => x.carried).length} carried over from earlier bees.` : ""}</p>${beeRows ? `<h3>Spelling bees</h3><ul>${beeRows}</ul>` : ""}<details class="plog pfold"><summary>Every word</summary><table class="ptable"><tr><th>Word</th><th>Status</th><th>Rounds</th><th>Misses</th><th>Letters he tried</th></tr>${rows}</table></details></div>`;
+  const beeRows = bees.map((b) => { const g = b.grade ? b : spellGrade(b.right, b.total); return `<li><b>${esc(b.grade || g.letter)}</b> ${esc(b.date)}: ${b.right} of ${b.total} (${b.pct ?? g.pct}%)${b.missed.length ? `, missed ${b.missed.map(esc).join(", ")}` : ""}</li>`; }).join("");
+  return `<div class="panel"><h2>Spelling: ${esc(list.title)}</h2><p class="sub">${spellMastered()} of ${active.length} words known from memory.${active.some((x) => x.carried) ? ` ${active.filter((x) => x.carried).length} carried over from earlier bees.` : ""}</p>${beeRows ? `<h3>Friday spelling tests</h3><ul>${beeRows}</ul>` : ""}<details class="plog pfold"><summary>Every word</summary><table class="ptable"><tr><th>Word</th><th>Status</th><th>Rounds</th><th>Misses</th><th>Letters he tried</th></tr>${rows}</table></details></div>`;
 }
 function spellReport() {
   const list = spellList(), active = spellActive(), out = [`SPELLING ${list.title}: ${spellMastered()} of ${active.length} from memory`];
@@ -3626,7 +3642,7 @@ function spellReport() {
   if (carried.length) out.push(`Carried over: ${carried.join(", ")}`);
   const hard = active.filter((x) => spellRec(x.w).misses).map((x) => `${x.w} (${spellRec(x.w).misses})`);
   if (hard.length) out.push(`Misses by word: ${hard.join(", ")}`);
-  spellBees().forEach((b) => out.push(`Bee ${b.date}: ${b.right} of ${b.total}${b.missed.length ? `, missed ${b.missed.join(", ")}` : ""}`));
+  spellBees().forEach((b) => { const g = b.grade ? b : spellGrade(b.right, b.total); out.push(`Spelling test ${b.date}: ${b.grade || g.letter}, ${b.right} of ${b.total} (${b.pct ?? g.pct}%)${b.missed.length ? `, missed ${b.missed.join(", ")}` : ""}`); });
   return out;
 }
 function worldMapSvg() {
@@ -4912,7 +4928,9 @@ function parentView() {
   const extras = [xd.readMoreRounds ? `${xd.readMoreRounds * READ_MORE_MINS} more minutes of reading` : "", xd.lassoRuns ? `${xd.lassoRuns} facts ${xd.lassoRuns === 1 ? "run" : "runs"}` : "", xStates ? `${xStates} more states and capitals` : ""].filter(Boolean);
   const praise = tonightPraise(), reviewDone = Object.entries(schoolDay().review || {});
   const praisePanel = `<div class="panel praise"><h2>Tonight's praise</h2>${praise.length ? `<p class="sub">Written from what ${esc(KID.name)} really did today. Say it in your own words, and look at the work together if you can.</p>${praise.map((t) => `<p class="praiseline">"${esc(t)}"</p>`).join("")}` : `<p class="sub">This fills in as ${esc(KID.name)} finishes work today.</p>`}${reviewDone.length ? `<p class="sub"><strong>Friday review:</strong> ${reviewDone.filter(([, v]) => v === "alone").length} on the first try, ${reviewDone.filter(([, v]) => v === "tries").length} on the second, ${reviewDone.filter(([, v]) => v === "help").length} to go over together${reviewDone.some(([, v]) => v === "help") ? `: problem ${reviewDone.filter(([, v]) => v === "help").map(([k]) => esc(k.split("|")[1])).join(", ")}` : ""}.</p>` : ""}</div>`;
-  const schoolTop = `${familyPanel}${praisePanel}<div class="panel"><h2>Today's school day</h2>${extras.length ? `<p class="sub"><strong>Extra today:</strong> ${esc(extras.join(", "))}.</p>` : ""}${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i>${timesHtml(x, schoolDay())}${TIMERS[x.id] && st.pct > 0 ? `<button class="link timerundo" data-act="timerUndo" data-id="${esc(x.id)}">Undo this timer for today</button>` : ""}</div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
+  const lastTest = spellList() ? spellBees().slice(-1)[0] : null, lastG = lastTest && (lastTest.grade ? lastTest : spellGrade(lastTest.right, lastTest.total));
+  const gradePanel = lastTest ? `<div class="panel"><h2>Spelling test grade</h2><div class="spellgraderow"><div class="spellgrade g${esc(lastTest.grade || lastG.letter)}"><b>${esc(lastTest.grade || lastG.letter)}</b><span>${lastTest.pct ?? lastG.pct}%</span></div><p class="sub">${esc(lastTest.date)}: ${lastTest.right} of ${lastTest.total} words right.${lastTest.missed.length ? ` Missed ${esc(lastTest.missed.join(", "))}. Those carry into next week's practice.` : " A perfect test."}</p></div></div>` : "";
+  const schoolTop = `${familyPanel}${gradePanel}${praisePanel}<div class="panel"><h2>Today's school day</h2>${extras.length ? `<p class="sub"><strong>Extra today:</strong> ${esc(extras.join(", "))}.</p>` : ""}${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i>${timesHtml(x, schoolDay())}${TIMERS[x.id] && st.pct > 0 ? `<button class="link timerundo" data-act="timerUndo" data-id="${esc(x.id)}">Undo this timer for today</button>` : ""}</div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
   <div class="panel"><h2>This week</h2><div class="weekgrid" style="--days:7"><span></span>${weekDays.map((d) => `<b>${d.toLocaleDateString(undefined, { weekday: "short" })}</b>`).join("")}${planItems.map((x) => `<span class="wkname">${esc(x.name)}</span>${weekDays.map((d) => weekCell(x, d)).join("")}`).join("")}</div><div class="howkey"><span><i class="wk yes"></i> Done</span><span><i class="wk part"></i> Started</span><span><i class="wk none"></i> Not done</span><span><b>${S.schoolDays || 0}</b> full school days finished</span></div>${earlierTimes(weekDays, planItems)}</div>
   ${spellList() ? spellLog() : ""}
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
@@ -6021,7 +6039,7 @@ const acts = {
     if (x.kind === "reading") { U.timerId = x.id; U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { stampStart(x.id, day); stateOpen(); return; }
     if (x.kind === "spelling" && !spellList()) return;
-    if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? "bee" : "practice"); return; }
+    if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? (spellShaky().length ? "warmup" : "bee") : "practice"); return; }
     if (x.kind === "game") { stampStart(x.id, day); save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id];
     if (!day.done[x.id]) { delete dayTimes(x.id, day).end; day.paid[x.id] = false; }
@@ -6192,6 +6210,8 @@ const acts = {
   spellKey,
   spellSayAgain() { spellSay(); },
   spellBee() { spellOpen("bee"); },
+  spellPretest() { spellOpen("pretest"); },
+  spellFix() { const missed = (U.sp?.missed || []).map((x) => x.w); spellOpen("practice", false, missed); },
   spellMore() { U.sp.extra = true; spellNext(); render(); },
   statesZoom() { const sg = U.sg; if (!sg || sg.locked) return; sg.zoom = !sg.zoom; beep(BLIP); render(); },
   statesPractice() { U.sg = { queues: { 1: [], 2: [] }, extra: true }; stateNext(); render(); },
