@@ -715,7 +715,7 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .gametime svg{width:26px;height:26px;color:#ffd23f;flex:none}.gametime b{font-size:1.02rem}.gametime small{margin-left:auto;font-size:.88rem;opacity:.9}
 .gameclock{font-size:1.15rem;color:#ffd23f;font-variant-numeric:tabular-nums;background:#12142b;border-radius:8px;padding:1px 9px}
 .gametime.closed{background:rgba(128,128,128,.16);border-color:rgba(128,128,128,.55)}.gametime.closed svg{color:#9aa0ad}
-.gamechip.lessondone{background:#1f9a4f}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit}
+.gamechip.lessondone{background:#1f9a4f}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit;font-size:1.05rem;min-height:52px;padding:6px 18px}.lessonchips .morechip{background:transparent;box-shadow:inset 0 0 0 2px var(--panel2)}
 @media (orientation:landscape) and (min-width:800px){.gamepicks.sixup{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks.sixup .gameart{aspect-ratio:auto;height:clamp(70px,19vh,150px)}.gamepicks.sixup .gametext{padding:5px 10px}.gamepicks.sixup h3{font-size:1.05rem}.gamepicks.sixup .sub{font-size:.82rem}}
 .statesbar{margin:0;font-weight:800;text-align:center;color:var(--gold)}
 .statesmapwrap{position:relative;flex:1;min-height:0;display:flex;justify-content:center}
@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=34e735cef4"></script>
+<script src="lessons.js?v=b8b0b69252"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1811,7 +1811,7 @@ function schoolDay(key = dateKey()) {
   if (!S.days[key]) S.days[key] = { done: {}, paid: {}, readSecs: 0, readFrom: 0, capTries: 0, mathLesson: withSubject("math", () => LESSONS[currentIdx()]?.id) };
   return S.days[key];
 }
-const todaysItems = (d = new Date()) => schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()));
+const todaysItems = (d = new Date()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay())), ...withSubject("math", () => LESSONS.filter((l) => l.test && l.extraOn === dateKey(d)).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
 const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
   piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
@@ -3077,6 +3077,7 @@ function itemStatus(x, day = schoolDay()) {
     return { done: !!l && n >= must.length, label: n >= must.length ? `${l.town} finished` : `${l.town}: ${n} of ${must.length} sections`, pct: must.length ? n / must.length : 0 };
   }
   if (x.kind === "reading") { const secs = readingSecs(day), need = readingNeed(); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes read` : day.readFrom ? `Reading now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.kind === "test") { const l = ALL_LESSONS.find((y) => y.id === x.lesson); if (!l) return { done: true, label: "", pct: 1 }; const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return { done: n >= must.length, label: `${l.title}: ${n} of ${must.length} parts`, pct: n / must.length }; }
   if (x.kind === "verse") { const v = verseNow(), key = Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey(), wd = new Date(`${key}T12:00`).getDay(), done = day.verseDone || []; if (!v) return { done: true, label: "No verse this week", pct: 1 }; if (wd === 5) return { done: !!day.verseTest, label: day.verseTest ? `Memory test: ${day.verseTest.letter} (${day.verseTest.right} of ${day.verseTest.total})` : "Memory test day", pct: day.verseTest ? 1 : done.length ? .5 : 0 }; const need = 2; return { done: done.length >= need, label: wd === 4 ? (day.versePretest ? `Practice test: ${day.versePretest.right} of ${day.versePretest.total}` : "Practice, then a practice test") : `${v.ref}: ${Math.min(done.length, need)} of ${need}`, pct: Math.min(1, done.length / need) }; }
   if (x.kind === "typing") { const goal = tyGoal(), n = Math.min(day.typeN || 0, goal); return { done: !!day.typeDone, label: day.typeDone ? `${day.typeWpm || 0} words a minute, ${day.typeAcc || 0}% right` : `${n} of ${goal} asteroids`, pct: day.typeDone ? 1 : n / goal }; }
   if (x.kind === "review") { const list = reviewList(day), n = list.filter((k) => day.review?.[k]).length; return { done: n >= list.length, label: !list.length ? "Nothing to go back over. Clean week!" : n >= list.length ? `${list.length} problems reviewed` : `${n} of ${list.length} problems`, pct: list.length ? n / list.length : 1 }; }
@@ -3164,7 +3165,16 @@ function lessonReviewView() {
   ${bubble(`Here's everything you did in ${l.town}. Tap any problem to see it again.`, "", true)}
   <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="ranch">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
 }
-const lessonChips = () => LESSONS.length > 1 ? `<div class="daygames lessonchips"><span>Lessons:</span>${LESSONS.map((l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; }).join("")}</div>` : "";
+// This week's lessons show first; earlier ones fold behind one button so the row doesn't keep growing (Nathan, 2026-11-09).
+function weekKeys() { const d = new Date(); d.setHours(12, 0, 0, 0); const wd = d.getDay(); d.setDate(d.getDate() + (wd === 0 ? 1 : wd === 6 ? 2 : 1 - wd)); const f = new Date(d); f.setDate(d.getDate() + 6); return [dateKey(d), dateKey(f)]; }
+const lessonChips = () => {
+  if (LESSONS.length <= 1) return "";
+  const [mon, sun] = weekKeys(), inWeek = (k) => k && k >= mon && k <= sun;
+  const thisWeek = (l) => inWeek(l.startsOn) || inWeek(l.onlyOn) || inWeek(l.extraOn) || (l.current && !l.startsOn && !l.onlyOn) || l.id === U.lesson;
+  const chip = (l) => { const must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return `<button class="gamechip ${n >= must.length ? "lessondone" : ""}" data-act="${n >= must.length ? "lessonReview" : "town"}" data-id="${esc(l.id)}">${n >= must.length ? "&#10003; " : ""}${esc(l.town)} &#183; ${n} of ${must.length}</button>`; };
+  const now = LESSONS.filter(thisWeek), earlier = LESSONS.filter((l) => !thisWeek(l));
+  return `<div class="daygames lessonchips"><span>This week:</span>${now.map(chip).join("")}${earlier.length ? `<button class="gamechip morechip" data-act="pastLessons">${U.pastLessons ? "Hide earlier" : `Earlier lessons (${earlier.length})`}</button>` : ""}${U.pastLessons ? earlier.map(chip).join("") : ""}</div>`;
+};
 const saveStatusText = () => !familyLinked() ? "" : navigator.onLine === false ? "" : cloud === "synced" ? "Saved for the whole family" : "Saving...";
 function keepGoingRow(items) {
   const has = (k) => items.some((x) => x.kind === k), hasFacts = withSubject("math", () => LESSONS.length > 0);
@@ -3197,6 +3207,7 @@ function plannedLesson(subject, date) {
 function plannedLabel(x, date) {
   const wd = date.getDay(), key = dateKey(date);
   if (x.kind === "math" || x.kind === "grammar") { const l = plannedLesson(x.kind, date); return l ? (x.kind === "grammar" ? `${l.title.replace("Easy Grammar, ", "")}` : `${lessonLabel(l).replace(/&#\d+;/g, "")}: ${l.town}`) : "Not added yet"; }
+  if (x.kind === "test") { const l = ALL_LESSONS.find((y) => y.id === x.lesson); return l ? l.title : "Math test"; }
   if (x.kind === "spelling") {
     // The list for that date (a new week's list waits for its startsOn). A make-up test is planned for the first
     // school day it's open; after that the old list is assumed done, so later days show the next list.
@@ -3220,8 +3231,8 @@ function plannedLabel(x, date) {
 function schoolOtherDay(off) {
   const date = dayAt(off), key = dateKey(date), past = off < 0, rec = S.days?.[key], items = todaysItems(date);
   const name = date.toLocaleDateString(undefined, { weekday: "long" });
-  const card = (x) => { const st = past && rec ? itemStatus(x, rec) : null; return `<div class="daycard preview ${st?.done ? "done" : ""}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st ? st.label : past ? "Not done" : plannedLabel(x, date))}</small></span><span class="daycheck">${st?.done ? "&#10003;" : ""}</span></div>`; };
-  const line = !items.length ? `No school on the plan for ${name}.` : past ? `Here's how ${name} went.` : `Here's the plan for ${name}. It opens that morning.`;
+  const card = (x) => { const st = past && rec ? itemStatus(x, rec) : null; return `<button class="daycard ${st?.done ? "done" : ""}" data-act="dayGo" data-id="${esc(x.id)}" data-date="${key}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st ? st.label : past ? "Not done" : plannedLabel(x, date))}</small></span><span class="daycheck">${st?.done ? "&#10003;" : ""}</span></button>`; };
+  const line = !items.length ? `No school on the plan for ${name}.` : past ? `Here's how ${name} went. Tap one to catch up.` : `Here's the plan for ${name}. Want to get ahead? Tap one to start.`;
   return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead">${dayNavHead(date, off)}<button class="btn dark small daytoday" data-act="dayOff" data-d="${-off}">Back to today</button></div><div class="daycards">${items.map(card).join("")}</div>`;
 }
 const dayNavHead = (date, off) => `<h2 class="daynavrow"><button class="daynav" data-act="dayOff" data-d="-1" ${off <= -DAY_NAV_MAX ? "disabled" : ""} aria-label="Day before">&#9664;</button><span>${esc(date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}</span><button class="daynav" data-act="dayOff" data-d="1" ${off >= DAY_NAV_MAX ? "disabled" : ""} aria-label="Next day">&#9654;</button></h2>`;
@@ -3236,7 +3247,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "52ed3796c670";
+const GAME_BUILD = "1ee3a40073b8";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3363,7 +3374,7 @@ const mapBase = (w, h) => {
 const KNIGHT_RIDER = `<path d="M-19-6c8-3 19-3 27 0l-2 12c-7 2-16 2-23 0z" fill="#c8202c" stroke="#7a1218" stroke-width=".8"/><path d="M26-30L-6-14" stroke="#7a5230" stroke-width="2.200" stroke-linecap="round"/><path d="M26-30l6-3-4 6z" fill="#d5dbe2"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#c9d0d8" stroke="#3a3f4a" stroke-width=".8"/><path d="M-5-29h6v17h-6z" fill="#c8202c"/><path d="M-2-27v12M-5-21h6" stroke="#ffd23f" stroke-width="1.300"/><path d="M-9-34a7 7 0 0 1 14 0v7H-9z" fill="#d5dbe2" stroke="#3a3f4a" stroke-width=".8"/><path d="M-4-33h9" stroke="#15171b" stroke-width="1.600"/><path d="M-2-41c-1-5 3-9 9-9-2 3-3 6-3 9z" fill="#c8202c"/></g></g>`;
 const riderToken = () => { const base = cowboyToken(); return KNIGHT ? base.slice(0, base.indexOf('<rect x="-8" y="-29"')) + KNIGHT_RIDER : base; };
 const cowboyToken = () => `<g id="token"><g class="bob" transform="scale(1.35)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a" stroke-width="1.1" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1" stroke="#3a3f4a" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#8fb7dc"}" stroke="#3a3f4a" stroke-width=".8"/><path d="M-7-29h10l-5 6z" fill="#c8202c"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><rect x="-8" y="-38.500" width="12.500" height="4" rx="1.500" fill="#15171b"/><circle cx="1" cy="-36.500" r="1" fill="#f4cda8"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-42.500" width="10" height="2" fill="#15171b"/></g></g>`;
-const label = (x, y, text, sub = "", col = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="19" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="4" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="18" text-anchor="middle" font-size="14" font-weight="800" fill="${col || "#5a3a1e"}" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
+const label = (x, y, text, sub = "", col = "") => `<g transform="translate(${x} ${y})" pointer-events="none"><text text-anchor="middle" font-family="Rye,Georgia,serif" font-size="24" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="5" paint-order="stroke">${esc(text)}</text>${sub ? `<text y="22" text-anchor="middle" font-size="17" font-weight="800" fill="${col || "#5a3a1e"}" stroke="#f4e4bd" stroke-width="3" paint-order="stroke">${esc(sub)}</text>` : ""}</g>`;
 const doneMark = (x, y) => `<g transform="translate(${x} ${y})"><circle r="15" fill="#1f9a4f" stroke="#fff" stroke-width="3"/><path d="M-7 0l5 6 10-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
 const townIcon = (s = 1) => `<g transform="scale(${s})"><ellipse cx="4" cy="14" rx="40" ry="6" fill="rgba(45,30,15,.32)"/><path d="M-36 12V-6H-12V12Z" fill="#a8733f"/><path d="M-12-6L-6-2V12H-12Z" fill="#6e4726"/><path d="M-39-5L-24-18-9-5Z" fill="#5a3517"/><rect x="-27" y="1" width="7" height="11" fill="#3f2612"/><rect x="-34" y="-1" width="5" height="6" fill="#ffd978" stroke="#3a2412" stroke-width=".8"/><path d="M-6 12V-20H24V12Z" fill="#c98d4d"/><path d="M24-20L32-15V12H24Z" fill="#7d5530"/><path d="M-6-20V-28H3V-33H15V-28H24V-20Z" fill="#d9a262"/><path d="M-6-28H3V-33H15V-28H24" fill="none" stroke="#5a3517" stroke-width="1.500"/><rect x="0" y="-11" width="7" height="8" fill="#ffd978" stroke="#3a2412"/><rect x="12" y="-11" width="7" height="8" fill="#ffd978" stroke="#3a2412"/><rect x="5" y="1" width="9" height="11" fill="#3f2612"/><path d="M-9-1H26L30 3H-9Z" fill="#6e4726"/><path d="M9-33v-11" stroke="#3a2412" stroke-width="2"/><path class="flag" d="M9-44l13 4-13 4z" fill="#c8202c"/></g>`;
 const groundShade = (w = 34) => `<ellipse cx="4" cy="18" rx="${w}" ry="6" fill="rgba(45,30,15,.32)"/>`;
@@ -5187,7 +5198,7 @@ function weekLessonsPanel() {
     };
     rows.push(`<tr><td><b>${esc(d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }))}</b></td><td>${cell("math")}</td><td>${cell("grammar")}</td></tr>`);
   }
-  return `<div class="panel"><h2>This week's lessons</h2><p class="sub">Open any lesson to see it the way ${esc(KID.name)} will. Nothing you do in a preview is saved or counts for ${esc(KID.name)}.</p><table class="ptable weektable"><tr><th>Day</th><th>Math</th><th>Grammar</th></tr>${rows.join("")}</table><p class="sub"><button class="link" data-act="previewSpelling">Preview spelling</button> &#183; <button class="link" data-act="previewVerse">Preview the Bible verse</button></p></div>`;
+  return `<div class="panel"><h2>This week's lessons</h2><p class="sub">Open any lesson to see it the way ${esc(KID.name)} will. Nothing you do in a preview is saved or counts for ${esc(KID.name)}.</p><table class="ptable weektable"><tr><th>Day</th><th>Math</th><th>Grammar</th></tr>${rows.join("")}</table><p class="sub"><button class="btn go" data-act="previewSchool">Preview the whole school day</button></p><p class="sub"><button class="link" data-act="previewSpelling">Preview spelling</button> &#183; <button class="link" data-act="previewVerse">Preview the Bible verse</button></p></div>`;
 }
 function parentView() {
   if (!U.parentOk) {
@@ -6313,7 +6324,8 @@ const acts = {
   },
   reviewLeave() { U.rv = null; U.qid = null; resetItem(); setSubject("math"); U.view = "school"; render(); },
   schoolGo(d) {
-    const x = schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
+    const x = todaysItems().find((y) => y.id === d.id) || schoolPlan().find((y) => y.id === d.id), day = schoolDay(); if (!x) return;
+    if (x.kind === "test") { setSubject("math"); const l = ALL_LESSONS.find((y) => y.id === x.lesson); if (!l) return; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     beep(BLIP); U.justDone = "";
     if (x.kind === "typing") { stampStart(x.id, day); tyOpen(); return; }
     if (x.kind === "verse") { stampStart(x.id, day); verseOpen(); return; }
@@ -6495,6 +6507,17 @@ const acts = {
   spellKey,
   spellSayAgain() { spellSay(); },
   spellBee() { spellOpen("bee"); },
+  pastLessons() { U.pastLessons = !U.pastLessons; render(); },
+  // Opens another day's work: that day's lesson for math and grammar, or the activity itself for the rest.
+  dayGo(d) {
+    const date = new Date(`${d.date}T12:00`), x = todaysItems(date).find((y) => y.id === d.id); if (!x) return;
+    const rec = S.days?.[d.date], lessonFor = (subject) => { const id = rec?.[subject === "math" ? "mathLesson" : "grammarLesson"]; return (id && ALL_LESSONS.find((l) => l.id === id)) || plannedLesson(subject, date) || withSubject(subject, () => LESSONS[currentIdx()]); };
+    const openLesson = (l, subject) => { if (!l) return; setSubject(subject); U.lesson = l.id; S.atTown = l.id; U.dayOff = 0; U.view = "town"; W.theme = "west"; save(); render(); window.scrollTo(0, 0); };
+    if (x.kind === "math" || x.kind === "grammar") return openLesson(lessonFor(x.kind), x.kind);
+    if (x.kind === "test") return openLesson(ALL_LESSONS.find((l) => l.id === x.lesson), "math");
+    U.dayOff = 0; acts.schoolGo({ id: x.id });
+  },
+  previewSchool() { if (!U.parentOk) return; U.preview = true; U.view = "school"; U.dayOff = 0; render(); window.scrollTo(0, 0); },
   previewLesson(d) { if (!U.parentOk) return; const l = ALL_LESSONS.find((x) => x.id === d.id); if (!l) return; U.preview = true; setSubject(l.subject || "math"); U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
   previewSpelling() { if (!U.parentOk) return; U.preview = true; spellOpen("practice", true); },
   previewVerse() { if (!U.parentOk) return; U.preview = true; verseOpen(); },
@@ -6706,7 +6729,7 @@ function render() {
   lastRenderedView = U.view;
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  canvas.hidden = ["arcade", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
   const views = { piano: pianoView, typing: typingView, verse: verseView, who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
