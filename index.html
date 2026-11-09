@@ -787,6 +787,30 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
 .scratch.big,.split.hasScratch>.left>.scratch.big{height:auto!important;grid-template-rows:auto auto minmax(0,1fr)!important}.scratch.big .spbigq{align-self:start}
 /* The pad shares the name "big" with the gold headline style, so undo everything it would inherit from that. */
 .scratch.big{text-shadow:none;line-height:1.3;font-family:var(--body);font-size:1rem;text-align:left}.scratch.big .spbigq{line-height:1.3;font-family:var(--body);font-weight:600}.scratch.big .sphint{text-align:center}/* Space Typing (2026-11-06): small top bar, tall sky, keyboard pinned low with the palms cropped off, and the asteroid falls from just under the progress bar to just above the ship. */body[data-view="typing"] #app{height:calc(100dvh - 24px);box-sizing:border-box;padding-top:4px!important;padding-bottom:max(4px,env(safe-area-inset-bottom))}body[data-view="typing"] .hud .mapbig{min-height:38px;padding:4px 14px;font-size:1rem;box-shadow:0 3px 0 var(--gold-deep)}body[data-view="typing"] .hud h2{font-size:1.15rem;margin:0}.tygame{flex:1 1 auto;min-height:0}.tyscene{flex:1 1 0;min-height:0}.typanel{flex:none;margin-top:auto}.tygame .typanel .tykbsvg{width:auto!important;height:min(26vh,230px)!important;max-width:100%!important;margin:0 auto}@media (orientation:portrait){.tygame .typanel .tykbsvg{width:100%!important;height:auto!important;max-height:26vh!important}}.tyrock{animation-name:tydrop3!important}@keyframes tydrop3{from{top:42px}to{top:calc(100% - 96px - clamp(70px,11vh,104px) - 30px)}}.tytapnote{color:#ffd76a}
+
+/* Condensed School Day (2026-11-09) */
+body[data-view="school"] .sdtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+body[data-view="school"] .sddate .daynavrow{margin:0;font-size:1.35rem;justify-content:flex-start}
+body[data-view="school"] .sdstrip{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px;align-items:center}
+body[data-view="school"] .sdstrip .biscuit{margin:0;min-height:0;padding:6px 10px;font-size:1rem}
+body[data-view="school"] .sdstrip .biscuit{grid-template-columns:minmax(0,1fr) auto}body[data-view="school"] .sdstrip .biscuit > :first-child:not(.saytext){display:none}
+body[data-view="school"] .sdstrip .daytrail{margin:0}
+body[data-view="school"] .sdinfo{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+body[data-view="school"] .sdside{display:flex;flex-direction:column;gap:8px;min-height:0}body[data-view="school"] .sdmain.nomap .sdside{order:-1}body[data-view="school"] .sdinfo > *{flex:1 1 100%;margin:0;padding-top:4px;padding-bottom:4px;font-size:.9rem}
+body[data-view="school"] .sdinfo .savedline{flex:0 0 auto}
+body[data-view="school"] .sdmain{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.15fr);gap:12px;align-items:start}
+body[data-view="school"] .sdmain.nomap{grid-template-columns:1fr;flex:0 0 auto}body[data-view="school"] .sdmain.nomap .daycards{height:auto;grid-auto-rows:minmax(110px,auto);align-content:start}
+body[data-view="school"] .sdmain .daycards,body[data-view="school"] .sdmain .daycards:has(.daycard:nth-child(7)){grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(84px,1fr);align-content:stretch;overflow:auto}
+body[data-view="school"] .sdmain.nomap .daycards,body[data-view="school"] .sdmain.nomap .daycards:has(.daycard:nth-child(7)){grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+body[data-view="school"] .sdmain .daycard,body[data-view="school"] .sdmain .daycards:has(.daycard:nth-child(7)) .daycard{grid-template-columns:60px minmax(0,1fr) 30px;gap:8px;padding:6px 8px}
+body[data-view="school"] .sdmain .dayicon,body[data-view="school"] .sdmain .daycards:has(.daycard:nth-child(7)) .dayicon{width:60px;height:60px}
+body[data-view="school"] .sdmain .daytext b{font-size:1.05rem;line-height:1.15}body[data-view="school"] .sdmain .daycheck{width:30px;height:30px}body[data-view="school"] .sdmain .daytext .daybar{margin-top:3px}
+body[data-view="school"] .sdmain .daytext small{font-size:.82rem;line-height:1.25}
+body[data-view="school"] .sdmap{min-height:0;display:flex;flex-direction:column;gap:6px}
+body[data-view="school"] .sdmap .map{flex:0 0 auto;width:100%;height:auto;margin:0}body[data-view="school"] .sdmain .daycards{height:100%}
+body[data-view="school"] .sdmaphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border:0;border-radius:12px;background:#7b2d1c;color:#ffe7a8;font:inherit;cursor:pointer}
+body[data-view="school"] .sdmaphead b{font-family:Rye,Georgia,serif;font-weight:400;font-size:1.15rem}
+@media (max-width:900px),(orientation:portrait){body[data-view="school"] .sdmain{grid-template-columns:1fr}body[data-view="school"] .sdstrip{grid-template-columns:1fr}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -3295,11 +3319,16 @@ function schoolView() {
   const next = nextUp(items, day), ordered = next ? [next, ...items.filter((x) => x !== next)] : items;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? (KNIGHT ? "Your quest is done for today. Well fought, knight." : "School's out, partner! You finished the whole trail today.") : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : KNIGHT ? `Hail, Sir ${KID.name}. Here's today's quest. Pick any one to start.` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p>${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}<div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  // Condensed School Day (Nathan, 2026-11-09): the date top left, Silver and the progress bar on one row, bigger
+  // subject icons, and today's adventure map (the town for today's math lesson) beside the cards.
+  const tl = LESSONS[currentIdx()];
+  if (tl) U.lesson = tl.id;
+  const todayMap = tl ? `<div class="sdmap"><button class="sdmaphead" data-act="town" data-id="${esc(tl.id)}"><b>Today's adventure: ${esc(tl.town)}</b><span>Open the town &#9654;</span></button>${townMapSvg(tl)}</div>` : "";
+  return `<div class="sdtop"><div class="sddate">${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}</div>${navRight()}</div>${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="sdstrip">${bubble(line)}<div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}</div><div class="sdmain ${todayMap ? "" : "nomap"}"><div class="daycards">${ordered.map(card).join("")}</div><div class="sdside">${todayMap}<div class="sdinfo">${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}<p class="savedline" id="savedline">${saveStatusText()}</p></div></div></div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "acc75840c129";
+const GAME_BUILD = "1715352084c8";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7036,6 +7065,7 @@ function render() {
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
   if (U.view === "home" && !U.trotting && document.getElementById("token")) { if (LESSONS.length) placeToken("world", worldSpot(), worldPts()); else if (KNIGHT) placeToken("world", 0, [questPoint(questNext())]); else document.getElementById("token").remove(); }
   if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
+  if (U.view === "school" && !U.dayOff && document.querySelector(".sdmap #token")) { const l = curLesson(); if (l) placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { if (document.activeElement?.matches?.("input:not(#spellSink),textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
