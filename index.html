@@ -939,13 +939,13 @@ try {
 } catch (e) {}
 let dbDoc = null, cloud = "device", saveTimer = 0;
 // The page can only reach a save with the family's private code. The database does the checking.
-const FAMILY_DB = { url: "https://sqxghmebflleejwvgvif.supabase.co", key: "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8", game: "outlaw-run", player: KID.id };
+const FAMILY_DB = { url: "https://hhgkqchmqmlszdgbtteg.supabase.co", key: "sb_publishable_u8ZSDSEekM2JyWPEkWhTYw_EQ4OsCCb", game: "outlaw-run", player: KID.id };
 const familyRpc = (fn, body, keepalive = false) => fetch(`${FAMILY_DB.url}/rest/v1/rpc/${fn}`, { method: "POST", keepalive, headers: { apikey: FAMILY_DB.key, "Content-Type": "application/json" }, body: JSON.stringify(body) }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))));
 const familyPin = () => { try { return localStorage.getItem("family-pin") || S.pin; } catch (e) { return S.pin; } };
 const setFamilyPin = (p) => { S.pin = p; try { localStorage.setItem("family-pin", p); } catch (e) {} };
-function saveRoster() { familyCode(); familyRpc("save_progress", { p_code: familyCode(), p_game: "family", p_player: "roster", p_state: { kids: familyKids(), pin: familyPin() }, p_client_updated: Date.now() }).catch(() => {}); }
+function saveRoster() { familyCode(); familyRpc("school_save_progress", { p_code: familyCode(), p_game: "family", p_player: "roster", p_state: { kids: familyKids(), pin: familyPin() }, p_client_updated: Date.now() }).catch(() => {}); }
 async function loadRoster() {
-  const roster = await familyRpc("load_progress", { p_code: familyCode(), p_game: "family", p_player: "roster" }).catch(() => null);
+  const roster = await familyRpc("school_load_progress", { p_code: familyCode(), p_game: "family", p_player: "roster" }).catch(() => null);
   if (!roster?.kids?.length) return false;
   const merged = [...familyKids()]; roster.kids.forEach((k) => { if (!merged.some((m) => m.id === k.id)) merged.push(k); });
   localStorage.setItem("family-kids", JSON.stringify(merged));
@@ -973,9 +973,9 @@ function cloudSend(keepalive = false) {
   const up = (remote) => {
     const body = cloudBody();
     if (remote) { const stamp = Math.max(S.updatedAt || 0, remote.updatedAt || 0); body.p_state = { ...mergeSaves(S, remote), updatedAt: stamp }; body.p_client_updated = stamp; }
-    return familyRpc("save_progress", body, keepalive);
+    return familyRpc("school_save_progress", body, keepalive);
   };
-  const sent = keepalive ? up(cloudLastRemote) : familyRpc("load_progress", { p_code: familyCode(), p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).then((remote) => { cloudLastRemote = remote; return up(remote); });
+  const sent = keepalive ? up(cloudLastRemote) : familyRpc("school_load_progress", { p_code: familyCode(), p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).then((remote) => { cloudLastRemote = remote; return up(remote); });
   return sent.then(() => { cloud = "synced"; cloudAt = Date.now(); mark(); }).catch(() => { cloud = "device"; mark(); });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
@@ -1026,7 +1026,7 @@ async function cloudPull() {
   // A child's save still under an old code joins the family's, keeping the work and coins from both.
   const was = S.familyCode, moved = familyLinked() && was && was !== familyCode();
   if (!S.familyCode) return;
-  const remote = await familyRpc("load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
+  const remote = await familyRpc("school_load_progress", { p_code: S.familyCode, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
   if (remote) {
     // Timestamps can match while the work differs, so compare the work itself.
     const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0), joined = mergeSaves(S, remote, moved);
@@ -3723,7 +3723,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "d1c402975659";
+const GAME_BUILD = "23da7401d11f";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3802,11 +3802,11 @@ async function familyPushAll() {
     try { local = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) {}
     if (!local?.updatedAt) continue;
     try {
-      const remote = await familyRpc("load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: k.id });
+      const remote = await familyRpc("school_load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: k.id });
       const joined = remote ? mergeSaves(local, remote, true) : local;
       joined.familyCode = code; joined.updatedAt = Math.max(local.updatedAt, remote?.updatedAt || 0);
       localStorage.setItem(key, JSON.stringify(joined));
-      await familyRpc("save_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: k.id, p_state: joined, p_client_updated: joined.updatedAt });
+      await familyRpc("school_save_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: k.id, p_state: joined, p_client_updated: joined.updatedAt });
     } catch (e) { ok = false; }
   }
   if (ok) try { localStorage.setItem("family-all-sent-v1", "1"); } catch (e) {}
@@ -3814,7 +3814,7 @@ async function familyPushAll() {
 async function familyFinishLink(code) {
   U.linkMsg = "Bringing your progress together...";
   render();
-  const remote = await familyRpc("load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
+  const remote = await familyRpc("school_load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null);
   try { localStorage.setItem(`${KEY}-before-family`, JSON.stringify(S)); } catch (e) {}
   if (remote) S = mergeSaves(S, remote, true);
   S.familyCode = code;
@@ -7434,7 +7434,7 @@ const acts = {
     const code = (document.getElementById("famIn")?.value || "").trim().toUpperCase();
     U.famData = null; U.famCode = code; U.famMsg = "Looking...";
     render();
-    const remote = code.length >= 24 ? await familyRpc("load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null) : null;
+    const remote = code.length >= 24 ? await familyRpc("school_load_progress", { p_code: code, p_game: FAMILY_DB.game, p_player: FAMILY_DB.player }).catch(() => null) : null;
     U.famData = remote; U.famMsg = remote ? "" : "No save found for that code. Check it and try again.";
     render();
   },
@@ -7690,7 +7690,7 @@ const acts = {
     U.linkMsg = "Checking..."; render();
     const code = await familyPasswordCode(pw);
     let found;
-    try { found = await familyRpc("load_progress", { p_code: code, p_game: "family", p_player: "roster" }); } catch (e) { U.linkMsg = "Couldn't reach the internet. Try again in a moment."; return render(); }
+    try { found = await familyRpc("school_load_progress", { p_code: code, p_game: "family", p_player: "roster" }); } catch (e) { U.linkMsg = "Couldn't reach the internet. Try again in a moment."; return render(); }
     if (!found) { U.linkCreate = true; U.linkMsg = "No family uses that password yet. Check the spelling. If this is your first device, tap Create our family."; return render(); }
     familyFinishLink(code);
   },

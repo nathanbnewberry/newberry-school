@@ -1301,7 +1301,7 @@
 <script>
 (function () {
   var GAME = "cannon-math-pirates", KEY = "cmp_saves_v1", AT = KEY + "-saved-at";
-  var URL_ = "https://sqxghmebflleejwvgvif.supabase.co/rest/v1/rpc/", API = "sb_publishable_tw7TT_Fsux4RhmVrBAG6xg_lw3Z3dr8";
+  var URL_ = "https://hhgkqchmqmlszdgbtteg.supabase.co/rest/v1/rpc/", API = "sb_publishable_u8ZSDSEekM2JyWPEkWhTYw_EQ4OsCCb";
   var store = window.localStorage, rawSet = Storage.prototype.setItem, timer = 0;
   function rpc(fn, body) { return fetch(URL_ + fn, { method: "POST", headers: { apikey: API, "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
   function code() {
@@ -1316,7 +1316,7 @@
     clearTimeout(timer);
     var raw = store.getItem(KEY); if (!raw) return;
     var at = +store.getItem(AT) || Date.now();
-    rpc("save_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id, p_state: { savedAt: at, data: JSON.parse(raw) }, p_client_updated: at }).catch(function () {});
+    rpc("school_save_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id, p_state: { savedAt: at, data: JSON.parse(raw) }, p_client_updated: at }).catch(function () {});
   }
   Storage.prototype.setItem = function (k, v) {
     rawSet.call(this, k, v);
@@ -1337,7 +1337,7 @@
     };
     document.body.appendChild(b);
   }
-  rpc("load_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id }).then(function (remote) {
+  rpc("school_load_progress", { p_code: code(), p_game: GAME, p_player: window.FG_KID.id }).then(function (remote) {
     var localAt = +store.getItem(AT) || 0;
     if (remote && remote.savedAt > localAt) {
       rawSet.call(store, KEY, JSON.stringify(remote.data)); rawSet.call(store, AT, String(remote.savedAt));
