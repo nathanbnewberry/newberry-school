@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=40c63c38e5"></script>
+<script src="lessons.js?v=81fbc23bae"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -1519,7 +1519,7 @@ const optionalRide = (r) => r.kind === "warmup";
 function nextRide(l) { const lp = LP(l.id); return l.rides.find((r) => !optionalRide(r) && !rideDone(l, r) && !(r.after && !lp.rides[r.after])); }
 const lessonLabel = (l) => esc(l?.test ? l.bookLesson : `Lesson ${l?.bookLesson}`);
 // A lesson with onlyOn (a test day) is today's stop only on that date, finished or not (Test 14, 2026-11-06).
-const isCurrent = (l) => l.current && (!l.onlyOn || l.onlyOn === dateKey());
+const isCurrent = (l) => l.current && (!l.onlyOn || l.onlyOn === dateKey()) && (!l.startsOn || l.startsOn <= dateKey());
 function lessonFinished(l) { return l.rides.every((r) => optionalRide(r) || rideDone(l, r)); }
 // The lesson marked current is today's stop. After that, the first lesson still unfinished.
 function currentIdx() {
@@ -3172,7 +3172,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "bf72ef08f8ba";
+const GAME_BUILD = "4990dc53c699";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4186,6 +4186,19 @@ const WHY = {
   "Mixed numbers on a number line": "It worked because the whole number tells which number the arrow has passed, and the fraction tells how far it has gone toward the next one.",
   "Helping and main verbs": "It worked because a helping verb always has another verb after it, and a main verb can stand alone.",
   "Adverbs": "It worked because the word told how something was done, and that's the job of an adverb.",
+  "Adverbs: where, when, how": "It worked because each of those words told how, where or when Ian said or did something.",
+  "Contractions": "It worked because the apostrophe took the place of the letters that dropped out.",
+  "Analogies": "It worked because you found how the first pair goes together, then matched the third word the same way.",
+  "Combining sentences": "It worked because one joining word put the two ideas together, and the comma marked where the first part ended.",
+  "Combining about one person": "It worked because both sentences were about the same person, so you named her once and kept both facts.",
+  "Colons": "It worked because a colon comes right before a list or a set of rules.",
+  "Pronouns we or us": "It worked because you covered the noun and listened to which pronoun sounded right alone.",
+  "Well tells how": "It worked because the word told how they draw, and a how-word is an adverb.",
+  "Titles": "It worked because short works like songs go in quotation marks, and big works like newspapers get underlined.",
+  "Verb tense": "It worked because the verb told whether it happened before, is happening now, or will happen.",
+  "Common and proper nouns": "It worked because a proper noun names one special thing, and a common noun names any one of a kind.",
+  "Phrases and clauses": "It worked because you checked for a subject and a verb. A clause has both, and a phrase doesn't.",
+  "Comparing adjectives": "It worked because only two things were compared, and two things take e r.",
   "Adjectives": "It worked because each of those words describes a noun, telling what kind it is.",
   "Subject and verb": "It worked because you ignored the extra phrase, then asked who did it and what they did.",
   "Measuring turns": "It worked because a full turn is 360 degrees, so every quarter of it is 90, and clockwise just means the way clock hands move.",
