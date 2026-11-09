@@ -1,5 +1,5 @@
 // Lets the games run with no internet. Built into site/sw.js by tools/build-site.mjs.
-const BUILD = "c164e33b0a26", APP = `app-${BUILD}`, MEDIA = "media-v1";
+const BUILD = "ed8d35a580e6", APP = `app-${BUILD}`, MEDIA = "media-v1";
 const SHELL = ["./","lessons.js?v=b8b0b69252","manifest.webmanifest","voice/lines.json","castle/","pirates/","sfx/bell.mp3","sfx/blip.mp3","sfx/bump.mp3","sfx/cheer.mp3","sfx/coin.mp3","sfx/dash.mp3","sfx/ding.mp3","sfx/fanfare.mp3","sfx/gallop.mp3","sfx/gunshot.mp3","sfx/hammer.mp3","sfx/jump.mp3","sfx/key.mp3","sfx/moo.mp3","sfx/pop.mp3","sfx/ricochet.mp3","sfx/rope.mp3","sfx/soft.mp3","sfx/sting.mp3","sfx/thud.mp3","sfx/trail.mp3","sfx/whinny.mp3"];
 
 self.addEventListener("install", (e) => {
@@ -34,7 +34,9 @@ async function ranged(res, header) {
 }
 async function networkFirst(req, wait = 8000) {
   const cache = await caches.open(APP);
-  const net = fetch(req).then((res) => { if (res.ok) cache.put(req, res.clone()).catch(() => {}); return res; });
+  // The page and its scripts skip the browser's own cache, so a new version shows the first time (2026-11-09).
+  const fresh = req.mode === "navigate" || /\.(html|js)$|\/$/.test(new URL(req.url).pathname) ? new Request(req.url, { cache: "no-cache", credentials: "same-origin" }) : req;
+  const net = fetch(fresh).then((res) => { if (res.ok) cache.put(req, res.clone()).catch(() => {}); return res; });
   const saved = async () => (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) || (req.mode === "navigate" ? await cache.match("./") : undefined);
   try {
     return await Promise.race([net, new Promise((_, no) => setTimeout(() => no(new Error("slow")), wait))]);
