@@ -801,7 +801,7 @@ body[data-view="school"] .sdmain:not(.nomap) .daycard{position:relative}body[dat
 body[data-view="school"] .sdmain:not(.nomap) .daytext small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body[data-view="school"] .sdmain:not(.nomap) .daycheck{width:28px!important;height:28px!important}
 }
-body[data-view="school"] .sdmain .daybar{display:none}
+body[data-view="school"] .sdmain .daybar{display:none}body[data-view="school"] .sdmain .daycheck.ring,body[data-view="school"] .sdmain .daycards:has(.daycard:nth-child(7)) .daycheck.ring{position:relative;width:36px!important;height:36px!important;margin-right:4px;justify-self:end;border:0!important;border-radius:50%;background:conic-gradient(#f0a92a calc(var(--p) * 1%),rgba(44,26,14,.16) 0);display:grid;place-items:center}body[data-view="school"] .sdmain .daycheck.ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--paper,#efe6cf)}body[data-view="school"] .sdmain .daycheck.ring b{position:relative;font-size:.72rem;font-weight:900;color:#7a4a10}body[data-view="school"] .sdmain:not(.nomap) .daycard{grid-template-columns:44px minmax(0,1fr) 42px!important;padding-right:6px!important;overflow:visible}
 body[data-view="school"] .sdgame{margin:0;padding:8px 12px;border-radius:12px;background:#22263f;color:#ffe7a8;font-weight:800;text-align:center;font-size:1rem}
 body[data-view="school"] .sdfoot{justify-content:space-between;opacity:.85}
 body[data-view="school"] .sdtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -3345,7 +3345,7 @@ function schoolView() {
   if (U.dayOff) return schoolOtherDay(U.dayOff);
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const next = nextUp(items, day), ordered = next ? [next, ...items.filter((x) => x !== next)] : items;
-  const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
+  const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck ${!st.done && st.pct > 0 ? "ring" : ""}" style="--p:${Math.round(Math.min(1, st.pct) * 100)}">${st.done ? "&#10003;" : st.pct > 0 ? `<b>${Math.round(st.pct * 100)}%</b>` : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? (KNIGHT ? "Your quest is done for today. Well fought, knight." : "School's out, partner! You finished the whole trail today.") : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : KNIGHT ? `Hail, Sir ${KID.name}. Here's today's quest. Pick any one to start.` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
   // Condensed School Day (Nathan, 2026-11-09): the date top left, Silver and the progress bar on one row, bigger
   // subject icons, and today's adventure map (the town for today's math lesson) beside the cards.
@@ -3358,7 +3358,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "74f2f66e8a2c";
+const GAME_BUILD = "69b90a44d2dc";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
