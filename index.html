@@ -906,18 +906,21 @@ try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } ca
 // 4 am Pacific Monday 2026-11-09, before Elliot plays. Only work stamped before then is touched.
 try {
   const cut = Date.parse("2026-11-09T12:00:00Z");
-  if (KID.id === "elliot" && Date.now() > cut && !localStorage.getItem("undo-test-2026-11-08b")) {
-    localStorage.setItem("undo-test-2026-11-08b", "1");
+  // Run again as "c" (the first morning pass ran before the online copy was clean). Real work stamped after 4 am is
+  // never touched: if today already has any, only the Sunday-stamped bits come off.
+  const real = Object.values(S.days?.["2026-11-09"]?.times || {}).some((t) => (t.start || 0) > cut);
+  if (KID.id === "elliot" && Date.now() > cut && !localStorage.getItem("undo-test-2026-11-08c")) {
+    localStorage.setItem("undo-test-2026-11-08c", "1");
     if (S.piano?.course?.sit) delete S.piano.course.sit;
-    if (S.nuggets > 3023 && S.nuggets <= 3400) S.nuggets = 3023;
-    if (S.xp > 7464 && S.xp <= 7900) S.xp = 7464;
-    if (S.wins > 40 && S.wins <= 45) S.wins = 40;
-    if (S.brave > 447 && S.brave <= 470) S.brave = 447;
+    if (!real && S.nuggets > 3023 && S.nuggets <= 3400) S.nuggets = 3023;
+    if (!real && S.xp > 7464 && S.xp <= 7900) S.xp = 7464;
+    if (!real && S.wins > 40 && S.wins <= 45) S.wins = 40;
+    if (!real && S.brave > 447 && S.brave <= 500) S.brave = 447;
     if (S.typing && S.typing.bestWpm > 25) S.typing.bestWpm = 12;
     if (S.bible) ["right", "miss"].forEach((k) => Object.keys(S.bible[k] || {}).forEach((id) => { if (S.bible[k][id] < cut) delete S.bible[k][id]; }));
     if (S.noraHorse && S.noraHorse < cut) delete S.noraHorse;
     delete S.days?.["2026-11-08"];
-    const mon = S.days?.["2026-11-09"]; if (mon && Object.values(mon.times || {}).some((t) => t.start && t.start < cut)) delete S.days["2026-11-09"];
+    const mon = S.days?.["2026-11-09"]; if (mon && !real && Object.values(mon.times || {}).some((t) => t.start && t.start < cut)) delete S.days["2026-11-09"];
     localStorage.setItem(KEY, JSON.stringify(S));
   }
 } catch (e) {}
@@ -3354,7 +3357,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "47b883b7bb26";
+const GAME_BUILD = "ec59387724c6";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
