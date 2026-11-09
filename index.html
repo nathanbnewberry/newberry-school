@@ -1889,7 +1889,7 @@ function schoolPlan() {
   // Finley's list matches Elliot's order. Math and grammar turn on when he has lessons. Set once.
   if (KID.id === "finn" && !S.questPlan) {
     S.questPlan = 1;
-    const order = ["spelling", "math", "reading", "grammar", "capitals", "piano"], on = KID_PLANS.finn.on;
+    const order = KID_PLANS.finn.on, on = order;
     S.schoolPlan.forEach((x) => { x.on = on.includes(x.id); });
     S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
   }
@@ -3369,7 +3369,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "2073599bc87f";
+const GAME_BUILD = "32fd4edaea9d";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4356,6 +4356,13 @@ function worldMapSvg() {
 // Asks the capital first, so he gets a real try. A miss still pays and shows the answer.
 const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [490, 305], [345, 355], [195, 275], [290, 170], [470, 150]].map(([x, y]) => [x * K, y]);
 // A lesson with few sections spreads its stops across the whole map instead of bunching in one corner.
+// The same stops stretched downward on a taller map (School Day draws it 900 tall): the top row stays under the
+// railroad and the lowest stop moves near the bottom, so the trail fills the space.
+function townPtsAt(l, H = 640) {
+  const pts = townPts(l), pad = Math.max(0, (H - 640) / 2); if (!pad) return pts;
+  const top = Math.min(...pts.map((q) => q[1])), low = Math.max(...pts.map((q) => q[1])), goal = 640 + pad - 90, k = low > top ? (goal - top) / (low - top) : 1;
+  return pts.map(([x, y]) => [x, top + (y - top) * k]);
+}
 const townPts = (l) => { const n = l.rides.length; return n >= 6 || n < 2 ? TOWN_PTS : l.rides.map((_, i) => [170 + (i * 720) / (n - 1), i % 2 ? 270 : 480]); };
 // Each lesson's map looks like its state: its land colors, its landmarks, and the state's shape with the capital starred.
 const SP_ = {
@@ -4416,14 +4423,14 @@ function townBands(look, H, pad) {
 function townMapSvg(l, H = 640) {
   const pad = Math.max(0, (H - 640) / 2);
   const lp = LP(l.id), nx = nextRide(l);
-  const pts = townPts(l).slice(0, l.rides.length), look = STATE_LOOKS[l.place?.state];
+  const pts = townPtsAt(l, H).slice(0, l.rides.length), look = STATE_LOOKS[l.place?.state];
   const stops = l.rides.map((r, i) => {
     const [x, y] = pts[i], done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id;
     return `<g class="stop ${locked ? "locked" : ""}" ${locked ? "" : `data-act="ride" data-id="${r.id}" role="button" tabindex="0"`} aria-label="${esc(r.name)}"><g transform="translate(${x} ${y})"><circle r="42" fill="transparent"/>${!done && !locked && r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? `<circle class="almostring" r="46" fill="rgba(255,210,63,.3)" stroke="#ffd23f" stroke-width="5"/>` : ""}${next ? `<circle class="pulse" r="40" fill="none" stroke="#c8202c" stroke-width="4"/>` : ""}${placeIcon[r.icon] || placeIcon.saloon}${done ? doneMark(26, -28) : ""}${next ? `<g transform="translate(0 -56)"><rect x="-44" y="-14" width="88" height="24" rx="6" fill="#c8202c"/><text y="4" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="15" fill="#fff">NEXT</text></g>` : ""}${locked ? `<g transform="translate(24 -24)"><rect x="-8" y="-3" width="16" height="13" rx="2" fill="#3a2412"/><path d="M-5-3v-4a5 5 0 0 1 10 0v4" fill="none" stroke="#3a2412" stroke-width="3"/></g>` : ""}</g>${label(x, y + 42, r.name, done ? "Finished" : r.problems && r.problems.some((id) => PP(lp, id).done) ? (r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "Just 1 left! Almost done!" : `${r.problems.filter((id) => PP(lp, id).done).length} of ${r.problems.length} solved`) : r.blurb, done ? "#0f6b34" : r.problems && r.problems.length - r.problems.filter((id) => PP(lp, id).done).length === 1 ? "#c8202c" : "")}${!done && r.problems && r.problems.some((id) => PP(lp, id).done) ? (() => { const f = r.problems.filter((id) => PP(lp, id).done).length / r.problems.length; return `<rect x="${x - 44}" y="${y + 66}" width="88" height="9" rx="4.500" fill="#3a2412"/><rect x="${x - 42}" y="${y + 68}" width="${84 * f}" height="5" rx="2.500" fill="#ffc42e"/>`; })() : ""}</g>`;
   }).join("");
   return `<svg class="map" viewBox="0 0 1180 ${640 + pad * 2}" role="img" aria-label="Map of ${esc(l.town)} with a trail between stops">${mapBase(1180, 640 + pad * 2)}${pad && look ? `<rect y="0" width="1180" height="${640 + pad * 2}" rx="22" fill="${look.ground}" pointer-events="none"/>` : ""}${pad ? townBands(look, 640 + pad * 2, pad) : ""}<g transform="translate(0 ${pad})">
-    <path d="M6 96H1174" stroke="#3a2412" stroke-width="6"/><path d="M6 96H1174" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
-    <g class="train"><rect x="-34" y="-20" width="40" height="17" rx="3" fill="#2a2430"/><rect x="-8" y="-32" width="16" height="16" fill="#2a2430"/><rect x="-30" y="-30" width="7" height="11" fill="#2a2430"/><circle cx="-24" cy="-1" r="5" fill="#7b2d1c"/><circle cx="-2" cy="-1" r="5" fill="#7b2d1c"/><rect x="10" y="-16" width="34" height="13" fill="#7b2d1c"/><circle cx="18" cy="-1" r="4" fill="#2a2430"/><circle cx="36" cy="-1" r="4" fill="#2a2430"/></g>
+    <g transform="translate(0 ${-pad * .8})"><path d="M6 96H1174" stroke="#3a2412" stroke-width="6"/><path d="M6 96H1174" stroke="#f4e4bd" stroke-width="2" stroke-dasharray="7 16"/>
+    <g class="train"><g transform="scale(-1 1)"><rect x="-34" y="-20" width="40" height="17" rx="3" fill="#2a2430"/><rect x="-8" y="-32" width="16" height="16" fill="#2a2430"/><rect x="-30" y="-30" width="7" height="11" fill="#2a2430"/><circle cx="-24" cy="-1" r="5" fill="#7b2d1c"/><circle cx="-2" cy="-1" r="5" fill="#7b2d1c"/><rect x="10" y="-16" width="34" height="13" fill="#7b2d1c"/><circle cx="18" cy="-1" r="4" fill="#2a2430"/><circle cx="36" cy="-1" r="4" fill="#2a2430"/></g></g></g>
     <path transform="scale(${K} 1)" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" class="rivermain" stroke="#3a7fae" stroke-width="20" stroke-linecap="round"/><path transform="scale(${K} 1)" class="flow" d="M620 18C560 80 640 170 610 250S690 400 670 628" fill="none" stroke="#bfe4f2" stroke-width="3" stroke-dasharray="10 18" stroke-linecap="round"/>
     ${look && !pad ? `<rect x="0" y="0" width="1180" height="640" fill="${look.ground}" pointer-events="none"/>` : ""}
     ${l.place && US_STATES[l.place.state] ? `<g data-fit="40 110 1100 520" data-star="${(look?.star || [.5, .5]).join(" ")}" opacity=".1" pointer-events="none"><path d="${US_STATES[l.place.state].d}" fill="#3a2412"/></g>` : ""}
@@ -4435,11 +4442,11 @@ function townMapSvg(l, H = 640) {
     ${look?.river ? `<text x="1108" y="470" transform="rotate(-78 1108 470)" font-family="Rye,Georgia,serif" font-size="15" fill="#1c4a6e" opacity=".85">${esc(look.river)}</text>` : ""}
     <path d="${smooth(pts)}" fill="none" stroke="#7a5c34" stroke-width="13" stroke-linecap="round" opacity=".55"/><path d="${smooth(pts)}" fill="none" stroke="#dcc492" stroke-width="9" stroke-linecap="round"/><path d="${smooth(pts)}" fill="none" stroke="#a98a58" stroke-width="1.500" stroke-dasharray="8 11" stroke-linecap="round"/>
     ${stops}
-    <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${l.place ? 21 : 24}" fill="#ffe7a8">${esc(l.hostTown || l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</text></g>${l.hostTown ? `<g transform="translate(590 82)"><rect x="-96" y="-17" width="192" height="30" rx="8" fill="#23407a" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Grammar &#183; ${esc(l.town)}</text></g>` : ""}
-    ${compass(60, 80)}
-    ${l.place && US_STATES[l.place.state] ? `<g pointer-events="none"><rect x="958" y="478" width="196" height="148" rx="12" fill="#f4e4bd" stroke="#3a2412" stroke-width="3"/><text x="1056" y="502" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#3a2412">${esc(l.place.state)}</text><g data-fit="978 512 156 88" data-star="${(look?.star || [.5, .5]).join(" ")}"><path d="${US_STATES[l.place.state].d}" fill="#c8602c" stroke="#3a2412" stroke-width="1.500" vector-effect="non-scaling-stroke"/><g class="capstar"><circle r="9" fill="#fff" opacity=".85"/><path d="M0-8L2.400-2.500 8.500-2.500 3.600 1.300 5.300 7.500 0 3.800-5.300 7.500-3.600 1.300-8.500-2.500-2.400-2.500Z" fill="#c8202c"/></g></g><text x="1056" y="618" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412">&#9733; ${esc(l.hostTown || l.town)}</text></g>` : ""}
+    <g transform="translate(590 ${40 - pad * .8})"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${l.place ? 21 : 24}" fill="#ffe7a8">${esc(l.hostTown || l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</text></g>${l.hostTown ? `<g transform="translate(590 ${82 - pad * .8})"><rect x="-96" y="-17" width="192" height="30" rx="8" fill="#23407a" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Grammar &#183; ${esc(l.town)}</text></g>` : ""}
+    ${compass(60, 80 - pad * .8)}
+    ${l.place && US_STATES[l.place.state] ? `<g pointer-events="none" transform="translate(0 ${pad})"><rect x="958" y="478" width="196" height="148" rx="12" fill="#f4e4bd" stroke="#3a2412" stroke-width="3"/><text x="1056" y="502" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#3a2412">${esc(l.place.state)}</text><g data-fit="978 512 156 88" data-star="${(look?.star || [.5, .5]).join(" ")}"><path d="${US_STATES[l.place.state].d}" fill="#c8602c" stroke="#3a2412" stroke-width="1.500" vector-effect="non-scaling-stroke"/><g class="capstar"><circle r="9" fill="#fff" opacity=".85"/><path d="M0-8L2.400-2.500 8.500-2.500 3.600 1.300 5.300 7.500 0 3.800-5.300 7.500-3.600 1.300-8.500-2.500-2.400-2.500Z" fill="#c8202c"/></g></g><text x="1056" y="618" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412">&#9733; ${esc(l.hostTown || l.town)}</text></g>` : ""}
     ${townExtras(l, pts)}
-    ${ranchStop(1045, 122, 122)}
+    ${ranchStop(1045, 122 - pad * .8, 122)}
     ${riderToken()}</g></svg>`;
 }
 // Grammar happens inside the town's schoolhouse, with one desk per section and no map of its own (Nathan, 2026-11-09:
@@ -7303,7 +7310,7 @@ function render() {
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
   if (U.view === "home" && !U.trotting && document.getElementById("token")) { if (LESSONS.length) placeToken("world", worldSpot(), worldPts()); else if (KNIGHT) placeToken("world", 0, [questPoint(questNext())]); else document.getElementById("token").remove(); }
   if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
-  if (U.view === "school" && document.querySelector(".sdmap #token")) { const l = curLesson(); if (l) placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
+  if (U.view === "school" && document.querySelector(".sdmap #token")) { const l = curLesson(); if (l) placeToken(`town:${l.id}:tall`, townSpot(l), townPtsAt(l, 900)); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { if (document.activeElement?.matches?.("input:not(#spellSink),textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
