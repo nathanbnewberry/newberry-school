@@ -2039,6 +2039,7 @@ function pnMySong(r) {
 // Myla's songs: very short, only the white keys around Middle C, and every note waits for her.
 const pnLittle = () => KID.id === "myla";
 const PN_LITTLE = [
+  { id: "jingle", title: "Jingle Bells", by: "Christmas song", bpm: 80, any: true, little: true, xmas: true, parts: ["E E E:2 E E E:2 E G C D E:4"], pay: 10 },
   { id: "hcb", title: "Hot Cross Buns", by: "Nursery rhyme", bpm: 80, any: true, little: true, parts: ["E D C:2 E D C:2 C:.5 C:.5 C:.5 C:.5 D:.5 D:.5 D:.5 D:.5 E D C:2"], pay: 10 },
   { id: "rain", title: "Rain, Rain, Go Away", by: "Nursery rhyme", bpm: 80, any: true, little: true, parts: ["G E:2 G G E:2 G G E E G G E:2"], pay: 10 },
   { id: "lamb", title: "Mary's Little Lamb", by: "American folk song", bpm: 80, any: true, little: true, parts: ["E D C D E E E:2 D D D:2 E G G:2"], pay: 10 },
@@ -2046,7 +2047,7 @@ const PN_LITTLE = [
 ];
 PN_LITTLE.forEach((g) => { g.all = g.parts.join(" "); });
 const PN_YAY = ["Yay!", "Good job!", "Wow!", "You did it!", "Super!", "Hooray!", "Pretty music!"];
-const pnSongs = () => pnLittle() ? [...PN_LITTLE, ...Object.values(S.mySongs || {}).filter((r) => r && !r.gone && r.text).map(pnMySong)] : [...PN_SONGS, ...Object.values(S.mySongs || {}).filter((r) => r && !r.gone && r.text).map(pnMySong)];
+const pnSongs = () => pnLittle() ? [...(pnXmas() ? PN_LITTLE : PN_LITTLE.filter((g) => !g.xmas)), ...Object.values(S.mySongs || {}).filter((r) => r && !r.gone && r.text).map(pnMySong)] : [...PN_SONGS, ...Object.values(S.mySongs || {}).filter((r) => r && !r.gone && r.text).map(pnMySong)];
 // Songs that only use C to G in one hand are ready after Right hand home. Songs with any other key (A, B, high C
 // or a black key) are ready after Crossing over, which teaches the thumb-under to reach all eight keys.
 const pnNeedsLesson = (g) => { try { return pnNotesOf(g, g.all).some((n) => ![60, 62, 64, 65, 67].includes(n.m)) ? "cross" : "rh"; } catch (e) { return "cross"; } };
@@ -2139,7 +2140,7 @@ const pnXmas = () => { const d = new Date(), m = d.getMonth(); return m === 11 |
 // Each song is a path of squares: learn it a part at a time, then with the beat, then without the game.
 function pnSteps(song = pnSong()) {
   // Myla: just play along, then play it again. No beat, no memory test.
-  if (song.little) return [{ t: "wait", name: "Listen and sing", listen: true, ico: "&#128066;" }, { t: "wait", name: "Play with me", coach: true, ico: "&#127925;" }, { t: "wait", name: "You play it!", ico: "&#11088;" }, { t: "wait", name: "One more time!", ico: "&#127880;" }];
+  if (song.little) return [{ t: "wait", name: "Gentle fingers", warm: true, ico: "&#128034;" }, { t: "wait", name: "Listen and sing", listen: true, ico: "&#128066;" }, { t: "wait", name: "Play with me", coach: true, ico: "&#127925;" }, { t: "wait", name: "You play it!", ico: "&#11088;" }, { t: "wait", name: "One more time!", ico: "&#127880;" }];
   return [...(song.lesson ? [{ t: "lesson", name: "Find your keys", ico: "&#128400;" }] : []), ...song.parts.map((p, i) => ({ t: "wait", part: i, name: `Part ${i + 1}`, ico: ["&#49;&#65039;&#8419;", "&#50;&#65039;&#8419;", "&#51;&#65039;&#8419;", "&#52;&#65039;&#8419;"][i] })), { t: "wait", name: "The whole song, slowly", ico: "&#128034;" }, { t: "beat", bpm: song.bpm, name: "Play it with the beat", ico: "&#129345;" }, { t: "memory", name: "Play it from memory", ico: "&#129504;" }, { t: "beat", bpm: Math.round(song.bpm * 1.33), name: "Encore: faster", ico: "&#128293;" }, { t: "beat", bpm: Math.round(song.bpm * 1.67), name: "Legend speed", ico: "&#128081;" }];
 }
 // Cover art for each song.
@@ -2162,6 +2163,7 @@ function pnArt(id) {
   art.hcb = `${g("#ffb36b", "#ffe2b0")}${[[38, 60], [60, 52], [82, 60], [49, 78], [71, 78]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="#d9a35a" stroke="#8a5a2b" stroke-width="2"/><path d="M${x - 8} ${y}h16M${x} ${y - 8}v16" stroke="#fff3d9" stroke-width="3"/>`).join("")}`;
   art.rain = `${g("#7fa6c9", "#c9dcec")}<ellipse cx="60" cy="40" rx="34" ry="16" fill="#fff"/><ellipse cx="44" cy="44" rx="18" ry="12" fill="#fff"/>${[[40, 70], [56, 82], [72, 70], [86, 86], [48, 98]].map(([x, y]) => `<path d="M${x} ${y}q-5 8 0 10q5-2 0-10z" fill="#3a8fd0"/>`).join("")}<path d="M60 86v24M44 92q16-16 32 0" stroke="#e8303c" stroke-width="5" fill="none"/>`;
   art.lamb = art.mary;
+  art.jingle = art.bells;
   art.twinkle = `${g("#1d2a6a", "#0b1236")}${[[20, 24], [96, 30], [30, 92], [100, 96], [70, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`).join("")}<path d="M60 26L69 50 94 50 74 65 82 90 60 75 38 90 46 65 26 50 51 50Z" fill="#ffd23f" stroke="#fff3b0" stroke-width="3"/><circle cx="53" cy="58" r="3" fill="#1c1712"/><circle cx="67" cy="58" r="3" fill="#1c1712"/><path d="M53 67q7 6 14 0" stroke="#1c1712" stroke-width="2.5" fill="none"/>`;
   return `<svg viewBox="0 0 120 120" aria-hidden="true">${art[id] || art.ode}</svg>`;
 }
@@ -2310,7 +2312,9 @@ function pnListen() {
   const attack = rms > .004 && (rms > mic.env * 1.35 || (rms > prev * 1.25 && rms - prev > .0015));
   mic.env = Math.max(rms, mic.env * .82); mic.prev = rms; mic.low = Math.min(low, rms);
   if (attack) mic.struck = now;
-  { const so = pnSharpOnset(mic.full || mic.buf, rate); if (so.r > PN_SHARP) { const at = now - so.ago; if (at - (mic.sharpAt || 0) > 120) mic.strikes = (mic.strikes || 0) + 1; mic.sharpAt = Math.max(mic.sharpAt || 0, at); } }
+  { const so = pnSharpOnset(mic.full || mic.buf, rate); if (so.r > PN_SHARP) { const at = now - so.ago; if (at - (mic.sharpAt || 0) > 120) { mic.strikes = (mic.strikes || 0) + 1; mic.recentStrikes = [...(mic.recentStrikes || []).filter((t) => now - t < 900), at]; } mic.sharpAt = Math.max(mic.sharpAt || 0, at); } }
+  // A little player banging on the keys gets a gentle reminder instead of a pile of wrong notes (Nathan, 2026-11-09).
+  if (pnLittle() && U.pn?.screen === "play" && !U.pn.hearing && ((mic.recentStrikes || []).filter((t) => now - t < 900).length >= 4 || rms > .12)) { mic.recentStrikes = []; pnGentle(); return; }
   const strike = mic.sharpAt || 0;
   if (rms < .0025) { mic.last = 0; mic.lastPc = -1; mic.cand = 0; return; }
   const heard = (m, how) => {
@@ -2526,6 +2530,11 @@ function pnOpen() { stopVoice(); pnRec(); U.pn = { screen: "menu" }; U.view = "p
 function pnPrepSounds() { const c = pnAudio(); if (!c) return; if (!pnNoise || pnNoise.sampleRate !== c.sampleRate) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; } }
 // Coaching for little players: the game plays a stretch of the song with the keys glowing and the words lighting up
 // (my turn), then she plays it back (your turn). Taps and sounds are ignored while the game plays.
+function pnGentle() {
+  const pn = U.pn; if (!pn || pn.hearing || (pn.gentleAt && Date.now() - pn.gentleAt < 4000)) return;
+  pn.gentleAt = Date.now(); pn.hearing = true; pn.gentle = true; pnShout("Gentle fingers! One key at a time.", "#ffd76a"); lastSaid = ""; speak("Gentle fingers. One key at a time."); pnPaint();
+  setTimeout(() => { if (U.pn === pn) { pn.hearing = false; pn.gentle = false; pnPaint(); } }, 2400);
+}
 function pnDemoRange(i0, i1, done) {
   const pn = U.pn; if (!pn || pn.screen !== "play") return;
   const list = pn.notes.slice(i0, i1); if (!list.length) return done?.();
@@ -2543,13 +2552,14 @@ function pnCoachLine(i) {
 }
 function pnStart(stepN, lessonN = 0) {
   pnPrepSounds();
-  const song = pnSong(), step = pnSteps(song)[stepN], text = step.t === "lesson" ? PN_LESSON[lessonN].notes : step.part !== undefined ? song.parts[step.part] : song.all;
+  const song = pnSong(), step = pnSteps(song)[stepN], first = step.warm ? PN_NAMES[pnNotesOf(song, song.all)[0].m % 12] : "", text = step.t === "lesson" ? PN_LESSON[lessonN].notes : step.warm ? `${first}:2 ${first}:2 ${first}:2` : step.part !== undefined ? song.parts[step.part] : song.all;
   const notes = step.t === "lesson" ? pnParse(text) : pnNotesOf(song, text);
   if (!notes.length) return;
   // Every fourth bar's notes are star notes. Hit a whole star phrase to fill Star Power.
   if (step.t !== "lesson") notes.forEach((n) => { n.star = Math.floor(n.beat / 4) % 4 === 1; });
   U.pn = { screen: "play", stepN, lessonN, step, notes, idx: 0, misses: 0, hits: 0, wrongHere: 0, score: 0, combo: 0, best: 0, star: 0, starOn: false, starLeft: 0, grades: { PERFECT: 0, GREAT: 0, GOOD: 0 }, fx: [], pops: [], flare: {}, hand: false, fingers: !song.any, tick: -99, cursor: step.t === "beat" ? -4 : notes[0].beat - 2, hearing: false, needMic: !pnMic, startAt: step.t === "beat" ? Date.now() + (4 * 60000) / step.bpm : 0, say: step.t === "lesson" ? PN_LESSON[lessonN].say : step.t === "beat" ? "Play each note as it hits the line. Streaks multiply your score!" : step.t === "memory" ? "No notes this time. You know this song. Play it from the start." : "Play the key that lights up. The note waits for you, so no rush." };
-  if (step.t !== "lesson") U.pn.words = pnWordsFor(song, step, notes.length);
+  if (step.t !== "lesson") U.pn.words = step.warm ? [{ t: "soft", line: 0 }, { t: "soft", line: 0 }, { t: "soft", line: 0 }] : pnWordsFor(song, step, notes.length);
+  if (step.warm) { U.pn.needMic = !pnMic; setTimeout(() => { lastSaid = ""; speak("Use one finger. Press it softly, like a little bunny."); pnShout("One finger, soft!", "#ffd76a"); }, 600); }
   if (U.pn.words) notes.forEach((n, i) => { const w = U.pn.words[i].t; n.word = w === "~" ? "" : w.replace(/-$/, ""); });
   pnFingerPlan(notes); U.pn.fingers = true;
   render(); pnFrameStart();
@@ -2911,6 +2921,7 @@ const PN_WORDS = {
   deck: { parts: ["Deck the halls with boughs of hol- ly,", "Fa la la la la, la la la la!"], all: "Deck the halls with boughs of hol- ly, / Fa la la la la, la la la la! / 'Tis the sea- son to be jol- ly, / Fa la la la la, la la la la!" },
   grace: { parts: ["A- maz- ing ~ grace, how sweet the sound", "That saved a ~ wretch like me!", "I once ~ was ~ lost, but now ~ am ~ found,", "Was blind, but ~ now I see."] },
   jesus: { parts: ["Je- sus loves me, this I know, / for the Bi- ble tells me so.", "Lit- tle ones to Him be- long; / they are weak, but He is strong.", "Yes, Je- sus loves me! / Yes, Je- sus loves me!", "Yes, Je- sus loves me! / The Bi- ble tells me so."] },
+  jingle: { parts: ["Jin- gle bells, / jin- gle bells, / jin- gle all the way!"] },
   hcb: { parts: ["Hot cross buns, / hot cross buns, / one a pen- ny, two a pen- ny, / hot cross buns!"] },
   rain: { parts: ["Rain, rain, go a- way, / come a- gain an- oth- er day."] },
   lamb: { parts: ["Ma- ry had a lit- tle lamb, / lit- tle lamb, lit- tle lamb!"] },
@@ -2952,7 +2963,7 @@ function pnPaint() {
     document.querySelectorAll(".pnf,.pnfc").forEach((f) => f.classList.toggle("on", +f.dataset.m === lit || +f.dataset.m === pn.demo));
   }
   const hint = document.getElementById("pnHint"), name0 = n ? pnName(pnFold(n.m)) : "", name = n && n.dur >= 2 && pn.step.t !== "memory" ? `${name0}, hold ${n.dur} beats` : name0, fin = n && pn.fingers ? n.f || PN_FINGER[pnFold(n.m)] : 0;
-  const html = pn.needMic ? "Turn on listening to start" : pn.tapNote ? "Play it on your real piano!" : pn.hearing ? "Listen and watch the keys" : pn.step.t === "memory" ? (pn.idx === 0 && n ? `Starts on <b>${name}</b>` : pnMemHint(pn) >= 2 && n ? `Try <b>${name}</b>` : pnMemHint(pn) === 1 ? `Stuck? Look for the glow. ${pn.idx} of ${pn.notes.length}` : `${pn.idx} of ${pn.notes.length} notes`) : beat ? (pn.holding && n ? `Waiting for you: <b>${name}</b>` : `${pn.notes.filter((x) => x.hit).length} of ${pn.notes.length} notes${(pn.speed || 1) < .99 ? ` &middot; speed ${Math.round(pn.speed * 100)}%` : ""}`) : n ? `Next: <b>${name}</b>${fin ? `, finger <b>${fin}</b>` : ""}` : "";
+  const html = pn.gentle ? "&#128034; Soft and slow: one finger, one key" : pn.step.warm && n ? `Use <b>one finger</b>. Press <b>${pnName(pnFold(n.m))}</b> softly` : pn.needMic ? "Turn on listening to start" : pn.tapNote ? "Play it on your real piano!" : pn.hearing ? "Listen and watch the keys" : pn.step.t === "memory" ? (pn.idx === 0 && n ? `Starts on <b>${name}</b>` : pnMemHint(pn) >= 2 && n ? `Try <b>${name}</b>` : pnMemHint(pn) === 1 ? `Stuck? Look for the glow. ${pn.idx} of ${pn.notes.length}` : `${pn.idx} of ${pn.notes.length} notes`) : beat ? (pn.holding && n ? `Waiting for you: <b>${name}</b>` : `${pn.notes.filter((x) => x.hit).length} of ${pn.notes.length} notes${(pn.speed || 1) < .99 ? ` &middot; speed ${Math.round(pn.speed * 100)}%` : ""}`) : n ? `Next: <b>${name}</b>${fin ? `, finger <b>${fin}</b>` : ""}` : "";
   if (hint && hint.innerHTML !== html) hint.innerHTML = html;
   pnSheetPaint(); pnLyrPaint();
   { const hg = document.getElementById("pnHandG"), hn = beat ? soon || pn.notes.find((x) => !x.done) : n, show = hn && hn.f && !pn.ending && (pn.step.t !== "memory" || pnMemHint(pn) >= 3), hk = show ? `${hn.t}|${hn.f}|${hn.wx}` : "";
@@ -3702,7 +3713,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "3fc2a80c68de";
+const GAME_BUILD = "21637e86980d";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
