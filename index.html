@@ -2364,7 +2364,7 @@ function pnLesHit(m) {
   const pc = (x) => ((x % 12) + 12) % 12;
   const ok = it === "any" ? m !== "chord" : Array.isArray(it) ? m === "chord" : m !== "chord" && pc(m) === pc(it);
   if (!ok) { pn.wrong++; pn.flash = "oops"; render(); return; }
-  pn.pos++; pn.wrong = 0; pn.flash = "good"; pnSparkle(2); beep(BLIP);
+  pn.pos++; pn.wrong = 0; pn.flash = "good";
   if (pn.pos >= st.need.length) { pn.tried = true; earn(1); coinPop(); beep(CHIME); confetti(18); pnCheer(["perfect", "good"][Math.floor(Math.random() * 2)], true); render(); setTimeout(() => { if (U.pn === pn) acts.pnLesNext(); }, 1600); return; }
   render();
 }
@@ -2559,11 +2559,11 @@ function pnFrame(now) {
     if (pn.needMic) pn.cursor = -4;
     else {
       const n = pn.notes.find((x) => !x.done), holdAt = n ? n.beat : Infinity;
-      if (pn.cursor + dt / spb >= holdAt) { pn.cursor = holdAt; if (!pn.holding) { pn.holding = true; pn.holdFrom = Date.now(); } }
+      if (pn.cursor + dt / spb >= holdAt) { pn.cursor = holdAt; if (!pn.holding) { pn.holding = true; pn.holdFrom = Date.now(); pn.beatQuiet = true; } }
       else { pn.cursor += dt / spb; pn.holding = false; }
     }
     const beat = pn.cursor;
-    const tick = Math.floor(beat); if (tick !== pn.tick && beat >= -4 && !pn.holding) { pn.tick = tick; const sg = pnSong(); pnDrum(tick, sg.meter || 4, sg.pickup || 0); }
+    const tick = Math.floor(beat); if (tick !== pn.tick && beat >= -4 && !pn.holding) { pn.tick = tick; const sg = pnSong(); if (!pn.beatQuiet) pnDrum(tick, sg.meter || 4, sg.pickup || 0); }
     const lag = PN_WINDOW + (pnMic ? PN_MIC_LAG : 0);
     pn.notes.forEach((n) => { if (!n.done && (beat - n.beat) * spb > lag) pnResolve(n, null); });
     while (pn.idx < pn.notes.length && pn.notes[pn.idx].done) pn.idx++;
@@ -2821,7 +2821,7 @@ function pnPress(m, fromMic) {
     if (hit) {
       const late = pn.holding && Date.now() - (pn.holdFrom || 0) > 250;
       if (late) { hit.late = true; pn.lateHits = (pn.lateHits || 0) + 1; pn.onTime = 0; pn.combo = 0; pn.speed = Math.max(.55, (pn.speed || 1) * .9); pnResolve(hit, "GOOD"); }
-      else { pn.onTime = (pn.onTime || 0) + 1; if (pn.onTime % 8 === 0 && (pn.speed || 1) < 1) pn.speed = Math.min(1, pn.speed + .05); pnResolve(hit, PN_GRADES.find((g) => gap <= g[1])[0]); }
+      else { pn.onTime = (pn.onTime || 0) + 1; if (pn.onTime >= 2) pn.beatQuiet = false; if (pn.onTime % 8 === 0 && (pn.speed || 1) < 1) pn.speed = Math.min(1, pn.speed + .05); pnResolve(hit, PN_GRADES.find((g) => gap <= g[1])[0]); }
       pn.holding = false; pnHoldStart(hit);
     }
     return pnPaint();
@@ -3459,7 +3459,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "132c97b9744d";
+const GAME_BUILD = "5b8a54bf37c9";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
