@@ -1574,6 +1574,9 @@ function endRide() {
 /* ---------- pictures ---------- */
 function visual(v) {
   if (!v) return "";
+  // A lesson's own drawing (2026-11-09): plain SVG written in the lesson source, for pictures that come up once,
+  // like a pictograph or a circle graph. It never holds an answer. alt says what it shows.
+  if (v.type === "svg") return `<div class="vis"><svg viewBox="${esc(v.viewBox || "0 0 340 200")}" style="width:100%;max-width:${Number(v.max) || 440}px" role="img" aria-label="${esc(v.alt || "A picture for this problem")}">${v.svg}</svg></div>`;
   // Test 14: a number line from -5 to 5 with an arrow, a centimeter and millimeter ruler, and a 6 by 3 rectangle.
   if (v.type === "t14line") {
     const X = (n) => 40 + (n + 5) * 26;
@@ -3227,7 +3230,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "dcc7dae66e80";
+const GAME_BUILD = "88b0d72c4ea6";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
