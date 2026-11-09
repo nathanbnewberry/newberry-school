@@ -3227,7 +3227,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "322d7990be8e";
+const GAME_BUILD = "dcc7dae66e80";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3523,6 +3523,30 @@ const SPELLING_LISTS = [
     { w: "very", s: "That was a very good kick." },
     { w: "many", s: "How many goals did you score?" },
   ] },
+  // Elliot's week of 2026-11-10 (Nathan's photo). Starts Tuesday so Monday is List 10's make-up test.
+  // Words 18-20 are the book's vocabulary words; their sentences use the meaning. Months keep their capitals.
+  { id: "list-11", title: "Spelling List 11", startsOn: "2026-11-10", words: [
+    { w: "praise", s: "The coach gave the team praise after the win." },
+    { w: "braid", s: "She tied her hair in a braid before the game." },
+    { w: "faith", s: "Have faith in your teammates." },
+    { w: "airplane", s: "The team flew to the big game on an airplane." },
+    { w: "stairway", s: "The players ran up the stairway to the field." },
+    { w: "today", s: "We have a big game today." },
+    { w: "daydream", s: "Don't daydream when the ball is coming." },
+    { w: "maybe", s: "Maybe we will win the cup this year." },
+    { w: "backpack", s: "Pack your cleats in your backpack." },
+    { w: "homework", s: "Finish your homework before practice." },
+    { w: "bookshelf", s: "His trophies sit on the bookshelf." },
+    { w: "notebook", s: "The coach wrote the plays in a notebook." },
+    { w: "lunchbox", s: "Bring your lunchbox to the field." },
+    { w: "spelling", s: "You are getting good at spelling." },
+    { w: "August", s: "The season starts in August." },
+    { w: "September", s: "School starts again in September." },
+    { w: "October", s: "The big match is in October." },
+    { w: "frail", s: "After being sick, he felt weak and frail." },
+    { w: "plain", s: "The horses ran across the flat, open plain." },
+    { w: "proclaim", s: "The mayor will proclaim a holiday for the champions." },
+  ] },
   // Last Friday's test moved to Monday (Nathan, 2026-11-09): the graded test for this list opens from that day until it's taken.
   { id: "list-10", title: "Spelling List 10", testFrom: "2026-11-09", words: [
     { w: "talking", s: "Talking to your team helps you win." },
@@ -3576,7 +3600,14 @@ const spellPracticeDay = (d = new Date()) => d.getDay() === 4;
 const spellTesting = (sp) => sp?.mode === "bee" || sp?.mode === "pretest";
 const spellShaky = () => spellActive().filter((x) => spellRec(x.w).level < 3);
 function spellGrade(right, total) { const pct = total ? Math.round((right * 100) / total) : 0; return { pct, letter: pct >= 90 ? "A" : pct >= 80 ? "B" : pct >= 70 ? "C" : pct >= 60 ? "D" : "F" }; }
-function spellSay() { const sp = U.sp, it = sp?.item; if (!it) return; const line = spellTesting(sp) ? `${it.w}. ${it.s}` : `${SPELL_LINES[Math.min(2, sp.level)]} ${it.w}. ${it.s}`; U.lastBubble = line; lastSaid = line; try { if (!S.muted && S.voice !== false) playVoice(line, "david"); } catch (e) {} }
+function spellSay() {
+  const sp = U.sp, it = sp?.item; if (!it) return;
+  // Said in two parts: the game only splits sentences before a capital, so "...from memory. praise." would
+  // be one unrecorded line and the word went silent (found 2026-11-09). Each part has its own clip.
+  const lead = spellTesting(sp) ? "" : SPELL_LINES[Math.min(2, sp.level)], word = `${it.w}. ${it.s}`, line = `${lead} ${word}`.trim();
+  U.lastBubble = line; lastSaid = line;
+  try { if (!S.muted && S.voice !== false) { if (lead) playVoice(lead, "david", () => { if (U.sp === sp && sp.item === it) playVoice(word, "david"); }); else playVoice(word, "david"); } } catch (e) {}
+}
 function spellOpen(mode = "practice", extra = false, only = null) {
   stopVoice();
   const words = shuffled(only ? spellActive().filter((x) => only.includes(x.w)) : mode === "warmup" ? spellShaky() : spellActive()), today = schoolDay().spellToday || [];
@@ -3650,7 +3681,7 @@ function spellKey(d) {
     if (k === "DEL") sp.typed = sp.typed.slice(0, -1);
     else if (k === "DONE") {
       if (!sp.typed) return;
-      const right = sp.typed === it.w; sp.locked = true;
+      const right = sp.typed.toLowerCase() === it.w.toLowerCase(); sp.locked = true;
       (right ? sp.right : sp.missed).push({ w: it.w, typed: sp.typed });
       if (!right && sp.mode === "bee") { r.typed = [...new Set([...r.typed, sp.typed])].slice(-6); r.misses++; }
       sp.scored = right; sp.beeMsg = right ? (sp.mode === "pretest" ? "Got it!" : "Nice spelling. Now take your shot.") : "Good try. We'll practice that one."; playSfx(right ? "coin" : "soft", .7);
@@ -3662,8 +3693,8 @@ function spellKey(d) {
   }
   if (k === "DEL") { if (sp.typed) { sp.typed = sp.typed.slice(0, -1); sp.hint = false; sp.shake = false; beep(KEY_TAP); render(); } return; }
   if (sp.level === 1 && !sp.hidden) sp.hidden = true;
-  if (k === it.w[sp.typed.length]) {
-    sp.typed += k; sp.shake = false; sp.hint = false; beep(KEY_TAP);
+  if (k === it.w[sp.typed.length].toLowerCase()) {
+    sp.typed += it.w[sp.typed.length]; sp.shake = false; sp.hint = false; beep(KEY_TAP);
     if (sp.typed === it.w) return spellGoal(sp.misses === 0);
   } else {
     sp.misses++; r.misses++; S.brave = (S.brave || 0) + 1; sp.shake = true;
