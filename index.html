@@ -909,7 +909,8 @@ try {
   // Run again as "c" (the first morning pass ran before the online copy was clean). Real work stamped after 4 am is
   // never touched: if today already has any, only the Sunday-stamped bits come off.
   const real = Object.values(S.days?.["2026-11-09"]?.times || {}).some((t) => (t.start || 0) > cut);
-  if (KID.id === "elliot" && Date.now() > cut && !localStorage.getItem("undo-test-2026-11-08c")) {
+  // Switched off 2026-11-09 8:50 am: Elliot was already doing real school in the same day record, so nothing is removed on devices any more.
+  if (false && KID.id === "elliot" && Date.now() > cut && !localStorage.getItem("undo-test-2026-11-08c")) {
     localStorage.setItem("undo-test-2026-11-08c", "1");
     if (S.piano?.course?.sit) delete S.piano.course.sit;
     if (!real && S.nuggets > 3023 && S.nuggets <= 3400) S.nuggets = 3023;
@@ -925,7 +926,7 @@ try {
   }
 } catch (e) {}
 try {
-  if (KID.id === "elliot" && !localStorage.getItem("undo-test-2026-11-08")) {
+  if (false && KID.id === "elliot" && !localStorage.getItem("undo-test-2026-11-08")) {
     localStorage.setItem("undo-test-2026-11-08", "1");
     if (S.piano?.course?.sit) delete S.piano.course.sit;
     if (S.nuggets > 3023 && S.nuggets <= 3100) S.nuggets = 3023;
@@ -3357,7 +3358,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "ec59387724c6";
+const GAME_BUILD = "052cbb67682d";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
