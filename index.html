@@ -1864,7 +1864,7 @@ const SCHOOL_DEFAULT = [
   { id: "piano", name: "Piano practice", icon: "piano", kind: "check", on: false, days: WEEKDAYS, minutes: 15 },
   { id: "spelling", name: "Spelling", icon: "spelling", kind: "spelling", on: false, days: WEEKDAYS },
   { id: "grammar", name: "Grammar", icon: "grammar", kind: "grammar", on: false, days: WEEKDAYS },
-  { id: "history", name: "History", icon: "history", kind: "check", on: false, soon: true, days: WEEKDAYS },
+  { id: "history", name: "History", icon: "history", kind: "timer", on: false, days: WEEKDAYS, minutes: 60 },
   { id: "science", name: "Creation Science", icon: "science", kind: "science", on: false, days: WEEKDAYS },
   { id: "typing", name: "Space Typing", icon: "typing", kind: "typing", on: false, days: WEEKDAYS },
   { id: "verse", name: "Bible verse", icon: "verse", kind: "verse", on: false, days: WEEKDAYS },
@@ -1885,6 +1885,7 @@ function schoolPlan() {
   if ((KID.id === "elliot" || KID.id === "finn") && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) p.on = true; }
   // Myla starts piano at 10 minutes a day (Nathan, 2026-11-05). Set once so a parent's later changes stick.
   // Finley reads 30 minutes a day too (Nathan, 2026-11-09). Set once so a parent's later changes stick.
+  if (KID.id === "elliot" && !S.histSet) { S.histSet = 1; const h = S.schoolPlan.find((x) => x.id === "history"); if (h) { h.on = true; h.kind = "timer"; h.minutes = 60; delete h.soon; S.schoolPlan = [...S.schoolPlan.filter((x) => x !== h), h]; } }
   if (KID.id === "finn" && !S.finnRead) { S.finnRead = 1; const r = S.schoolPlan.find((x) => x.kind === "reading"); if (r) { r.on = true; r.minutes = 30; } }
   if ((KID.id === "elliot" || KID.id === "finn") && !S.piano15) { S.piano15 = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) p.minutes = 15; }
   if (KID.id === "myla" && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) { p.on = true; p.minutes = KID_PLANS.myla.piano; } }
@@ -1956,6 +1957,7 @@ function testShowsOn(l, key) {
 const todaysItems = (d = schoolNow()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay())), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
 const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
+  history: { secs: "histSecs", from: "histFrom", title: "History", running: "Enjoy your history lesson", waiting: "minutes of history", doneLine: () => `Great history lesson today, ${KID.name}! That's checked off.`, intro: "Start your history lesson on YouTube, tap start, and watch until the timer is done. You can leave this screen and it keeps counting.", again: "Keep watching" },
   piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
 };
 // The run clock: from the first thing started today to the last thing finished.
@@ -3492,6 +3494,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "review") { const list = reviewList(day), n = list.filter((k) => day.review?.[k]).length; return { done: n >= list.length, label: !list.length ? "Nothing to go back over. Clean week!" : n >= list.length ? `${list.length} problems reviewed` : `${n} of ${list.length} problems`, pct: list.length ? n / list.length : 1 }; }
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
   if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), d = new Date(`${Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()}T12:00`), bee = spellBeeDay(d), pre = spellPracticeDay(d), g = day.spellGrade; if (bee) return { done: !!day.spellBee, label: day.spellBee ? (g ? `Spelling test: ${g.letter} (${g.right} of ${g.total})` : "Spelling test done") : "Spelling test day", pct: day.spellBee ? 1 : 0 }; if (pre) return { done: (n >= total || !!day.spellBee) && !!day.spellPretest, label: day.spellPretest ? `Practice test: ${day.spellPretest.right} of ${day.spellPretest.total}` : n >= total ? "Now the practice test" : `${n} of ${total} words today`, pct: (Math.min(n, total) / total) * .8 + (day.spellPretest ? .2 : 0) }; return { done: n >= total || !!day.spellBee, label: `${n} of ${total} words today`, pct: n / total }; }
+  if (x.kind === "timer" && TIMERS[x.id]) { const secs = timerSecs(x.id, day), need = timerNeed(x.id); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes done` : day[TIMERS[x.id].from] ? `Watching now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer, last thing today`, pct: secs / need }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"), les = !pnDailyKid() || !!day.pianoLes || (Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()) <= "2026-11-09", lesL = pnDailyKid() ? `${les ? "Lesson done, now songs" : `Lesson ${pnTodayLesson() + 1}, then songs`}. ` : ""; return { done: secs >= need && les, label: lesL + (secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`), pct: les ? secs / need : Math.min(.5, secs / need) }; }
   if (x.kind === "sevens") { const n = Math.min(20, day.sevensRoped || 0), done = (day.sevensDone || 0) >= 1; return { done, label: done ? "7s done for today!" : `${n} of 20 sevens roped`, pct: done ? 1 : n / 20 }; }
   if (x.kind === "science") { const n = sciToday(day); return { done: n >= SCI_DAILY, label: `${n} of ${SCI_DAILY} experiments`, pct: n / SCI_DAILY }; }
@@ -3518,7 +3521,7 @@ setInterval(() => {
 // Game time is a flat 60 minutes once all of the day's school is done (Nathan, 2026-11-09), in place of 10 minutes a subject before 1:00.
 const GAME_DAY_MIN = 60;
 function gameMinutes(items = todaysItems(), day = schoolDay()) {
-  return items.length && items.every((x) => itemStatus(x, day).done) ? GAME_DAY_MIN : 0;
+  const need = items.filter((x) => x.id !== "history"); return need.length && need.every((x) => itemStatus(x, day).done) ? GAME_DAY_MIN : 0;
 }
 // ---------- Game time (Nathan, 2026-11-09) ----------
 // After school is done, the boys start their video game time here. It counts down the minutes they earned
@@ -3527,7 +3530,7 @@ const gtClock = (day = schoolDay()) => (day.gameClock = day.gameClock || { used:
 const gtEarned = (day = schoolDay()) => gameMinutes(todaysItems(), day) * 60;
 const gtUsed = (day = schoolDay()) => { const c = gtClock(day); return Math.min(gtEarned(day), (c.used || 0) + (c.from ? (Date.now() - c.from) / 1000 : 0)); };
 const gtLeft = (day = schoolDay()) => Math.max(0, gtEarned(day) - gtUsed(day));
-const gtSchoolDone = (day = schoolDay()) => { const items = todaysItems(); return items.length > 0 && items.every((x) => itemStatus(x, day).done); };
+const gtSchoolDone = (day = schoolDay()) => { const items = todaysItems().filter((x) => x.id !== "history"); return items.length > 0 && items.every((x) => itemStatus(x, day).done); };
 const gtKid = () => KID.id === "elliot" || KID.id === "finn";
 function gameTimeView() {
   const day = schoolDay(), c = gtClock(day), earned = gtEarned(day), left = gtLeft(day), used = gtUsed(day), run = !!c.from && left > 0, r = 86, len = 2 * Math.PI * r, frac = earned ? used / earned : 0, done = gtSchoolDone(day);
@@ -3664,7 +3667,7 @@ function plannedLabel(x, date) {
   }
   if (x.kind === "verse") { const v = VERSES.filter((y) => y.kids.includes(KID.id) && y.from <= key).sort((a, b) => (a.from < b.from ? 1 : -1))[0]; if (!v) return "No verse yet"; return `${v.ref}: ${wd === 5 ? "memory test" : VERSE_DAYNAME[Math.max(0, Math.min(3, wd - 1))].toLowerCase()}`; }
   if (x.kind === "typing") return "Warm-up, spelling words and the verse";
-  if (x.kind === "reading") return `${x.minutes || 30} minutes`;
+  if (x.kind === "reading" || x.kind === "timer") return `${x.minutes || 30} minutes`;
   if (x.minutes) return `${x.minutes} minutes`;
   if (x.kind === "capitals") return "States and capitals";
   if (x.kind === "bible") return `${BIBLE_DAILY} Bible history questions`;
@@ -3710,11 +3713,11 @@ function schoolView() {
   const todayMap = tl ? `<div class="sdmap">${townMapSvg(tl, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(tl.id)}">Open ${esc(tl.town)} &#9654;</button>${ahead && ahead !== tl ? `<button class="sdopen sdahead" data-act="town" data-id="${esc(ahead.id)}">Work ahead: ${esc(ahead.town)} &#9654;</button>` : ""}</div>` : "";
   // Silver still says the line; it just doesn't take a row of the screen (Nathan, 2026-11-09: condense the top).
   speak(line); U.lastBubble = line;
-  return `<div class="sdtop"><div class="sddate">${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}</div><div class="sdstrip"><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div></div>${navRight()}</div>${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}<div class="sdmain ${todayMap ? "" : "nomap"}"><div class="daycards">${gtKid() && all ? `<button class="gamego" data-act="view" data-v="gametime">&#127918; Game time: ${gtLeft(day) > 0 ? `${Math.ceil(gtLeft(day) / 60)} min left` : "done for today"} &#9654;</button>` : ""}${ordered.map(card).join("")}</div><div class="sdside">${todayMap}${all && keepGoingRow(items) ? `<div class="sdinfo">${keepGoingRow(items)}</div>` : ""}</div></div>`;
+  return `<div class="sdtop"><div class="sddate">${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}</div><div class="sdstrip"><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div></div>${navRight()}</div>${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}<div class="sdmain ${todayMap ? "" : "nomap"}"><div class="daycards">${gtKid() && gtSchoolDone(day) ? `<button class="gamego" data-act="view" data-v="gametime">&#127918; Game time: ${gtLeft(day) > 0 ? `${Math.ceil(gtLeft(day) / 60)} min left` : "done for today"} &#9654;</button>` : ""}${ordered.map(card).join("")}</div><div class="sdside">${todayMap}${all && keepGoingRow(items) ? `<div class="sdinfo">${keepGoingRow(items)}</div>` : ""}</div></div>`;
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "20d658bfc7bb";
+const GAME_BUILD = "c2e0e0038fd1";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3742,7 +3745,8 @@ function timerRing() {
   banner("Reading time is done! Great job!");
 }
 setInterval(() => {
-  try { if (typeof KID === "undefined" || !S?.days) return; const day = schoolDay(), t = TIMERS.reading; if (t && day[t.from] && timerSecs("reading", day) >= timerNeed("reading")) timerRing(); } catch (e) {}
+  try { if (typeof KID === "undefined" || !S?.days) return; const day = schoolDay(), t = TIMERS.reading; if (t && day[t.from] && timerSecs("reading", day) >= timerNeed("reading")) timerRing();
+    const h = TIMERS.history; if (day[h.from] && timerSecs("history", day) >= timerNeed("history") && !timerRang[`h${dateKey()}`]) { timerRang[`h${dateKey()}`] = 1; if (!playSfx("bell", 1)) beep(CHIME); [700, 1400].forEach((ms) => setTimeout(() => { if (!playSfx("bell", 1)) beep(CHIME); }, ms)); setTimeout(() => { lastSaid = ""; speak(`History time is done, ${KID.name}. Great job!`, true); }, 2200); banner("History time is done!"); } } catch (e) {}
 }, 1000);
 const READ_MORE_MINS = 15, READ_MORE_PAY = 10;
 const readMoreOn = (day = schoolDay()) => (day.readMoreFrom || 0) > (day.readMoreStop || 0);
@@ -7496,7 +7500,7 @@ const acts = {
     if (x.kind === "grammar") { setSubject("grammar"); const l = ALL_LESSONS.find((y) => y.id === day.grammarLesson) || LESSONS[currentIdx()]; if (!l) { setSubject("math"); return; } U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.kind === "math") { setSubject("math"); const l = ALL_LESSONS.find((y) => y.id === day.mathLesson) || LESSONS[currentIdx()]; U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
     if (x.id === "piano") { pnOpen(); pnTimerOn(); if (pnDailyKid() && !day.pianoLes) { U.pnSongId = "school"; const li = pnTodayLesson(), at = S.piano?.lesAt?.[PN_COURSE[li].id] || 0; pnLesGo(li, Math.min(at, PN_COURSE[li].steps.length - 1)); } return; }
-    if (x.kind === "reading") { U.timerId = x.id; U.view = "reading"; render(); return; }
+    if (x.kind === "reading" || (x.kind === "timer" && TIMERS[x.id])) { U.timerId = x.id; U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { stampStart(x.id, day); stateOpen(); return; }
     if (x.kind === "bible") { stampStart(x.id, day); bibleOpen(); return; }
     if (x.kind === "science") { stampStart(x.id, day); sciOpen(); return; }
