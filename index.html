@@ -1040,6 +1040,8 @@ const PP = (lp, id) => {
 const RANKS = [["Greenhorn", 0], ["Trail Hand", 300], ["Deputy", 800], ["Sheriff", 1600], ["Marshal", 3000], ["Legend of the West", 5000]];
 const rankOf = (xp) => { let i = 0; RANKS.forEach((r, n) => { if (xp >= r[1]) i = n; }); return i; };
 function earn(n) {
+  // Saloon games are for fun and high scores; money comes from schoolwork (Nathan, 2026-11-09).
+  if (U.game?.free && !U.game.spell && U.view === "game") return;
   const before = rankOf(S.xp);
   S.nuggets += n; S.xp += n;
   const after = rankOf(S.xp);
@@ -1524,11 +1526,11 @@ function finishRun(won) {
     const city = ranchLesson().id, left = PRIZES.filter((p) => !cityPrizes(city).includes(p)), prize = left.length ? pick(left) : null, pay = free ? 0 : 15 + r.stomps * 3;
     if (prize) winPrize(prize, city);
     if (pay) earn(pay);
-    U.gameEnd = { title: "You won!", line: `${prize ? `Prize: ${prize}! ` : ""}You squashed ${r.stomps} guys with ${r.lives} ${r.lives === 1 ? "life" : "lives"} left, and kept $${r.coins || 0} in coins.${pay ? ` +$${pay}` : ""} High score: ${S.runBest}.` };
+    U.gameEnd = { title: "You won!", line: `${prize ? `Prize: ${prize}! ` : ""}You squashed ${r.stomps} guys with ${r.lives} ${r.lives === 1 ? "life" : "lives"} left${free ? `, and grabbed ${r.coins || 0} coins for your score` : `, and kept $${r.coins || 0} in coins`}.${pay ? ` +$${pay}` : ""} High score: ${S.runBest}.` };
     beep(FANFARE); confetti(50);
   } else {
     earn(5);
-    U.gameEnd = { title: "What a ride!", line: `You went for it and kept $${r.coins || 0} in coins, plus $5 for trying. Land on top of the guys next time. Score: ${r.score}. High score: ${S.runBest}.` };
+    U.gameEnd = { title: "What a ride!", line: `You went for it${free ? ` and grabbed ${r.coins || 0} coins for your score` : ` and kept $${r.coins || 0} in coins, plus $5 for trying`}. Land on top of the guys next time. Score: ${r.score}. High score: ${S.runBest}.` };
     duDunDun();
   }
   save(); W.run = null; worldSize(200); U.view = "gameEnd"; render();
@@ -3274,7 +3276,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "ed8d35a580e6";
+const GAME_BUILD = "1bdca95cc073";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3401,7 +3403,7 @@ const mapBase = (w, h) => {
 };
 const KNIGHT_RIDER = `<path d="M-19-6c8-3 19-3 27 0l-2 12c-7 2-16 2-23 0z" fill="#c8202c" stroke="#7a1218" stroke-width=".8"/><path d="M26-30L-6-14" stroke="#7a5230" stroke-width="2.200" stroke-linecap="round"/><path d="M26-30l6-3-4 6z" fill="#d5dbe2"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#c9d0d8" stroke="#3a3f4a" stroke-width=".8"/><path d="M-5-29h6v17h-6z" fill="#c8202c"/><path d="M-2-27v12M-5-21h6" stroke="#ffd23f" stroke-width="1.300"/><path d="M-9-34a7 7 0 0 1 14 0v7H-9z" fill="#d5dbe2" stroke="#3a3f4a" stroke-width=".8"/><path d="M-4-33h9" stroke="#15171b" stroke-width="1.600"/><path d="M-2-41c-1-5 3-9 9-9-2 3-3 6-3 9z" fill="#c8202c"/></g></g>`;
 // Once he buys Nora her horse (S.noraHorse), she rides beside him on every map and around the ranch (Nathan, 2026-11-09).
-const NORA_HORSE_COST = 300;
+const noraHorseCost = () => 1000 * PRICE_SCALE;
 const noraOnHorse = () => `<g class="norahorse" transform="translate(-30 3) scale(.92)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.3)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#a0612e" stroke="#4a2a14" stroke-width="1.100" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#3a2212" stroke="#4a2a14" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#3a2212"/><path d="M14-21l3 1" stroke="#fff" stroke-width="1.500" stroke-linecap="round"/><path d="M-10-26h9l3 14h-15z" fill="#2f7f96" stroke="#1f5566" stroke-width=".8"/><path d="M-4-12l-5 9M-1-12l4 9" stroke="#2f7f96" stroke-width="3" stroke-linecap="round"/><path d="M-10-30c-3 4-3 10-1 14h3l-1-14z" fill="#6b3f1d"/><circle cx="-5" cy="-31" r="5.500" fill="#f0c9a4"/><path d="M-11-32c0-6 11-7 12-1-4-1-7-1-9 0z" fill="#6b3f1d"/><circle cx="-3" cy="-31.500" r=".9" fill="#2c1a0e"/><path d="M-1-28c-2 1-3 1-4 0" stroke="#c0634f" stroke-width=".8" fill="none"/></g>`;
 const riderToken = (withNora = true) => { const base = cowboyToken(); if (KNIGHT) return base.slice(0, base.indexOf('<rect x="-8" y="-29"')) + KNIGHT_RIDER; return withNora && S.noraHorse ? base.replace('<g class="bob" transform="scale(1.35)">', (m) => m + noraOnHorse()) : base; };
 const cowboyToken = () => `<g id="token"><g class="bob" transform="scale(1.35)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a" stroke-width="1.1" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1" stroke="#3a3f4a" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#8fb7dc"}" stroke="#3a3f4a" stroke-width=".8"/><path d="M-7-29h10l-5 6z" fill="#c8202c"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><rect x="-8" y="-38.500" width="12.500" height="4" rx="1.500" fill="#15171b"/><circle cx="1" cy="-36.500" r="1" fill="#f4cda8"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-42.500" width="10" height="2" fill="#15171b"/></g></g>`;
@@ -5012,7 +5014,7 @@ const gameArt = {
 const gameCard = (art, attrs, name, sub) => `<button class="game gamepic" ${attrs}>${gameArt[art]}<span class="gametext"><h3>${name}</h3><span class="sub">${sub}</span></span></button>`;
 function arcadeView() {
   return `<div class="hud storehud">${bigMapBtn()}<h2>${GAMES_NAME}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
-  <p class="center sub">Play as much as you want. Coins you grab in Boost Run count as money.</p>
+  <p class="center sub">Play for fun and high scores. Money comes from your schoolwork.</p>
   <div class="games gamepicks sixup">
     ${LESSONS.length ? gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${factsCount()} steers. Beat your time.`) : ""}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "3 lives. Land on guys, win a prize.")}
@@ -5048,6 +5050,11 @@ const RANCH = [
   { id: "pond", name: "Fishing pond", note: "Catch supper right here", cost: 70, say: "We can go fishing together!" },
   { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 150, say: "A porch swing! Sit with me at sunset!" }
 ];
+// Money comes from hard work, and building Nora's home should take saving up (Nathan, 2026-11-09): a full school day
+// earns Elliot about $1,300 to $2,000, so a whole town's ranch takes about two days and he has to choose what to build.
+// Younger children earn less, so their prices go up by less.
+const PRICE_SCALE = KID.id === "elliot" ? 4 : 2;
+RANCH.forEach((g) => { g.cost *= PRICE_SCALE; });
 const RANCH_SPOTS = { cabin: [106, 150], barn: [302, 150], well: [214, 172], garden: [100, 205], corral: [310, 208], windmill: [345, 140], porch: [167, 168], fence: [200, 225], doghouse: [25, 205], appletree: [28, 140], coop: [205, 130], pond: [198, 212] };
 // The store opens up as he finishes sections, so the ranch keeps growing through the whole lesson.
 // The town whose ranch the store and ranch screens show.
@@ -5264,7 +5271,7 @@ function storeView() {
     return `<div class="item ${own ? "owned" : ""} ${locked ? "lockeditem" : ""}">${ranchPic(g.id)}<div class="itemtext"><b>${esc(ranchName(g))}</b><span class="sub">${esc(locked ? `Finish ${left} more section${left === 1 ? "" : "s"} to unlock` : g.note)}</span></div>${own ? (g.id === "fence" ? `<span class="builtmark">&#10003; Built</span>` : `<button class="btn small dark" data-act="roomOpen" data-id="${g.id}">Go inside</button>`) : locked ? `<span class="lockmark" aria-label="Locked">&#128274;</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
   const trophies = (S.prizes || []).length;
-  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid meet"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${S.noraHorse ? "" : `<div class="item noraitem"><svg class="itempic" viewBox="-36 -48 72 66" aria-hidden="true">${noraOnHorse().replace('transform="translate(-30 3) scale(.92)"', 'transform="scale(1.2)"')}</svg><div class="itemtext"><b>A horse for Nora</b><span class="sub">Then you two can ride together everywhere</span></div><button class="btn small go" data-act="buyNoraHorse" ${S.nuggets < NORA_HORSE_COST ? "disabled" : ""}>$${NORA_HORSE_COST}</button></div>`}${items}</div></div>`;
+  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid meet"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${S.noraHorse ? "" : `<div class="item noraitem"><svg class="itempic" viewBox="-36 -48 72 66" aria-hidden="true">${noraOnHorse().replace('transform="translate(-30 3) scale(.92)"', 'transform="scale(1.2)"')}</svg><div class="itemtext"><b>A horse for Nora</b><span class="sub">${S.nuggets < noraHorseCost() ? `Save $${noraHorseCost() - S.nuggets} more. Work hard and you'll get there!` : "Then you two can ride together everywhere"}</span></div><button class="btn small go" data-act="buyNoraHorse" ${S.nuggets < noraHorseCost() ? "disabled" : ""}>$${noraHorseCost()}</button></div>`}${items}</div></div>`;
 }
 
 /* ---------- parents ---------- */
@@ -6794,8 +6801,8 @@ const acts = {
   backTown() { U.game = null; const l = curLesson(), nx = l && nextRide(l); if (U.view === "rideEnd" && nx) return startRide(l, nx); U.view = "town"; render(); window.scrollTo(0, 0); },
   reward() { const l = curLesson(), lp = LP(l.id); if (!lp.completed) { lp.completed = true; earn(100); save(); } U.view = "reward"; beep(FANFARE); confetti(60); render(); },
   buyNoraHorse() {
-    if (S.noraHorse || S.nuggets < NORA_HORSE_COST) return;
-    S.nuggets -= NORA_HORSE_COST; S.noraHorse = Date.now(); beep(FANFARE); confetti(60); save();
+    if (S.noraHorse || S.nuggets < noraHorseCost()) return;
+    S.nuggets -= noraHorseCost(); S.noraHorse = Date.now(); beep(FANFARE); confetti(60); save();
     U.noraLine = `My very own horse! Let's ride together, ${KID.name}!`; U.noraHappy = true; render(); lastSaid = ""; speak(U.noraLine);
   },
   buy(d) { const g = RANCH.find((x) => x.id === d.id); if (RANCH.indexOf(g) < ranchUnlocked().n && S.nuggets >= g.cost && !ownedHere().includes(g.id)) { S.nuggets -= g.cost; ownedHere().push(g.id); if (!playSfx("hammer", .8)) beep(CHIME); save(); const all = RANCH.every((x) => ownedHere().includes(x.id)); U.noraLine = all ? `You got us everything, ${KID.name}! This is the best ranch in the West!` : g.say; U.noraHappy = true; if (all) confetti(50); render(); lastSaid = ""; speak(U.noraLine); U.noraHappy = false; } },
