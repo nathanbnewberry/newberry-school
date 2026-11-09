@@ -1834,7 +1834,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5];
 const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle/" }, { id: "pirates", name: "Cannon Math Pirates", path: "pirates/" }];
 // Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
 const KID_PLANS = {
-  finn: { on: ["spelling", "math", "reading", "grammar", "capitals", "piano"], reading: 30, games: [], focus: "" },
+  finn: { on: ["sevens", "verse", "bible", "typing", "capitals", "piano"], reading: 30, games: [], focus: "" },
   myla: { on: ["reading", "castle", "piano"], reading: 15, piano: 10, games: ["castle"], focus: "Colors and shapes" },
 };
 const SCHOOL_DEFAULT = [
@@ -1848,6 +1848,7 @@ const SCHOOL_DEFAULT = [
   { id: "science", name: "Creation Science", icon: "science", kind: "science", on: false, days: WEEKDAYS },
   { id: "typing", name: "Space Typing", icon: "typing", kind: "typing", on: false, days: WEEKDAYS },
   { id: "verse", name: "Bible verse", icon: "verse", kind: "verse", on: false, days: WEEKDAYS },
+  { id: "sevens", name: "7 Times Tables", icon: "math", kind: "sevens", on: false, days: WEEKDAYS },
   { id: "bible", name: "Bible history", icon: "history", kind: "bible", on: false, days: WEEKDAYS },
   { id: "review", name: "Friday review", icon: "task", kind: "review", on: false, days: [5] },
   { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
@@ -1865,6 +1866,14 @@ function schoolPlan() {
   // Myla starts piano at 10 minutes a day (Nathan, 2026-11-05). Set once so a parent's later changes stick.
   if (KID.id === "myla" && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) { p.on = true; p.minutes = KID_PLANS.myla.piano; } }
   // The weekly Bible verse is on for Elliot and Finn (Nathan, 2026-11-09). Set once so a parent's later changes stick.
+  // Finley's day, set once (Nathan, 2026-11-09): 7 times tables, the verse, Bible history, Space Typing with his
+  // spelling words, States and Capitals and piano, in that order. A parent can still change it on the Parent page.
+  if (KID.id === "finn" && !S.finnFocus) {
+    S.finnFocus = 1; S.bibleSet = 1; S.verseSet = 1; S.sciSet = 1; S.typingSet = 1;
+    const order = KID_PLANS.finn.on;
+    S.schoolPlan.forEach((x) => { x.on = order.includes(x.id); });
+    S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
+  }
   // Bible history trivia is daily for Elliot and Finn (Nathan, 2026-11-09). Set once so a parent's later changes stick.
   if ((KID.id === "elliot" || KID.id === "finn") && !S.bibleSet) { S.bibleSet = 1; const p = S.schoolPlan.find((x) => x.id === "bible"); if (p) p.on = true; }
   if ((KID.id === "elliot" || KID.id === "finn") && !S.verseSet) { S.verseSet = 1; const p = S.schoolPlan.find((x) => x.id === "verse"); if (p) p.on = true; }
@@ -3179,6 +3188,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
   if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), d = new Date(`${Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()}T12:00`), bee = spellBeeDay(d), pre = spellPracticeDay(d), g = day.spellGrade; if (bee) return { done: !!day.spellBee, label: day.spellBee ? (g ? `Spelling test: ${g.letter} (${g.right} of ${g.total})` : "Spelling test done") : "Spelling test day", pct: day.spellBee ? 1 : 0 }; if (pre) return { done: (n >= total || !!day.spellBee) && !!day.spellPretest, label: day.spellPretest ? `Practice test: ${day.spellPretest.right} of ${day.spellPretest.total}` : n >= total ? "Now the practice test" : `${n} of ${total} words today`, pct: (Math.min(n, total) / total) * .8 + (day.spellPretest ? .2 : 0) }; return { done: n >= total || !!day.spellBee, label: `${n} of ${total} words today`, pct: n / total }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.kind === "sevens") { const n = day.sevensDone || 0; return { done: n >= 1, label: n ? `Herd roped${n > 1 ? ` ${n} times` : ""}!` : "Rope 20 sevens facts", pct: n ? 1 : 0 }; }
   if (x.kind === "science") { const n = sciToday(day); return { done: n >= SCI_DAILY, label: `${n} of ${SCI_DAILY} experiments`, pct: n / SCI_DAILY }; }
   if (x.kind === "bible") { const n = bibleToday(day); return { done: n >= BIBLE_DAILY, label: `${n} of ${BIBLE_DAILY} questions`, pct: n / BIBLE_DAILY }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
@@ -3325,6 +3335,7 @@ function plannedLabel(x, date) {
   if (x.kind === "capitals") return "States and capitals";
   if (x.kind === "bible") return `${BIBLE_DAILY} Bible history questions`;
   if (x.kind === "science") return `${SCI_DAILY} science experiments`;
+  if (x.kind === "sevens") return "Rope 20 sevens facts";
   if (x.kind === "review") return "Problems from this week, on his own";
   return "On the plan";
 }
@@ -3358,7 +3369,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "0851be2be0fe";
+const GAME_BUILD = "2073599bc87f";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4654,6 +4665,11 @@ const HERDS = {
     { title: "New herd: the threes and fours. Rope them all!", all: () => herdTimes([3, 4], herdRange(1, 10)) },
   ],
 };
+function sevensHerd() {
+  const missed = Object.keys(S.sevensMiss || {}).map((k) => k.split("x").map(Number)).slice(0, 6);
+  const all = []; for (let n = 0; n <= 12; n++) { all.push([7, n]); if (n !== 7) all.push([n, 7]); }
+  return { order: [...missed, ...shuffled(all)].slice(0, HERD_SIZE), i: 0, miss: 0, secs: 0, done: false, bonus: true, sevens: true, title: "The sevens! Rope every 7 fact." };
+}
 function bonusHerd(l) {
   const sets = HERDS[KID.id] || HERDS.other, n = S.herdRound || 0, herd = sets[n % sets.length];
   S.herdRound = n + 1;
@@ -6308,7 +6324,7 @@ function checkStampede() {
     U.stStreak = (U.stStreak || 0) + 1; earn(gold ? 4 : 1); coinPop();
     f.i++; U.draft = ""; U.msg = null; U.stepWrong = 0; U.stBorn = 0; beep(BLIP); W.boost = 8; W.shake = 3; W.targetGap = Math.max(.02, .9 * (1 - f.i / f.order.length));
     if (f.i >= f.order.length) {
-      f.done = true; { const d = schoolDay(); d.lassoRuns = (d.lassoRuns || 0) + 1; } if (!f.bonus) LP(U.lesson).factsResult = { miss: f.miss, secs: f.secs }; U.solvedRun = 6; earn(25); celebrate(25, true); save(); return nextItem();
+      f.done = true; { const d = schoolDay(); d.lassoRuns = (d.lassoRuns || 0) + 1; if (f.sevens) d.sevensDone = (d.sevensDone || 0) + 1; } if (!f.bonus) LP(U.lesson).factsResult = { miss: f.miss, secs: f.secs }; U.solvedRun = 6; earn(25); celebrate(25, true); save(); return nextItem();
     }
     if (f.i % 25 === 0) { U.stBreak = true; earn(10); celebrate(10, true); }
     else if (U.stStreak % 10 === 0 && U.stStreak) { W.text = `${U.stStreak} IN A ROW!`; W.textT = 40; }
@@ -6316,7 +6332,7 @@ function checkStampede() {
   }
   const typedFact = U.draft;
   f.miss++; U.stepWrong++; wrongFx(); U.draft = "";
-  { const lp = LP(U.lesson), key = takeAway || other ? `${a} ${factSign(fact)} ${b}` : `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; lp.factTyped = lp.factTyped || {}; lp.factTyped[key] = [...(lp.factTyped[key] || []), typedFact].slice(-12); }
+  { const lp = LP(U.lesson), key = takeAway || other ? `${a} ${factSign(fact)} ${b}` : `${Math.min(a, b)} × ${Math.max(a, b)}`; lp.factMiss = lp.factMiss || {}; lp.factMiss[key] = (lp.factMiss[key] || 0) + 1; if (lp.facts?.sevens) { S.sevensMiss = S.sevensMiss || {}; S.sevensMiss[`${a}x${b}`] = 1; } lp.factTyped = lp.factTyped || {}; lp.factTyped[key] = [...(lp.factTyped[key] || []), typedFact].slice(-12); }
   U.msg = `You typed ${typedFact}. ` + (fact[2] === "+" ? `Good try! Start at ${a} and count up ${b}.` : fact[2] === "÷" ? `Good try! Count by ${b}s until you reach ${a}. How many counts?` : takeAway ? (b === 0 ? "Good try! Taking away zero leaves the number the same." : a === b ? "Good try! A number take away itself leaves nothing." : `Good try! Start at ${b} and count up to ${a}. How many counts?`) : a === 0 || b === 0 ? "Good try! Zero groups means nothing, so times zero is always zero." : b === 1 || a === 1 ? "Good try! Times one keeps the number the same." : `Good try! ${a} × ${b} means ${a} jumps of ${b}. Count them.`);
   save(); render();
 }
@@ -6850,6 +6866,11 @@ const acts = {
     if (x.kind === "capitals") { stampStart(x.id, day); stateOpen(); return; }
     if (x.kind === "bible") { stampStart(x.id, day); bibleOpen(); return; }
     if (x.kind === "science") { stampStart(x.id, day); sciOpen(); return; }
+    if (x.kind === "sevens") {
+      const l = ALL_LESSONS.find((y) => (y.kid || "elliot") === KID.id && (y.subject || "math") === "math" && y.rides?.some((r) => r.kind === "facts")); if (!l) return;
+      const ride = l.rides.find((r) => r.kind === "facts");
+      stampStart(x.id, day); setSubject("math"); U.lesson = l.id; LP(l.id).facts = sevensHerd(); startRide(l, ride); return;
+    }
     if (x.kind === "spelling" && !spellList()) return;
     if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? (spellShaky().length ? "warmup" : "bee") : "practice"); return; }
     if (x.kind === "game") { stampStart(x.id, day); save(); location.href = `${x.game}/`; return; }
