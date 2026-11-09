@@ -3358,7 +3358,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "69b90a44d2dc";
+const GAME_BUILD = "0851be2be0fe";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5991,7 +5991,7 @@ function outlawSay(kind) {
 }
 // Shooting Gallery: 30 seconds of tin targets. A miss costs nothing, so he can tap as much as he likes.
 function startGallery() {
-  gal = { on: false, left: 30, score: 0, hits: 0, shots: GAL_SHOTS, reloadAt: 0, last: 0, w: 640, h: 300, items: [], rows: [{ y: 186, dir: 1, speed: 100, gap: 0 }, { y: 264, dir: -1, speed: 140, gap: .5 }, { y: 108, dir: -1, speed: 175, gap: .25 }] };
+  gal = { on: false, left: 30, score: 0, hits: 0, shots: GAL_SHOTS, reloadAt: 0, last: 0, w: 640, h: 300, items: [], rows: [{ y: 186, dir: 1, speed: 55, gap: 0 }, { y: 264, dir: -1, speed: 70, gap: .5 }, { y: 108, dir: -1, speed: 85, gap: .25 }] };
   const svg = document.getElementById("galScene");
   svg.addEventListener("pointerdown", (e) => { e.preventDefault(); galTap(e); });
   document.getElementById("galIntro").addEventListener("pointerdown", (e) => { e.preventDefault(); galBegin(); });
@@ -6022,7 +6022,7 @@ function galFrame(now) {
   const dt = Math.min(.05, gal.last ? (now - gal.last) / 1000 : 0); gal.last = now;
   galFit();
   // Speeds up the whole way through.
-  const rush = gal.on ? 1 + ((30 - gal.left) / 30) * .7 : 1;
+  const rush = gal.on ? 1 + ((30 - gal.left) / 30) * .3 : 1;
   if (gal.reloadAt && now >= gal.reloadAt) { gal.reloadAt = 0; gal.shots = GAL_SHOTS; galAmmoPaint(); beep(KEY_TAP); }
   gal.rows.forEach((r, i) => {
     gal.items.forEach((t) => { if (t.row === i) t.x += r.dir * r.speed * rush * dt; });
@@ -6043,16 +6043,17 @@ function galTap(e) {
   if (!gal) return;
   if (!gal.on) return galBegin();
   galFit();
+  galFit();
   const x = (e.clientX - gal.left0) / gal.scale, y = (e.clientY - gal.top0) / gal.scale;
   if (gal.reloadAt) return;
   gal.shots--;
   if (gal.shots <= 0) { gal.shots = 0; gal.reloadAt = performance.now() + GAL_RELOAD; }
   galAmmoPaint();
-  let best = null, dist = 19;
-  gal.items.forEach((t) => { if (t.dead) return; const d = Math.hypot(t.x - x, t.y - 44 * GAL_SCALE - y); if (d < dist) { dist = d; best = t; } });
+  let best = null, dist = 32;
+  gal.items.forEach((t) => { if (t.dead) return; const r = gal.rows[t.row], back = r ? r.dir * r.speed * .12 : 0, d = Math.min(Math.hypot(t.x - x, t.y - 44 * GAL_SCALE - y), Math.hypot(t.x - back - x, t.y - 44 * GAL_SCALE - y)); if (d < dist) { dist = d; best = t; } });
   gunshot(.4);
   const fx = document.getElementById("galFx");
-  if (!best) { gal.score = Math.max(0, gal.score - 1); document.getElementById("galScore").textContent = gal.score; const lose = document.createElementNS("http://www.w3.org/2000/svg", "text"); lose.setAttribute("x", x); lose.setAttribute("y", y - 12); lose.setAttribute("class", "galpop galmiss"); lose.textContent = "Miss −1"; document.getElementById("galFx").appendChild(lose); setTimeout(() => lose.remove(), 600); const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 7); c.setAttribute("class", "galpuff"); fx.appendChild(c); setTimeout(() => c.remove(), 350); return; }
+  if (!best) { const lose = document.createElementNS("http://www.w3.org/2000/svg", "text"); lose.setAttribute("x", x); lose.setAttribute("y", y - 12); lose.setAttribute("class", "galpop galmiss"); lose.textContent = "Close!"; document.getElementById("galFx").appendChild(lose); setTimeout(() => lose.remove(), 600); const c = document.createElementNS("http://www.w3.org/2000/svg", "circle"); c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 7); c.setAttribute("class", "galpuff"); fx.appendChild(c); setTimeout(() => c.remove(), 350); return; }
   const pts = GAL_POINTS[best.kind];
   best.dead = true; if (pts > 0) gal.hits++; gal.score = Math.max(0, gal.score + pts);
   document.getElementById("galScore").textContent = gal.score;
