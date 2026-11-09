@@ -680,7 +680,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .solvedpage .tag:empty{display:none}.solvedpage .pmathbig{padding:0}.solvedpage .vert .slot{color:#1c7a3e}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.solvedpage .rightbanner{padding:2px 8px;font-size:1rem}body[data-view="ride"] #app .nextbtn{min-height:44px}body[data-view="ride"] #app [data-act="redoq"]{min-height:38px;padding:2px 10px}}
 .famcode{font:800 clamp(1rem,2.6vw,1.5rem) ui-monospace,Menlo,monospace;letter-spacing:.04em;color:var(--gold);word-break:break-all;margin:0;user-select:all;-webkit-user-select:all}.famrow{display:flex;gap:8px;flex-wrap:wrap}.famrow input{flex:1;min-width:220px;min-height:44px;font-size:16px;padding:6px 10px;border-radius:8px;border:2px solid var(--line)}.famrow .btn{width:auto}
-.dayhead{display:grid;gap:6px;padding:0 4px}.dayhead h2{margin:0;font-size:1.25rem}.daytrail{position:relative;height:22px;border-radius:11px;background:rgba(128,128,128,.28);margin:18px 40px 2px 14px}.daytrail>i{display:block;height:100%;border-radius:11px;background:#39d07a;transition:width .4s}.dayhorse{position:absolute;bottom:0;width:58px;margin-left:-29px;transition:left .4s}.dayhorse svg{display:block;width:100%}.daytrail>b{position:absolute;right:-38px;top:0;line-height:22px;font-size:.85rem;white-space:nowrap;transform:translateX(-4px)}
+.dayhead{display:grid;gap:6px;padding:0 4px}.dayhead h2{margin:0;font-size:1.25rem}.daynavrow{display:flex;align-items:center;gap:10px}.daynav{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:var(--gold);color:var(--ink);font-size:1.1rem;cursor:pointer;box-shadow:0 3px 0 var(--gold-deep)}.daynav:disabled{opacity:.3}.daytoday{justify-self:start;margin-bottom:10px}.daycard.preview{cursor:default}.daytrail{position:relative;height:22px;border-radius:11px;background:rgba(128,128,128,.28);margin:18px 40px 2px 14px}.daytrail>i{display:block;height:100%;border-radius:11px;background:#39d07a;transition:width .4s}.dayhorse{position:absolute;bottom:0;width:58px;margin-left:-29px;transition:left .4s}.dayhorse svg{display:block;width:100%}.daytrail>b{position:absolute;right:-38px;top:0;line-height:22px;font-size:.85rem;white-space:nowrap;transform:translateX(-4px)}
 .daycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.daycard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:88px;padding:10px 14px;border-radius:16px;background:var(--paper);color:#1c1712;box-shadow:0 5px 0 #b9ad96;text-align:left;cursor:pointer}.daycard:active{transform:translateY(3px);box-shadow:0 2px 0 #b9ad96}.daycard.done{background:#c9f0d3;box-shadow:0 5px 0 #1f9a4f}.dayicon{width:52px;height:52px}.daytext{display:grid;gap:3px;min-width:0}.daytext b{font-size:1.2rem}.daytext small{font-size:.92rem;font-weight:600;color:#5d564b}.daybar{display:block;height:8px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}.daybar em{display:block;height:100%;background:#1f9a4f}.daycheck{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:3px solid #8a7a55;font-size:1.6rem;font-weight:800;color:#fff}.daycard.done .daycheck{background:#1f9a4f;border-color:#1f9a4f}
 .daysoon{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.9rem}.soonchip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);opacity:.75}.soonchip svg{width:22px;height:22px}
 .readwrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(18px,5vw,60px);flex:1;padding:8px}.readring{position:relative;width:clamp(220px,58vh,400px);aspect-ratio:1}.readring svg{width:100%;height:100%;display:block}.readclock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center}.readclock b{font:400 clamp(3rem,13vh,5.5rem) var(--display);color:var(--gold)}.readclock small{font-weight:700}.readside{display:grid;gap:14px;width:min(100%,380px);text-align:center}.readside p{margin:0;font-size:1.15rem;line-height:1.4}.readbtn{min-height:76px;font-size:1.4rem}
@@ -3162,17 +3162,72 @@ function keepGoingRow(items) {
   const btns = [has("reading") ? `<button class="btn go" data-act="readMore">Read ${READ_MORE_MINS} more, earn $${READ_MORE_PAY}</button>` : "", hasFacts ? `<button class="btn go" data-act="stPlay">Rope a new herd</button>` : "", has("capitals") ? `<button class="btn go" data-act="statesKeep">More states and capitals</button>` : ""].join("");
   return btns ? `<div class="keepgo"><b>All done! Want to earn more?</b><div class="keepbtns">${btns}</div></div>` : "";
 }
+// Day arrows on School Day (Nathan, 2026-11-09): flip through the week to see what's planned, or what got done.
+// Looking only. Nothing can be started from another day, and nothing about today changes.
+const DAY_NAV_MAX = 7;
+const dayAt = (off) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + off); return d; };
+// The lesson planned for a future day: one set for that date (startsOn or onlyOn), or else the current
+// unfinished lesson goes to the first school day still open, and later days show "not added yet".
+function plannedLesson(subject, date) {
+  return withSubject(subject, () => {
+    const key = dateKey(date), today = dateKey();
+    const dated = LESSONS.find((l) => l.current && !lessonFinished(l) && (l.startsOn === key || l.onlyOn === key));
+    if (dated) return dated;
+    const open = LESSONS.find((l) => l.current && !l.startsOn && !l.onlyOn && !lessonFinished(l)); if (!open) return null;
+    const plan = schoolPlan().find((x) => x.kind === subject);
+    for (let off = 0; off <= DAY_NAV_MAX; off++) {
+      const d = dayAt(off), k = dateKey(d); if (k < today) continue;
+      if (!plan || !plan.days.includes(d.getDay())) continue;
+      const takenBy = LESSONS.find((l) => l.current && !lessonFinished(l) && (l.startsOn === k || l.onlyOn === k));
+      if (takenBy) { if (k === key) return takenBy; continue; }
+      return k === key ? open : null;
+    }
+    return null;
+  });
+}
+function plannedLabel(x, date) {
+  const wd = date.getDay(), key = dateKey(date);
+  if (x.kind === "math" || x.kind === "grammar") { const l = plannedLesson(x.kind, date); return l ? (x.kind === "grammar" ? `${l.title.replace("Easy Grammar, ", "")}` : `${lessonLabel(l).replace(/&#\d+;/g, "")}: ${l.town}`) : "Not added yet"; }
+  if (x.kind === "spelling") {
+    // The list for that date (a new week's list waits for its startsOn). A make-up test is planned for the first
+    // school day it's open; after that the old list is assumed done, so later days show the next list.
+    const lists = SPELLING_LISTS.filter((y) => (y.kid || "elliot") === KID.id && (!y.startsOn || y.startsOn <= key)), l = lists[0]; if (!l) return "No list yet";
+    const plan = schoolPlan().find((y) => y.kind === "spelling");
+    if (l.testFrom && !(S.spelling?.lists?.[l.id]?.bees || []).some((bb) => bb.date >= l.testFrom)) {
+      let first = null; for (let off = 0; off <= DAY_NAV_MAX && !first; off++) { const d = dayAt(off), k = dateKey(d); if (k >= l.testFrom && plan?.days.includes(d.getDay())) first = k; }
+      if (key === first) return `Make-up spelling test: ${l.title}`;
+      if (first && key > first) return "New spelling words (not added yet)";
+    }
+    return date.getDay() === 5 ? `Spelling test: ${l.title}` : spellPracticeDay(date) ? `${l.title}: practice, then a practice test` : `${l.title}: practice every word`;
+  }
+  if (x.kind === "verse") { const v = VERSES.filter((y) => y.kids.includes(KID.id) && y.from <= key).sort((a, b) => (a.from < b.from ? 1 : -1))[0]; if (!v) return "No verse yet"; return `${v.ref}: ${wd === 5 ? "memory test" : VERSE_DAYNAME[Math.max(0, Math.min(3, wd - 1))].toLowerCase()}`; }
+  if (x.kind === "typing") return "Warm-up, spelling words and the verse";
+  if (x.kind === "reading") return `${x.minutes || 30} minutes`;
+  if (x.minutes) return `${x.minutes} minutes`;
+  if (x.kind === "capitals") return "States and capitals";
+  if (x.kind === "review") return "Problems from this week, on his own";
+  return "On the plan";
+}
+function schoolOtherDay(off) {
+  const date = dayAt(off), key = dateKey(date), past = off < 0, rec = S.days?.[key], items = todaysItems(date);
+  const name = date.toLocaleDateString(undefined, { weekday: "long" });
+  const card = (x) => { const st = past && rec ? itemStatus(x, rec) : null; return `<div class="daycard preview ${st?.done ? "done" : ""}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st ? st.label : past ? "Not done" : plannedLabel(x, date))}</small></span><span class="daycheck">${st?.done ? "&#10003;" : ""}</span></div>`; };
+  const line = !items.length ? `No school on the plan for ${name}.` : past ? `Here's how ${name} went.` : `Here's the plan for ${name}. It opens that morning.`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}<div class="dayhead">${dayNavHead(date, off)}<button class="btn dark small daytoday" data-act="dayOff" data-d="${-off}">Back to today</button></div><div class="daycards">${items.map(card).join("")}</div>`;
+}
+const dayNavHead = (date, off) => `<h2 class="daynavrow"><button class="daynav" data-act="dayOff" data-d="-1" ${off <= -DAY_NAV_MAX ? "disabled" : ""} aria-label="Day before">&#9664;</button><span>${esc(date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}</span><button class="daynav" data-act="dayOff" data-d="1" ${off >= DAY_NAV_MAX ? "disabled" : ""} aria-label="Next day">&#9654;</button></h2>`;
 function schoolView() {
   setSubject("math"); U.justDone = "";
+  if (U.dayOff) return schoolOtherDay(U.dayOff);
   const items = todaysItems(), day = schoolDay(), focus = KID_PLANS[KID.id]?.focus, done = items.filter((x) => itemStatus(x, day).done).length, all = items.length && done === items.length, pct = items.length ? (done / items.length) * 100 : 0;
   const next = nextUp(items, day), ordered = next ? [next, ...items.filter((x) => x !== next)] : items;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? (KNIGHT ? "Your quest is done for today. Well fought, knight." : "School's out, partner! You finished the whole trail today.") : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : KNIGHT ? `Hail, Sir ${KID.name}. Here's today's quest. Pick any one to start.` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p><h2>${esc(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}${focus ? ` &#183; ${esc(focus)}` : ""}</h2><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p>${dayNavHead(new Date(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}<div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "4990dc53c699";
+const GAME_BUILD = "322d7990be8e";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6353,6 +6408,7 @@ const acts = {
   spellKey,
   spellSayAgain() { spellSay(); },
   spellBee() { spellOpen("bee"); },
+  dayOff(d) { U.dayOff = Math.max(-DAY_NAV_MAX, Math.min(DAY_NAV_MAX, (U.dayOff || 0) + Number(d.d))); render(); window.scrollTo(0, 0); },
   verseStart() { verseStart(); },
   verseTap(d) { verseTap(d); },
   verseRef(d) { verseRef(d); },
@@ -6555,6 +6611,7 @@ function render() {
     if (day[t.from] && timerSecs("piano", day) < timerNeed("piano")) { day[t.secs] = timerBase("piano", day) + timerSecs("piano", day); day[t.from] = 0; save(); }
   }
   if (U.view === "school" && lastRenderedView !== "school") setTimeout(cloudSync, 0);
+  if (U.view !== "school") U.dayOff = 0; // Leaving School Day always comes back to today.
   lastRenderedView = U.view;
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
