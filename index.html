@@ -863,6 +863,25 @@ let S = blank();
 try { S = { ...blank(), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch (e) {}
 // Nathan tried the new screens as Elliot on Sunday 2026-11-08; none of it was Elliot's work (Nathan, 2026-11-09).
 // Each device takes it off once before syncing, so no copy brings it back. Only those exact values are touched.
+// Nathan kept trying screens as Elliot all Sunday night, so each device cleans once more on its first load after
+// 4 am Pacific Monday 2026-11-09, before Elliot plays. Only work stamped before then is touched.
+try {
+  const cut = Date.parse("2026-11-09T12:00:00Z");
+  if (KID.id === "elliot" && Date.now() > cut && !localStorage.getItem("undo-test-2026-11-08b")) {
+    localStorage.setItem("undo-test-2026-11-08b", "1");
+    if (S.piano?.course?.sit) delete S.piano.course.sit;
+    if (S.nuggets > 3023 && S.nuggets <= 3400) S.nuggets = 3023;
+    if (S.xp > 7464 && S.xp <= 7900) S.xp = 7464;
+    if (S.wins > 40 && S.wins <= 45) S.wins = 40;
+    if (S.brave > 447 && S.brave <= 470) S.brave = 447;
+    if (S.typing && S.typing.bestWpm > 25) S.typing.bestWpm = 12;
+    if (S.bible) ["right", "miss"].forEach((k) => Object.keys(S.bible[k] || {}).forEach((id) => { if (S.bible[k][id] < cut) delete S.bible[k][id]; }));
+    if (S.noraHorse && S.noraHorse < cut) delete S.noraHorse;
+    delete S.days?.["2026-11-08"];
+    const mon = S.days?.["2026-11-09"]; if (mon && Object.values(mon.times || {}).some((t) => t.start && t.start < cut)) delete S.days["2026-11-09"];
+    localStorage.setItem(KEY, JSON.stringify(S));
+  }
+} catch (e) {}
 try {
   if (KID.id === "elliot" && !localStorage.getItem("undo-test-2026-11-08")) {
     localStorage.setItem("undo-test-2026-11-08", "1");
@@ -1832,13 +1851,16 @@ function schoolPlan() {
   if (!S.reviewSet) { S.reviewSet = 1; const r = S.schoolPlan.find((x) => x.id === "review"); if (r) r.on = ALL_LESSONS.some((l) => (l.kid || "elliot") === KID.id && !l.skip); }
   return S.schoolPlan;
 }
-const dateKey = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+// Saturday and Sunday aren't school days: the game treats them as the coming Monday, so School Day, the verse,
+// lessons and spelling all show Monday's work, and anything done on a weekend counts toward Monday (Nathan, 2026-11-09).
+const schoolNow = () => { const d = new Date(), wd = d.getDay(); if (wd === 6 || wd === 0) { d.setDate(d.getDate() + (wd === 6 ? 2 : 1)); d.setHours(8, 0, 0, 0); } return d; };
+const dateKey = (d = schoolNow()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 function schoolDay(key = dateKey()) {
   S.days = S.days || {};
   if (!S.days[key]) S.days[key] = { done: {}, paid: {}, readSecs: 0, readFrom: 0, capTries: 0, mathLesson: withSubject("math", () => LESSONS[currentIdx()]?.id) };
   return S.days[key];
 }
-const todaysItems = (d = new Date()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay())), ...withSubject("math", () => LESSONS.filter((l) => l.test && l.extraOn === dateKey(d)).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
+const todaysItems = (d = schoolNow()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay())), ...withSubject("math", () => LESSONS.filter((l) => l.test && l.extraOn === dateKey(d)).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
 const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
   piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
@@ -3212,7 +3234,8 @@ function keepGoingRow(items) {
 // Day arrows on School Day (Nathan, 2026-11-09): flip through the week to see what's planned, or what got done.
 // Looking only. Nothing can be started from another day, and nothing about today changes.
 const DAY_NAV_MAX = 7;
-const dayAt = (off) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() + off); return d; };
+// Steps over school days only, so the arrows never land on a Saturday or Sunday.
+const dayAt = (off) => { const d = schoolNow(); d.setHours(12, 0, 0, 0); for (let n = Math.abs(off); n > 0;) { d.setDate(d.getDate() + Math.sign(off)); if (d.getDay() % 6) n--; } return d; };
 // The lesson planned for a future day: one set for that date (startsOn or onlyOn), or else the current
 // unfinished lesson goes to the first school day still open, and later days show "not added yet".
 function plannedLesson(subject, date) {
@@ -3272,11 +3295,11 @@ function schoolView() {
   const next = nextUp(items, day), ordered = next ? [next, ...items.filter((x) => x !== next)] : items;
   const card = (x) => { const st = itemStatus(x, day); return `<button class="daycard ${st.done ? "done" : ""} ${x === next ? "next" : ""}" data-act="schoolGo" data-id="${esc(x.id)}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext">${x === next ? `<span class="nextchip">Next up</span>` : ""}<b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="daybar"><em style="width:${Math.round(st.pct * 100)}%"></em></i></span><span class="daycheck">${st.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan today. Enjoy your day, ${KID.name}!` : all ? (KNIGHT ? "Your quest is done for today. Well fought, knight." : "School's out, partner! You finished the whole trail today.") : done ? `${done} down, ${items.length - done} to go. Pick your next one!` : KNIGHT ? `Hail, Sir ${KID.name}. Here's today's quest. Pick any one to start.` : `Howdy, ${KID.name}! Here's today's trail. Pick any one to start.`;
-  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p>${dayNavHead(new Date(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}<div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
+  return `<div class="hud">${rankHud()}${navRight()}</div>${bubble(line)}${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}<div class="dayhead"><p class="savedline" id="savedline">${saveStatusText()}</p>${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}<div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div>${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}${gameTimeBar(items, day)}${all ? keepGoingRow(items) || runBar(items, day) : runBar(items, day)}</div><div class="daycards">${ordered.map(card).join("")}</div><div class="hud"><button class="btn dark small" data-act="view" data-v="home">US map</button><span class="whoami">${esc(KID.name)}${familyKids().length > 1 ? ` <button class="link" data-act="kidOut">Switch</button>` : ""}</span><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1bdca95cc073";
+const GAME_BUILD = "8379223a18d3";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3403,7 +3426,7 @@ const mapBase = (w, h) => {
 };
 const KNIGHT_RIDER = `<path d="M-19-6c8-3 19-3 27 0l-2 12c-7 2-16 2-23 0z" fill="#c8202c" stroke="#7a1218" stroke-width=".8"/><path d="M26-30L-6-14" stroke="#7a5230" stroke-width="2.200" stroke-linecap="round"/><path d="M26-30l6-3-4 6z" fill="#d5dbe2"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="#c9d0d8" stroke="#3a3f4a" stroke-width=".8"/><path d="M-5-29h6v17h-6z" fill="#c8202c"/><path d="M-2-27v12M-5-21h6" stroke="#ffd23f" stroke-width="1.300"/><path d="M-9-34a7 7 0 0 1 14 0v7H-9z" fill="#d5dbe2" stroke="#3a3f4a" stroke-width=".8"/><path d="M-4-33h9" stroke="#15171b" stroke-width="1.600"/><path d="M-2-41c-1-5 3-9 9-9-2 3-3 6-3 9z" fill="#c8202c"/></g></g>`;
 // Once he buys Nora her horse (S.noraHorse), she rides beside him on every map and around the ranch (Nathan, 2026-11-09).
-const noraHorseCost = () => 1000 * PRICE_SCALE;
+const noraHorseCost = () => (KID.id === "elliot" ? 4000 : 2000);
 const noraOnHorse = () => `<g class="norahorse" transform="translate(-30 3) scale(.92)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.3)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#a0612e" stroke="#4a2a14" stroke-width="1.100" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#3a2212" stroke="#4a2a14" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#3a2212"/><path d="M14-21l3 1" stroke="#fff" stroke-width="1.500" stroke-linecap="round"/><path d="M-10-26h9l3 14h-15z" fill="#2f7f96" stroke="#1f5566" stroke-width=".8"/><path d="M-4-12l-5 9M-1-12l4 9" stroke="#2f7f96" stroke-width="3" stroke-linecap="round"/><path d="M-10-30c-3 4-3 10-1 14h3l-1-14z" fill="#6b3f1d"/><circle cx="-5" cy="-31" r="5.500" fill="#f0c9a4"/><path d="M-11-32c0-6 11-7 12-1-4-1-7-1-9 0z" fill="#6b3f1d"/><circle cx="-3" cy="-31.500" r=".9" fill="#2c1a0e"/><path d="M-1-28c-2 1-3 1-4 0" stroke="#c0634f" stroke-width=".8" fill="none"/></g>`;
 const riderToken = (withNora = true) => { const base = cowboyToken(); if (KNIGHT) return base.slice(0, base.indexOf('<rect x="-8" y="-29"')) + KNIGHT_RIDER; return withNora && S.noraHorse ? base.replace('<g class="bob" transform="scale(1.35)">', (m) => m + noraOnHorse()) : base; };
 const cowboyToken = () => `<g id="token"><g class="bob" transform="scale(1.35)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="#f4f6f8" stroke="#3a3f4a" stroke-width="1.1" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="#aab4c1" stroke="#3a3f4a" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="#aab4c1"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : "#8fb7dc"}" stroke="#3a3f4a" stroke-width=".8"/><path d="M-7-29h10l-5 6z" fill="#c8202c"/><circle cx="-2" cy="-35" r="7" fill="#f4cda8"/><rect x="-8" y="-38.500" width="12.500" height="4" rx="1.500" fill="#15171b"/><circle cx="1" cy="-36.500" r="1" fill="#f4cda8"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : "#fbfbf7"}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-42.500" width="10" height="2" fill="#15171b"/></g></g>`;
@@ -3821,12 +3844,12 @@ function spellRec(w) {
 }
 const spellBees = () => { spellRec(spellList().words[0].w); return S.spelling.lists[spellList().id].bees; };
 const spellMastered = () => spellActive().filter((x) => spellRec(x.w).level >= 3).length;
-const spellBeeDay = (d = new Date()) => d.getDay() === 5 || spellMakeup(d);
+const spellBeeDay = (d = schoolNow()) => d.getDay() === 5 || spellMakeup(d);
 // A make-up test day: the list says testFrom, and no test was taken on or after that day.
-function spellMakeup(d = new Date()) { const l = spellList(); if (!l?.testFrom || dateKey(d) < l.testFrom) return false; const bees = S.spelling?.lists?.[l.id]?.bees || []; return !bees.some((b) => b.date >= l.testFrom && b.date < dateKey(d)); }
+function spellMakeup(d = schoolNow()) { const l = spellList(); if (!l?.testFrom || dateKey(d) < l.testFrom) return false; const bees = S.spelling?.lists?.[l.id]?.bees || []; return !bees.some((b) => b.date >= l.testFrom && b.date < dateKey(d)); }
 // Friday's spelling test is built up to all week (Nathan, 2026-11-09): a missed word comes back once more the same day,
 // Thursday has a practice test with no grade, and Friday starts with a warm-up on any word that isn't solid yet.
-const spellPracticeDay = (d = new Date()) => d.getDay() === 4;
+const spellPracticeDay = (d = schoolNow()) => d.getDay() === 4;
 const spellTesting = (sp) => sp?.mode === "bee" || sp?.mode === "pretest";
 const spellShaky = () => spellActive().filter((x) => spellRec(x.w).level < 3);
 function spellGrade(right, total) { const pct = total ? Math.round((right * 100) / total) : 0; return { pct, letter: pct >= 90 ? "A" : pct >= 80 ? "B" : pct >= 70 ? "C" : pct >= 60 ? "D" : "F" }; }
@@ -3949,13 +3972,13 @@ function verseTypingWords() { const v = verseNow(); return v ? verseWordsOf(v).m
 const VERSE_HELP = ["The whole verse is showing. Tap each word in order.", "Some words are hiding. Tap each word in order.", "Only the first letters show now. You've got this.", "From memory now. Tap each word in order."];
 const VERSE_DAYNAME = ["Read it and build it", "Fill the missing words", "First letters only", "From memory", "Memory test"];
 // Monday shows the whole verse, Tuesday hides some words, Wednesday shows first letters, Thursday is from memory.
-function verseLevel() { const v = verseNow(), wd = new Date().getDay(), since = Math.round((new Date(`${dateKey()}T12:00`) - new Date(`${v.from}T12:00`)) / 864e5); return Math.max(0, Math.min(3, wd >= 1 && wd <= 4 ? wd - 1 : 3, since)); }
-const verseTestDay = () => new Date().getDay() === 5;
+function verseLevel() { const v = verseNow(), wd = schoolNow().getDay(), since = Math.round((new Date(`${dateKey()}T12:00`) - new Date(`${v.from}T12:00`)) / 864e5); return Math.max(0, Math.min(3, wd >= 1 && wd <= 4 ? wd - 1 : 3, since)); }
+const verseTestDay = () => schoolNow().getDay() === 5;
 function verseRec() { const v = verseNow(); S.verses = S.verses || {}; return (S.verses[v.id] = S.verses[v.id] || { tests: [], practice: 0 }); }
 function verseOpen() {
   stopVoice(); const v = verseNow(); if (!v) return;
   const day = schoolDay(), lv = verseLevel();
-  const plan = verseTestDay() ? (day.verseTest ? ["done"] : ["warm", "test"]) : new Date().getDay() === 4 ? [lv, "pretest"] : [lv, Math.min(3, lv + 1)];
+  const plan = verseTestDay() ? (day.verseTest ? ["done"] : ["warm", "test"]) : schoolNow().getDay() === 4 ? [lv, "pretest"] : [lv, Math.min(3, lv + 1)];
   U.vs = { plan: plan.filter((x) => !(day.verseDone || []).includes(String(x))), screen: "intro" };
   if (!U.vs.plan.length) U.vs.screen = "dayDone";
   U.view = "verse"; render(); window.scrollTo(0, 0);
@@ -5050,10 +5073,9 @@ const RANCH = [
   { id: "pond", name: "Fishing pond", note: "Catch supper right here", cost: 70, say: "We can go fishing together!" },
   { id: "porch", name: "Porch swing", note: "The best seat at sunset", cost: 150, say: "A porch swing! Sit with me at sunset!" }
 ];
-// Money comes from hard work, and building Nora's home should take saving up (Nathan, 2026-11-09): a full school day
-// earns Elliot about $1,300 to $2,000, so a whole town's ranch takes about two days and he has to choose what to build.
-// Younger children earn less, so their prices go up by less.
-const PRICE_SCALE = KID.id === "elliot" ? 4 : 2;
+// Money comes from hard work (Nathan, 2026-11-09): a full school day earns Elliot about $1,300 to $2,000, and a new
+// house each day is fine, so a whole town's ranch costs about one full day's work. Younger children earn less.
+const PRICE_SCALE = KID.id === "elliot" ? 2 : 1;
 RANCH.forEach((g) => { g.cost *= PRICE_SCALE; });
 const RANCH_SPOTS = { cabin: [106, 150], barn: [302, 150], well: [214, 172], garden: [100, 205], corral: [310, 208], windmill: [345, 140], porch: [167, 168], fence: [200, 225], doghouse: [25, 205], appletree: [28, 140], coop: [205, 130], pond: [198, 212] };
 // The store opens up as he finishes sections, so the ranch keeps growing through the whole lesson.
@@ -5430,7 +5452,7 @@ function earlierTimes(weekDays, items) {
 }
 // Parent page: this week's lessons, each with a preview a parent can open without touching the child's save.
 function weekLessonsPanel() {
-  const start = new Date(); start.setHours(12, 0, 0, 0); const wd = start.getDay();
+  const start = schoolNow(); start.setHours(12, 0, 0, 0); const wd = start.getDay();
   start.setDate(start.getDate() + (wd === 0 ? 1 : wd === 6 ? 2 : 1 - wd)); // this week's Monday, or next week's on a weekend
   const today = dateKey(), rows = [];
   for (let i = 0; i < 5; i++) {
@@ -5454,7 +5476,7 @@ function parentView() {
   const stat = (n, label) => `<div class="pstat"><b>${n}</b><span>${label}</span></div>`;
   const strong = LESSONS.flatMap((l) => skillReport(l).filter((k) => k.verdict[1] === "s-good").map((k) => k.name)), strongList = [...new Set(strong)];
   const finishedN = LESSONS.filter((l) => lessonFinished(l)).length, compared = LESSONS.map((l) => ({ l, imp: improvements(l) })).filter((x) => x.imp).reverse();
-  const weekDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - d.getDay() + i); return d; });
+  const weekDays = Array.from({ length: 7 }, (_, i) => { const d = schoolNow(); d.setDate(d.getDate() - d.getDay() + i); return d; });
   const weekCell = (x, d) => { const key = dateKey(d), day = S.days?.[key], future = key > dateKey(); if (!x.days.includes(d.getDay())) return `<i class="wk off"></i>`; if (!day || !x.on) return `<i class="wk later"></i>`; return `<i class="wk ${itemStatus(x, day).done ? "yes" : itemStatus(x, day).pct > 0 ? "part" : key === dateKey() ? "later" : "none"}"></i>`; };
   const planItems = schoolPlan().filter((x) => x.on);
   const familyPanel = `<div class="panel"><h2>Viewing ${esc(KID.name)}</h2><div class="kidrow">${familyKids().map((k) => (k.id === KID.id ? `<span class="kidchip on">${esc(k.name)}</span>` : `<button class="kidchip" data-act="kidUse" data-id="${esc(k.id)}">${esc(k.name)}</button>`)).join("")}</div><div class="famrow"><input id="kidNew" type="text" maxlength="20" placeholder="Add a child's name"><button class="btn small" data-act="kidAdd">Add child</button></div><p class="sub"><a href="castle/?parents=1">Learning Castle lesson settings</a></p></div>`;
