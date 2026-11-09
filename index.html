@@ -800,7 +800,7 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=81fbc23bae"></script>
+<script src="lessons.js?v=34e735cef4"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
@@ -3236,7 +3236,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "6ad1e033aa7f";
+const GAME_BUILD = "52ed3796c670";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4283,6 +4283,35 @@ const WHY = {
   "Mixed numbers on a number line": "It worked because the whole number tells which number the arrow has passed, and the fraction tells how far it has gone toward the next one.",
   "Helping and main verbs": "It worked because a helping verb always has another verb after it, and a main verb can stand alone.",
   "Adverbs": "It worked because the word told how something was done, and that's the job of an adverb.",
+  "Adding columns": "It worked because you added one column at a time from the right and carried what didn't fit to the next column.",
+  "Centimeters to millimeters": "It worked because every centimeter is 10 millimeters, so you multiplied the centimeters by 10.",
+  "Circle graphs": "It worked because each slice shows part of the whole day, so you added the slices to see how big they were together.",
+  "Classifying triangles": "It worked because a triangle's name comes from its sides: all three equal, at least two equal, or none equal.",
+  "Comparing fractions": "It worked because both bars were the same size, so the one missing the smaller piece had more filled in.",
+  "Cost per pound": "It worked because every pound cost the same 5 cents, so dividing the money by 5 counts how many pounds it bought.",
+  "Cups and pints": "It worked because each picture stood for one cup, and every 2 cups make a pint.",
+  "Cups and quarts": "It worked because 2 cups make a pint and 2 pints make a quart, so 4 cups fill one quart.",
+  "Equilateral perimeter": "It worked because all three sides of an equilateral triangle are the same, so one side added three times is the whole way around.",
+  "Estimating on a number line": "It worked because you found the halfway mark first, then checked which side of it the number sits on.",
+  "Finding the number of groups": "It worked because you knew the total and how many go in each group, so dividing told how many groups it takes.",
+  "Fraction left over": "It worked because all the parts make one whole, so taking away the part that left shows the part that stayed.",
+  "Fractions as percents": "It worked because the whole is 100 percent, so each fourth is 25 percent.",
+  "Grams and kilograms": "It worked because kilo means a thousand, so every kilogram is 1000 grams.",
+  "Half of a number": "It worked because half means 2 equal parts, so dividing by 2 gives one part.",
+  "Kilograms and grams": "It worked because kilo means a thousand, so every kilogram is 1000 grams.",
+  "Lines of symmetry": "It worked because a line of symmetry folds a figure into two halves that match exactly, like a mirror image.",
+  "Measuring with a ruler": "It worked because the segment started at zero, so the number at its end was its length.",
+  "Missing number in subtraction": "It worked because the top number is the whole, so taking away what's left shows how much was taken.",
+  "Negative numbers": "It worked because numbers below zero count one mark at a time from 0, and each one gets a minus sign.",
+  "Pounds and ounces": "It worked because a pound is 16 ounces, so you traded one pound for ounces and compared ounces with ounces.",
+  "Pounds to ounces": "It worked because every pound is 16 ounces, so each pound adds 16 more ounces.",
+  "Reading a pictograph": "It worked because every picture stood for the same amount, so you could compare the drinks by counting pictures.",
+  "Reasonable mass": "It worked because a gram is as light as a dollar bill and a kilogram is as heavy as a big book, so you pictured the thing in your hands.",
+  "Right angles in a triangle": "It worked because two square corners make two sides stand straight up side by side, so they could never meet to close a triangle.",
+  "Squares and missing numbers": "It worked because you turned the square or square root into a plain number first, then divided to undo the times.",
+  "Tons and pounds": "It worked because a ton is always 2000 pounds, so you started from 2000.",
+  "Twelve hours on a clock": "It worked because the short hand goes all the way around in 12 hours, so the clock reads the same and only morning and afternoon switch.",
+  "Writing money in words": "It worked because you read each comma group, millions then thousands, and said its name after it.",
   "Adverbs: where, when, how": "It worked because each of those words told how, where or when Ian said or did something.",
   "Contractions": "It worked because the apostrophe took the place of the letters that dropped out.",
   "Analogies": "It worked because you found how the first pair goes together, then matched the third word the same way.",
