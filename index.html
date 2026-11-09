@@ -3723,7 +3723,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8014e9ab35c0";
+const GAME_BUILD = "acb337956d90";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7442,7 +7442,7 @@ const acts = {
   tyReady() { S.typing = S.typing || {}; S.typing.learned = true; save(); tyStartDrill(); },
   tyHands() { U.ty = { phase: "hands" }; render(); },
   tyAgain() { tyOpen(); },
-  readMore() { const day = schoolDay(); day.readMoreFrom = Date.now(); U.timerId = "reading"; U.view = "reading"; beep(BLIP); save(); render(); },
+  readMore() { const day = schoolDay(); day.readMoreFrom = Date.now(); U.timerId = "reading"; U.view = "reading"; beep(BLIP); save(); render(); ipadClockTimer(READ_MORE_MINS * 60); },
   readMoreStop() { schoolDay().readMoreStop = Date.now(); clearInterval(readTimer); save(); U.view = "school"; render(); },
   statesKeep() { stopVoice(); U.sg = { queues: { 1: [], 2: [] }, extra: true }; stateNext(); U.view = "states"; render(); window.scrollTo(0, 0); },
   pianoOpen() { pnOpen(); },
