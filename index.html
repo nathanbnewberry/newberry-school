@@ -680,7 +680,7 @@ html.fs .hud{padding-left:88px}html.fs .gameback,html.fs .ranchback,html.fs .roo
 .solvedpage .tag:empty{display:none}.solvedpage .pmathbig{padding:0}.solvedpage .vert .slot{color:#1c7a3e}
 @media (orientation:landscape) and (min-width:800px) and (max-height:700px){.solvedpage .rightbanner{padding:2px 8px;font-size:1rem}body[data-view="ride"] #app .nextbtn{min-height:44px}body[data-view="ride"] #app [data-act="redoq"]{min-height:38px;padding:2px 10px}}
 .famcode{font:800 clamp(1rem,2.6vw,1.5rem) ui-monospace,Menlo,monospace;letter-spacing:.04em;color:var(--gold);word-break:break-all;margin:0;user-select:all;-webkit-user-select:all}.famrow{display:flex;gap:8px;flex-wrap:wrap}.famrow input{flex:1;min-width:220px;min-height:44px;font-size:16px;padding:6px 10px;border-radius:8px;border:2px solid var(--line)}.famrow .btn{width:auto}
-.dayhead{display:grid;gap:6px;padding:0 4px}.dayhead h2{margin:0;font-size:1.25rem}.daynavrow{display:flex;align-items:center;gap:10px}.daynav{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:var(--gold);color:var(--ink);font-size:1.1rem;cursor:pointer;box-shadow:0 3px 0 var(--gold-deep)}.daynav:disabled{opacity:.3}.daytoday{justify-self:start;margin-bottom:10px}.daycard.preview{cursor:default}.daytrail{position:relative;height:22px;border-radius:11px;background:rgba(128,128,128,.28);margin:18px 40px 2px 14px}.daytrail>i{display:block;height:100%;border-radius:11px;background:#39d07a;transition:width .4s}.dayhorse{position:absolute;bottom:0;width:58px;margin-left:-29px;transition:left .4s}.dayhorse svg{display:block;width:100%}.daytrail>b{position:absolute;right:-38px;top:0;line-height:22px;font-size:.85rem;white-space:nowrap;transform:translateX(-4px)}
+.dayhead{display:grid;gap:6px;padding:0 4px}.dayhead h2{margin:0;font-size:1.25rem}.previewbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:center;gap:12px;padding:6px 12px;margin-bottom:6px;border-radius:12px;background:#7a2f8f;color:#fff;font-size:.95rem}.weektable td{vertical-align:top}.daynavrow{display:flex;align-items:center;gap:10px}.daynav{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:var(--gold);color:var(--ink);font-size:1.1rem;cursor:pointer;box-shadow:0 3px 0 var(--gold-deep)}.daynav:disabled{opacity:.3}.daytoday{justify-self:start;margin-bottom:10px}.daycard.preview{cursor:default}.daytrail{position:relative;height:22px;border-radius:11px;background:rgba(128,128,128,.28);margin:18px 40px 2px 14px}.daytrail>i{display:block;height:100%;border-radius:11px;background:#39d07a;transition:width .4s}.dayhorse{position:absolute;bottom:0;width:58px;margin-left:-29px;transition:left .4s}.dayhorse svg{display:block;width:100%}.daytrail>b{position:absolute;right:-38px;top:0;line-height:22px;font-size:.85rem;white-space:nowrap;transform:translateX(-4px)}
 .daycards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px}.daycard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;min-height:88px;padding:10px 14px;border-radius:16px;background:var(--paper);color:#1c1712;box-shadow:0 5px 0 #b9ad96;text-align:left;cursor:pointer}.daycard:active{transform:translateY(3px);box-shadow:0 2px 0 #b9ad96}.daycard.done{background:#c9f0d3;box-shadow:0 5px 0 #1f9a4f}.dayicon{width:52px;height:52px}.daytext{display:grid;gap:3px;min-width:0}.daytext b{font-size:1.2rem}.daytext small{font-size:.92rem;font-weight:600;color:#5d564b}.daybar{display:block;height:8px;border-radius:4px;background:rgba(0,0,0,.12);overflow:hidden}.daybar em{display:block;height:100%;background:#1f9a4f}.daycheck{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:3px solid #8a7a55;font-size:1.6rem;font-weight:800;color:#fff}.daycard.done .daycheck{background:#1f9a4f;border-color:#1f9a4f}
 .daysoon{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-weight:700;font-size:.9rem}.soonchip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.08);opacity:.75}.soonchip svg{width:22px;height:22px}
 .readwrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(18px,5vw,60px);flex:1;padding:8px}.readring{position:relative;width:clamp(220px,58vh,400px);aspect-ratio:1}.readring svg{width:100%;height:100%;display:block}.readclock{position:absolute;inset:0;display:grid;place-content:center;justify-items:center}.readclock b{font:400 clamp(3rem,13vh,5.5rem) var(--display);color:var(--gold)}.readclock small{font-weight:700}.readside{display:grid;gap:14px;width:min(100%,380px);text-align:center}.readside p{margin:0;font-size:1.15rem;line-height:1.4}.readbtn{min-height:76px;font-size:1.4rem}
@@ -931,6 +931,7 @@ function mergeSaves(mine, theirs, joining = false) {
 }
 // Brings in what other devices saved. Skips it mid-activity so nothing shifts under a child's fingers.
 async function cloudPull() {
+  if (typeof U !== "undefined" && U.preview) return;
   // A child's save still under an old code joins the family's, keeping the work and coins from both.
   const was = S.familyCode, moved = familyLinked() && was && was !== familyCode();
   if (!S.familyCode) return;
@@ -952,6 +953,7 @@ async function cloudStart() {
 }
 let syncBusy = false;
 async function cloudSync() {
+  if (typeof U !== "undefined" && U.preview) return;
   if (syncBusy || navigator.onLine === false || document.hidden) return;
   syncBusy = true;
   try {
@@ -966,6 +968,7 @@ document.addEventListener("visibilitychange", cloudSync);
 setInterval(cloudSync, 60000);
 setTimeout(() => { try { if (familyLinked() && !localStorage.getItem("family-all-sent-v1")) familyPushAll(); } catch (e) {} }, 2000);
 function save() {
+  if (typeof U !== "undefined" && U.preview) return;
   S.updatedAt = Date.now();
   cloudSoon();
   if (typeof U !== "undefined") S.resume = U.view === "ride" ? { lesson: U.lesson, ride: U.ride, qid: U.qid, mode: U.qid ? U.mode : null, step: U.step, stepLog: U.stepLog, fills: U.fills, boardMode: U.boardMode, boardStage: U.boardStage, broughtAt: U.broughtAt, coachDone: U.coachDone, draft: U.draft, carries: U.carries, cells: U.cells, cellAt: U.cellAt, strokes: (U.strokes || []).slice(-60) } : U.view === "town" ? { lesson: U.lesson } : null;
@@ -3230,7 +3233,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "88b0d72c4ea6";
+const GAME_BUILD = "95a1d9e6f67a";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5137,6 +5140,21 @@ function earlierTimes(weekDays, items) {
   if (!days.length) return "";
   return `<details class="plog"><summary>Start and finish times, earlier this week</summary>${days.map((d) => { const day = S.days[dateKey(d)]; return `<h3>${esc(d.toLocaleDateString(undefined, { weekday: "long" }))}</h3>${items.map((x) => { const t = timesHtml(x, day); return t ? `<div class="dayrow timesonly"><b>${esc(x.name)}</b>${t}</div>` : ""; }).join("")}`; }).join("")}</details>`;
 }
+// Parent page: this week's lessons, each with a preview a parent can open without touching the child's save.
+function weekLessonsPanel() {
+  const start = new Date(); start.setHours(12, 0, 0, 0); const wd = start.getDay();
+  start.setDate(start.getDate() + (wd === 0 ? 1 : wd === 6 ? 2 : 1 - wd)); // this week's Monday, or next week's on a weekend
+  const today = dateKey(), rows = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(start); d.setDate(start.getDate() + i); const key = dateKey(d);
+    const cell = (subject) => {
+      if (key < today) { const id = S.days?.[key]?.[subject === "math" ? "mathLesson" : "grammarLesson"], l = id && ALL_LESSONS.find((x) => x.id === id); return l ? `<span>${esc(subject === "grammar" ? l.town : `${lessonLabel(l).replace(/&#\d+;/g, "")}: ${l.town}`)}</span> <button class="link" data-act="previewLesson" data-id="${esc(l.id)}">Preview</button>` : `<small>Past day</small>`; }
+      const l = plannedLesson(subject, d); return l ? `<span>${esc(subject === "grammar" ? l.town : `${lessonLabel(l).replace(/&#\d+;/g, "")}: ${l.town}`)}</span> <button class="link" data-act="previewLesson" data-id="${esc(l.id)}">Preview</button>` : `<small>Not added yet</small>`;
+    };
+    rows.push(`<tr><td><b>${esc(d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }))}</b></td><td>${cell("math")}</td><td>${cell("grammar")}</td></tr>`);
+  }
+  return `<div class="panel"><h2>This week's lessons</h2><p class="sub">Open any lesson to see it the way ${esc(KID.name)} will. Nothing you do in a preview is saved or counts for ${esc(KID.name)}.</p><table class="ptable weektable"><tr><th>Day</th><th>Math</th><th>Grammar</th></tr>${rows.join("")}</table><p class="sub"><button class="link" data-act="previewSpelling">Preview spelling</button> &#183; <button class="link" data-act="previewVerse">Preview the Bible verse</button></p></div>`;
+}
 function parentView() {
   if (!U.parentOk) {
     const creating = !familyPin();
@@ -5162,6 +5180,7 @@ function parentView() {
   const versePanel = vTest ? `<div class="panel"><h2>Bible verse test grade</h2><div class="spellgraderow"><div class="spellgrade g${esc(vTest.grade)}"><b>${esc(vTest.grade)}</b><span>${vTest.pct}%</span></div><p class="sub">${esc(vTest.date)}, ${esc(verseNow().ref)}: ${vTest.right} of ${vTest.total} right.${vTest.missed.length ? ` Missed ${esc(vTest.missed.join(", "))}.` : ""}</p></div></div>` : "";
   const schoolTop = `${familyPanel}${gradePanel}${versePanel}${praisePanel}<div class="panel"><h2>Today's school day</h2>${extras.length ? `<p class="sub"><strong>Extra today:</strong> ${esc(extras.join(", "))}.</p>` : ""}${todaysItems().length ? `<p class="sub"><strong>Video game time earned: ${gameMinutes()} minutes.</strong> Each subject finished before 1:00 Pacific earns 10 minutes.</p><div class="skrows">${todaysItems().map((x) => { const st = itemStatus(x); return `<div class="dayrow"><svg viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><b>${esc(x.name)}</b><small>${esc(st.label)}</small><i class="state ${st.done ? "s-good" : st.pct > 0 ? "s-work" : "s-none"}">${st.done ? "Done" : st.pct > 0 ? "In progress" : "Not started"}</i>${timesHtml(x, schoolDay())}${TIMERS[x.id] && st.pct > 0 ? `<button class="link timerundo" data-act="timerUndo" data-id="${esc(x.id)}">Undo this timer for today</button>` : ""}</div>`; }).join("")}</div>` : `<p class="sub">Nothing is planned for today.</p>`}</div>
   <div class="panel"><h2>This week</h2><div class="weekgrid" style="--days:7"><span></span>${weekDays.map((d) => `<b>${d.toLocaleDateString(undefined, { weekday: "short" })}</b>`).join("")}${planItems.map((x) => `<span class="wkname">${esc(x.name)}</span>${weekDays.map((d) => weekCell(x, d)).join("")}`).join("")}</div><div class="howkey"><span><i class="wk yes"></i> Done</span><span><i class="wk part"></i> Started</span><span><i class="wk none"></i> Not done</span><span><b>${S.schoolDays || 0}</b> full school days finished</span></div>${earlierTimes(weekDays, planItems)}</div>
+  ${weekLessonsPanel()}
   ${spellList() ? spellLog() : ""}
   ${verseNow() ? verseLog() : ""}
   <details class="plog pfold"><summary>Change the school plan</summary><div class="panel"><p class="sub">Turn subjects on or off and choose their days. Spelling, grammar, history and science check off by hand until their games are built.</p><div class="planrows">${schoolPlan().map((x) => `<div class="planrow"><button class="plantog ${x.on ? "on" : ""}" data-act="planToggle" data-id="${esc(x.id)}" aria-pressed="${x.on}">${x.on ? "On" : "Off"}</button><b>${esc(x.name)}</b>${x.kind === "reading" ? `<span class="planmin"><button data-act="planMinutes" data-by="-5" aria-label="Five fewer minutes">-</button>${x.minutes} min<button data-act="planMinutes" data-by="5" aria-label="Five more minutes">+</button></span>` : "<span></span>"}<span class="plandays">${["S", "M", "T", "W", "T", "F", "S"].map((n, i) => `<button class="${x.days.includes(i) ? "on" : ""}" data-act="planDay" data-id="${esc(x.id)}" data-d="${i}">${n}</button>`).join("")}</span>${x.custom ? `<button class="link" data-act="planDel" data-id="${esc(x.id)}">Remove</button>` : "<span></span>"}</div>`).join("")}</div><div class="famrow"><input id="planNew" type="text" maxlength="50" placeholder="Add your own task, like Piano practice"><button class="btn small" data-act="planAdd">Add</button></div></div></details>`;
@@ -6442,6 +6461,10 @@ const acts = {
   spellKey,
   spellSayAgain() { spellSay(); },
   spellBee() { spellOpen("bee"); },
+  previewLesson(d) { if (!U.parentOk) return; const l = ALL_LESSONS.find((x) => x.id === d.id); if (!l) return; U.preview = true; setSubject(l.subject || "math"); U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); },
+  previewSpelling() { if (!U.parentOk) return; U.preview = true; spellOpen("practice", true); },
+  previewVerse() { if (!U.parentOk) return; U.preview = true; verseOpen(); },
+  previewEnd() { location.reload(); },
   dayOff(d) { U.dayOff = Math.max(-DAY_NAV_MAX, Math.min(DAY_NAV_MAX, (U.dayOff || 0) + Number(d.d))); render(); window.scrollTo(0, 0); },
   verseStart() { verseStart(); },
   verseTap(d) { verseTap(d); },
@@ -6653,7 +6676,7 @@ function render() {
   const views = { piano: pianoView, typing: typingView, verse: verseView, who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
-  try { app.innerHTML = views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
+  try { app.innerHTML = (U.preview ? `<div class="previewbar"><b>Parent preview.</b> Nothing here is saved. <button class="btn dark small" data-act="previewEnd">End preview</button></div>` : "") + views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
   catch (e) { console.error(e); app.innerHTML = `<div class="console center"><h2>Silver tripped.</h2><p>Something went wrong on this screen. Your progress is saved.</p><p class="sub">${esc(e.message)}</p><button class="btn go wide" data-act="view" data-v="home">Back to the map</button></div>`; }
   arrange();
   fitProblemCells();
