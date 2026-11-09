@@ -3515,9 +3515,10 @@ setInterval(() => {
   el.textContent = `${gameClock(secs)} left`;
   if (!secs) render();
 }, 1000);
+// Game time is a flat 60 minutes once all of the day's school is done (Nathan, 2026-11-09), in place of 10 minutes a subject before 1:00.
+const GAME_DAY_MIN = 60;
 function gameMinutes(items = todaysItems(), day = schoolDay()) {
-  const counted = items.filter((x) => day.gameTime?.[x.id]).length;
-  return counted * GAME_PER_SUBJECT;
+  return items.length && items.every((x) => itemStatus(x, day).done) ? GAME_DAY_MIN : 0;
 }
 // ---------- Game time (Nathan, 2026-11-09) ----------
 // After school is done, the boys start their video game time here. It counts down the minutes they earned
@@ -3550,7 +3551,7 @@ setInterval(() => {
 function gameTimeBar(items, day) {
   if (!items.length) return "";
   const mins = gameMinutes(items, day), open = beforeGameCutoff();
-  const note = items.every((x) => day.gameTime?.[x.id]) ? "All earned. Great work!" : open ? `Each subject earns ${GAME_PER_SUBJECT} minutes until 1:00` : "Earning stops at 1:00. Your work still counts.";
+  const note = mins ? "All earned. Great work!" : `Finish all of today's school to earn ${GAME_DAY_MIN} minutes.`;
   return `<div class="gametime ${open ? "" : "closed"}"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5" fill="currentColor"/><path d="M6 12.500h4M8 10.500v4" stroke="#12142b" stroke-width="1.800" stroke-linecap="round"/><circle cx="15.500" cy="11" r="1.300" fill="#12142b"/><circle cx="18" cy="14" r="1.300" fill="#12142b"/></svg><b>Video game time earned: ${mins} minutes</b>${open ? `<strong class="gameclock" id="gameClock">${gameClock(gameSecsLeft())} left</strong>` : ""}<small>${esc(note)}</small></div>`;
 }
 // If today's lesson is already finished and a new lesson marked current arrives, today's work becomes the new lesson.
@@ -3591,7 +3592,7 @@ function schoolTick() {
     if (open && !day.gameTime?.[x.id]) { day.gameTime = day.gameTime || {}; const had = gameMinutes(items, day); day.gameTime[x.id] = true; const got = gameMinutes(items, day) - had; if (got) extra = ` and ${got} game minutes`; save(); }
     if (!day.paid[x.id]) { const r = dayTimes(x.id, day); if (!r.end) r.end = Date.now(); U.justDone = x.name; day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5${extra}`); beep(CHIME); }
   });
-  if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); const bi = bizIncome(); if (bi && !day.bizPaid) { day.bizPaid = bi; earn(bi); } confetti(60); beep(FANFARE); banner(`School's out! +$25${bi ? ` and your businesses paid $${bi}` : ""}`); }
+  if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); const bi = bizIncome(); if (bi && !day.bizPaid) { day.bizPaid = bi; earn(bi); } confetti(60); beep(FANFARE); banner(`School's out! +$25${bi ? ` and your businesses paid $${bi}` : ""}${gtKid() ? `. ${GAME_DAY_MIN} minutes of game time unlocked!` : ""}`); }
 }
 function lessonReviewView() {
   const l = curLesson(), lp = LP(l.id), must = l.rides.filter((r) => !optionalRide(r)), sections = must.filter((r) => rideDone(l, r)).length, built = ownedHere().length;
@@ -3713,7 +3714,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "21637e86980d";
+const GAME_BUILD = "20d658bfc7bb";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
