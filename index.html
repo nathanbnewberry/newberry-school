@@ -3358,7 +3358,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "052cbb67682d";
+const GAME_BUILD = "c90735c75c62";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3982,7 +3982,7 @@ const SPELLING_LISTS = [
   ] },
   // Elliot's week of 2026-11-10 (Nathan's photo). Starts Tuesday so Monday is List 10's make-up test.
   // Words 18-20 are the book's vocabulary words; their sentences use the meaning. Months keep their capitals.
-  { id: "list-11", title: "Spelling List 11", startsOn: "2026-11-10", words: [
+  { id: "list-11", title: "Spelling List 11", startsOn: "2026-11-09", words: [
     { w: "praise", s: "The coach gave the team praise after the win." },
     { w: "braid", s: "She tied her hair in a braid before the game." },
     { w: "faith", s: "Have faith in your teammates." },
@@ -4005,7 +4005,7 @@ const SPELLING_LISTS = [
     { w: "proclaim", s: "The mayor will proclaim a holiday for the champions." },
   ] },
   // Last Friday's test moved to Monday (Nathan, 2026-11-09): the graded test for this list opens from that day until it's taken.
-  { id: "list-10", title: "Spelling List 10", testFrom: "2026-11-09", words: [
+  { id: "list-10", title: "Spelling List 10", words: [
     { w: "talking", s: "Talking to your team helps you win." },
     { w: "know", s: "I know you can score this goal." },
     { w: "sign", s: "The sign points to the soccer field." },
