@@ -1,5 +1,5 @@
 // Lets the games run with no internet. Built into site/sw.js by tools/build-site.mjs.
-const BUILD = "36eb5c1c479a", APP = `app-${BUILD}`, MEDIA = "media-v1";
+const BUILD = "a1f4d7a0db5b", APP = `app-${BUILD}`, MEDIA = "media-v1";
 const SHELL = ["./","lessons.js?v=749b21b296","manifest.webmanifest","voice/lines.json","castle/","pirates/","sfx/bell.mp3","sfx/blip.mp3","sfx/bump.mp3","sfx/cheer.mp3","sfx/coin.mp3","sfx/dash.mp3","sfx/ding.mp3","sfx/fanfare.mp3","sfx/gallop.mp3","sfx/gunshot.mp3","sfx/hammer.mp3","sfx/jump.mp3","sfx/key.mp3","sfx/moo.mp3","sfx/pop.mp3","sfx/ricochet.mp3","sfx/rope.mp3","sfx/soft.mp3","sfx/sting.mp3","sfx/thud.mp3","sfx/trail.mp3","sfx/whinny.mp3"];
 
 self.addEventListener("install", (e) => {
