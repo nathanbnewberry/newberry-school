@@ -718,7 +718,7 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .gamechip.lessondone{background:#1f9a4f}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit;font-size:1.05rem;min-height:52px;padding:6px 18px}.lessonchips .morechip{background:transparent;box-shadow:inset 0 0 0 2px var(--panel2)}
 @media (orientation:landscape) and (min-width:800px){.gamepicks.sixup{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks.sixup .gameart{aspect-ratio:auto;height:clamp(70px,19vh,150px)}.gamepicks.sixup .gametext{padding:5px 10px}.gamepicks.sixup h3{font-size:1.05rem}.gamepicks.sixup .sub{font-size:.82rem}}
 .statesbar{margin:0;font-weight:800;text-align:center;color:var(--gold)}
-.statesmapwrap{position:relative;flex:1;min-height:0;display:flex;justify-content:center}
+.statesmapwrap{position:relative;flex:1;min-height:0;display:flex;justify-content:center}.statesmapwrap .biblemap{flex:0 1 auto;width:auto;max-width:100%;height:calc(var(--appH,100dvh) - 215px);margin:0 auto;background:#8ec1dd;border-radius:12px}
 .statesmap{display:block;width:100%;height:100%;max-height:calc(var(--appH,100dvh) - 170px);cursor:pointer;touch-action:manipulation;border-radius:12px}
 .stateszoom{position:absolute;left:10px;bottom:10px;width:auto!important}
 .statespart2{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:14px;align-items:center}
@@ -803,6 +803,14 @@ body[data-view="familyLink"] .linkwrap{display:grid;place-items:start center;pad
 <script src="lessons.js?v=b8b0b69252"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
+// One map for math and grammar (Nathan, 2026-11-09): each dated grammar day happens in that school day's math town,
+// so it gets that state's look and the US map. A day with no math lesson yet keeps the plain trail.
+ALL_LESSONS.filter((g) => g.subject === "grammar" && g.startsOn && !g.place).forEach((g) => {
+  const kid = g.kid || "elliot", math = ALL_LESSONS.filter((l) => (l.subject || "math") === "math" && (l.kid || "elliot") === kid && l.place && !l.test);
+  const firstDated = math.filter((l) => l.startsOn).map((l) => l.startsOn).sort()[0];
+  const host = math.find((l) => l.startsOn === g.startsOn) || (firstDated && g.startsOn < firstDated ? math.find((l) => l.current && !l.startsOn && !l.onlyOn) : null);
+  if (host) { g.place = host.place; g.hostTown = host.town; g.hostId = host.id; }
+});
 const lessonsIn = (subject) => ALL_LESSONS.filter((l) => (l.subject || "math") === subject && (l.kid || "elliot") === KID.id);
 let SUBJECT = "math", LESSONS = [];
 function setSubject(subject) { if (subject !== SUBJECT) { SUBJECT = subject; LESSONS = lessonsIn(subject); } }
@@ -895,7 +903,7 @@ function cloudSend(keepalive = false) {
   return sent.then(() => { cloud = "synced"; cloudAt = Date.now(); mark(); }).catch(() => { cloud = "device"; mark(); });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
-const MERGE_KEYS = ["mySongs", "piano", "typing", "spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
+const MERGE_KEYS = ["bible", "mySongs", "piano", "typing", "spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
 function mergeDeep(a, b) {
   if (a === undefined || a === null) return b;
   if (b === undefined || b === null) return a;
@@ -1762,6 +1770,7 @@ const SCHOOL_DEFAULT = [
   { id: "science", name: "Science", icon: "science", kind: "check", on: false, soon: true, days: WEEKDAYS },
   { id: "typing", name: "Space Typing", icon: "typing", kind: "typing", on: false, days: WEEKDAYS },
   { id: "verse", name: "Bible verse", icon: "verse", kind: "verse", on: false, days: WEEKDAYS },
+  { id: "bible", name: "Bible history", icon: "history", kind: "bible", on: false, days: WEEKDAYS },
   { id: "review", name: "Friday review", icon: "task", kind: "review", on: false, days: [5] },
   { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
   { id: "pirates", name: "Cannon Math Pirates", icon: "pirates", kind: "game", game: "pirates", on: false, days: WEEKDAYS, minutes: 10 },
@@ -1778,6 +1787,8 @@ function schoolPlan() {
   // Myla starts piano at 10 minutes a day (Nathan, 2026-11-05). Set once so a parent's later changes stick.
   if (KID.id === "myla" && !S.pianoSet) { S.pianoSet = 1; const p = S.schoolPlan.find((x) => x.id === "piano"); if (p) { p.on = true; p.minutes = KID_PLANS.myla.piano; } }
   // The weekly Bible verse is on for Elliot and Finn (Nathan, 2026-11-09). Set once so a parent's later changes stick.
+  // Bible history trivia is daily for Elliot and Finn (Nathan, 2026-11-09). Set once so a parent's later changes stick.
+  if ((KID.id === "elliot" || KID.id === "finn") && !S.bibleSet) { S.bibleSet = 1; const p = S.schoolPlan.find((x) => x.id === "bible"); if (p) p.on = true; }
   if ((KID.id === "elliot" || KID.id === "finn") && !S.verseSet) { S.verseSet = 1; const p = S.schoolPlan.find((x) => x.id === "verse"); if (p) p.on = true; }
   // Grammar used to be a checkbox too. Now it runs lessons on the same engine as math.
   S.schoolPlan.forEach((x) => { if (x.id === "grammar" && lessonsIn("grammar").length) { x.kind = "grammar"; delete x.soon; } });
@@ -3084,6 +3095,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
   if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), d = new Date(`${Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()}T12:00`), bee = spellBeeDay(d), pre = spellPracticeDay(d), g = day.spellGrade; if (bee) return { done: !!day.spellBee, label: day.spellBee ? (g ? `Spelling test: ${g.letter} (${g.right} of ${g.total})` : "Spelling test done") : "Spelling test day", pct: day.spellBee ? 1 : 0 }; if (pre) return { done: (n >= total || !!day.spellBee) && !!day.spellPretest, label: day.spellPretest ? `Practice test: ${day.spellPretest.right} of ${day.spellPretest.total}` : n >= total ? "Now the practice test" : `${n} of ${total} words today`, pct: (Math.min(n, total) / total) * .8 + (day.spellPretest ? .2 : 0) }; return { done: n >= total || !!day.spellBee, label: `${n} of ${total} words today`, pct: n / total }; }
   if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`, pct: secs / need }; }
+  if (x.kind === "bible") { const n = bibleToday(day); return { done: n >= BIBLE_DAILY, label: `${n} of ${BIBLE_DAILY} questions`, pct: n / BIBLE_DAILY }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
   return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : x.minutes ? `Play ${x.minutes} minutes, then tap here` : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
@@ -3225,6 +3237,7 @@ function plannedLabel(x, date) {
   if (x.kind === "reading") return `${x.minutes || 30} minutes`;
   if (x.minutes) return `${x.minutes} minutes`;
   if (x.kind === "capitals") return "States and capitals";
+  if (x.kind === "bible") return `${BIBLE_DAILY} Bible history questions`;
   if (x.kind === "review") return "Problems from this week, on his own";
   return "On the plan";
 }
@@ -3247,7 +3260,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1ee3a40073b8";
+const GAME_BUILD = "76fe30697692";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3521,6 +3534,177 @@ function statesView() {
   return `${top}<p class="statesbar">${label}</p>${bubble(sg.msg || `What's the capital of ${sg.name}?`)}<div class="statespart2"><div class="statesmapwrap">${statesMapSvg(sg, false)}</div><div class="statesanswers"><h2>${esc(sg.name)}</h2>${sg.choices.map((c) => `<button class="btn ${sg.picked ? (c === cap ? "go" : c === sg.picked ? "dark stgood" : "dark") : "dark"} statesanswer" data-act="statesPick" data-c="${esc(c)}" ${sg.picked ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
 }
 document.addEventListener("click", (e) => { if (U?.view === "states" && e.target.closest?.("#statesMap")) statesMapTap(e); });
+/* ---------- Bible history: 10 questions a day on a map of the Bible lands (Nathan, 2026-11-09) ---------- */
+// Like States and Capitals: pick the answer, a miss still pays and comes back later. Stories are mixed up to keep it light.
+// Each question's fact is said after any answer and always states the answer, so a miss still teaches it.
+// Check every question against the CSB before adding it.
+const BIBLE_DAILY = 10;
+const BIBLE_PLACES = {
+  jerusalem: ["Jerusalem", 31.78, 35.23], bethlehem: ["Bethlehem", 31.70, 35.20], nazareth: ["Nazareth", 32.70, 35.30], galilee: ["Sea of Galilee", 32.82, 35.59],
+  capernaum: ["Capernaum", 32.88, 35.57], cana: ["Cana", 32.75, 35.34], jericho: ["Jericho", 31.87, 35.44], jordan: ["Jordan River", 32.30, 35.56],
+  elah: ["Valley of Elah", 31.69, 34.96], carmel: ["Mount Carmel", 32.73, 35.05], joppa: ["Joppa", 32.05, 34.75], hebron: ["Hebron", 31.53, 35.10],
+  bethel: ["Bethel", 31.93, 35.22], shiloh: ["Shiloh", 32.05, 35.29], gibeon: ["Gibeon", 31.85, 35.18], timnah: ["Timnah", 31.78, 34.92],
+  jezreel: ["Valley of Jezreel", 32.60, 35.30], beersheba: ["Beersheba", 31.25, 34.79], nebo: ["Mount Nebo", 31.77, 35.73], sinai: ["Mount Sinai", 28.54, 33.98],
+  egypt: ["Egypt", 30.0, 31.2], nile: ["Nile River", 30.6, 31.0], redsea: ["Red Sea", 29.3, 32.7], ur: ["Ur", 30.96, 46.10], haran: ["Haran", 36.86, 39.03],
+  babylon: ["Babylon", 32.54, 44.42], nineveh: ["Nineveh", 36.36, 43.15], susa: ["Susa", 32.19, 48.26], ararat: ["Mountains of Ararat", 39.2, 44.0],
+  damascus: ["Damascus", 33.51, 36.29], tarsus: ["Tarsus", 36.92, 34.89], antioch: ["Antioch", 36.20, 36.16], cyprus: ["Cyprus", 35.05, 33.3], greatsea: ["The Great Sea", 32.9, 33.6],
+};
+const BIBLE_QS = [
+{"id": "creation-days", "story": "Creation", "q": "How many days did God take to make the world before he rested?", "a": "Six", "w": ["Three", "Ten"], "place": "", "fact": "God made everything in six days and rested on the seventh.", "ref": "Genesis 2:2"},
+{"id": "creation-light", "story": "Creation", "q": "What did God make on the very first day?", "a": "Light", "w": ["Fish", "Trees"], "place": "", "fact": "On day one God said, Let there be light, and there was light.", "ref": "Genesis 1:3"},
+{"id": "babel", "story": "The Tower of Babel", "q": "People built a tower to reach the sky. What did God mix up?", "a": "Their languages", "w": ["Their bricks", "Their clothes"], "place": "babylon", "fact": "God mixed up their languages, so they couldn't understand each other and stopped building.", "ref": "Genesis 11:7-9"},
+{"id": "noah-ark", "story": "Noah", "q": "What did God tell Noah to build?", "a": "An ark", "w": ["A tower", "A castle"], "place": "", "fact": "Noah built an ark, a giant boat that kept his family and the animals safe in the flood.", "ref": "Genesis 6:14"},
+{"id": "noah-rest", "story": "Noah", "q": "Where did the ark come to rest after the flood?", "a": "On the mountains of Ararat", "w": ["On Mount Sinai", "In Egypt"], "place": "ararat", "fact": "The ark came to rest on the mountains of Ararat.", "ref": "Genesis 8:4"},
+{"id": "noah-rainbow", "story": "Noah", "q": "What sign did God put in the sky as a promise after the flood?", "a": "A rainbow", "w": ["A shooting star", "A cloud shaped like a dove"], "place": "ararat", "fact": "God put a rainbow in the clouds as his promise never to flood the whole earth again.", "ref": "Genesis 9:13-15"},
+{"id": "abram-ur", "story": "Abraham", "q": "Abram's family came from a city near the Euphrates River. What was it called?", "a": "Ur", "w": ["Rome", "Nazareth"], "place": "ur", "fact": "Abram's family came from Ur of the Chaldeans.", "ref": "Genesis 11:31"},
+{"id": "abram-canaan", "story": "Abraham", "q": "Abram left Haran for the land God promised. Which land was it?", "a": "Canaan", "w": ["Egypt", "Babylon"], "place": "haran", "fact": "Abram left Haran and went to the land of Canaan, the land God promised his family.", "ref": "Genesis 12:4-5"},
+{"id": "abram-stars", "story": "Abraham", "q": "God told Abram his family would be too many to count, like what?", "a": "The stars in the sky", "w": ["The fish in the sea", "The trees in a forest"], "place": "hebron", "fact": "God told Abram to look at the stars and count them if he could. His family would be like that.", "ref": "Genesis 15:5"},
+{"id": "isaac", "story": "Abraham", "q": "What was the name of the son born when Abraham was 100 years old?", "a": "Isaac", "w": ["Esau", "Joseph"], "place": "beersheba", "fact": "Isaac was born when Abraham was 100 years old. His name means he laughs.", "ref": "Genesis 21:3-6"},
+{"id": "jacob-ladder", "story": "Jacob", "q": "Jacob dreamed of a stairway reaching up to heaven. What was going up and down it?", "a": "Angels", "w": ["Birds", "Sheep"], "place": "bethel", "fact": "Jacob saw angels going up and down, and he named the place Bethel, which means house of God.", "ref": "Genesis 28:12-19"},
+{"id": "jacob-israel", "story": "Jacob", "q": "God gave Jacob a new name. What was it?", "a": "Israel", "w": ["Isaac", "Ishmael"], "place": "jordan", "fact": "God renamed Jacob Israel, and his twelve sons became the twelve tribes of Israel.", "ref": "Genesis 32:28"},
+{"id": "joseph-robe", "story": "Joseph", "q": "Jacob gave Joseph a special robe. Who got jealous?", "a": "His brothers", "w": ["His sisters", "The king"], "place": "hebron", "fact": "Joseph's brothers were jealous because their father loved Joseph best.", "ref": "Genesis 37:3-4, 11"},
+{"id": "joseph-egypt", "story": "Joseph", "q": "Joseph's brothers sold him. Which land was he taken to?", "a": "Egypt", "w": ["Babylon", "Rome"], "place": "egypt", "fact": "Joseph was taken to Egypt, and God was with him there.", "ref": "Genesis 37:28"},
+{"id": "joseph-cows", "story": "Joseph", "q": "Pharaoh dreamed of seven fat cows. Joseph said they meant seven years of what?", "a": "Plenty of food", "w": ["Rain", "War"], "place": "egypt", "fact": "Seven fat cows meant seven years of plenty of food, and seven thin cows meant seven years of famine.", "ref": "Genesis 41:26-30"},
+{"id": "joseph-grain", "story": "Joseph", "q": "During the famine, Joseph's brothers came to Egypt to buy what?", "a": "Grain", "w": ["Gold", "Camels"], "place": "egypt", "fact": "The brothers came to buy grain, and Joseph forgave them.", "ref": "Genesis 42:3; 45:4-5"},
+{"id": "moses-basket", "story": "Moses", "q": "Baby Moses was hidden in a basket. Where?", "a": "In the reeds by the Nile River", "w": ["In a cave", "In the king's stable"], "place": "nile", "fact": "His mother set the basket in the reeds by the Nile River, and Pharaoh's daughter found him.", "ref": "Exodus 2:3-5"},
+{"id": "moses-bush", "story": "Moses", "q": "God spoke to Moses from a burning bush. What was strange about it?", "a": "It didn't burn up", "w": ["It was blue", "It was singing"], "place": "sinai", "fact": "The bush was on fire, but it didn't burn up.", "ref": "Exodus 3:2"},
+{"id": "plagues", "story": "Moses", "q": "How many plagues did God send on Egypt?", "a": "Ten", "w": ["Three", "Seven"], "place": "egypt", "fact": "God sent ten plagues before Pharaoh let the people go.", "ref": "Exodus 7 to 12"},
+{"id": "red-sea", "story": "Moses", "q": "God opened a dry path through which sea so Israel could escape?", "a": "The Red Sea", "w": ["The Dead Sea", "The Sea of Galilee"], "place": "redsea", "fact": "God parted the Red Sea, and Israel walked through on dry ground.", "ref": "Exodus 14:21-22"},
+{"id": "manna", "story": "Moses", "q": "What food did God send from heaven in the desert?", "a": "Manna", "w": ["Pizza", "Pancakes"], "place": "sinai", "fact": "God sent manna. It tasted like wafers made with honey.", "ref": "Exodus 16:31"},
+{"id": "sinai-law", "story": "Moses", "q": "On which mountain did God give Moses the Ten Commandments?", "a": "Mount Sinai", "w": ["Mount Ararat", "Mount Carmel"], "place": "sinai", "fact": "God gave the Ten Commandments on Mount Sinai.", "ref": "Exodus 19 to 20"},
+{"id": "nebo", "story": "Moses", "q": "At the end of his life, Moses saw the Promised Land from which mountain?", "a": "Mount Nebo", "w": ["Mount Sinai", "Mount Carmel"], "place": "nebo", "fact": "God showed Moses the whole Promised Land from Mount Nebo.", "ref": "Deuteronomy 34:1"},
+{"id": "jordan-cross", "story": "Joshua", "q": "Israel crossed which river on dry ground to enter the Promised Land?", "a": "The Jordan River", "w": ["The Nile River", "The Euphrates River"], "place": "jordan", "fact": "When the priests stepped into the Jordan River, the water stopped, and everyone crossed on dry ground.", "ref": "Joshua 3:15-17"},
+{"id": "rahab", "story": "Joshua", "q": "Who hid the two spies in Jericho?", "a": "Rahab", "w": ["Ruth", "Miriam"], "place": "jericho", "fact": "Rahab hid the spies on her roof, and her family was kept safe.", "ref": "Joshua 2"},
+{"id": "jericho-days", "story": "Joshua", "q": "How many days did Israel march around Jericho?", "a": "Seven", "w": ["Three", "Forty"], "place": "jericho", "fact": "They marched for seven days. On the seventh day they shouted, and the walls fell down.", "ref": "Joshua 6"},
+{"id": "gideon", "story": "Gideon", "q": "Gideon beat a huge army with how many men?", "a": "300", "w": ["30", "3,000"], "place": "jezreel", "fact": "God used Gideon and just 300 men, with trumpets and torches in jars.", "ref": "Judges 7"},
+{"id": "samson-lion", "story": "Samson", "q": "A young lion roared at Samson. What did he fight it with?", "a": "His bare hands", "w": ["A sword", "A bow and arrow"], "place": "timnah", "fact": "God's Spirit gave Samson strength, and he beat the lion with his bare hands.", "ref": "Judges 14:5-6"},
+{"id": "ruth", "story": "Ruth", "q": "Ruth stayed with her mother-in-law and moved to Bethlehem. What was her mother-in-law's name?", "a": "Naomi", "w": ["Sarah", "Esther"], "place": "bethlehem", "fact": "Ruth stayed with Naomi. Ruth became the great-grandmother of King David.", "ref": "Ruth 1:16, 4:17"},
+{"id": "samuel-call", "story": "Samuel", "q": "God called young Samuel in the night. Where was Samuel?", "a": "At the Lord's house in Shiloh", "w": ["In a palace", "On a boat"], "place": "shiloh", "fact": "Samuel was at the Lord's house in Shiloh. He said, Speak, for your servant is listening.", "ref": "1 Samuel 3"},
+{"id": "david-job", "story": "David", "q": "What was David's job before he became king?", "a": "Shepherd", "w": ["Fisherman", "Carpenter"], "place": "bethlehem", "fact": "David was a shepherd, taking care of his father's sheep in Bethlehem.", "ref": "1 Samuel 16:11"},
+{"id": "david-lion", "story": "David", "q": "Before he faced Goliath, what two animals did David fight to save his sheep?", "a": "A lion and a bear", "w": ["A wolf and a fox", "A tiger and a snake"], "place": "bethlehem", "fact": "David fought a lion and a bear to save his sheep. He said the Lord who saved him from them would save him from Goliath.", "ref": "1 Samuel 17:34-37"},
+{"id": "david-lyre", "story": "David", "q": "David played music for King Saul. What did he play?", "a": "A lyre, a small harp", "w": ["Drums", "A trumpet"], "place": "canaan", "fact": "David played the lyre, a small harp, and it helped Saul feel better.", "ref": "1 Samuel 16:23"},
+{"id": "elah", "story": "David and Goliath", "q": "Where did David fight Goliath?", "a": "The Valley of Elah", "w": ["Beside the Red Sea", "On Mount Sinai"], "place": "elah", "fact": "The armies faced each other across the Valley of Elah.", "ref": "1 Samuel 17:2-3"},
+{"id": "stones", "story": "David and Goliath", "q": "How many smooth stones did David pick up from the stream?", "a": "Five", "w": ["One", "Ten"], "place": "elah", "fact": "David picked up five smooth stones, but he only needed one.", "ref": "1 Samuel 17:40"},
+{"id": "goliath-win", "story": "David and Goliath", "q": "Goliath had a sword and a spear. What did David use to beat him?", "a": "A sling and a stone", "w": ["A bigger sword", "A bow and arrow"], "place": "elah", "fact": "David beat Goliath with a sling and a stone, trusting the Lord to win the battle.", "ref": "1 Samuel 17:45-50"},
+{"id": "david-capital", "story": "King David", "q": "Which city did King David make his capital?", "a": "Jerusalem", "w": ["Jericho", "Babylon"], "place": "jerusalem", "fact": "David made Jerusalem his capital. It was called the city of David.", "ref": "2 Samuel 5:6-9"},
+{"id": "solomon-wisdom", "story": "Solomon", "q": "God told King Solomon to ask for anything. What did Solomon ask for?", "a": "Wisdom", "w": ["Gold", "A big army"], "place": "gibeon", "fact": "Solomon asked for wisdom to lead the people well, and God gave it to him.", "ref": "1 Kings 3:5-12"},
+{"id": "solomon-temple", "story": "Solomon", "q": "Solomon built a great temple for God in which city?", "a": "Jerusalem", "w": ["Nazareth", "Nineveh"], "place": "jerusalem", "fact": "Solomon built the temple in Jerusalem.", "ref": "1 Kings 6"},
+{"id": "ravens", "story": "Elijah", "q": "Who brought Elijah bread and meat by a brook?", "a": "Ravens", "w": ["Eagles", "Camels"], "place": "jordan", "fact": "God sent ravens to bring Elijah bread and meat every morning and evening.", "ref": "1 Kings 17:3-6"},
+{"id": "carmel", "story": "Elijah", "q": "On Mount Carmel, what did God send from heaven to answer Elijah's prayer?", "a": "Fire", "w": ["Snow", "A rainbow"], "place": "carmel", "fact": "God sent fire from heaven, and everyone saw that the Lord is God.", "ref": "1 Kings 18:38-39"},
+{"id": "elijah-heaven", "story": "Elijah", "q": "How did Elijah go up to heaven?", "a": "In a whirlwind", "w": ["On a boat", "Up a ladder"], "place": "jordan", "fact": "A chariot of fire came, and Elijah went up to heaven in a whirlwind.", "ref": "2 Kings 2:11"},
+{"id": "naaman", "story": "Naaman", "q": "Elisha told Naaman to wash in the Jordan River to be healed. How many times?", "a": "Seven", "w": ["Two", "Twelve"], "place": "jordan", "fact": "Naaman dipped seven times in the Jordan River, and his skin was healed.", "ref": "2 Kings 5:10-14"},
+{"id": "jonah-tarshish", "story": "Jonah", "q": "God told Jonah to go to Nineveh. Where did Jonah try to sail instead?", "a": "Tarshish", "w": ["Egypt", "Jerusalem"], "place": "joppa", "fact": "Jonah got on a ship at Joppa going to Tarshish, the opposite way from Nineveh.", "ref": "Jonah 1:3"},
+{"id": "jonah-fish", "story": "Jonah", "q": "After the sailors threw Jonah into the sea, what swallowed him?", "a": "A huge fish", "w": ["A crocodile", "A giant octopus"], "place": "greatsea", "fact": "God sent a huge fish to swallow Jonah.", "ref": "Jonah 1:17"},
+{"id": "jonah-days", "story": "Jonah", "q": "How long was Jonah inside the fish?", "a": "Three days and three nights", "w": ["One hour", "Forty days"], "place": "greatsea", "fact": "Jonah was inside the fish for three days and three nights, and he prayed.", "ref": "Jonah 1:17, 2:1"},
+{"id": "nineveh", "story": "Jonah", "q": "In which city did Jonah finally preach?", "a": "Nineveh", "w": ["Bethlehem", "Rome"], "place": "nineveh", "fact": "Jonah preached in Nineveh. The people were sorry, and God showed them mercy.", "ref": "Jonah 3:3-10"},
+{"id": "daniel-babylon", "story": "Daniel", "q": "Daniel was taken far from home to which city?", "a": "Babylon", "w": ["Jericho", "Egypt"], "place": "babylon", "fact": "Daniel was taken to Babylon, and he stayed faithful to God there.", "ref": "Daniel 1:1-6"},
+{"id": "furnace", "story": "Daniel's friends", "q": "Shadrach, Meshach and Abednego wouldn't bow to a gold statue. Where were they thrown?", "a": "A blazing furnace", "w": ["A lions' den", "A deep well"], "place": "babylon", "fact": "They were thrown into a blazing furnace, and when they came out, there was no smell of fire on them.", "ref": "Daniel 3:19-27"},
+{"id": "daniel-den", "story": "Daniel", "q": "Daniel kept praying to God, even when it was against the law. What happened to him?", "a": "He was thrown into a lions' den", "w": ["He was thrown into the sea", "He was sent to Egypt"], "place": "babylon", "fact": "Daniel was thrown into a lions' den, but he kept trusting God.", "ref": "Daniel 6:10-16"},
+{"id": "daniel-angel", "story": "Daniel", "q": "Who shut the lions' mouths so they couldn't hurt Daniel?", "a": "God's angel", "w": ["Daniel's friends", "The king's guards"], "place": "babylon", "fact": "God sent his angel to shut the lions' mouths, and Daniel wasn't hurt at all.", "ref": "Daniel 6:22"},
+{"id": "esther", "story": "Esther", "q": "Esther was a Jewish girl who became what?", "a": "A queen", "w": ["A judge", "A soldier"], "place": "susa", "fact": "Esther became queen in Susa, and she bravely saved her people.", "ref": "Esther 2:17, 4:14"},
+{"id": "nehemiah", "story": "Nehemiah", "q": "Nehemiah led the people to rebuild what in Jerusalem?", "a": "The city walls", "w": ["A ship", "A tower to the sky"], "place": "jerusalem", "fact": "They rebuilt the walls of Jerusalem in just 52 days.", "ref": "Nehemiah 6:15"},
+{"id": "jesus-born", "story": "Jesus", "q": "In which town was Jesus born?", "a": "Bethlehem", "w": ["Nazareth", "Jerusalem"], "place": "bethlehem", "fact": "Jesus was born in Bethlehem, the town of King David.", "ref": "Luke 2:4-7"},
+{"id": "jesus-manger", "story": "Jesus", "q": "Where did Mary lay baby Jesus?", "a": "In a manger", "w": ["In a basket on the river", "In a palace bed"], "place": "bethlehem", "fact": "Mary laid baby Jesus in a manger, because there was no guest room for them.", "ref": "Luke 2:7"},
+{"id": "jesus-nazareth", "story": "Jesus", "q": "In which town did Jesus grow up?", "a": "Nazareth", "w": ["Bethlehem", "Rome"], "place": "nazareth", "fact": "Jesus grew up in Nazareth, in Galilee.", "ref": "Luke 2:39-40"},
+{"id": "jesus-temple", "story": "Jesus", "q": "When Jesus was 12, Mary and Joseph found him in the temple. Which city?", "a": "Jerusalem", "w": ["Babylon", "Joppa"], "place": "jerusalem", "fact": "They found Jesus in the temple in Jerusalem, listening and asking questions.", "ref": "Luke 2:42-46"},
+{"id": "baptism", "story": "Jesus", "q": "Who baptized Jesus in the Jordan River?", "a": "John the Baptist", "w": ["Peter", "Moses"], "place": "jordan", "fact": "John the Baptist baptized Jesus in the Jordan River.", "ref": "Matthew 3:13-16"},
+{"id": "cana", "story": "Jesus", "q": "At a wedding in Cana, what did Jesus turn water into?", "a": "Wine", "w": ["Milk", "Honey"], "place": "cana", "fact": "Jesus turned water into wine at a wedding in Cana. It was his first sign.", "ref": "John 2:1-11"},
+{"id": "fishermen", "story": "Jesus", "q": "Peter, Andrew, James and John had what job before they followed Jesus?", "a": "Fishermen", "w": ["Shepherds", "Soldiers"], "place": "galilee", "fact": "They were fishermen on the Sea of Galilee. Jesus said, Follow me, and I will make you fish for people.", "ref": "Matthew 4:18-22"},
+{"id": "capernaum", "story": "Jesus", "q": "Jesus made his home in a town by the Sea of Galilee. What was it?", "a": "Capernaum", "w": ["Babylon", "Tarsus"], "place": "capernaum", "fact": "Jesus lived in Capernaum, by the Sea of Galilee.", "ref": "Matthew 4:13"},
+{"id": "five-thousand", "story": "Jesus", "q": "Jesus fed about 5,000 men with five loaves of bread and how many fish?", "a": "Two", "w": ["Five", "Twelve"], "place": "galilee", "fact": "Five loaves and two fish fed everyone, with twelve baskets left over!", "ref": "John 6:9-13"},
+{"id": "walk-water", "story": "Jesus", "q": "Jesus walked on the water. Who stepped out of the boat to walk to him?", "a": "Peter", "w": ["Thomas", "Judas"], "place": "galilee", "fact": "Peter walked on the water too, until he got scared and started to sink. Jesus caught him.", "ref": "Matthew 14:28-31"},
+{"id": "storm", "story": "Jesus", "q": "A storm hit the boat. What did Jesus say to the wind and the waves?", "a": "Silence! Be still!", "w": ["Go away!", "Try harder!"], "place": "galilee", "fact": "Jesus said, Silence! Be still! and the sea became completely calm.", "ref": "Mark 4:39"},
+{"id": "zacchaeus", "story": "Jesus", "q": "Zacchaeus was too short to see Jesus in Jericho. What did he climb?", "a": "A sycamore tree", "w": ["A wall", "A ladder"], "place": "jericho", "fact": "Zacchaeus climbed a sycamore tree, and Jesus came to his house that day.", "ref": "Luke 19:1-6"},
+{"id": "samaritan", "story": "Jesus' stories", "q": "In Jesus' story, who stopped to help the hurt man on the road?", "a": "A Samaritan", "w": ["A priest", "A soldier"], "place": "jericho", "fact": "A Samaritan helped him. The story of the Good Samaritan teaches us to love our neighbor.", "ref": "Luke 10:30-37"},
+{"id": "lazarus", "story": "Jesus", "q": "Jesus raised his friend back to life after four days. Who was it?", "a": "Lazarus", "w": ["Peter", "Paul"], "place": "jerusalem", "fact": "Jesus called, Lazarus, come out! and Lazarus walked out alive.", "ref": "John 11:38-44"},
+{"id": "donkey", "story": "Jesus", "q": "What did Jesus ride into Jerusalem?", "a": "A young donkey", "w": ["A horse", "A camel"], "place": "jerusalem", "fact": "Jesus rode a young donkey, and the crowds waved palm branches.", "ref": "John 12:12-15"},
+{"id": "third-day", "story": "Jesus", "q": "Jesus died on the cross. On which day did he rise from the dead?", "a": "The third day", "w": ["The seventh day", "The tenth day"], "place": "jerusalem", "fact": "Jesus rose on the third day. He is alive!", "ref": "1 Corinthians 15:3-4"},
+{"id": "pentecost", "story": "The Church", "q": "At Pentecost, the Holy Spirit came on Jesus' followers. What did it look like?", "a": "Flames of fire", "w": ["Drops of water", "Snowflakes"], "place": "jerusalem", "fact": "They saw tongues like flames of fire resting on each of them, and they were filled with the Holy Spirit.", "ref": "Acts 2:3-4"},
+{"id": "tabitha", "story": "Peter", "q": "In Joppa, Peter prayed and God raised a kind woman back to life. What was her name?", "a": "Tabitha", "w": ["Mary", "Lydia"], "place": "joppa", "fact": "Peter prayed, and Tabitha opened her eyes and sat up.", "ref": "Acts 9:36-41"},
+{"id": "damascus", "story": "Paul", "q": "Saul saw a bright light from heaven on the road to which city?", "a": "Damascus", "w": ["Rome", "Egypt"], "place": "damascus", "fact": "On the road to Damascus, Saul met Jesus. Saul, also called Paul, told the world about Jesus.", "ref": "Acts 9:3-6"},
+{"id": "tarsus", "story": "Paul", "q": "Paul was born in which city?", "a": "Tarsus", "w": ["Bethlehem", "Nineveh"], "place": "tarsus", "fact": "Paul was born in Tarsus.", "ref": "Acts 22:3"},
+{"id": "antioch", "story": "The Church", "q": "Where were Jesus' followers first called Christians?", "a": "Antioch", "w": ["Rome", "Jericho"], "place": "antioch", "fact": "The disciples were first called Christians in Antioch.", "ref": "Acts 11:26"},
+{"id": "cyprus", "story": "Paul", "q": "On their first trip, Paul and Barnabas sailed to which island?", "a": "Cyprus", "w": ["Hawaii", "Crete"], "place": "cyprus", "fact": "Paul and Barnabas sailed to the island of Cyprus.", "ref": "Acts 13:4"},
+{"id": "ephesians", "story": "Paul", "q": "Ephesians 2:10 comes from a letter. Who wrote it?", "a": "Paul", "w": ["Moses", "David"], "place": "", "fact": "Paul wrote the letter to the church in Ephesus.", "ref": "Ephesians 1:1"}
+];
+// The Bible lands, drawn flat from latitude and longitude. Places in Israel zoom in so they can be seen.
+const BX = (lon) => (lon - 29) * 51.4, BY = (lat) => (39.5 - lat) * 60;
+const bPath = (pts, close = true) => `M${pts.map(([lon, lat]) => `${BX(lon).toFixed(1)} ${BY(lat).toFixed(1)}`).join("L")}${close ? "Z" : ""}`;
+const BIBLE_SEA = [[28.5, 36.65], [29, 36.65], [29.6, 36.2], [30.5, 36.4], [30.7, 36.88], [31.5, 36.75], [32, 36.5], [32.8, 36.05], [33.6, 36.15], [34.2, 36.4], [34.6, 36.8], [35.3, 36.65], [35.9, 36.85], [36.17, 36.6], [35.9, 36.08], [35.78, 35.52], [35.92, 35.36], [35.88, 34.9], [35.82, 34.44], [35.64, 34.12], [35.48, 33.9], [35.37, 33.56], [35.19, 33.27], [35.07, 32.92], [34.96, 32.83], [34.89, 32.5], [34.75, 32.05], [34.64, 31.8], [34.45, 31.5], [33.8, 31.13], [33.2, 31.18], [32.3, 31.27], [31.85, 31.52], [31.1, 31.6], [30.4, 31.47], [29.9, 31.2], [28.5, 30.95]];
+const BIBLE_REDSEA = [[32.55, 29.97], [32.7, 29.3], [33.5, 28], [34, 27.2], [35, 25.5], [35.6, 23.4], [37.6, 23.4], [36.6, 25.6], [35.8, 27], [35, 28], [34.95, 29], [35, 29.55], [34.9, 29.5], [34.6, 28.7], [34.4, 28], [34.25, 27.73], [33.6, 28.3], [32.9, 29.6], [32.6, 29.95]];
+const BIBLE_GULF = [[47.9, 30.05], [48.7, 30], [48.7, 27.6], [48.4, 28.5], [48.15, 29.3], [47.9, 29.6]];
+const BIBLE_CYPRUS = [[32.27, 35.1], [32.9, 35.39], [33.5, 35.35], [34.08, 35.47], [34.59, 35.69], [34, 35.05], [33.6, 34.85], [33, 34.63], [32.4, 34.75]];
+const BIBLE_DEAD = [[35.48, 31.78], [35.58, 31.75], [35.6, 31.45], [35.5, 31.12], [35.4, 31.3], [35.45, 31.6]];
+const BIBLE_RIVERS = [
+  [[32.9, 23.4], [32.9, 24.5], [32.65, 25.7], [32.7, 26.2], [31.2, 27.2], [30.8, 28.1], [31.2, 29.9], [31.25, 30.05], [30.4, 31.45]], [[31.25, 30.05], [31.85, 31.5]],
+  [[35.65, 33.25], [35.6, 32.9]], [[35.57, 32.72], [35.55, 32.3], [35.55, 31.8]],
+  [[38.3, 39.5], [38.3, 37], [38.6, 36.1], [39, 35.95], [40.15, 35], [41.4, 34.4], [43.2, 33.4], [44.4, 32.5], [46, 31], [47.5, 30.5], [48, 30.02]],
+  [[40.2, 38], [42, 37], [43.15, 36.35], [43.9, 35], [44.4, 33.3], [45.8, 32.4], [47, 31], [47.5, 30.5]],
+];
+const BIBLE_LABELS = [["The Great Sea", 31.8, 34.2, 1], ["EGYPT", 30.9, 26.8, 1], ["ARABIA", 38.5, 29, 1], ["MESOPOTAMIA", 42.3, 34.6, 1], ["CANAAN", 35.0, 30.4, 1], ["Red Sea", 35.6, 26.2, 1],
+  ["Great Sea", 34.2, 32.5, 0], ["Sea of Galilee", 35.85, 32.95, 0], ["Dead Sea", 35.75, 31.3, 0], ["Jordan River", 35.85, 32.25, 0]];
+const BIBLE_NEAR = (pl) => pl && pl[1] > 29.4 && pl[1] < 33.8 && pl[2] > 33.6 && pl[2] < 37;
+function bibleMapSvg(q, answered) {
+  const pl = BIBLE_PLACES[q.place], zoom = q.place === "canaan" || BIBLE_NEAR(pl), u = zoom ? .3 : 1;
+  const box = zoom ? "181 342 286 264" : "0 0 1008 930";
+  const name = pl?.[0] || "", hide = !answered && name && (q.a.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(q.a.toLowerCase()));
+  const labels = BIBLE_LABELS.filter((x) => x[3] === (zoom ? 0 : 1)).map(([t, lon, lat]) => `<text x="${BX(lon)}" y="${BY(lat)}" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${22 * u}" fill="${/Sea|River/.test(t) ? "#1d4f75" : "#7a5a2e"}" opacity=".85">${esc(t)}</text>`).join("");
+  const pin = pl ? `<g transform="translate(${BX(pl[2]).toFixed(1)} ${BY(pl[1]).toFixed(1)})"><circle class="pulse" r="${16 * u}" fill="none" stroke="#c8202c" stroke-width="${4 * u}"/><circle r="${8 * u}" fill="#c8202c" stroke="#fff" stroke-width="${2.5 * u}"/><text y="${-14 * u}" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${26 * u}" fill="#2c1a0e" stroke="#f4e4bd" stroke-width="${5 * u}" paint-order="stroke">${hide ? "?" : esc(name)}</text></g>` : "";
+  return `<svg class="map biblemap" viewBox="${box}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the Bible lands"><rect x="-20" y="-20" width="1050" height="970" fill="#e8d29a"/>
+    <path d="${bPath(BIBLE_SEA)}" fill="#8ec1dd"/><path d="${bPath(BIBLE_REDSEA)}" fill="#8ec1dd"/><path d="${bPath(BIBLE_GULF)}" fill="#8ec1dd"/><path d="${bPath(BIBLE_CYPRUS)}" fill="#e8d29a" stroke="#c9ad6e" stroke-width="${u}"/>
+    <path d="${bPath(BIBLE_DEAD)}" fill="#8ec1dd"/><ellipse cx="${BX(35.59)}" cy="${BY(32.82)}" rx="3.6" ry="6" fill="#8ec1dd"/>
+    ${BIBLE_RIVERS.map((r) => `<path d="${bPath(r, false)}" fill="none" stroke="#5a9ccc" stroke-width="${(zoom ? 1.6 : 3)}" stroke-linecap="round" stroke-linejoin="round"/>`).join("")}
+    ${labels}${pin}</svg>`;
+}
+function bibleGame() { S.bible = S.bible || {}; S.bible.right = S.bible.right || {}; S.bible.miss = S.bible.miss || {}; return S.bible; }
+const bibleToday = (day = schoolDay()) => Math.min(day.bibleTries || 0, BIBLE_DAILY);
+// A question is shaky when its latest try was a miss. Times keep this right when saves from two iPads merge.
+const bibleShaky = (g, id) => (g.miss[id] || 0) > (g.right[id] || 0);
+function bibleOpen() { stopVoice(); U.bg = { queue: [] }; bibleNext(); U.view = "bible"; render(); window.scrollTo(0, 0); }
+function bibleNext() {
+  const g = bibleGame(), bg = U.bg;
+  bg.picked = null; bg.locked = false; bg.msg = "";
+  if (bibleToday() >= BIBLE_DAILY && !bg.extra) { bg.todayDone = true; bg.q = null; lastSaid = ""; return; }
+  bg.todayDone = false;
+  if (!bg.queue.length) {
+    // Shaky ones first, then ones never answered right, then review. Shuffled so stories mix.
+    const shaky = BIBLE_QS.filter((q) => bibleShaky(g, q.id)), fresh = BIBLE_QS.filter((q) => !g.right[q.id] && !g.miss[q.id]), known = BIBLE_QS.filter((q) => g.right[q.id] && !bibleShaky(g, q.id));
+    bg.queue.push(...shuffled(shaky), ...shuffled(fresh), ...shuffled(known));
+  }
+  bg.q = bg.queue.shift();
+  bg.choices = shuffled([bg.q.a, ...bg.q.w]);
+  lastSaid = "";
+}
+function bibleSayThen(bg, text, then) {
+  bg.msg = text; bg.locked = true; lastSaid = text; U.lastBubble = text; render();
+  let fired = false, safety = 0;
+  const go = () => { if (fired) return; fired = true; clearTimeout(safety); endWords(); setTimeout(() => { if (U.view === "bible" && U.bg === bg) then(); }, 700); };
+  const quiet = S.voice === false || S.muted;
+  safety = setTimeout(go, quiet ? Math.max(3000, text.length * 65) : 14000);
+  if (quiet) return;
+  try { clearInterval(sayTimer); sayText = text; sayIdx = 0; markWord(); document.body.classList.add("talking"); playVoice(text, "david", go, (i) => { if (i !== sayIdx) { sayIdx = i; markWord(); } }); } catch (e) { go(); }
+}
+function biblePick(d) {
+  const bg = U.bg; if (!bg || bg.locked || !bg.q) return;
+  const g = bibleGame(), day = schoolDay(), q = bg.q, right = d.c === q.a;
+  bg.picked = d.c; bg.locked = true;
+  day.bibleTries = (day.bibleTries || 0) + 1;
+  if (right) { g.right[q.id] = Date.now(); earn(3); coinPop(3); beep(CHIME); }
+  else { g.miss[q.id] = Date.now(); S.brave = (S.brave || 0) + 1; earn(1); coinPop(1); beep(BLIP); bg.queue.splice(Math.min(3, bg.queue.length), 0, q); }
+  if (day.bibleTries % BIBLE_DAILY === 0) { earn(10); banner(`${day.bibleTries} Bible questions today! +$10`); }
+  save();
+  bibleSayThen(bg, `${right ? "Yes, that's right." : "Good try."} ${q.fact}`, () => { bibleNext(); render(); });
+}
+function bibleView() {
+  const g = bibleGame(), bg = U.bg || (U.bg = { queue: [] });
+  if (!bg.q && !bg.todayDone) bibleNext();
+  const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; School Day</button><h2>Bible History</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
+  const learned = BIBLE_QS.filter((q) => g.right[q.id] && !bibleShaky(g, q.id)).length;
+  if (bg.todayDone) return `${top}${bubble("Great job! That's your 10 Bible questions for today.")}<div class="center statesdone"><div class="big">Done for today!</div><p>Questions you know: ${learned} of ${BIBLE_QS.length}.</p><p class="keepline">You're done with Bible history for today. Keep going if you want to earn more!</p><button class="btn go wide" data-act="bibleMore">More questions</button><button class="btn dark wide" data-act="view" data-v="school">Back to School Day</button></div>`;
+  const q = bg.q, n = bibleToday();
+  const label = `${bg.extra ? "Bonus question" : `Question ${Math.min(n + 1, BIBLE_DAILY)} of ${BIBLE_DAILY} today`} &#183; ${learned} of ${BIBLE_QS.length} known`;
+  return `${top}<p class="statesbar">${label}</p>${bubble(bg.msg || q.q)}<div class="statespart2"><div class="statesmapwrap">${bibleMapSvg(q, !!bg.picked)}</div><div class="statesanswers"><h2>${esc(q.story)}</h2>${bg.choices.map((c) => `<button class="btn ${bg.picked ? (c === q.a ? "go" : c === bg.picked ? "dark stgood" : "dark") : "dark"} statesanswer" data-act="biblePick" data-c="${esc(c)}" ${bg.picked ? "disabled" : ""}>${esc(c)}</button>`).join("")}${bg.picked ? `<p class="sub">${esc(q.ref)}</p>` : ""}</div></div>`;
+}
 /* ---------- Penalty Kick Spelling: copy it, flash it, then spell it from memory ---------- */
 // A new week's list goes first in this array. Each word's sentence is read aloud but never shown.
 const SPELLING_LISTS = [
@@ -3971,9 +4155,9 @@ function townMapSvg(l) {
     ${look?.river ? `<text x="1108" y="470" transform="rotate(-78 1108 470)" font-family="Rye,Georgia,serif" font-size="15" fill="#1c4a6e" opacity=".85">${esc(look.river)}</text>` : ""}
     <path d="${smooth(pts)}" fill="none" stroke="#7a5c34" stroke-width="13" stroke-linecap="round" opacity=".55"/><path d="${smooth(pts)}" fill="none" stroke="#dcc492" stroke-width="9" stroke-linecap="round"/><path d="${smooth(pts)}" fill="none" stroke="#a98a58" stroke-width="1.500" stroke-dasharray="8 11" stroke-linecap="round"/>
     ${stops}
-    <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${l.place ? 21 : 24}" fill="#ffe7a8">${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</text></g>
+    <g transform="translate(590 40)"><path d="M-130-24H130L116 0 130 24H-130L-116 0Z" fill="#7b2d1c" stroke="#3a2412" stroke-width="2"/><text y="8" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="${l.place ? 21 : 24}" fill="#ffe7a8">${esc(l.hostTown || l.town)}${l.place ? `, ${esc(l.place.state)}` : ""}</text></g>${l.hostTown ? `<g transform="translate(590 82)"><rect x="-96" y="-17" width="192" height="30" rx="8" fill="#23407a" stroke="#3a2412" stroke-width="2"/><text y="5" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#ffe7a8">Grammar &#183; ${esc(l.town)}</text></g>` : ""}
     ${compass(60, 80)}
-    ${l.place && US_STATES[l.place.state] ? `<g pointer-events="none"><rect x="958" y="478" width="196" height="148" rx="12" fill="#f4e4bd" stroke="#3a2412" stroke-width="3"/><text x="1056" y="502" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#3a2412">${esc(l.place.state)}</text><g data-fit="978 512 156 88" data-star="${(look?.star || [.5, .5]).join(" ")}"><path d="${US_STATES[l.place.state].d}" fill="#c8602c" stroke="#3a2412" stroke-width="1.500" vector-effect="non-scaling-stroke"/><g class="capstar"><circle r="9" fill="#fff" opacity=".85"/><path d="M0-8L2.400-2.500 8.500-2.500 3.600 1.300 5.300 7.500 0 3.800-5.300 7.500-3.600 1.300-8.500-2.500-2.400-2.500Z" fill="#c8202c"/></g></g><text x="1056" y="618" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412">&#9733; ${esc(l.town)}</text></g>` : ""}
+    ${l.place && US_STATES[l.place.state] ? `<g pointer-events="none"><rect x="958" y="478" width="196" height="148" rx="12" fill="#f4e4bd" stroke="#3a2412" stroke-width="3"/><text x="1056" y="502" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="17" fill="#3a2412">${esc(l.place.state)}</text><g data-fit="978 512 156 88" data-star="${(look?.star || [.5, .5]).join(" ")}"><path d="${US_STATES[l.place.state].d}" fill="#c8602c" stroke="#3a2412" stroke-width="1.500" vector-effect="non-scaling-stroke"/><g class="capstar"><circle r="9" fill="#fff" opacity=".85"/><path d="M0-8L2.400-2.500 8.500-2.500 3.600 1.300 5.300 7.500 0 3.800-5.300 7.500-3.600 1.300-8.500-2.500-2.400-2.500Z" fill="#c8202c"/></g></g><text x="1056" y="618" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="13" fill="#3a2412">&#9733; ${esc(l.hostTown || l.town)}</text></g>` : ""}
     ${ranchStop(1045, 122, 122)}
     ${riderToken()}</svg>`;
 }
@@ -4012,6 +4196,7 @@ function homeView() {
   return `<div class="hud">${rankHud()}${navRight()}</div>${lessonChips()}${gameTimeBar(todaysItems(), schoolDay())}
   ${!LESSONS.length && KNIGHT ? `<button class="btn go wide" data-act="stateTap" style="font-size:1.25rem">Today's quest: ${esc(questNext()[0])}, ${esc(questNext()[2])}</button>` : ""}
   ${LESSONS[currentIdx()] ? `<button class="btn go wide" data-act="town" data-id="${esc(LESSONS[currentIdx()].id)}" style="font-size:1.25rem">Today: ${esc(LESSONS[currentIdx()].town)} · Lesson ${esc(LESSONS[currentIdx()].bookLesson)}</button>` : ""}
+  ${(() => { const g = withSubject("grammar", () => LESSONS.find((l) => l.hostTown && isCurrent(l) && !lessonFinished(l) && l.startsOn <= dateKey())); return g ? `<button class="btn dark wide" data-act="town" data-id="${esc(g.id)}" style="font-size:1.1rem">Grammar today: ${esc(g.town)} in ${esc(g.hostTown)}</button>` : ""; })()}
   ${worldMapSvg()}
   <div class="hud"><button class="link" data-act="mute">${S.muted ? "Game sounds on" : "Game sounds off"}</button><button class="link" data-act="view" data-v="move">Move to a new iPad</button><button class="link" data-act="view" data-v="parent">Parents</button></div>`;
 }
@@ -4019,7 +4204,7 @@ const ranchStop = (x, y, w) => { const h = w * .6; return `<g class="stop" data-
 const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span>${U.view === "school" ? "" : `<button class="btn go small" data-act="view" data-v="school">School Day</button>`}<button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>${GAMES_NAME}</button>${LESSONS.length ? `<button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>General Store</button>` : ""}<button class="btn dark small" data-act="trophyOpen"><svg viewBox="-30 -34 60 64" aria-hidden="true">${PRIZE_ART["Rodeo Trophy"]}</svg>${U.view === "town" ? "Trophies" : "All Trophies"}</button></span>`;
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
-  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}</span>${navRight()}</div>${lessonChips()}
+  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" || l.place ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}${(() => { const o = l.hostId ? ALL_LESSONS.find((x) => x.id === l.hostId) : ALL_LESSONS.find((x) => x.hostId === l.id && (x.kid || "elliot") === KID.id); return o ? `<button class="btn dark small" data-act="town" data-id="${esc(o.id)}">${o.subject === "grammar" ? `Grammar here: ${esc(o.town)}` : `Math here: ${esc(o.town)}`}</button>` : ""; })()}</span>${navRight()}</div>${lessonChips()}
   ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
   ${townMapSvg(l)}
   ${l.problems.some((q) => PP(lp, q.id).done) ? `<button class="btn dark wide" data-act="lessonReview" data-id="${esc(l.id)}">See all the work and the ranch</button>` : ""}
@@ -6177,7 +6362,7 @@ const acts = {
   reviewRide(d) { const l = curLesson(); startRide(l, rideOf(l, d.id)); },
   reviewQ(d) { const l = curLesson(); startRide(l, rideOf(l, d.r)); acts.openq({ id: d.id }); },
   town(d) {
-    setSubject(ALL_LESSONS.find((l) => l.id === d.id)?.subject || SUBJECT);
+    const tl = ALL_LESSONS.find((l) => l.id === d.id); setSubject(tl ? tl.subject || "math" : SUBJECT);
     const finished = LESSONS.find((l) => l.id === d.id);
     if (finished && lessonFinished(finished) && U.view === "home") return acts.lessonReview(d);
     const go = () => { U.lesson = d.id; U.view = "town"; W.theme = "west"; render(); window.scrollTo(0, 0); }, idx = LESSONS.findIndex((l) => l.id === d.id);
@@ -6335,6 +6520,7 @@ const acts = {
     if (x.id === "piano") { pnOpen(); pnTimerOn(); return; }
     if (x.kind === "reading") { U.timerId = x.id; U.view = "reading"; render(); return; }
     if (x.kind === "capitals") { stampStart(x.id, day); stateOpen(); return; }
+    if (x.kind === "bible") { stampStart(x.id, day); bibleOpen(); return; }
     if (x.kind === "spelling" && !spellList()) return;
     if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? (spellShaky().length ? "warmup" : "bee") : "practice"); return; }
     if (x.kind === "game") { stampStart(x.id, day); save(); location.href = `${x.game}/`; return; }
@@ -6487,6 +6673,8 @@ const acts = {
   },
   openGame(d) { save(); location.href = `${d.g}/`; },
   statesPick,
+  biblePick,
+  bibleMore() { const bg = U.bg; if (!bg) return; bg.extra = true; bibleNext(); render(); },
   async familySignIn() {
     const pw = (document.getElementById("famPw")?.value || "").trim();
     U.linkPw = pw;
@@ -6627,6 +6815,7 @@ document.addEventListener("keydown", (e) => {
     if (spot) { e.preventDefault(); const svg = document.getElementById("pitch"), m = svg?.getScreenCTM(); if (m) { kickTap = [m.a * spot[0] + m.e, m.d * spot[1] + m.f]; shoot(); } }
     return;
   }
+  if (U.view === "bible" && /^[1-3]$/.test(e.key)) { const c = U.bg?.choices?.[+e.key - 1]; if (c) biblePick({ c }); return; }
   if (U.view === "states" && U.sg?.part === 2 && /^[1-4]$/.test(e.key)) { const c = U.sg.choices?.[+e.key - 1]; if (c) statesPick({ c }); return; }
   if (W.run) { if (e.key === " " || e.key === "ArrowUp") { runJump(); e.preventDefault(); } else if (e.key === "d" || e.key === "ArrowRight") runDash(); return; }
   if (U.view !== "ride") return;
@@ -6729,8 +6918,8 @@ function render() {
   lastRenderedView = U.view;
   if ((U.view === "ride" || U.view === "town" || U.view === "rideEnd" || U.view === "reward" || ((U.view === "game" || U.view === "gameEnd") && !U.game?.free)) && !curLesson()) U.view = "home";
   W.title = U.view === "title";
-  canvas.hidden = ["arcade", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { piano: pianoView, typing: typingView, verse: verseView, who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["arcade", "bible", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { piano: pianoView, typing: typingView, verse: verseView, bible: bibleView, who: whoView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = (U.preview ? `<div class="previewbar"><b>Parent preview.</b> Nothing here is saved. <button class="btn dark small" data-act="previewEnd">End preview</button></div>` : "") + views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
