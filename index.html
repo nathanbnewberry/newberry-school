@@ -2139,7 +2139,7 @@ const pnXmas = () => { const d = new Date(), m = d.getMonth(); return m === 11 |
 // Each song is a path of squares: learn it a part at a time, then with the beat, then without the game.
 function pnSteps(song = pnSong()) {
   // Myla: just play along, then play it again. No beat, no memory test.
-  if (song.little) return [{ t: "wait", name: "Play along", ico: "&#127925;" }, { t: "wait", name: "Play it again", ico: "&#11088;" }, { t: "wait", name: "One more time!", ico: "&#127880;" }];
+  if (song.little) return [{ t: "wait", name: "Listen and sing", listen: true, ico: "&#128066;" }, { t: "wait", name: "Play with me", coach: true, ico: "&#127925;" }, { t: "wait", name: "You play it!", ico: "&#11088;" }, { t: "wait", name: "One more time!", ico: "&#127880;" }];
   return [...(song.lesson ? [{ t: "lesson", name: "Find your keys", ico: "&#128400;" }] : []), ...song.parts.map((p, i) => ({ t: "wait", part: i, name: `Part ${i + 1}`, ico: ["&#49;&#65039;&#8419;", "&#50;&#65039;&#8419;", "&#51;&#65039;&#8419;", "&#52;&#65039;&#8419;"][i] })), { t: "wait", name: "The whole song, slowly", ico: "&#128034;" }, { t: "beat", bpm: song.bpm, name: "Play it with the beat", ico: "&#129345;" }, { t: "memory", name: "Play it from memory", ico: "&#129504;" }, { t: "beat", bpm: Math.round(song.bpm * 1.33), name: "Encore: faster", ico: "&#128293;" }, { t: "beat", bpm: Math.round(song.bpm * 1.67), name: "Legend speed", ico: "&#128081;" }];
 }
 // Cover art for each song.
@@ -2524,6 +2524,23 @@ function pnLesView() {
 }
 function pnOpen() { stopVoice(); pnRec(); U.pn = { screen: "menu" }; U.view = "piano"; render(); window.scrollTo(0, 0); }
 function pnPrepSounds() { const c = pnAudio(); if (!c) return; if (!pnNoise || pnNoise.sampleRate !== c.sampleRate) { pnNoise = c.createBuffer(1, Math.round(c.sampleRate * .3), c.sampleRate); const ch = pnNoise.getChannelData(0); for (let i = 0; i < ch.length; i++) ch[i] = Math.random() * 2 - 1; } }
+// Coaching for little players: the game plays a stretch of the song with the keys glowing and the words lighting up
+// (my turn), then she plays it back (your turn). Taps and sounds are ignored while the game plays.
+function pnDemoRange(i0, i1, done) {
+  const pn = U.pn; if (!pn || pn.screen !== "play") return;
+  const list = pn.notes.slice(i0, i1); if (!list.length) return done?.();
+  const spb = .62, start = list[0].beat; pn.hearing = true; pnPaint();
+  list.forEach((n, j) => { const at = (n.beat - start) * spb; try { pnTone(n.m, n.dur * spb * .9, at + .05); } catch (e) {} setTimeout(() => { if (U.pn === pn) { pn.demo = n.m; pn.lyrAt = i0 + j; if (pn.step.listen) { pn.idx = i0 + j; const prev = pn.notes[i0 + j - 1]; if (prev) { prev.done = true; prev.hit = true; } } pnPaint(); } }, at * 1000); });
+  const end = list[list.length - 1];
+  setTimeout(() => { if (U.pn !== pn) return; pn.hearing = false; pn.demo = 0; pn.lyrAt = null; pnPaint(); done?.(); }, ((end.beat - start) + end.dur) * spb * 1000 + 450);
+}
+// One line of the song (as the words split it): the game plays it, then it's her turn.
+function pnCoachLine(i) {
+  const pn = U.pn; if (!pn?.words || i >= pn.notes.length) return;
+  const line = pn.words[i].line; let j = i; while (j < pn.notes.length && pn.words[j].line === line) j++;
+  pnShout("Listen...", "#7cf2ff"); lastSaid = ""; speak("Listen to me first.");
+  pnDemoRange(i, j, () => { if (U.pn !== pn) return; pnShout("Your turn!", "#ffd76a"); lastSaid = ""; speak("Your turn!"); });
+}
 function pnStart(stepN, lessonN = 0) {
   pnPrepSounds();
   const song = pnSong(), step = pnSteps(song)[stepN], text = step.t === "lesson" ? PN_LESSON[lessonN].notes : step.part !== undefined ? song.parts[step.part] : song.all;
@@ -2536,6 +2553,9 @@ function pnStart(stepN, lessonN = 0) {
   if (U.pn.words) notes.forEach((n, i) => { const w = U.pn.words[i].t; n.word = w === "~" ? "" : w.replace(/-$/, ""); });
   pnFingerPlan(notes); U.pn.fingers = true;
   render(); pnFrameStart();
+  // Listen and sing: the game plays the whole song with the words, and the step is done.
+  if (step.listen) { const pn0 = U.pn; pn0.needMic = false; setTimeout(() => { if (U.pn !== pn0) return; pnShout("Sing with me!", "#ff7ab6"); pnDemoRange(0, notes.length, () => { if (U.pn !== pn0) return; notes.forEach((n) => { n.done = true; n.hit = true; }); pn0.hits = notes.length; pn0.idx = notes.length; confetti(40); pnEnd(); }); }, 900); return; }
+  if (step.coach) { const pn0 = U.pn; setTimeout(() => { if (U.pn === pn0) pnCoachLine(0); }, 900); }
   if (!pnMic) pnMicOn();
 }
 // Piano Hero plays like Guitar Hero: glowing gems ride a lit highway down to the keys.
@@ -2908,7 +2928,7 @@ function pnWordsFor(song, step, count) {
 }
 function pnLyrPaint() {
   const pn = U.pn, el = document.getElementById("pnLyr"); if (!el || !pn?.words) return;
-  const at = pn.step.t === "beat" ? Math.max(0, pn.notes.findIndex((x) => !x.done)) : pn.idx, cur = Math.min(at, pn.words.length - 1);
+  const at = pn.lyrAt != null ? pn.lyrAt : pn.step.t === "beat" ? Math.max(0, pn.notes.findIndex((x) => !x.done)) : pn.idx, cur = Math.min(at, pn.words.length - 1);
   const key = `${cur}|${pn.ending ? 1 : 0}`; if (el.dataset.k === key) return; el.dataset.k = key;
   const line = pn.words[cur].line;
   // Held notes light the word they belong to.
@@ -2966,6 +2986,7 @@ function pnPress(m, fromMic) {
   const n = pn.notes[pn.idx]; if (!n) return;
   if (same(n.m, m)) {
     pnResolve(n, pn.wrongHere ? "GOOD" : "PERFECT", true); pn.idx++; pn.wrongHere = 0; pn.oops = 0; pnHoldStart(n);
+    if (pn.step.coach && pn.words && pn.idx < pn.notes.length && pn.words[pn.idx].line !== pn.words[pn.idx - 1].line) { const i = pn.idx; setTimeout(() => { if (U.pn === pn && pn.idx === i) { pnShout("Great line!", "#7dff8a"); setTimeout(() => { if (U.pn === pn && pn.idx === i) pnCoachLine(i); }, 900); } }, 400); }
     if (pn.idx >= pn.notes.length) { pn.ending = true; setTimeout(() => { if (U.pn === pn) pnEnd(); }, 700); }
   } else if (pnLittle()) { pn.oops = k; setTimeout(() => { if (U.pn === pn) { pn.oops = 0; pnPaint(); } }, 250); } else { if (pn.combo >= 8) pnCheer("lost"); pn.misses++; pn.wrongHere++; pn.combo = 0; n.flub = true; pn.oops = k; setTimeout(() => { if (U.pn === pn) { pn.oops = 0; pnPaint(); } }, 250); }
   pnPaint();
@@ -3653,7 +3674,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "752e3936e89e";
+const GAME_BUILD = "275a092f8ab8";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
