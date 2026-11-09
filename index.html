@@ -1525,9 +1525,12 @@ const lessonLabel = (l) => esc(l?.test ? l.bookLesson : `Lesson ${l?.bookLesson}
 const isCurrent = (l) => l.current && (!l.onlyOn || l.onlyOn === dateKey()) && (!l.startsOn || l.startsOn <= dateKey());
 function lessonFinished(l) { return l.rides.every((r) => optionalRide(r) || rideDone(l, r)); }
 // The lesson marked current is today's stop. After that, the first lesson still unfinished.
+const aheadLesson = (l) => l.current && !l.onlyOn && !lessonFinished(l);
 function currentIdx() {
   const today = LESSONS.findIndex((l) => isCurrent(l) && !lessonFinished(l));
   if (today >= 0) return today;
+  const ahead = LESSONS.findIndex(aheadLesson);
+  if (ahead >= 0) return ahead;
   const open = LESSONS.findIndex((l) => !lessonFinished(l));
   return open < 0 ? Math.max(0, LESSONS.length - 1) : open;
 }
@@ -3233,7 +3236,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "95a1d9e6f67a";
+const GAME_BUILD = "6ad1e033aa7f";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -3577,7 +3580,9 @@ const SPELLING_LISTS = [
 ];
 const SPELL_LINES = { 0: "Look at the word, then copy it.", 1: "Look hard. It's about to hide.", 2: "Now spell it from memory.", bee: "Spelling test time. No help on this one.", pretest: "Practice test. Just like Friday, but it doesn't count." };
 // A list with startsOn waits until that day, so a new week's words can be added before last week's test is taken.
-const spellLists = () => SPELLING_LISTS.filter((l) => (l.kid || "elliot") === KID.id && (!l.startsOn || l.startsOn <= dateKey()));
+const spellLists = () => { const mine = SPELLING_LISTS.filter((l) => (l.kid || "elliot") === KID.id); return mine.filter((l, i) => !l.startsOn || l.startsOn <= dateKey() || spellPrevTested(mine[i + 1])); };
+// The list before this one has had its graded test (on or after its make-up day, or this week), so the next list can open early.
+function spellPrevTested(prev) { if (!prev) return false; const bees = S.spelling?.lists?.[prev.id]?.bees || []; return bees.some((b) => !prev.testFrom || b.date >= prev.testFrom); }
 const spellList = () => spellLists()[0];
 // A word missed on a list's bee moves to the next list, and keeps moving until a bee gets it right.
 function spellCarried() {
