@@ -2240,6 +2240,24 @@ function pnSounding(short, rate, pc, rms, recent = [], long = null) {
 // The note he should play next is checked for directly, so it counts the moment it sounds, and a repeated note
 // counts again on each new strike. Any other note has to hold steady for about a third of a second before it
 // counts as a different note, so the blur while one note rings into the next never breaks a streak.
+// A piano key is struck by a hammer, so its sound starts with a sharp click of high sound in a few milliseconds.
+// A voice starts a word smoothly. Only a sharp start counts as a key, so singing along doesn't play the song
+// (Nathan, 2026-11-09). Returns how sudden the sharpest start in the buffer was, and how long ago it was.
+const PN_SHARP = 9;
+function pnSharpOnset(buf, rate) {
+  const W = 128, n = Math.floor(buf.length / W), e = new Float32Array(n);
+  for (let k = 0; k < n; k++) { let s = 0; for (let i = k * W + 1; i < (k + 1) * W; i++) { const d = buf[i] - buf[i - 1]; s += d * d; } e[k] = s / W; }
+  // The first window that reaches half its peak, compared with the sound 5 to 8 ms before it: a hammer gets there
+  // almost at once, a voice swells in over tens of milliseconds.
+  let best = 0, at = -1;
+  for (let k = 3; k < n - 1; k++) {
+    if (e[k] < 4e-8 || e[k] <= e[k - 1]) continue;
+    let peak = 0; for (let j = k; j < Math.min(n, k + 10); j++) peak = Math.max(peak, e[j]);
+    if (e[k] < peak * .5 || e[k - 1] >= peak * .5) continue;
+    const r = e[k] / (Math.max(e[k - 2], e[k - 3]) + 1e-10); if (r > best) { best = r; at = k; }
+  }
+  return { r: best, ago: at < 0 ? 0 : ((n - at) * W / rate) * 1000 };
+}
 function pnListen() {
   if (U.view !== "piano") return pnMicOff();
   const mic = pnMic; if (!mic || U.pn?.hearing) return;
@@ -2250,13 +2268,15 @@ function pnListen() {
   const rms = Math.sqrt(sum / mic.buf.length), lvl = document.getElementById("pnLvl"); if (lvl) lvl.style.width = `${Math.min(100, rms * 1500).toFixed(0)}%`;
   mic.loudest = Math.max(mic.loudest || 0, rms);
   mic.frames = (mic.frames || 0) + 1; if (rms >= .003) mic.loud = (mic.loud || 0) + 1;
-  if (mic.frames % 80 === 0) { pnDiag({ ctx: mic.ctx?.state, loudest: +mic.loudest.toFixed(5), loudFrames: mic.loud || 0, frames: mic.frames, pitched: mic.pitched || 0, notes: (mic.heard || []).join(" ") }); save(); }
+  if (mic.frames % 80 === 0) { pnDiag({ ctx: mic.ctx?.state, loudest: +mic.loudest.toFixed(5), loudFrames: mic.loud || 0, frames: mic.frames, pitched: mic.pitched || 0, strikes: mic.strikes || 0, notes: (mic.heard || []).join(" ") }); save(); }
   if (hear && mic.ctx && mic.ctx.state !== "running") hear.textContent = "Tap the screen to wake the microphone";
   else if (hear && mic.loudest < .0005 && Date.now() - mic.startedAt > 4000) hear.textContent = "No sound is coming in. Try Safari, or close and reopen Chrome.";
   const prev = mic.prev || 0, low = mic.low ?? rms, now = Date.now();
   const attack = rms > .004 && (rms > mic.env * 1.35 || (rms > prev * 1.25 && rms - prev > .0015));
   mic.env = Math.max(rms, mic.env * .82); mic.prev = rms; mic.low = Math.min(low, rms);
   if (attack) mic.struck = now;
+  { const so = pnSharpOnset(mic.full || mic.buf, rate); if (so.r > PN_SHARP) { const at = now - so.ago; if (at - (mic.sharpAt || 0) > 120) mic.strikes = (mic.strikes || 0) + 1; mic.sharpAt = Math.max(mic.sharpAt || 0, at); } }
+  const strike = mic.sharpAt || 0;
   if (rms < .0025) { mic.last = 0; mic.lastPc = -1; mic.cand = 0; return; }
   const heard = (m, how) => {
     const pc = ((m % 12) + 12) % 12;
@@ -2268,14 +2288,14 @@ function pnListen() {
   // 0. A chord in a lesson: every one of its notes sounding together, after a new strike.
   const chord = U.pn?.screen === "lesson" ? pnLesItem() : null;
   if (Array.isArray(chord)) {
-    if ((mic.struck || 0) > (mic.acceptAt || 0) - 50 && now - (mic.acceptAt || 0) > 250) {
+    if (strike > (mic.acceptAt || 0) - 50 && now - (mic.acceptAt || 0) > 250) {
       const all = chord.every((m) => { const r = pnSounding(mic.buf, rate, ((m % 12) + 12) % 12, rms * .45, chord.map((x) => ((x % 12) + 12) % 12), mic.full); return r.ok; });
       if (all) { mic.acceptAt = now; mic.lastPc = -1; mic.recent = chord.map((m) => ((m % 12) + 12) % 12); if (hear) hear.textContent = "I hear: a chord!"; return pnLesHit("chord"); }
     }
     return;
   }
   // 1. The right note, checked directly.
-  const exp = pnExpected(), struckSince = (mic.struck || 0) > (mic.acceptAt || 0);
+  const exp = pnExpected(), struckSince = strike > (mic.acceptAt || 0);
   if ((U.pn?.screen === "play" || U.pn?.screen === "lesson") && exp.size && now - (mic.acceptAt || 0) > 110) {
     mic.okPrev = mic.okPrev || {};
     for (const pc of exp) {
@@ -2285,7 +2305,7 @@ function pnListen() {
       const same = r.ok && was && was.m === r.m && now - was.at < 140 && Math.abs(r.off - was.off) < 10;
       // Three steady listens, or two when the note clearly rules the sound right after a fresh strike (fast songs).
       const run = same ? (was.n || 1) + 1 : r.ok ? 1 : 0, strong = r.a > .45 * rms * Math.SQRT2;
-      const steady = run >= 3 || (run >= 2 && strong && now - Math.max(mic.struck || 0, (mic.offAt || {})[pc] || 0) < 200);
+      const steady = run >= 3 || (run >= 2 && strong && now - strike < 320);
       mic.okPrev[pc] = r.ok ? { m: r.m, at: now, off: r.off, n: run } : null;
       // The note appearing out of nothing is a key being struck too, even when the overall loudness barely changes.
       mic.offAt = mic.offAt || {}; if (!r.ok) mic.offAt[pc] = now;
@@ -2298,8 +2318,8 @@ function pnListen() {
         mic.pcPrev = a; mic.pcLow = now - (mic.acceptAt || 0) < 120 ? a : lowA;
         if (now - (mic.acceptAt || 0) < 120 || now - pnTickAt < 160) continue;
         if (r.loose && a > prevA * 1.2 && a > lowA * 1.3 && a - prevA > .001) mic.repeatArm = now;
-        if (!(r.loose && now - (mic.repeatArm || 0) < 200 && (now - (mic.struck || 0) < 300 || a > prevA * 1.2))) continue;
-      } else if (!(steady && (now - (mic.struck || 0) < 450 || appeared))) continue;
+        if (!(r.loose && now - (mic.repeatArm || 0) < 200 && now - strike < 420)) continue;
+      } else if (!(steady && now - strike < 600)) continue;
       mic.pitched = (mic.pitched || 0) + 1; mic.repeatArm = 0; return heard(r.m, "");
     }
   }
@@ -2308,7 +2328,7 @@ function pnListen() {
   const f = pnDetect(mic.buf, rate); if (!f) return;
   const m = Math.round(69 + 12 * Math.log2(f / 440)), pc = ((m % 12) + 12) % 12;
   mic.pitched = (mic.pitched || 0) + 1;
-  if (m !== mic.cand) { mic.cand = m; mic.candN = 1; mic.candStruck = now - (mic.struck || 0) < 250; return; }
+  if (m !== mic.cand) { mic.cand = m; mic.candN = 1; mic.candStruck = now - strike < 250; return; }
   mic.candN = (mic.candN || 1) + 1;
   const playing = U.pn?.screen === "play" || (U.pn?.screen === "lesson" && pnLesItem() !== "any");
   if (playing && exp.has(pc)) return; // the direct check above decides the right notes
@@ -3543,7 +3563,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "5f339f172a2a";
+const GAME_BUILD = "32c3dcdd8c36";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
