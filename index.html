@@ -715,7 +715,7 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .gametime svg{width:26px;height:26px;color:#ffd23f;flex:none}.gametime b{font-size:1.02rem}.gametime small{margin-left:auto;font-size:.88rem;opacity:.9}
 .gameclock{font-size:1.15rem;color:#ffd23f;font-variant-numeric:tabular-nums;background:#12142b;border-radius:8px;padding:1px 9px}
 .gametime.closed{background:rgba(128,128,128,.16);border-color:rgba(128,128,128,.55)}.gametime.closed svg{color:#9aa0ad}
-.gamechip.lessondone{background:#1f9a4f}.statesanswers .btn.go:disabled{opacity:1;filter:none;box-shadow:0 0 0 4px #ffd76a}.todayrow{display:flex;gap:10px}.todayrow .btn{flex:1;min-height:52px;font-size:1.1rem}.noraitem{outline:3px solid #ffd76a;outline-offset:-3px}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit;font-size:1.05rem;min-height:52px;padding:6px 18px}.lessonchips .morechip{background:transparent;box-shadow:inset 0 0 0 2px var(--panel2)}
+.gamechip.lessondone{background:#1f9a4f}.statesanswers .btn.go:disabled{opacity:1;filter:none;box-shadow:0 0 0 4px #ffd76a}.schoolroom{background:linear-gradient(#d9a46c 0 64%,#8a5a34 64%);border:6px solid #5a3a1e;border-radius:14px;padding:16px}.chalkboard{display:grid;gap:2px;max-width:640px;margin:0 auto 16px;padding:12px;background:#23402f;border:8px solid #8a5a34;border-radius:6px;color:#f4f4ea;text-align:center;font-family:Rye,Georgia,serif}.chalkboard b{font-size:1.6rem;font-weight:400}.chalkboard span{font-size:1.1rem;color:#ffe7a8}.desks{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}.desk{position:relative;display:grid;justify-items:center;align-content:center;gap:4px;min-height:150px;padding:12px;background:#f4e4bd;border:3px solid #5a3a1e;border-radius:12px;color:#2c1a0e;font:inherit;cursor:pointer}.desk svg{width:90px}.desk b{font-family:Rye,Georgia,serif;font-weight:400;font-size:1.2rem}.desk small{font-weight:700;color:#5a3a1e}.desk.next{outline:6px solid #ffd76a}.desk.done{background:#cfe9d4}.desk:disabled{opacity:.55;cursor:default}.desk .nextchip{position:absolute;top:8px;left:8px}.deskcheck{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#1f9a4f;color:#fff;font-style:normal;font-weight:800}.todayrow{display:flex;gap:10px}.todayrow .btn{flex:1;min-height:52px;font-size:1.1rem}.noraitem{outline:3px solid #ffd76a;outline-offset:-3px}.lessonchips .gamechip{cursor:pointer;border:0;font:inherit;font-size:1.05rem;min-height:52px;padding:6px 18px}.lessonchips .morechip{background:transparent;box-shadow:inset 0 0 0 2px var(--panel2)}
 @media (orientation:landscape) and (min-width:800px){.gamepicks.sixup{grid-template-columns:repeat(3,minmax(0,1fr))}.gamepicks.sixup .gameart{aspect-ratio:auto;height:clamp(70px,19vh,150px)}.gamepicks.sixup .gametext{padding:5px 10px}.gamepicks.sixup h3{font-size:1.05rem}.gamepicks.sixup .sub{font-size:.82rem}}
 .statesbar{margin:0;font-weight:800;text-align:center;color:var(--gold)}
 .statesmapwrap{position:relative;flex:1;min-height:0;display:flex;justify-content:center}.statesmapwrap .biblemap{flex:0 1 auto;width:auto;max-width:100%;height:calc(var(--appH,100dvh) - 215px);margin:0 auto;background:#8ec1dd;border-radius:12px}
@@ -3299,7 +3299,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8379223a18d3";
+const GAME_BUILD = "acc75840c129";
 function checkForUpdate() {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4209,6 +4209,18 @@ function townMapSvg(l) {
     ${ranchStop(1045, 122, 122)}
     ${riderToken()}</svg>`;
 }
+// Grammar happens inside the town's schoolhouse, with one desk per section and no map of its own (Nathan, 2026-11-09:
+// one US map, each state's town, and the buildings inside it).
+const DESK = `<svg viewBox="0 0 60 44" aria-hidden="true"><rect x="18" y="3" width="24" height="11" rx="1" fill="#fff" stroke="#5a3a1e"/><path d="M22 7h16M22 10.500h11" stroke="#8a5a34"/><rect x="5" y="14" width="50" height="8" rx="2" fill="#8a5a34" stroke="#5a3a1e"/><rect x="10" y="22" width="5" height="19" fill="#5a3a1e"/><rect x="45" y="22" width="5" height="19" fill="#5a3a1e"/></svg>`;
+function schoolRoom(l) {
+  const lp = LP(l.id), nx = nextRide(l);
+  const desks = l.rides.map((r) => {
+    const done = rideDone(l, r), locked = r.after && !lp.rides[r.after], next = nx && nx.id === r.id, solved = r.problems ? r.problems.filter((id) => PP(lp, id).done).length : 0;
+    const sub = done ? "Finished" : locked ? "Finish the one before first" : r.problems && solved ? `${solved} of ${r.problems.length} solved` : r.blurb || "";
+    return `<button class="desk ${done ? "done" : ""} ${next ? "next" : ""}" ${locked ? "disabled" : `data-act="ride" data-id="${r.id}"`}>${next ? `<span class="nextchip">Next up</span>` : ""}${done ? `<i class="deskcheck">&#10003;</i>` : ""}${DESK}<b>${esc(r.name)}</b><small>${esc(sub)}</small></button>`;
+  }).join("");
+  return `<div class="schoolroom"><div class="chalkboard"><b>${esc(l.hostTown ? `${l.hostTown} Schoolhouse` : "The Schoolhouse")}</b><span>Grammar &#183; ${esc(l.town)}</span></div><div class="desks">${desks}</div></div>`;
+}
 // Every town has a chapel for Bible history and, on a math lesson's day, a schoolhouse for that day's grammar
 // (Nathan, 2026-11-09). They go in the open ground farthest from the trail stops.
 function townExtras(l, pts) {
@@ -4280,9 +4292,9 @@ const ranchStop = (x, y, w) => { const h = w * .6; return `<g class="stop" data-
 const navRight = () => `<span class="navright"><span class="chip nug"><i></i>$${S.nuggets}</span>${U.view === "school" ? "" : `<button class="btn go small" data-act="view" data-v="school">School Day</button>`}<button class="btn dark small" data-act="view" data-v="arcade"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V8h18v13" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2 8l3-5h14l3 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 12h5v7l-5-1.500zM18 12h-5v7l5-1.500z" fill="currentColor"/></svg>${GAMES_NAME}</button>${LESSONS.length ? `<button class="btn dark small" data-act="view" data-v="store"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M5 10v11h14V10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 21v-6h4v6" fill="currentColor"/></svg>General Store</button>` : ""}<button class="btn dark small" data-act="trophyOpen"><svg viewBox="-30 -34 60 64" aria-hidden="true">${PRIZE_ART["Rodeo Trophy"]}</svg>${U.view === "town" ? "Trophies" : "All Trophies"}</button></span>`;
 function townView() {
   const l = curLesson(), lp = LP(l.id), learned = !!lp.rides.learn, at = LESSONS.indexOf(l), prev = LESSONS[at - 1], nxt = LESSONS[at + 1];
-  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" || l.place ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}${(() => { const o = l.hostId ? ALL_LESSONS.find((x) => x.id === l.hostId) : ALL_LESSONS.find((x) => x.hostId === l.id && (x.kid || "elliot") === KID.id); return o ? `<button class="btn dark small" data-act="town" data-id="${esc(o.id)}">${o.subject === "grammar" ? `Grammar here: ${esc(o.town)}` : `Math here: ${esc(o.town)}`}</button>` : ""; })()}</span>${navRight()}</div>
+  return `<div class="hud"><span class="row-btns">${SUBJECT === "math" || l.place ? `<button class="btn dark small mapbtn" data-act="view" data-v="home">US map</button>` : ""}${(() => { const o = l.hostId ? ALL_LESSONS.find((x) => x.id === l.hostId) : ALL_LESSONS.find((x) => x.hostId === l.id && (x.kid || "elliot") === KID.id); return o ? `<button class="btn dark small" data-act="town" data-id="${esc(o.id)}">${o.subject === "grammar" ? `Schoolhouse: ${esc(o.town)}` : `&#9664; Back to ${esc(o.town)}`}</button>` : ""; })()}</span>${navRight()}</div>
   ${(() => { const nx = nextRide(l), must = l.rides.filter((r) => !optionalRide(r)), n = must.filter((r) => rideDone(l, r)).length; return bubble(lessonFinished(l) ? "Town's clean. Every section is finished. Nice work, boss." : (() => { const near = must.find((r) => r.problems && !rideDone(l, r) && r.problems.filter((id) => !PP(lp, id).done).length === 1); return near ? `${near.name} has just 1 problem left! You're almost done with it.` : `${n} of ${must.length} sections finished. Next up: ${nx?.name || "pick any stop"}.`; })()); })()}
-  ${townMapSvg(l)}
+  ${(l.subject || "math") === "grammar" ? schoolRoom(l) : townMapSvg(l)}
   ${l.problems.some((q) => PP(lp, q.id).done) ? `<button class="btn dark wide" data-act="lessonReview" data-id="${esc(l.id)}">See all the work and the ranch</button>` : ""}
   ${lessonFinished(l) ? `<div class="console"><p class="tag">True story: ${esc(l.story.title)}</p><p>${esc(l.story.text)}</p></div>` : ""}`;
 }
