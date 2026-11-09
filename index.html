@@ -2042,6 +2042,9 @@ function pnMySong(r) {
 const pnLittle = () => KID.id === "myla";
 const PN_LITTLE = [
   { id: "jingle", title: "Jingle Bells", by: "Christmas song", bpm: 80, any: true, little: true, xmas: true, parts: ["E E E:2 E E E:2 E G C D E:4"], pay: 10 },
+  { id: "ljoy", title: "Joy to the World", by: "Christmas carol", bpm: 72, any: true, little: true, xmas: true, parts: ["C5 B A G:1.5 F:.5 E D C:2 G:.5 A:1.5 A:.5 B:1.5 B:.5 C5:2"], pay: 10 },
+  { id: "lwish", title: "We Wish You a Merry Christmas", by: "Christmas carol", bpm: 84, meter: 3, pickup: 1, any: true, little: true, xmas: true, parts: ["C F F:.5 G:.5 F:.5 E:.5 D D C:.5 C:.5 D G E F:3"], pay: 10 },
+  { id: "ldeck", title: "Deck the Halls", by: "Christmas carol", bpm: 84, any: true, little: true, xmas: true, parts: ["G:1.5 F:.5 E D C D E C:2 G:1.5 F:.5 E D C D E C:2"], pay: 10 },
   { id: "hcb", title: "Hot Cross Buns", by: "Nursery rhyme", bpm: 80, any: true, little: true, parts: ["E D C:2 E D C:2 C:.5 C:.5 C:.5 C:.5 D:.5 D:.5 D:.5 D:.5 E D C:2"], pay: 10 },
   { id: "rain", title: "Rain, Rain, Go Away", by: "Nursery rhyme", bpm: 80, any: true, little: true, parts: ["G E:2 G G E:2 G G E E G G E:2"], pay: 10 },
   { id: "lamb", title: "Mary's Little Lamb", by: "American folk song", bpm: 80, any: true, little: true, parts: ["E D C D E E E:2 D D D:2 E G G:2"], pay: 10 },
@@ -2165,7 +2168,7 @@ function pnArt(id) {
   art.hcb = `${g("#ffb36b", "#ffe2b0")}${[[38, 60], [60, 52], [82, 60], [49, 78], [71, 78]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="#d9a35a" stroke="#8a5a2b" stroke-width="2"/><path d="M${x - 8} ${y}h16M${x} ${y - 8}v16" stroke="#fff3d9" stroke-width="3"/>`).join("")}`;
   art.rain = `${g("#7fa6c9", "#c9dcec")}<ellipse cx="60" cy="40" rx="34" ry="16" fill="#fff"/><ellipse cx="44" cy="44" rx="18" ry="12" fill="#fff"/>${[[40, 70], [56, 82], [72, 70], [86, 86], [48, 98]].map(([x, y]) => `<path d="M${x} ${y}q-5 8 0 10q5-2 0-10z" fill="#3a8fd0"/>`).join("")}<path d="M60 86v24M44 92q16-16 32 0" stroke="#e8303c" stroke-width="5" fill="none"/>`;
   art.lamb = art.mary;
-  art.jingle = art.bells;
+  art.jingle = art.bells; art.ljoy = art.joy; art.lwish = art.wish; art.ldeck = art.deck;
   art.twinkle = `${g("#1d2a6a", "#0b1236")}${[[20, 24], [96, 30], [30, 92], [100, 96], [70, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`).join("")}<path d="M60 26L69 50 94 50 74 65 82 90 60 75 38 90 46 65 26 50 51 50Z" fill="#ffd23f" stroke="#fff3b0" stroke-width="3"/><circle cx="53" cy="58" r="3" fill="#1c1712"/><circle cx="67" cy="58" r="3" fill="#1c1712"/><path d="M53 67q7 6 14 0" stroke="#1c1712" stroke-width="2.5" fill="none"/>`;
   return `<svg viewBox="0 0 120 120" aria-hidden="true">${art[id] || art.ode}</svg>`;
 }
@@ -2924,6 +2927,9 @@ const PN_WORDS = {
   grace: { parts: ["A- maz- ing ~ grace, how sweet the sound", "That saved a ~ wretch like me!", "I once ~ was ~ lost, but now ~ am ~ found,", "Was blind, but ~ now I see."] },
   jesus: { parts: ["Je- sus loves me, this I know, / for the Bi- ble tells me so.", "Lit- tle ones to Him be- long; / they are weak, but He is strong.", "Yes, Je- sus loves me! / Yes, Je- sus loves me!", "Yes, Je- sus loves me! / The Bi- ble tells me so."] },
   jingle: { parts: ["Jin- gle bells, / jin- gle bells, / jin- gle all the way!"] },
+  ljoy: { parts: ["Joy to the world! The Lord is come; / let earth re- ceive her King!"] },
+  lwish: { parts: ["We wish you a mer- ry Christ- mas, / and a hap- py New Year!"] },
+  ldeck: { parts: ["Deck the halls with boughs of hol- ly, / 'Tis the sea- son to be jol- ly!"] },
   hcb: { parts: ["Hot cross buns, / hot cross buns, / one a pen- ny, two a pen- ny, / hot cross buns!"] },
   rain: { parts: ["Rain, rain, go a- way, / come a- gain an- oth- er day."] },
   lamb: { parts: ["Ma- ry had a lit- tle lamb, / lit- tle lamb, lit- tle lamb!"] },
@@ -3717,7 +3723,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "c2e0e0038fd1";
+const GAME_BUILD = "5bb86d8cc94b";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
