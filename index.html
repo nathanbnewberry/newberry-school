@@ -1299,6 +1299,15 @@ function playVoice(t, voice = "david", done = () => {}, onWord = null) {
 function audioForPlaying() { try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {} }
 audioForPlaying();
 // The Presidents game has its own presidential narrator (Nathan, 2026-11-10); everywhere else it's Silver.
+// Says one line, then another, as two clips (a quoted sentence has no end mark, so they can't be joined into one).
+function speakThen(a, b) {
+  const key = `${a} ${b}`; if (key === lastSaid) return; lastSaid = key;
+  try {
+    if (S.voice === false || S.muted) { followWords(key); return; }
+    clearInterval(sayTimer); sayText = key; sayIdx = 0; markWord(); document.body.classList.add("talking");
+    playVoice(a, "david", () => playVoice(b, "david", endWords));
+  } catch (e) {}
+}
 function speak(t, force, voice = U?.view === "presidents" ? "pres" : "david") {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
@@ -1681,7 +1690,7 @@ function endRide() {
   if (r.kind === "warmup") { const ms = Date.now() - U.drawT; U.drawMs = ms; if (lp.drawBest == null || ms < lp.drawBest) lp.drawBest = ms; }
   if (!lp.rides[r.id]) earn(50);
   lp.rides[r.id] = true;
-  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; U.hugLine = pick(NORA_CHEERS); render(); window.scrollTo(0, 0); confetti(60); crowdSound(true); lastSaid = ""; speak(U.hugLine, false, "nora");
+  save(); U.qid = null; U.view = "rideEnd"; beep(FANFARE); confetti(40); worldBoost(pick(["CAUGHT 'EM!", "GOTCHA!", "OUTLAW DOWN!"])); W.targetGap = .9; U.hugLine = NO_NORA() ? pick(["Great riding! That section is done.", "Yee-haw! You got them all!", "Way to go! On to the next one."]) : pick(NORA_CHEERS); render(); window.scrollTo(0, 0); confetti(60); crowdSound(true); lastSaid = ""; speak(U.hugLine, false, NO_NORA() ? "david" : "nora");
 }
 
 /* ---------- pictures ---------- */
@@ -3720,9 +3729,9 @@ function schoolOtherDay(off) {
   const name = date.toLocaleDateString(undefined, { weekday: "long" });
   const card = (x) => { const st = past && rec ? itemStatus(x, rec) : null; return `<button class="daycard ${st?.done ? "done" : ""}" data-act="dayGo" data-id="${esc(x.id)}" data-date="${key}"><svg class="dayicon" viewBox="0 0 24 24" aria-hidden="true">${SCHOOL_ICONS[x.icon] || SCHOOL_ICONS.task}</svg><span class="daytext"><b>${esc(x.name)}</b><small>${esc(st ? st.label : past ? "Not done" : plannedLabel(x, date))}</small></span><span class="daycheck">${st?.done ? "&#10003;" : ""}</span></button>`; };
   const line = !items.length ? `No school on the plan for ${name}.` : past ? `Here's how ${name} went. Tap one to catch up.` : `Here's the plan for ${name}. Want to get ahead? Tap one to start.`;
-  const ml = (rec?.mathLesson && ALL_LESSONS.find((l) => l.id === rec.mathLesson)) || (items.some((x) => x.kind === "math") ? plannedLesson("math", date) : null);
+  const ml = items.some((x) => x.kind === "math") ? (rec?.mathLesson && ALL_LESSONS.find((l) => l.id === rec.mathLesson)) || plannedLesson("math", date) : null;
   if (ml) U.lesson = ml.id;
-  const map = ml ? `<div class="sdmap">${townMapSvg(ml, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(ml.id)}">Open ${esc(ml.town)} &#9654;</button></div>` : items.length ? `<div class="sdnomap"><b>${esc(name)}'s adventure</b><span>Coming soon! This day's lesson isn't loaded yet.</span></div>` : "";
+  const map = ml ? `<div class="sdmap">${townMapSvg(ml, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(ml.id)}">Open ${esc(ml.town)} &#9654;</button></div>` : items.length && items.some((x) => x.kind === "math") ? `<div class="sdnomap"><b>${esc(name)}'s adventure</b><span>Coming soon! This day's lesson isn't loaded yet.</span></div>` : "";
   speak(line); U.lastBubble = line;
   return `<div class="sdtop"><div class="sddate">${dayNavHead(date, off)}</div><button class="btn dark small daytoday" data-act="dayOff" data-d="${-off}">Back to today</button>${navRight()}</div><div class="sdmain ${map ? "" : "nomap"}"><div class="daycards">${items.map(card).join("")}</div>${map ? `<div class="sdside">${map}</div>` : ""}</div>`;
 }
@@ -3747,7 +3756,9 @@ function schoolView() {
   // subject icons, and today's adventure map (the town for today's math lesson) beside the cards.
   // The map shows today's math town (the lesson on today's math card), even after it's finished. When he's done
   // with it, a Work ahead button opens the next lesson (Nathan, 2026-11-09: Austin showed while Santa Fe was today's).
-  const ahead = LESSONS[currentIdx()], tl = (day.mathLesson && LESSONS.find((l) => l.id === day.mathLesson)) || ahead;
+  // No math on today's plan (Finley, Myla), no math map: the cards stand alone (Nathan, 2026-11-10).
+  const mathOn = items.some((x) => x.kind === "math");
+  const ahead = mathOn ? LESSONS[currentIdx()] : null, tl = mathOn ? (day.mathLesson && LESSONS.find((l) => l.id === day.mathLesson)) || ahead : null;
   if (tl) U.lesson = tl.id;
   const todayMap = tl ? `<div class="sdmap">${townMapSvg(tl, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(tl.id)}">Open ${esc(tl.town)} &#9654;</button>${ahead && ahead !== tl ? `<button class="sdopen sdahead" data-act="town" data-id="${esc(ahead.id)}">Work ahead: ${esc(ahead.town)} &#9654;</button>` : ""}</div>` : "";
   // Silver still says the line; it just doesn't take a row of the screen (Nathan, 2026-11-09: condense the top).
@@ -3756,7 +3767,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "ad4c9ddd6792";
+const GAME_BUILD = "d1c45e8ebe38";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4054,7 +4065,7 @@ function meView() {
   if (tab === "biz") { const inc = bizIncome(); body = `<p class="mebiz">${inc ? `Your businesses pay <b>$${inc}</b> every day you finish all your school.` : "Buy a business and it pays you every day you finish all your school. Grow it to earn more."}</p><div class="megrid">${BIZ.map((b) => { const lv = bizLevel(b.id), max = lv >= BIZ_MAX, cost = bizNext(b); return `<div class="item ${lv ? "owned" : ""}"><span class="bizic">${b.icon}</span><div class="itemtext"><b>${esc(b.name)}</b><span class="sub">${lv ? `Level ${lv} &#183; pays $${b.pay * lv} a day` : `Pays $${b.pay} a day`}</span><span class="stars">${Array.from({ length: BIZ_MAX }, (_, n) => (n < lv ? "&#9733;" : "&#9734;")).join("")}</span></div>${max ? `<span class="builtmark">&#10003; Biggest</span>` : `<button class="btn small" data-act="bizBuy" data-id="${b.id}" ${S.nuggets < cost ? "disabled" : ""}>${lv ? "Grow" : "Buy"} $${cost}</button>`}</div>`; }).join("")}</div>`; }
   return `<div class="hud storehud mehud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>My Cowboy</h2>${nug}${familyKids().length > 1 ? `<button class="btn go small" data-act="kidOut">&#128101; Switch player</button>` : ""}<button class="btn dark small" data-act="view" data-v="parent">Parents</button></div><div class="mewrap"><div class="mehero"><svg viewBox="-36 -58 72 76" aria-hidden="true">${riderToken(false).replace('id="token"', "")}</svg><b>${esc(KID.name)}</b><button class="btn small dark" data-act="view" data-v="store">&#127968; Build my ranch</button></div><div class="mebody"><div class="metabs">${tabs}</div>${body}</div></div>`;
 }
-const riderToken = (withNora = true) => { const base = cowboyToken(); if (KNIGHT) return base.slice(0, base.indexOf('<rect x="-8" y="-29"')) + KNIGHT_RIDER; return withNora && S.noraHorse ? base.replace('<g class="bob" transform="scale(1.35)">', (m) => m + noraOnHorse()) : base; };
+const riderToken = (withNora = true) => { const base = cowboyToken(); if (KNIGHT) return base.slice(0, base.indexOf('<rect x="-8" y="-29"')) + KNIGHT_RIDER; return withNora && S.noraHorse && !NO_NORA() ? base.replace('<g class="bob" transform="scale(1.35)">', (m) => m + noraOnHorse()) : base; };
 const cowboyToken = () => `<g id="token"><g class="bob" transform="scale(1.35)"><ellipse cy="14" rx="20" ry="5" fill="rgba(58,36,18,.35)"/><path d="M-20 -2c0-8 7-11 15-11h13l9-11 8 3-4 5 5 3-3 5-6-2-5 7v15h-5l-1-10H-9l-1 10h-5l-2-10z" fill="${lk("horse")}" stroke="#3a3f4a" stroke-width="1.1" stroke-linejoin="round"/><path d="M-20-7c-7 1-10 7-9 14 4-3 6-6 9-8z" fill="${MANE[lk("horse")]}" stroke="#3a3f4a" stroke-width=".8"/><path d="M8-13l9-11 4 2-8 10z" fill="${MANE[lk("horse")]}"/><rect x="-8" y="-29" width="12" height="17" rx="3" fill="${S.worn.jersey ? "#c8202c" : lk("shirt")}" stroke="#3a3f4a" stroke-width=".8"/><path d="M-7-29h10l-5 6z" fill="${lk("bandana")}"/><circle cx="-2" cy="-35" r="7" fill="${lk("skin")}"/><rect x="-8" y="-38.500" width="12.500" height="4" rx="1.500" fill="#15171b"/><circle cx="1" cy="-36.500" r="1" fill="${lk("skin")}"/><ellipse cx="-2" cy="-40" rx="12" ry="2.800" fill="${S.worn.blackhat ? "#23222a" : lk("hat")}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-48" width="10" height="8" rx="3" fill="${S.worn.blackhat ? "#23222a" : lk("hat")}" stroke="#3a3f4a" stroke-width=".8"/><rect x="-7" y="-42.500" width="10" height="2" fill="#15171b"/>${GEAR.find((g) => g.id === S.look?.weapon && gearOwned(g.id))?.draw || ""}</g></g>`;
 const label = (x, y, text, sub = "", col = "") => { const w = Math.max(String(text).length * 12.5, String(sub).length * 8.6) + 30; return `<g transform="translate(${x} ${y})" pointer-events="none" style="font-family:var(--body)"><rect x="${-w / 2}" y="-21" width="${w}" height="${sub ? 48 : 30}" rx="15" fill="rgba(255,252,244,.92)" stroke="rgba(44,26,14,.18)" stroke-width="1.500"/><text text-anchor="middle" font-size="20" font-weight="800" fill="#2c1a0e">${esc(text)}</text>${sub ? `<text y="19" text-anchor="middle" font-size="14" font-weight="700" fill="${col || "#7a5a3a"}">${esc(sub)}</text>` : ""}</g>`; };
 const doneMark = (x, y) => `<g transform="translate(${x} ${y})"><circle r="15" fill="#1f9a4f" stroke="#fff" stroke-width="3"/><path d="M-7 0l5 6 10-12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>`;
@@ -5537,7 +5548,7 @@ function trailWords(done, total) {
 function progressTrail(r, lp) {
   const total = r.problems.length, done = r.problems.filter((id) => PP(lp, id).done).length, left = total - done, pct = total ? (done / total) * 100 : 0;
   U.trailAt = U.trailAt || {}; const from = U.trailAt[r.id] ?? pct; U.trailAt[r.id] = pct;
-  return `<div class="ptrail ${left <= 1 ? "close" : ""} ${left === 0 ? "won" : ""}" aria-label="${done} of ${total} problems done"><div class="pline"><div class="ptrack">${r.problems.map((id, n) => `<i class="${n < done ? "on" : n === done ? "now" : ""}"></i>`).join("")}</div><div class="prider" style="--from:${from}%;--to:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></div><svg class="pnora" viewBox="-13 -40 26 42" aria-hidden="true"><path d="M-3.500-27h7l3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="pnoraarm" d="M3-25l6-8" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></svg></div><p class="pmsg"><b>${done} of ${total}</b> ${esc(trailWords(done, total))}</p></div>`;
+  return `<div class="ptrail ${left <= 1 ? "close" : ""} ${left === 0 ? "won" : ""}" aria-label="${done} of ${total} problems done"><div class="pline"><div class="ptrack">${r.problems.map((id, n) => `<i class="${n < done ? "on" : n === done ? "now" : ""}"></i>`).join("")}</div><div class="prider" style="--from:${from}%;--to:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></div>${NO_NORA() ? "" : `<svg class="pnora" viewBox="-13 -40 26 42" aria-hidden="true"><path d="M-3.500-27h7l3 13 3 14h-16l3-14z" fill="#2f7f96"/><path d="M-4-22h8v2h-8z" fill="#fff3d9"/><path d="M-3-29c-2 3-2 8-1 11h2l-1-11z" fill="#6b3f1d"/><circle cy="-32" r="5" fill="#f0c9a4"/><path d="M-5-33c0-5 9-6 10-1-3-1-6-1-7 0z" fill="#6b3f1d"/><path class="pnoraarm" d="M3-25l6-8" stroke="#2f7f96" stroke-width="2.500" stroke-linecap="round"/></svg>`}</div><p class="pmsg"><b>${done} of ${total}</b> ${esc(trailWords(done, total))}</p></div>`;
 }
 function focusDots() { return ""; }
 function problemHead(q, inBig) {
@@ -5729,7 +5740,10 @@ function solveView(l, q) {
     return top + bubble(U.msg || q.note || "Tap each word that needs a capital.", U.msg ? "shake" : "") + `<div class="bookpage"><div class="tapwords">${words.map((w, i) => `<button class="tapword ${U.capsOn.includes(i) ? "on" : ""}" data-act="tapWord" data-i="${i}">${esc(U.capsOn.includes(i) ? w[0].toUpperCase() + w.slice(1) : w)}</button>`).join("")}</div><div class="actions"><button class="btn go" data-act="check">SHOOT</button></div></div>`;
   }
   const readIt = !q.book && !U.msg && !U.coachDone;
-  const say = (t, cls) => { const html = bubble(t, cls, readIt); if (readIt) { U.lastBubble = q.prompt; speak(q.prompt); } return html; };
+  // Grammar reads the problem and then its question (the note), and the bubble shows the question, so a prompt that is
+  // only a sentence in quotes still gets asked (Nathan, 2026-11-10: "it doesn't actually tell the question").
+  const ask = SUBJECT === "grammar" && q.note && !U.coachDone ? q.note : "";
+  const say = (t, cls) => { const html = bubble(ask && readIt ? ask : t, cls, readIt); if (readIt) { U.lastBubble = ask ? `${q.prompt} ${ask}` : q.prompt; if (ask) speakThen(q.prompt, ask); else speak(q.prompt); } return html; };
   if (q.paper) return top + bubble(U.coachDone ? "Same shape, same size. You've got this." : U.line) + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}<button class="btn go wide" data-act="paper">I DREW IT</button>${help}${later}</div>`;
   if (q.choices) return top + say(U.line, U.msg && U.msg !== U.hintText ? "shake" : "") + `<div class="bookpage">${problemHead(q, null)}${visual(q.picture)}${scratchHtml()}<div class="choices ${q.choices.some((o) => o.length > 30) ? "longc" : ""}">${mixed(q.choices, `${U.lesson}|${q.id}`).map((o) => `<button data-act="finalPick" data-c="${esc(o)}" ${U.off.includes(o) ? "disabled" : ""}>${esc(o)}</button>`).join("")}</div>${help}${later}</div>`;
   return top + say(U.line, U.msg && U.msg !== U.hintText ? "shake" : "") + `<div class="bookpage">${problemHead(q, U.draft)}${U.coachDone && c.boards?.length ? boardHtml(c, c.steps.length - 1, true) : ""}${visual(q.picture)}${scratchHtml()}
@@ -5863,7 +5877,7 @@ function demoView(d, pips) {
 }
 function shopRow() {
   const open = ranchUnlocked(), list = RANCH.filter((g, n) => n < open.n && !ownedHere().includes(g.id)).sort((a, b) => a.cost - b.cost).slice(0, 3);
-  if (!list.length) return `<p class="sub center">${RANCH.every((g) => ownedHere().includes(g.id)) ? "You built this whole ranch. Nora loves it." : "Finish another section to unlock more for the ranch."}</p>`;
+  if (!list.length) return `<p class="sub center">${RANCH.every((g) => ownedHere().includes(g.id)) ? (NO_NORA() ? "You built this whole ranch!" : "You built this whole ranch. Nora loves it.") : "Finish another section to unlock more for the ranch."}</p>`;
   return `<div class="games">${list.map((g) => `<div class="game shopcard">${ranchPic(g.id)}<h3>${esc(ranchName(g))}</h3><span class="sub">${esc(g.note)}</span><button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>${S.nuggets < g.cost ? `Costs $${g.cost}` : `Buy for $${g.cost}`}</button></div>`).join("")}</div>`;
 }
 const NORA_CHEERS = [`You did it, ${KID.name}! We're winning!`, `You won this one for us, ${KID.name}!`, `Way to go, ${KID.name}! You're my hero!`, `You got it, ${KID.name}! I knew you could!`];
@@ -5894,14 +5908,14 @@ const hugScene = () => `<svg class="hugscene" viewBox="40 -40 220 180" role="img
 </svg>`;
 function rideEndView() {
   const l = curLesson(), shots = Math.max(3, Math.min(U.solvedRun, 6)), nx = nextRide(l), factsEnd = rideOf(l, U.ride)?.kind === "facts";
-  return `<div class="clearhead pop hughead">${hugScene()}<div><div class="big">You did it!</div><p class="noracheer">${esc(U.hugLine || NORA_CHEERS[0])}</p><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p>${!nx && lessonFinished(l) && !LP(l.id).completed ? `<button class="btn go wide nextbtn" data-act="reward">Claim your badge</button>` : `<button class="btn go wide nextbtn" data-act="backTown">${nx ? `Next up: ${esc(nx.name)}` : "Back to the map"}</button>`}${factsEnd ? `<p class="keepline">You're done with your facts for today. Keep going if you want to earn more!</p><button class="btn dark wide" data-act="stPlay">Rope a new herd and earn more</button>` : ""}</div></div>
+  return `<div class="clearhead pop hughead">${NO_NORA() ? "" : hugScene()}<div><div class="big">You did it!</div><p class="noracheer">${esc(U.hugLine || NORA_CHEERS[0])}</p><p>${esc(rideOf(l, U.ride).name)} is finished. You have <strong>$${S.nuggets}</strong> and <strong>${shots} boosts</strong>.</p>${!nx && lessonFinished(l) && !LP(l.id).completed ? `<button class="btn go wide nextbtn" data-act="reward">Claim your badge</button>` : `<button class="btn go wide nextbtn" data-act="backTown">${nx ? `Next up: ${esc(nx.name)}` : "Back to the map"}</button>`}${factsEnd ? `<p class="keepline">You're done with your facts for today. Keep going if you want to earn more!</p><button class="btn dark wide" data-act="stPlay">Rope a new herd and earn more</button>` : ""}</div></div>
   <p class="tag">Build the ${esc(l.town)} ${esc(ranchLook().home)}</p>${shopRow()}
   <p class="tag">Or head to the Saloon and play a game</p>
   <div class="games gamepicks small">
     ${gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${factsCount()} steers.`)}
     ${gameCard("run", `data-act="game" data-g="run" data-n="${shots}"`, "Boost Run", "Catch the outlaw with the gold.")}
     ${gameCard("gallery", `data-act="game" data-g="gallery" data-n="${shots}"`, "Shooting Gallery", "Hit the targets.")}
-    ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", "Save Nora.")}
+    ${gameCard("duel", `data-act="game" data-g="duel" data-n="${shots}"`, "High Noon", NO_NORA() ? "Beat the outlaw on the draw." : "Save Nora.")}
     ${gameCard("dribble", `data-act="game" data-g="dribble" data-n="${shots}"`, "Soccer Star", "Dribble past the defenders, then shoot.")}
     ${gameCard("piano", 'data-act="pianoOpen"', "Piano Hero", "Play real songs on the piano.")}
     ${gameCard("castle", 'data-act="openGame" data-g="castle"', "The Learning Castle", "Clear the castle room by room.")}
@@ -5992,13 +6006,13 @@ function gameView() {
       <g class="tumble"><g class="tumblespin"><circle r="11" fill="none" stroke="#7d5a2c" stroke-width="1.500" stroke-dasharray="3 2"/><path d="M-8-5L7 6M-6 7L8-6M0-10V10M-10 1H10" stroke="#8a6532" stroke-width="1.300"/></g></g>
       <g class="dustdrift"><ellipse cx="60" cy="250" rx="46" ry="6" fill="rgba(235,210,170,.4)"/><ellipse cx="430" cy="262" rx="60" ry="7" fill="rgba(235,210,170,.35)"/></g>
       ${fighter(195, 1, S.worn.jersey ? "#c8202c" : "#8fb7dc", S.worn.blackhat ? "#23222a" : "#fbfbf7", "#3a2415", "#f4cda8", "f-you")}
-      ${clara}${fighter(405, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
-      <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text><text x="498" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Nora</text>
+      ${NO_NORA() ? "" : clara}${fighter(405, -1, "#4a2020", "#16151b", "#3a2415", "#dcb48a", "f-out")}
+      <text x="195" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">You</text><text x="405" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Outlaw</text>${NO_NORA() ? "" : `<text x="498" y="292" text-anchor="middle" font-family="Rye,Georgia,serif" font-size="18" fill="#2c1a0e">Nora</text>`}
       <rect class="camflash" width="640" height="300" fill="#fff"/>
       <rect id="drawBar" x="220" y="96" width="200" height="14" rx="7" fill="#2c1a0e" opacity="0"/><rect id="drawFill" x="223" y="99" width="0" height="8" rx="4" fill="#ff5a4f"/>
     </svg></div>
     <div class="outlawsay" id="outlawSay" hidden></div><div class="outlawsay norasaybub" id="noraBub" hidden></div><div class="dboard"><small>Shots</small><div class="score" id="dscore"></div></div><div class="duelhud"><div class="big" id="duelCall">High Noon</div>
-    <p id="duelSub">The outlaw took Nora! When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p></div></div>`;
+    <p id="duelSub">${NO_NORA() ? "The outlaw rode into town!" : "The outlaw took Nora!"} When you see <strong>DRAW!</strong>, tap to pull your gun and fire before his red bar fills up. <strong>Tap anywhere to start.</strong></p></div></div>`;
 }
 function gameEndView() {
   const e = U.gameEnd, l = curLesson(), done = l && lessonFinished(l), g = U.game;
@@ -6050,7 +6064,7 @@ function arcadeView() {
     ${LESSONS.length ? gameCard("stampede", 'data-act="stPlay"', "Facts Stampede", `Rope ${factsCount()} steers. Beat your time.`) : ""}
     ${gameCard("run", 'data-act="game" data-g="run" data-n="5" data-free="1"', "Boost Run", "Catch the outlaw with the gold.")}
     ${gameCard("gallery", 'data-act="game" data-g="gallery" data-n="5" data-free="1"', "Shooting Gallery", "Step right up! Hit every target at the fair.")}
-    ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", "Beat the outlaw on the draw and save Nora.")}
+    ${gameCard("duel", 'data-act="game" data-g="duel" data-n="5" data-free="1"', "High Noon", NO_NORA() ? "Beat the outlaw on the draw." : "Beat the outlaw on the draw and save Nora.")}
     ${gameCard("dribble", 'data-act="game" data-g="dribble" data-n="5" data-free="1"', "Soccer Star", "Dribble past the defenders, then take the shot.")}
     ${gameCard("piano", 'data-act="pianoOpen"', "Piano Hero", "Learn real songs on the real piano.")}
     ${gameCard("castle", 'data-act="openGame" data-g="castle"', "The Learning Castle", "Clear the castle one room at a time.")}
@@ -6108,8 +6122,9 @@ const RANCH_LOOKS = [
   { home: "lodge", sky: ["#4f8fc9", "#d9eef7"], land: ["#a9c9a0", "#7fae7a", "#4f8058"], far: "#6c86a8", near: "#62917f", pine: "#3f6a5a", tuft: "#3f6f50", swap: { "#9c6a3c": "#6b4a30", "#a8342c": "#3f6f8f", "#7c241e": "#2f566f", "#4d1a15": "#1f3a4c" }, names: { cabin: "Mountain lodge", barn: "Blue barn" } },
 ];
 const ranchLook = () => RANCH_LOOKS[Math.max(0, LESSONS.indexOf(ranchLesson())) % RANCH_LOOKS.length];
-const NO_NORA = () => false;
-const NO_HORSE = () => KID.id === "finn";
+// Nora is Elliot's story only (Nathan, 2026-11-10: "anything with Nora, that's only for Elliot").
+const NO_NORA = () => KID.id !== "elliot";
+const NO_HORSE = () => KID.id !== "elliot";
 function ranchUnlocked() {
   // Finley's day isn't built around lesson sections, so his whole store is open and his savings decide (Nathan, 2026-11-09).
   if (KID.id !== "elliot") return { n: RANCH.length, done: 1, total: 1 };
@@ -6154,7 +6169,7 @@ const ROOMS = {
     ${hot("That lantern lights the whole barn.", "fxglow", `<path d="M400 40v60" stroke="#3a2412" stroke-width="3"/><path d="M382 100h36l6 44h-48z" fill="#ffd978" stroke="#3a2412" stroke-width="4"/><circle cx="400" cy="124" r="60" fill="#ffe7a8" opacity=".22"/>`)}
     ${roomNora(490, 260)}` },
   well: { name: "At the water well", hello: "Tap the bucket to pull up some water!", draw: () => `${outdoors()}${hot("Fresh, cold water! Every ranch needs this.", "fxbucket", `<ellipse cx="360" cy="410" rx="150" ry="24" fill="rgba(40,30,15,.3)"/><path d="M230 240V390C230 430 490 430 490 390V240z" fill="#8f8e88"/><path d="M400 240H490V390C490 412 440 422 400 424z" fill="rgba(0,0,0,.18)"/><g fill="none" stroke="#6b6a64" stroke-width="3"><path d="M230 290C280 318 440 318 490 290M230 340C280 368 440 368 490 340M280 245v50M380 248v58M440 247v50M320 310v48M420 318v48M260 362v50M360 368v50M450 360v50"/></g><ellipse cx="360" cy="240" rx="130" ry="36" fill="#a8a79f"/><ellipse cx="360" cy="240" rx="104" ry="26" fill="#2f6f96"/><path d="M325 234q30-12 60 0" stroke="#cfeaf7" stroke-width="4" fill="none"/><path d="M240 250V70M480 250V70" stroke="#5a3a1e" stroke-width="16"/><path d="M200 84L360 -6 520 84z" fill="#7b2d1c"/><path d="M360-6L520 84H400z" fill="rgba(0,0,0,.25)"/><path d="M230 120H520" stroke="#3f2612" stroke-width="14"/><path d="M520 120v44h30" fill="none" stroke="#3f2612" stroke-width="10"/><g class="bucket"><path d="M360 120V200" stroke="#c9ab74" stroke-width="4"/><path d="M332 200h56l-8 46h-40z" fill="#8a5a30" stroke="#3f2612" stroke-width="4"/><path d="M332 200a28 22 0 0 1 56 0" fill="none" stroke="#3f2612" stroke-width="3"/><ellipse cx="360" cy="202" rx="24" ry="5" fill="#5fa8d6"/></g>`)}${roomNora(610, 280)}` },
-  garden: { name: "In Nora's garden", hello: "Tap the flowers. They love the sun!", draw: () => `${outdoors("#6f9148")}<ellipse cx="400" cy="400" rx="360" ry="56" fill="#6b4524"/><ellipse cx="400" cy="392" rx="330" ry="40" fill="#7f5630"/>${[[110, "#e23b57", "Red ones are my favorite!"], [210, "#ffd23f", "This one follows the sun!"], [310, "#d96bb0", "Smell that! It's so sweet."], [410, "#ff8a3c", "Look how tall it got!"], [510, "#8a5be0", "A purple one! So pretty."], [610, "#e23b57", "These came from your hard work!"]].map(([x, c, say], n) => hot(say, "fxgrow", `<g transform="translate(${x} ${390 + (n % 2) * 16})"><path d="M0 10V-${150 + n % 3 * 30}" stroke="#3a7d2c" stroke-width="8"/><path d="M0-40c-34-4-40-26-40-26 24 0 40 10 40 26zM0-70c34-4 40-26 40-26-24 0-40 10-40 26z" fill="#4c9a3a"/><g transform="translate(0 -${150 + n % 3 * 30})">${[0, 60, 120, 180, 240, 300].map((a) => `<ellipse rx="14" ry="24" cy="-22" fill="${c}" transform="rotate(${a})"/>`).join("")}<circle r="14" fill="#fff0a8" stroke="#c98a0c" stroke-width="2"/></g></g>`)).join("")}<g class="butterfly2"><path d="M0 0c-14-18-28-10-22 4 4 8 14 4 22-4 14-18 28-10 22 4-4 8-14 4-22-4z" fill="#ff8a3c"/><path d="M0-8V8" stroke="#2c1a0e" stroke-width="3"/></g>${roomNora(720, 250)}` },
+  garden: { get name() { return NO_NORA() ? "In the flower garden" : "In Nora's garden"; }, hello: "Tap the flowers. They love the sun!", draw: () => `${outdoors("#6f9148")}<ellipse cx="400" cy="400" rx="360" ry="56" fill="#6b4524"/><ellipse cx="400" cy="392" rx="330" ry="40" fill="#7f5630"/>${[[110, "#e23b57", "Red ones are my favorite!"], [210, "#ffd23f", "This one follows the sun!"], [310, "#d96bb0", "Smell that! It's so sweet."], [410, "#ff8a3c", "Look how tall it got!"], [510, "#8a5be0", "A purple one! So pretty."], [610, "#e23b57", "These came from your hard work!"]].map(([x, c, say], n) => hot(say, "fxgrow", `<g transform="translate(${x} ${390 + (n % 2) * 16})"><path d="M0 10V-${150 + n % 3 * 30}" stroke="#3a7d2c" stroke-width="8"/><path d="M0-40c-34-4-40-26-40-26 24 0 40 10 40 26zM0-70c34-4 40-26 40-26-24 0-40 10-40 26z" fill="#4c9a3a"/><g transform="translate(0 -${150 + n % 3 * 30})">${[0, 60, 120, 180, 240, 300].map((a) => `<ellipse rx="14" ry="24" cy="-22" fill="${c}" transform="rotate(${a})"/>`).join("")}<circle r="14" fill="#fff0a8" stroke="#c98a0c" stroke-width="2"/></g></g>`)).join("")}<g class="butterfly2"><path d="M0 0c-14-18-28-10-22 4 4 8 14 4 22-4 14-18 28-10 22 4-4 8-14 4-22-4z" fill="#ff8a3c"/><path d="M0-8V8" stroke="#2c1a0e" stroke-width="3"/></g>${roomNora(720, 250)}` },
   corral: { name: "At the horse corral", hello: "Silver loves it here! Tap him.", draw: () => `${outdoors()}<path d="M0 240H800M0 290H800" stroke="#6e4726" stroke-width="14"/>${Array.from({ length: 6 }, (_, n) => `<rect x="${n * 160 + 30}" y="210" width="20" height="110" fill="#5a3a1e"/>`).join("")}${hot("He loves it when you pet him!", "fxhop", `<g transform="translate(250 100) scale(2.4)">${MASCOT.replace(/data-act="biscuitTap"/, "").replace(/role="button"/, "").replace('<svg class="mascot"', '<svg width="110" height="130"')}</g>`)}${hot("Water for Silver. Good boy!", "fxhop", `<path d="M560 350h160l-16 60H576z" fill="#7d5530"/><path d="M566 356h148" stroke="#5fa8d6" stroke-width="10"/>`)}${roomNora(620, 180)}` },
   windmill: { name: "At the windmill", hello: "Tap the blades to make them spin faster!", draw: () => `${outdoors()}${hot("Whoosh! It pumps our water all day.", "fxspin", `<path d="M360 430L395 130h30L460 430zM375 340h70M385 260h50M392 190h36M365 410L440 270M455 410L380 270" fill="none" stroke="#5a4632" stroke-width="10"/><g transform="translate(410 120)"><g class="bigblades"><path d="M0 0L-16-110h32zM0 0L110-16v32zM0 0L16 110h-32zM0 0L-110 16v-32z" fill="#e8e3d3" stroke="#5a4632" stroke-width="4"/><circle r="14" fill="#5a4632"/></g></g>`)}${hot("Our water tank is full!", "fxhop", `<path d="M540 300h130v110H540z" fill="#8a6a44"/><path d="M540 330h130M540 380h130" stroke="#3a2412" stroke-width="6"/><ellipse cx="605" cy="300" rx="65" ry="16" fill="#5fa8d6" stroke="#3a2412" stroke-width="4"/>`)}${roomNora(170, 270)}` },
   porch: { name: "On the porch swing", hello: "Sit with me. Tap the swing!", draw: () => `<defs><linearGradient id="roomSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a2a68"/><stop offset=".6" stop-color="#e8743b"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs><rect width="800" height="450" fill="url(#roomSun)"/><circle cx="600" cy="280" r="60" fill="#ffe08a"/><path d="M0 310l140-60 110 50 150-70 150 70 110-50 140 60v140H0z" fill="#5a2c52"/><path d="M0 0H800V36H0z" fill="#5a3517"/><path d="M50 36V400M750 36V400" stroke="#6e4726" stroke-width="20"/><rect y="400" width="800" height="50" fill="#8a6a3f"/>${hot("This is the best seat on the ranch.", "fxswing", `<g class="bigswing"><path d="M270 36V270M530 36V270" stroke="#3f2612" stroke-width="5"/><rect x="250" y="270" width="300" height="18" rx="4" fill="#b07d3e"/><rect x="250" y="210" width="300" height="14" rx="4" fill="#c8924e"/><path d="M262 224V270M538 224V270M340 224V270M460 224V270" stroke="#8a5a30" stroke-width="7"/><g transform="translate(400 160) scale(.8)"><path d="M-15 16c6-5 24-5 30 0l2 36c4 14 8 34 9 56h-52c1-22 5-42 9-56z" fill="#2f7f96"/><path d="M-8-6c0-8 4-10 8-10s8 2 8 10c0 6-3 10-8 12-5-2-8-6-8-12z" fill="#f0c9a4"/><path d="M-9-7c-1-9 5-13 10-12 5 0 8 4 8 8-5-2-8-3-10-5-2 3-5 6-8 9z" fill="#6b3f1d"/></g></g>`)}` },
@@ -6836,12 +6851,12 @@ const NORA_LINES = {
   lose: [`You got him, ${KID.name}!`, "Yes! You're so brave!", "You did it! Keep going!"],
 };
 function outlawSay(kind) {
-  const t = pick(OUTLAW_LINES[kind]), el = document.getElementById("outlawSay"), n = pick(NORA_LINES[kind]), nel = document.getElementById("noraBub");
-  [[el, t], [nel, n]].forEach(([b, text]) => { if (b) { b.textContent = text; b.hidden = false; clearTimeout(b.hideT); b.hideT = setTimeout(() => { b.hidden = true; }, 2600); } });
+  const t = pick(OUTLAW_LINES[kind].filter((x) => !NO_NORA() || !/Nora/.test(x))), el = document.getElementById("outlawSay"), n = NO_NORA() ? "" : pick(NORA_LINES[kind]), nel = document.getElementById("noraBub");
+  [[el, t], ...(n ? [[nel, n]] : [])].forEach(([b, text]) => { if (b) { b.textContent = text; b.hidden = false; clearTimeout(b.hideT); b.hideT = setTimeout(() => { b.hidden = true; }, 2600); } });
   try {
     stopVoice();
     if (S.voice === false || S.muted) return;
-    playVoice(t, "outlaw", () => playVoice(n, "nora"));
+    playVoice(t, "outlaw", () => { if (n) playVoice(n, "nora"); });
   } catch (e) {}
 }
 // Shooting Gallery: 30 seconds of tin targets. A miss costs nothing, so he can tap as much as he likes.
@@ -6978,7 +6993,7 @@ function duelResult(win, line, early) {
   if (win) { S.wins++; if (!U.game?.free) earn(8); gunshot(); outlawSay("lose"); confetti(14); save(); } else if (early) { beep(NOPE); outlawSay("early"); } else { gunshot(1, true); outlawSay("win"); }
   setTimeout(() => {
     if (!document.getElementById("duelCall")) return;
-    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; const saved = w > duel.n / 2; if (saved) S.saved = (S.saved || 0) + 1; U.gameEnd = { saved, title: saved ? "You saved Nora!" : "You stood your ground!", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`} ${saved ? "Now go build the ranch at the store." : "That took guts, so here's $5. Go again and save her!"}` }; if (!saved) earn(5); U.view = "gameEnd"; render(); return; }
+    if (duel.shots.length >= duel.n) { const w = duel.shots.filter(Boolean).length; const saved = w > duel.n / 2; if (saved) S.saved = (S.saved || 0) + 1; U.gameEnd = { saved, title: saved ? (NO_NORA() ? "You won the showdown!" : "You saved Nora!") : "You stood your ground!", line: `You won ${w} of ${duel.n} duels.${U.game?.free ? "" : ` +$${w * 8}`} ${saved ? "Now go build the ranch at the store." : (NO_NORA() ? "That took guts, so here's $5. Go again!" : "That took guts, so here's $5. Go again and save her!")}` }; if (!saved) earn(5); U.view = "gameEnd"; render(); return; }
     duelRound();
   }, 2400);
 }
