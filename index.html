@@ -2385,6 +2385,13 @@ function pnListen() {
       const run = same ? (was.n || 1) + 1 : r.ok ? 1 : 0, strong = r.a > .45 * rms * Math.SQRT2;
       const steady = run >= 3 || (run >= 2 && strong && now - strike < 320);
       mic.okPrev[pc] = r.ok ? { m: r.m, at: now, off: r.off, n: run } : null;
+      // Stuck report (Nathan, 2026-11-10: "still gets stuck sometimes"): when a note has been waited on for over
+      // 3 seconds while keys are being struck, save what was measured, so a parent's report shows why.
+      if (now - (mic.acceptAt || mic.startedAt || now) > 3000 && now - strike < 400 && now - (mic.stuckAt || 0) > 1500) {
+        mic.stuckAt = now;
+        const rec = { at: new Date().toISOString().slice(11, 19), want: PN_NAMES[pc], a: +r.a.toFixed(4), rms: +rms.toFixed(4), off: Math.round(r.off), ok: r.ok, near: !!r.near, run, heard: (mic.heard || []).slice(-3).join(" ") };
+        mic.stuck = [...(mic.stuck || []), rec].slice(-8); pnDiag({ stuck: mic.stuck });
+      }
       // The note appearing out of nothing is a key being struck too, even when the overall loudness barely changes.
       mic.offAt = mic.offAt || {}; if (!r.ok) mic.offAt[pc] = now;
       const appeared = now - (mic.offAt[pc] || 0) < 320;
@@ -3767,7 +3774,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "d1c45e8ebe38";
+const GAME_BUILD = "fe9a2b675335";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
