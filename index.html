@@ -723,7 +723,7 @@ body[data-view="game-gallery"] #app{overflow:hidden}
 .stateszoom{position:absolute;left:10px;bottom:10px;width:auto!important}
 .statespart2{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr);gap:14px;align-items:center}
 .statesanswers{display:grid;gap:10px}.statesanswers h2{margin:0;text-align:center;font-size:1.6rem}.statesanswer{min-height:58px;font-size:1.2rem}.statesanswer.stgood{outline:3px solid var(--gold)}
-.ust.stright{fill:#39d07a!important}.ust.stwrong{fill:#7fb6ff!important}.ust.stdone{fill:#b6e3a8}.ust.stask{fill:#ffd23f!important}.ust.sthint{fill:#ffd23f!important;animation:sthintpulse 1s ease-in-out infinite}
+.ust.stright{fill:#39d07a!important}.ust.stwrong{fill:#7fb6ff!important}.ust.stdone{fill:#b6e3a8}.stlearned{font-family:var(--body);font-weight:800;text-anchor:middle;fill:#1c3a12;stroke:#f4ffe9;paint-order:stroke;stroke-linejoin:round}.ust.stask{fill:#ffd23f!important}.ust.sthint{fill:#ffd23f!important;animation:sthintpulse 1s ease-in-out infinite}
 @keyframes sthintpulse{50%{fill:#fff3b0}}
 .statesdone{display:grid;gap:12px;justify-items:center;padding:12px}
 body[data-view="states"] #app{display:flex;flex-direction:column;gap:6px;overflow:hidden}
@@ -1298,7 +1298,8 @@ function playVoice(t, voice = "david", done = () => {}, onWord = null) {
 }
 function audioForPlaying() { try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {} }
 audioForPlaying();
-function speak(t, force, voice = "david") {
+// The Presidents game has its own presidential narrator (Nathan, 2026-11-10); everywhere else it's Silver.
+function speak(t, force, voice = U?.view === "presidents" ? "pres" : "david") {
   if (!t || (t === lastSaid && !force)) return;
   lastSaid = t;
   try {
@@ -3737,7 +3738,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "52950fbcca3c";
+const GAME_BUILD = "7d175d40c30a";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4186,7 +4187,14 @@ function statesMapSvg(sg, interactive) {
   // The tapped state (and, once known, its capital) is named right on the map so he sees it as well as hears it.
   const show = sg.flash && US_STATES[sg.flash] ? sg.flash : !interactive && sg.picked ? sg.name : null;
   const tag = show ? (() => { const [cx, cy] = US_STATES[show].c, zs = sg.zoom ? .45 : 1, txt = `${show}${!interactive || show === sg.name ? ` \u2605 ${stateCapital(show)}` : ""}`, w = txt.length * 11 * zs + 24 * zs; return `<g transform="translate(${cx} ${cy - 26 * zs})" pointer-events="none"><rect x="${-w / 2}" y="${-17 * zs}" width="${w}" height="${30 * zs}" rx="${14 * zs}" fill="${show === sg.name ? "#1f9a4f" : "#2c1a0e"}" opacity=".92"/><text text-anchor="middle" y="${4 * zs}" font-size="${17 * zs}" font-weight="800" fill="#fff" style="font-family:var(--body)">${esc(txt)}</text></g>`; })() : "";
-  return `<svg id="${interactive ? "statesMap" : "statesMini"}" class="map usmap statesmap" viewBox="${box}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the United States"><rect x="-62" width="1036" height="616" fill="#8ec1dd"/>${shapes}${tag}</svg>`;
+  // Every state he's learned keeps its name and capital written on it, so he sees them again each time,
+  // not just a green fill (Nathan, 2026-11-10). The state being asked about stays blank so it isn't given away.
+  const learned = g.finished ? US_CAPITALS.map((r) => r[0]) : Object.keys(g[`part${sg.part === 2 ? 2 : 1}`] || {});
+  const labels = learned.filter((n) => n !== sg.name && n !== show && US_STATES[n] && (sg.zoom || !STATE_TINY.has(n))).map((n) => {
+    const [x, y] = US_STATES[n].c, zs = sg.zoom ? .45 : 1;
+    return `<text class="stlearned" x="${x}" y="${y - 2 * zs}" font-size="${9.5 * zs}" stroke-width="${2.6 * zs}">${esc(n)}<tspan x="${x}" dy="${10.5 * zs}" font-size="${8.5 * zs}">\u2605 ${esc(stateCapital(n))}</tspan></text>`;
+  }).join("");
+  return `<svg id="${interactive ? "statesMap" : "statesMini"}" class="map usmap statesmap" viewBox="${box}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map of the United States"><rect x="-62" width="1036" height="616" fill="#8ec1dd"/>${shapes}<g pointer-events="none">${labels}</g>${tag}</svg>`;
 }
 function statesView() {
   const g = stateGame(), sg = U.sg || (U.sg = { queues: { 1: [], 2: [] } });
@@ -4614,7 +4622,7 @@ function presSayThen(pr, text, then, wait = 900) {
   const quiet = S.voice === false || S.muted;
   safety = setTimeout(go, quiet ? Math.max(3500, text.length * 65) : 15000);
   if (quiet) return;
-  try { clearInterval(sayTimer); sayText = text; sayIdx = 0; markWord(); document.body.classList.add("talking"); playVoice(text, "david", go, (i) => { if (i !== sayIdx) { sayIdx = i; markWord(); } }); } catch (e) { go(); }
+  try { clearInterval(sayTimer); sayText = text; sayIdx = 0; markWord(); document.body.classList.add("talking"); playVoice(text, "pres", go, (i) => { if (i !== sayIdx) { sayIdx = i; markWord(); } }); } catch (e) { go(); }
 }
 function presPick(d) {
   const pr = U.pr; if (!pr || pr.locked || !pr.q) return;
