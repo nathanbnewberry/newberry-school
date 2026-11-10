@@ -1895,6 +1895,7 @@ function readingFix() {
   // Later that day Elliot said he'd read, so Nathan had it marked done: 30 counted minutes on top of the base.
   // Both only go up when saves merge, so it stays done on every device.
   d.readSecs = Math.max(d.readSecs || 0, d.timerBase.reading + 1800);
+  const h = TIMERS.history; if (h) d[h.secs] = Math.max(d[h.secs] || 0, (d.timerBase.history || 0) + 3600);
 }
 function schoolPlan() {
   try { readingFix(); } catch (e) {}
@@ -1998,8 +1999,11 @@ function lessonFinishedBefore(x, d) {
   return !Object.values(LP(l.id).problems || {}).some((p) => p.doneAt && dateKey(new Date(p.doneAt)) === key);
 }
 // The 60-minute History timer is always the last thing of the day, after any test card too (Nathan, 2026-11-10).
+// The Bible verse and Bible history are one card, "Bible": the verse first, then the history questions, done
+// when both are (Nathan, 2026-11-10: "combine the Bible verse and the Bible lesson into one thing").
+const bibleCombo = (list) => { const v = list.find((x) => x.kind === "verse"), b = list.find((x) => x.kind === "bible"); return v && b ? list.filter((x) => x !== b).map((x) => (x === v ? { ...v, name: "Bible", combo: b } : x)) : list; };
 const lastOfDay = (list) => [...list.filter((x) => x.id !== "history"), ...list.filter((x) => x.id === "history")];
-const todaysItems = (d = schoolNow()) => lastOfDay([...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()) && !lessonFinishedBefore(x, d)), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))]);
+const todaysItems = (d = schoolNow()) => lastOfDay(bibleCombo([...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()) && !lessonFinishedBefore(x, d)), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))]));
 const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. Stay on this screen: leaving it pauses the timer.", again: "Keep reading" },
   history: { secs: "histSecs", from: "histFrom", title: "History", running: "Enjoy your history lesson", waiting: "minutes of history", doneLine: () => `Great history lesson today, ${KID.name}! That's checked off.`, intro: "Start your history lesson on YouTube, tap start, and watch until the timer is done. You can leave this screen and it keeps counting.", again: "Keep watching" },
@@ -3578,6 +3582,10 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "test") { const l = ALL_LESSONS.find((y) => y.id === x.lesson); if (!l) return { done: true, label: "", pct: 1 }; const tp = testParts(l);
     if (l.perDay) { day.testStart = day.testStart || {}; if (day.testStart[l.id] === undefined) day.testStart[l.id] = tp.done; const start = day.testStart[l.id], doneToday = tp.done > start || tp.done >= tp.total; return { done: doneToday, label: doneToday ? `Part done today. ${tp.done} of ${tp.total} parts` : `Today: part ${start + 1} of ${tp.total}`, pct: doneToday ? 1 : 0 }; }
     return { done: tp.done >= tp.total, label: `${l.title}: ${tp.done} of ${tp.total} parts`, pct: tp.done / tp.total }; }
+  if (x.kind === "verse" && x.combo) {
+    const a = itemStatus({ ...x, combo: null }, day), b = itemStatus(x.combo, day);
+    return { done: a.done && b.done, label: !a.done ? `Verse: ${a.label}` : b.done ? "Verse and history done" : `Verse done. History: ${b.label}`, pct: ((a.pct ?? (a.done ? 1 : 0)) + (b.pct ?? (b.done ? 1 : 0))) / 2 };
+  }
   if (x.kind === "verse") { const v = verseNow(), key = Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey(), wd = new Date(`${key}T12:00`).getDay(), done = day.verseDone || []; if (!v) return { done: true, label: "No verse this week", pct: 1 }; if (wd === 5) return { done: !!day.verseTest, label: day.verseTest ? `Memory test: ${day.verseTest.letter} (${day.verseTest.right} of ${day.verseTest.total})` : "Memory test day", pct: day.verseTest ? 1 : done.length ? .5 : 0 }; const need = 2; return { done: done.length >= need, label: wd === 4 ? (day.versePretest ? `Practice test: ${day.versePretest.right} of ${day.versePretest.total}` : "Practice, then a practice test") : `${v.ref}: ${Math.min(done.length, need)} of ${need}`, pct: Math.min(1, done.length / need) }; }
   if (x.kind === "typing") { const goal = tyGoal(), n = Math.min(day.typeN || 0, goal); return { done: !!day.typeDone, label: day.typeDone ? `${day.typeWpm || 0} words a minute, ${day.typeAcc || 0}% right` : `${n} of ${goal} asteroids`, pct: day.typeDone ? 1 : n / goal }; }
   if (x.kind === "review") { const list = reviewList(day), n = list.filter((k) => day.review?.[k]).length; return { done: n >= list.length, label: !list.length ? "Nothing to go back over. Clean week!" : n >= list.length ? `${list.length} problems reviewed` : `${n} of ${list.length} problems`, pct: list.length ? n / list.length : 1 }; }
@@ -3818,7 +3826,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "a5a71ba3b76d";
+const GAME_BUILD = "82740f6d0ae7";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5072,7 +5080,8 @@ function verseView() {
   if (vs.screen === "intro") return `${top}${bubble(verseTestDay() ? "Memory test day. Warm up once, then show what you know." : verseLevel() === 0 ? `${VERSE_DAYNAME[0]} today. ${v.ref}. ${v.text}` : `${VERSE_DAYNAME[verseLevel()]} today.`)}<div class="center statesdone vsbox">${ref}${verseTestDay() ? "" : hear}<div class="vsfull">${verseLevel() === 0 && !verseTestDay() ? esc(v.text) : "&#128214; This week's verse"}</div><button class="btn go wide" data-act="verseStart">${nextName}</button>${credit}</div>`;
   if (vs.screen === "between") return `${top}${bubble(day.versePretest && next === undefined ? "Good practice." : "Nice! One more time, with a little less help.")}<div class="center statesdone vsbox">${ref}${day.versePretest ? `<div class="big">${day.versePretest.right} of ${day.versePretest.total} on the practice test</div><p>Tomorrow is the memory test.</p>` : ""}<button class="btn go wide" data-act="verseStart">${nextName}</button></div>`;
   if ((vs.screen === "dayDone" || vs.screen === "graded") && !vs.cheered) { vs.cheered = 1; setTimeout(() => { confetti(90); beep(FANFARE); }, 80); }
-  const doneBtns = `<div class="vsdonebtns"><button class="btn go" data-act="verseReview">&#128257; Review it again</button><button class="btn dark" data-act="view" data-v="school">&#9664; Back</button></div>`;
+  const histNext = todaysItems().some((x) => x.combo) && !itemStatus(schoolPlan().find((x) => x.kind === "bible"), schoolDay()).done;
+  const doneBtns = `<div class="vsdonebtns">${histNext ? `<button class="btn go" data-act="schoolGo" data-id="verse">Now Bible history &#9654;</button>` : ""}<button class="btn ${histNext ? "dark" : "go"}" data-act="verseReview">&#128257; Review it again</button><button class="btn dark" data-act="view" data-v="school">&#9664; Back</button></div>`;
   if (vs.screen === "dayDone") return `${top}${bubble("Good job! That's your verse for today. Say it out loud once more!")}<div class="center statesdone vsbox"><div class="vsyay">Good job! &#127881;</div>${ref}${hear}<div class="vsfull">${esc(v.text)}</div>${doneBtns}${credit}</div>`;
   if (vs.screen === "graded") { const g = vs.grade; return `${top}${bubble(g.pct === 100 ? "Every word, by heart!" : `You got ${/[AF]/.test(g.letter) ? "an" : "a"} ${g.letter}! Hide it in your heart and keep saying it.`)}<div class="center statesdone vsbox"><div class="spellgrade g${g.letter}"><b>${g.letter}</b><span>${g.pct}%</span></div><div class="big">${vs.gradeRight} of ${vs.gradeTotal} right</div>${ref}<div class="vsfull">${esc(v.text)}</div>${doneBtns}${credit}</div>`; }
   if (vs.screen === "ref") return `${top}${bubble("Last one. Where is this verse in the Bible?")}<div class="center statesdone vsbox"><div class="vsbuilt">${verseShown()}</div><div class="vstiles">${vs.refChoices.map((c) => `<button class="vstile" data-act="verseRef" data-c="${esc(c)}" ${(vs.refOff || []).includes(c) ? "disabled" : ""}>${esc(c)}</button>`).join("")}</div></div>`;
@@ -7770,6 +7779,7 @@ const acts = {
     if (x.kind === "test") { setSubject("math"); const l = ALL_LESSONS.find((y) => y.id === x.lesson); if (!l) return; U.lesson = l.id; S.atTown = l.id; W.theme = "west"; const nx = l.perDay ? testParts(l).next : null; stampStart(x.id, day); if (nx) { save(); return startRide(l, nx); } U.view = "town"; save(); render(); return; }
     beep(BLIP); U.justDone = "";
     if (x.kind === "typing") { stampStart(x.id, day); tyOpen(); return; }
+    if (x.kind === "verse" && x.combo && itemStatus({ ...x, combo: null }, day).done) { stampStart(x.combo.id, day); bibleOpen(); return; }
     if (x.kind === "verse") { stampStart(x.id, day); verseOpen(); return; }
     if (x.kind === "review") { if (!reviewList(day).length) return render(); stampStart(x.id, day); reviewNext(); return; }
     if (x.kind === "grammar") { setSubject("grammar"); const l = ALL_LESSONS.find((y) => y.id === day.grammarLesson) || LESSONS[currentIdx()]; if (!l) { setSubject("math"); return; } U.lesson = l.id; S.atTown = l.id; U.view = "town"; W.theme = "west"; save(); render(); return; }
