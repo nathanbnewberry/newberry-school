@@ -2157,7 +2157,7 @@ const PN_COURSE = [
   ] },
   { id: "beat", title: "Feel the beat", ico: "&#129345;", steps: [
     { say: "Music has a steady beat, like a heartbeat. Listen to the drum and count along out loud: 1, 2, 3, 4.", metro: 72 },
-    { say: "Try it: play C each time the drum hits. Eight times, nice and even.", need: [60, 60, 60, 60, 60, 60, 60, 60], metro: 72, keys: { 60: 1 } },
+    { say: "Try it: play C each time the drum hits. Four times, nice and even.", need: [60, 60, 60, 60], metro: 72, keys: { 60: 1 } },
     { say: "Some notes last longer. A long note gets two beats. Play the key, then hold it while you count 1, 2." },
     { say: "Try it: play E and hold it for two beats, then play D and hold it for two beats.", need: [64, 62], metro: 72, keys: { 64: 3, 62: 2 } },
     { say: "When you play a song with the beat, the notes come down the highway in time with the drum. Now you know how to feel it." },
@@ -3826,7 +3826,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "82740f6d0ae7";
+const GAME_BUILD = "71923a1126ca";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7724,10 +7724,9 @@ const acts = {
   pnTimer() { const day = schoolDay(); if (timerSecs("piano", day) >= timerNeed("piano")) return; U.timerId = "piano"; U.pnAutoTimer = true; acts.readToggle(); },
   pnLesNext() {
     const pn = U.pn; if (pn?.screen !== "lesson") return; const L = PN_COURSE[pn.les];
-    const needs = L.steps.map((st, i) => (st.need ? i : -1)).filter((i) => i >= 0), longEnough = Date.now() - (U.pnLesStart || Date.now()) >= PN_LES_SECS * 1000 * .9;
-    if (U.pnLesLoop) { const nx = needs.find((i) => i > pn.step); if (!longEnough) return pnLesGo(pn.les, nx !== undefined ? nx : needs[0]); }
-    else if (pn.step < L.steps.length - 1) return pnLesGo(pn.les, pn.step + 1);
-    else if (!longEnough && needs.length) { U.pnLesLoop = true; banner("Practice round! Play them again."); return pnLesGo(pn.les, needs[0]); }
+    // Each step once, then the lesson is done. The old "Practice round" replayed the steps until 5 minutes passed,
+    // which felt like the lesson repeating over and over (Nathan, 2026-11-10); songs fill the rest of the piano timer.
+    if (pn.step < L.steps.length - 1) return pnLesGo(pn.les, pn.step + 1);
     U.pnLesLoop = false;
     clearInterval(pnMetro); const rec = pnCourseRec(), first = !rec[L.id]; rec[L.id] = true; if (first) { earn(5); beep(FANFARE); confetti(60); }
     { const d = schoolDay(); if (!d.pianoLes) { d.pianoLes = L.id; confetti(40); } if (S.piano?.lesAt) delete S.piano.lesAt[L.id]; }
