@@ -1892,6 +1892,9 @@ const SCHOOL_DEFAULT = [
 function readingFix() {
   if (KID.id !== "elliot") return; const d = S.days?.["2026-11-10"]; if (!d) return;
   d.timerBase = d.timerBase || {}; d.timerBase.reading = Math.max(d.timerBase.reading || 0, 1800);
+  // Later that day Elliot said he'd read, so Nathan had it marked done: 30 counted minutes on top of the base.
+  // Both only go up when saves merge, so it stays done on every device.
+  d.readSecs = Math.max(d.readSecs || 0, d.timerBase.reading + 1800);
 }
 function schoolPlan() {
   try { readingFix(); } catch (e) {}
@@ -3226,7 +3229,10 @@ document.addEventListener("pointerdown", (e) => {
 }, true);
 // Space Typing: learn where the fingers go, then blast asteroids with this week's spelling words.
 // Nothing here can be lost. An asteroid that reaches the ship just hovers until the word is typed.
-const tyDrillN = () => (KID.id === "elliot" ? 16 : 12), tyWordsN = () => (KID.id === "elliot" ? 14 : 8), tyGoal = () => tyDrillN() + tyWordsN() + verseTypingWords().length + 1;
+// Today's asteroids are just his spelling words, each once, then the week's Bible verse word by word
+// (Nathan, 2026-11-10: no warm-up keys or giant asteroid on top, "just his spelling words" plus the verse).
+const tySpellWords = () => [...new Set((spellList() ? spellActive().map((x) => x.w) : []).filter((w) => /^[a-z]+$/i.test(w)).map((w) => w.toLowerCase()))];
+const tyDrillN = () => (KID.id === "elliot" ? 16 : 12), tyWordsN = () => tySpellWords().length || 14, tyGoal = () => tyWordsN() + verseTypingWords().length;
 const TY_RANKS = [[0, "Space Cadet"], [8, "Co-Pilot"], [15, "Pilot"], [25, "Captain"], [40, "Star Ace"]];
 const tyRank = (wpm) => TY_RANKS.filter(([n]) => wpm >= n).pop()[1];
 const TY_LEVELS = [{ name: "the home row", keys: "asdfjkl" }, { name: "the home row and top row", keys: "asdfjkleiru" }, { name: "the top and home rows", keys: "asdfghjkleiruotywq" }, { name: "every row", keys: "abcdefghijklmnopqrstuvwxyz" }];
@@ -3239,24 +3245,21 @@ function tyOpen() {
   U.ty = { phase: "hands" };
   U.view = "typing";
   // Pick up today's set where it was left, so coming back doesn't start again at 0.
-  { const day = schoolDay(); if (S.typing.learned && day.tyState && !day.typeDone) { try { const t = JSON.parse(day.tyState); if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
+  { const day = schoolDay(); if (S.typing.learned && day.tyState && !day.typeDone) { try { const t = JSON.parse(day.tyState); if (t.stage === "drill" || t.total !== tyGoal()) throw 0; if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
   if (S.typing.learned) return tyStartDrill();
   render(); window.scrollTo(0, 0);
 }
 function tyStartDrill() {
   const level = Math.min(S.typing?.level || 0, TY_LEVELS.length - 1), keys = TY_LEVELS[level].keys, newest = level ? keys.slice(TY_LEVELS[level - 1].keys.length) : keys;
   // New keys come up more often, so they get learned.
-  const queue = Array.from({ length: tyDrillN() }, (_, i) => { const from = i % 2 ? keys : newest; return from[Math.floor(Math.random() * from.length)]; });
-  U.ty = { phase: "play", stage: "drill", level, queue, pos: 0, cur: "", misses: 0, hits: 0, count: 0, total: tyGoal(), wrong: "", bestStreak: 0, bonus: 0 };
-  tyNext();
+  void newest; void keys;
+  U.ty = { phase: "play", stage: "words", level, queue: [], pos: 0, cur: "", misses: 0, hits: 0, count: 0, total: tyGoal(), wrong: "", bestStreak: 0, bonus: 0 };
+  tyStartWords();
 }
 function tyStartWords() {
-  const t = U.ty, list = spellList() ? spellActive().map((x) => x.w) : [];
-  const words = shuffled(list.filter((w) => /^[a-z]+$/i.test(w)).map((w) => w.toLowerCase()));
-  const need = tyWordsN();
-  while (words.length && words.length < need) words.push(...words.slice(0, need - words.length));
-  t.stage = "words"; t.queue = (words.length ? words : ["trail", "horse", "ranch", "rope", "gold", "saddle", "rider", "boots", "cattle", "canyon", "lasso", "spurs", "wagon", "desert"]).slice(0, need);
-  t.boss = [...t.queue].sort((a, b) => b.length - a.length)[0];
+  const t = U.ty, words = shuffled(tySpellWords());
+  t.stage = "words"; t.queue = words.length ? words : ["trail", "horse", "ranch", "rope", "gold", "saddle", "rider", "boots", "cattle", "canyon", "lasso", "spurs", "wagon", "desert"];
+  t.boss = null; t.bossDone = true;
   // This week's Bible verse comes after the spelling words, one word at a time, in order (Nathan, 2026-11-09).
   t.verseQ = verseTypingWords();
   t.startAt = 0; t.chars = 0; t.wordMisses = 0;
@@ -3815,7 +3818,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1c23e5c3be99";
+const GAME_BUILD = "a5a71ba3b76d";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
