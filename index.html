@@ -3301,8 +3301,9 @@ let tyDropTimer = 0;
 function tyArm(t) {
   clearTimeout(tyDropTimer);
   const rock = document.getElementById("tyRock"); if (!rock) return;
-  // Finley is new at typing, so his asteroids come in more slowly and don't speed up (Nathan, 2026-11-09).
-  const kidSlow = KID.id === "finn" ? 1.7 : 1, base = (t.stage === "drill" ? 6000 : 3500 + 1000 * t.cur.length + Math.max(0, t.cur.length - 6) * 600) * (t.isBoss ? 1.3 : 1) * kidSlow, ms = Math.round(base * (KID.id === "finn" ? 1 : Math.max(.75, .98 ** (t.streak || 0))));
+  // Both boys are still learning, so the asteroids come in slowly and don't speed up with a streak
+  // (Finley 2026-11-09; Elliot too, Nathan 2026-11-10: "too fast, he's still learning").
+  const base = (t.stage === "drill" ? 6000 : 3500 + 1000 * t.cur.length + Math.max(0, t.cur.length - 6) * 600) * (t.isBoss ? 1.3 : 1) * 1.7, ms = Math.round(base);
   rock.style.animationDuration = `${ms}ms`;
   { const sc = document.getElementById("tyScene"), ship = sc?.querySelector(".tyship"), sb = sc?.getBoundingClientRect(), shb = ship?.getBoundingClientRect(), rb = rock.getBoundingClientRect(), f = sc ? Math.round(Math.max(sc.clientWidth * .4, (shb ? shb.left : sb.left + sc.clientWidth * .85) - rb.left - rb.width * .9)) : 400;
     try { rock._fly?.cancel(); rock._fly = rock.animate([{ transform: "translate(0px,-40px) scale(.85)" }, { transform: `translate(${f * .35}px,30px) scale(.95)` }, { transform: `translate(${f * .7}px,-20px) scale(1.05)` }, { transform: `translate(${f}px,0px) scale(1.15)` }], { duration: ms, easing: "linear", fill: "forwards" }); } catch (e) {} }
@@ -3774,7 +3775,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "fe9a2b675335";
+const GAME_BUILD = "08985d9616f1";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
