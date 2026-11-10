@@ -2293,10 +2293,13 @@ function pnSounding(short, rate, pc, rms, recent = [], long = null) {
     const under = (half > .5 * a && !recent.includes(pc)) || (third > .5 * a && !recent.includes(pcThird));
     // ...and it has to sit right on the note's pitch (within about a quarter of a half step), not slide through it.
     // The low octave sits where speaking voices do, so it must be cleaner: closer to pitch and well above its neighbors.
-    const low = buf !== short, ok = a > .28 * rms * Math.SQRT2 && a > (low ? 2.2 : 1.6) * side && !under && Math.abs(off) < (low ? 14 : 28);
+    // A key right next to one still ringing (E then F, B then C) reads a wobbly pitch, since the two blur together:
+    // the soft F after E kept failing, so Finley had to hit it again and again (Nathan, 2026-11-10). Allow the wobble then.
+    const near = recent.includes(lowPc) || recent.includes(highPc);
+    const low = buf !== short, ok = a > .28 * rms * Math.SQRT2 && a > (low ? 2.2 : 1.6) * side && !under && Math.abs(off) < (low ? 14 : near ? 41 : 28);
     // "loose" is the gentler test used for a note just played again, where a fresh strike at that exact pitch is proof enough.
     const loose = a > .2 * rms * Math.SQRT2 && a > 1.4 * side;
-    if (!best || (ok && !best.ok) || (ok === best.ok && a > best.a)) best = { m, a, ok, off, loose };
+    if (!best || (ok && !best.ok) || (ok === best.ok && a > best.a)) best = { m, a, ok, off, loose, near };
   }
   return best;
 }
@@ -2368,7 +2371,7 @@ function pnListen() {
       const r = pnSounding(mic.buf, rate, pc, rms, mic.recent || [], mic.full), was = mic.okPrev[pc];
       // A piano note holds one exact pitch, so it must pass on two checks in a row at the same pitch, soon after
       // a key was struck. Talking slides around in pitch and doesn't pass.
-      const same = r.ok && was && was.m === r.m && now - was.at < 140 && Math.abs(r.off - was.off) < 10;
+      const same = r.ok && was && was.m === r.m && now - was.at < 140 && Math.abs(r.off - was.off) < (r.near ? 45 : 10);
       // Three steady listens, or two when the note clearly rules the sound right after a fresh strike (fast songs).
       const run = same ? (was.n || 1) + 1 : r.ok ? 1 : 0, strong = r.a > .45 * rms * Math.SQRT2;
       const steady = run >= 3 || (run >= 2 && strong && now - strike < 320);
@@ -2376,6 +2379,10 @@ function pnListen() {
       // The note appearing out of nothing is a key being struck too, even when the overall loudness barely changes.
       mic.offAt = mic.offAt || {}; if (!r.ok) mic.offAt[pc] = now;
       const appeared = now - (mic.offAt[pc] || 0) < 320;
+      // How much this pitch grew since it was last absent: a struck key jumps up, a ringing one only fades.
+      mic.offA = mic.offA || {}; mic.peakA = mic.peakA || {};
+      if (!r.ok) { mic.offA[pc] = r.a; mic.peakA[pc] = 0; } else mic.peakA[pc] = Math.max(mic.peakA[pc] || 0, r.a);
+      const jumped = appeared && mic.peakA[pc] > 2.5 * (mic.offA[pc] || 0) + .0004;
       // The same note again: it has to be struck again, which shows as that pitch jumping back up.
       // (A ringing note only fades.) The first 150 ms after a note are skipped while it finishes sounding.
       if (pc === mic.lastPc) {
@@ -2385,7 +2392,9 @@ function pnListen() {
         if (now - (mic.acceptAt || 0) < 120 || now - pnTickAt < 160) continue;
         if (r.loose && a > prevA * 1.2 && a > lowA * 1.3 && a - prevA > .001) mic.repeatArm = now;
         if (!(r.loose && now - (mic.repeatArm || 0) < 200 && now - strike < 420)) continue;
-      } else if (!(steady && now - strike < 600)) continue;
+      // A soft key over one still ringing (a gentle 4th-finger F after E) can hide its hammer click, so the note
+      // suddenly appearing and jumping up on its own counts as its strike too (Nathan, 2026-11-10).
+      } else if (!(steady && (now - strike < 600 || jumped))) continue;
       mic.pitched = (mic.pitched || 0) + 1; mic.repeatArm = 0; return heard(r.m, "");
     }
   }
@@ -3747,7 +3756,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "95319bb1f156";
+const GAME_BUILD = "ad4c9ddd6792";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
