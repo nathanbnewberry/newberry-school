@@ -2312,7 +2312,10 @@ function pnSounding(short, rate, pc, rms, recent = [], long = null) {
     const f = 440 * 2 ** ((m - 69) / 12), aL = pnAmp(buf, rate, f * 2 ** (-.25 / 12)), a0 = pnAmp(buf, rate, f), aR = pnAmp(buf, rate, f * 2 ** (.25 / 12)), a = Math.max(aL, a0, aR);
     // The keys a half step either side, unless one was just played and is still ringing (E then F, B then C).
     const lowPc = (pc + 11) % 12, highPc = (pc + 1) % 12;
-    const side = Math.max(recent.includes(lowPc) ? 0 : pnAmp(buf, rate, f * 2 ** (-1 / 12)), recent.includes(highPc) ? 0 : pnAmp(buf, rate, f * 2 ** (1 / 12)));
+    // A side key is skipped too when a note just played sits right beside it: a loud ringing E spills into D#, so D used to
+    // lose to it and count almost a second late, after the next notes were already played (Nathan, 2026-11-10: F, G stuck).
+    const leaks = (q, far) => recent.includes(q) || recent.includes(far);
+    const side = Math.max(leaks(lowPc, (pc + 10) % 12) ? 0 : pnAmp(buf, rate, f * 2 ** (-1 / 12)), leaks(highPc, (pc + 2) % 12) ? 0 : pnAmp(buf, rate, f * 2 ** (1 / 12)));
     const den = 2 * (2 * a0 - aL - aR), off = den > 0 ? Math.max(-40, Math.min(40, ((aR - aL) / den) * 25)) : 0;
     // A voice's overtone can land right on a note, but a voice always has its own lower pitch underneath at a half
     // or a third of it. A piano note doesn't, unless that lower key was just played (like a left-hand chord).
@@ -2424,8 +2427,19 @@ function pnListen() {
         const a = r.a, prevA = mic.pcPrev ?? a, lowA = Math.min(mic.pcLow ?? a, a);
         mic.pcPrev = a; mic.pcLow = now - (mic.acceptAt || 0) < 120 ? a : lowA;
         if (now - (mic.acceptAt || 0) < 120 || now - pnTickAt < 160) continue;
-        if (r.loose && a > prevA * 1.2 && a > lowA * 1.3 && a - prevA > .001) mic.repeatArm = now;
-        if (!(r.loose && now - (mic.repeatArm || 0) < 200 && now - strike < 420)) continue;
+        // A new strike shows as this pitch rising clearly above its lowest point since the last note counted. Checking only
+        // against the previous listen missed a strike that landed between two listens (the rise split in half), so a quick
+        // repeated key had to be pressed again (Nathan, 2026-11-10: Jingle Bells' F F F F F and G G). A big rise counts even
+        // when the hammer's click hides under the ringing string.
+        // Right after a hammer click, a smaller rise is enough: pressing a key that's still ringing loudly only lifts it a
+        // little (1.29 times in the trace that kept Jingle Bells' E E E stuck).
+        // A strike can also partly cancel the string that's still ringing, so a fresh click plus any real rise counts once
+        // the last note is a quarter second old (Lightly Row's run of five E's rose only 7%). A different key doesn't make
+        // this pitch rise at all, so a wrong key still can't count as this note.
+        const fresh = now - strike < 200, settled = now - (mic.acceptAt || 0) > 250;
+        const rise = a > lowA * (fresh ? (settled ? 1.04 : 1.12) : 1.3) && a - lowA > (fresh ? .0003 : .001), big = a > lowA * 1.8 && a - lowA > .0015;
+        if (r.loose && (rise && a >= prevA)) mic.repeatArm = now;
+        if (!(r.loose && now - (mic.repeatArm || 0) < 200 && (now - strike < 420 || big))) continue;
       // A soft key over one still ringing (a gentle 4th-finger F after E) can hide its hammer click, so the note
       // suddenly appearing and jumping up on its own counts as its strike too (Nathan, 2026-11-10).
       } else if (!(steady && (now - strike < 600 || jumped))) continue;
@@ -2442,7 +2456,9 @@ function pnListen() {
   const playing = U.pn?.screen === "play" || (U.pn?.screen === "lesson" && pnLesItem() !== "any");
   if (playing && exp.has(pc)) return; // the direct check above decides the right notes
   if (playing && (mic.recent || []).includes(pc)) return; // still ringing from a moment ago
-  if (playing && !pnSounding(mic.buf, rate, pc, rms, mic.recent || [], mic.full).ok) return; // not a clean note: an overtone or a blur
+  // A wrong note has to beat both of its neighbors, with none excused: between a ringing C and D the blur read as C#
+  // and counted as a wrong note (found 2026-11-10).
+  if (playing && !pnSounding(mic.buf, rate, pc, rms, [], mic.full).ok) return; // not a clean note: an overtone or a blur
   if (mic.candN < (playing ? 6 : 2) || !mic.candStruck) return;
   if (pc === mic.lastPc && !struckSince) return;
   if (now - (mic.acceptAt || 0) < 130) return;
@@ -2469,8 +2485,8 @@ function pnTimerText() {
 const PN_LES_SECS = 5 * 60;
 const pnTimerChip = () => (pnTimerToday() ? `<button class="pntimer big" data-act="pnTimer" id="pnTimer">${pnTimerText()}</button>` : "");
 // While the day's lesson runs, a 5 minute lesson clock shows next to the practice timer.
-const pnLesLeft = () => { const d = schoolDay(); return Math.max(0, PN_LES_SECS - Math.round((d.pianoLesSecs || 0) + (U.pnLesFrom ? (Date.now() - U.pnLesFrom) / 1000 : 0))); };
-const pnLesClock = () => (pnDailyKid() && !schoolDay().pianoLes && pnTimerToday() ? `<span class="pnlesclock" id="pnLesClock">&#127891; Lesson ${mmss(pnLesLeft())}</span>` : "");
+const pnLesLeft = () => { const d = schoolDay(); return Math.max(0, PN_LES_SECS - Math.round((d.pianoLesSecs || 0) + (U.pn?.screen === "lesson" && U.pnLesStart ? (Date.now() - U.pnLesStart) / 1000 : 0))); };
+const pnLesClock = () => (pnDailyKid() && pnLesLeft() > 0 && pnTimerToday() ? `<span class="pnlesclock" id="pnLesClock">&#127891; Lesson ${mmss(pnLesLeft())}</span>` : "");
 setInterval(() => {
   if (U?.view !== "piano") return;
   const el = document.getElementById("pnTimer"); if (!el) return;
@@ -3200,7 +3216,7 @@ function pianoView() {
   const micRow = pn.micMsg === "help" ? pnMicHelp() : `<div class="pnmic">${pnMic ? `<span class="pnlive"><i></i>Listening to your piano</span><span class="pnlvl" title="How loud the iPad hears it"><i id="pnLvl"></i></span><span id="pnHear">Play a key</span>` : `<button class="btn go" data-act="pnMic">&#127908; Start listening to my piano</button>`}${pn.micMsg ? `<small>${esc(pn.micMsg)}</small>` : ""}</div>`;
   if (pn.screen === "lesson") return pnLesView();
   if (pn.screen === "lestime") return `<div class="pnhud"><button class="pnbackbtn" data-act="pnMenu">&#9664; Back</button><b class="pnlogo">PIANO <span>SCHOOL</span></b>${pnTimerChip()}</div><div class="pnres"><div class="pnrescard">${pnArt("school")}<div><div class="pnstars">${"<i class=\"on\">&#9733;</i>".repeat(3)}</div><h3>Great lesson! Time for songs.</h3><p>Lesson ${pn.les + 1} picks up right here tomorrow.</p></div></div><div class="pnresbtns"><button class="btn go" data-act="pnPractice">&#127925; Practice your songs</button></div></div>`;
-  if (pn.screen === "lesdone") { const L = PN_COURSE[pn.les], nx = PN_COURSE[pn.les + 1]; return `<div class="pnhud"><button class="pnbackbtn" data-act="pnMenu">&#9664; Back</button><b class="pnlogo">PIANO <span>SCHOOL</span></b><span></span></div><div class="pnres"><div class="pnrescard">${pnArt("school")}<div><div class="pnstars">${"<i class=\"on\">&#9733;</i>".repeat(3)}</div><h3>Lesson ${pn.les + 1} done: ${esc(L.title)}!</h3><p>${pn.first ? "+$5 for finishing a new lesson." : "Nice review!"}</p></div></div><div class="pnresbtns">${pnDailyKid() && schoolDay().pianoLes ? `<button class="btn go" data-act="pnPractice">&#127925; Now practice your songs</button>${nx ? `<button class="btn dark" data-act="pnLesGo" data-n="${pn.les + 1}">&#9654; Next lesson: ${esc(nx.title)}</button>` : ""}` : nx ? `<button class="btn go" data-act="pnLesGo" data-n="${pn.les + 1}">&#9654; Next: ${esc(nx.title)}</button>` : `<button class="btn go" data-act="pnMenu">Pick a song to play</button>`}<button class="btn dark" data-act="pnLesGo" data-n="${pn.les}">&#8635; Do it again</button><button class="btn dark" data-act="pnMenu">Piano School</button></div></div>`; }
+  if (pn.screen === "lesdone") { const L = PN_COURSE[pn.les], nx = PN_COURSE[pn.les + 1]; return `<div class="pnhud"><button class="pnbackbtn" data-act="pnMenu">&#9664; Back</button><b class="pnlogo">PIANO <span>SCHOOL</span></b><span></span></div><div class="pnres"><div class="pnrescard">${pnArt("school")}<div><div class="pnstars">${"<i class=\"on\">&#9733;</i>".repeat(3)}</div><h3>Lesson ${pn.les + 1} done: ${esc(L.title)}!</h3><p>${pn.first ? "+$5 for finishing a new lesson." : "Nice review!"}${pn.chain !== null && pn.chain !== undefined ? ` Next up: ${esc(PN_COURSE[pn.chain].title)}.` : ""}</p></div></div><div class="pnresbtns">${pn.chain !== null && pn.chain !== undefined ? `<button class="btn go" data-act="pnLesChain">Next lesson: ${esc(PN_COURSE[pn.chain].title)} &#9654;</button>` : ""}${pnDailyKid() && schoolDay().pianoLes ? `<button class="btn go" data-act="pnPractice">&#127925; Now practice your songs</button>${nx ? `<button class="btn dark" data-act="pnLesGo" data-n="${pn.les + 1}">&#9654; Next lesson: ${esc(nx.title)}</button>` : ""}` : nx ? `<button class="btn go" data-act="pnLesGo" data-n="${pn.les + 1}">&#9654; Next: ${esc(nx.title)}</button>` : `<button class="btn go" data-act="pnMenu">Pick a song to play</button>`}<button class="btn dark" data-act="pnLesGo" data-n="${pn.les}">&#8635; Do it again</button><button class="btn dark" data-act="pnMenu">Piano School</button></div></div>`; }
   if (pn.screen === "menu") {
     const nextI = Math.min(rec.step, steps.length - 1), total = steps.reduce((t, _, i) => t + (rec.stars?.[i] || 0), 0);
     const schoolOn = (U.pnSongId || S.piano?.cur) === "school", crs = pnCourseRec(), crsDone = PN_COURSE.filter((L) => crs[L.id]).length;
@@ -3826,7 +3842,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "71923a1126ca";
+const GAME_BUILD = "0694f1e987a6";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7729,9 +7745,16 @@ const acts = {
     if (pn.step < L.steps.length - 1) return pnLesGo(pn.les, pn.step + 1);
     U.pnLesLoop = false;
     clearInterval(pnMetro); const rec = pnCourseRec(), first = !rec[L.id]; rec[L.id] = true; if (first) { earn(5); beep(FANFARE); confetti(60); }
+    // Lessons fill about 5 minutes a day by going on to the next lesson, never by repeating one (Nathan, 2026-11-10:
+    // "make the lesson long enough for around 5 min, don't just loop it; there could be multiple lessons").
+    let chain = null;
+    { const d = schoolDay(); d.pianoLesSecs = (d.pianoLesSecs || 0) + Math.round((Date.now() - (U.pnLesStart || Date.now())) / 1000);
+      if (pnDailyKid() && d.pianoLesSecs < PN_LES_SECS * .9) { const nx = PN_COURSE.findIndex((x, i) => i !== pn.les && !rec[x.id]); chain = nx >= 0 ? nx : (pn.les + 1) % PN_COURSE.length; } }
     { const d = schoolDay(); if (!d.pianoLes) { d.pianoLes = L.id; confetti(40); } if (S.piano?.lesAt) delete S.piano.lesAt[L.id]; }
-    save(); U.pn = { screen: "lesdone", les: pn.les, first }; render();
+    save(); U.pn = { screen: "lesdone", les: pn.les, first, chain }; render();
+    if (chain !== null) { const at = U.pn; setTimeout(() => { if (U.pn === at && U.view === "piano") acts.pnLesChain(); }, 4500); }
   },
+  pnLesChain() { const pn = U.pn; if (pn?.screen !== "lesdone" || pn.chain === null || pn.chain === undefined) return; pnLesGo(pn.chain, 0); },
   pnLesSay() { pnLesSay(); },
   pnLesBack() { const pn = U.pn; if (pn?.step > 0) pnLesGo(pn.les, pn.step - 1); },
   pnLesSay() { pnLesSay(); },
