@@ -3394,7 +3394,7 @@ function tyPaint() {
   });
   tyReachArrow(next ? f : -1, next || "");
   const hint = document.getElementById("tyHint");
-  if (hint && next) hint.innerHTML = `${t.redo ? `<b class="tyredo">Wrong key. Start the word over.</b> ` : t.crashNote ? `<b class="tyredo">It got through! It'll come back around.</b> ` : ""}${tyReachText(f, next)}`;
+  if (hint && next) hint.innerHTML = `${t.redo ? `<b class="tyredo">Oops, try that letter again.</b> ` : t.crashNote ? `<b class="tyredo">It got through! It'll come back around.</b> ` : ""}${tyReachText(f, next)}`;
   if (t.pos > 0) t.crashNote = false;
   const meter = document.getElementById("tyStreak"); if (meter) { const n = t.streak || 0; meter.textContent = n >= 2 ? `${n} in a row` : ""; meter.classList.toggle("hot", n >= 5); }
 }
@@ -3402,7 +3402,7 @@ function tyKey(raw) {
   const t = U.ty; if (t?.phase !== "play") return;
   const k = String(raw).toLowerCase(), want = t.cur[t.pos];
   if (t.stage === "words" && !t.startAt) t.startAt = Date.now();
-  if (k !== want) { t.misses++; if (t.stage === "words") t.wordMisses++; t.wrong = k; t.redo = t.pos > 0; t.pos = 0; t.streak = 0; beep(BLIP); document.getElementById("tyScene")?.classList.remove("shake"); void document.getElementById("tyScene")?.offsetWidth; document.getElementById("tyScene")?.classList.add("shake"); return tyPaint(); }
+  if (k !== want) { t.misses++; if (t.stage === "words") t.wordMisses++; t.wrong = k; t.redo = true; t.streak = 0; /* keeps his place: only that letter again (Nathan, 2026-11-10) */ beep(BLIP); document.getElementById("tyScene")?.classList.remove("shake"); void document.getElementById("tyScene")?.offsetWidth; document.getElementById("tyScene")?.classList.add("shake"); return tyPaint(); }
   t.wrong = ""; t.redo = false; t.pos++; t.hits++; if (t.stage === "words") t.chars++;
   beep(KEY_TAP);
   const scene = document.getElementById("tyScene");
@@ -3815,7 +3815,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "40e32f3602d5";
+const GAME_BUILD = "1c23e5c3be99";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
