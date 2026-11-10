@@ -1854,7 +1854,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5];
 const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle/" }, { id: "pirates", name: "Cannon Math Pirates", path: "pirates/" }];
 // Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
 const KID_PLANS = {
-  finn: { on: ["verse", "bible", "sevens", "typing", "capitals", "piano", "reading"], reading: 30, games: [], focus: "" },
+  finn: { on: ["verse", "bible", "sevens", "spelling", "typing", "grammar", "capitals", "piano", "reading"], reading: 30, games: [], focus: "" },
   myla: { on: ["reading", "castle", "piano"], reading: 15, piano: 10, games: ["castle"], focus: "Colors and shapes" },
 };
 const SCHOOL_DEFAULT = [
@@ -1896,6 +1896,12 @@ function schoolPlan() {
     S.finnFocus = 1; S.bibleSet = 1; S.verseSet = 1; S.sciSet = 1; S.typingSet = 1;
     const order = KID_PLANS.finn.on;
     S.schoolPlan.forEach((x) => { x.on = order.includes(x.id); });
+    S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
+  }
+  // Finley's spelling and grammar back on, next to Space Typing (Nathan, 2026-11-10). Set once so a parent's later changes stick.
+  if (KID.id === "finn" && !S.finnSpell) {
+    S.finnSpell = 1; const order = KID_PLANS.finn.on;
+    S.schoolPlan.forEach((x) => { if (x.id === "spelling" || x.id === "grammar") x.on = true; });
     S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
   }
   // Bible history trivia is daily for Elliot and Finn (Nathan, 2026-11-09). Set once so a parent's later changes stick.
@@ -3723,7 +3729,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "f0d448146d52";
+const GAME_BUILD = "003bf06732a0";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
