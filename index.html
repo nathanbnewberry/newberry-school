@@ -2419,7 +2419,11 @@ function pnListen() {
       // How much this pitch grew since it was last absent: a struck key jumps up, a ringing one only fades.
       mic.offA = mic.offA || {}; mic.peakA = mic.peakA || {};
       if (!r.ok) { mic.offA[pc] = r.a; mic.peakA[pc] = 0; } else mic.peakA[pc] = Math.max(mic.peakA[pc] || 0, r.a);
-      const jumped = appeared && mic.peakA[pc] > 2.5 * (mic.offA[pc] || 0) + .0004;
+      // ...or, when it never went quiet (the same key two notes ago is still ringing, like Jesus Loves Me's A A C A A),
+      // rising sharply above its own low point since the last note counted (Nathan, 2026-11-10).
+      mic.lowSince = mic.lowSince || {}; if (mic.lowSince[pc] === undefined || mic.lowSince[pc].since !== mic.acceptAt) mic.lowSince[pc] = { since: mic.acceptAt, a: r.a };
+      const lowS = mic.lowSince[pc].a = Math.min(mic.lowSince[pc].a, r.a);
+      const jumped = (appeared && mic.peakA[pc] > 2.5 * (mic.offA[pc] || 0) + .0004) || (r.a > lowS * 1.8 && r.a - lowS > .0015);
       // The same note again: it has to be struck again, which shows as that pitch jumping back up.
       // (A ringing note only fades.) The first 150 ms after a note are skipped while it finishes sounding.
       if (pc === mic.lastPc) {
@@ -2438,6 +2442,11 @@ function pnListen() {
         // this pitch rise at all, so a wrong key still can't count as this note.
         const fresh = now - strike < 200, settled = now - (mic.acceptAt || 0) > 250;
         const rise = a > lowA * (fresh ? (settled ? 1.04 : 1.12) : 1.3) && a - lowA > (fresh ? .0003 : .001), big = a > lowA * 1.8 && a - lowA > .0015;
+        // A strike that exactly cancels the ringing string shows no rise, but the note stops fading right at the click
+        // (Joy to the World's third C in a row). A ringing note left alone always fades, and another key doesn't stop it.
+        const halted = fresh && settled && mic.pcFading && a >= prevA * .985;
+        mic.pcFading = a < prevA * .97;
+        if (r.loose && halted) mic.repeatArm = now;
         if (r.loose && (rise && a >= prevA)) mic.repeatArm = now;
         if (!(r.loose && now - (mic.repeatArm || 0) < 200 && (now - strike < 420 || big))) continue;
       // A soft key over one still ringing (a gentle 4th-finger F after E) can hide its hammer click, so the note
@@ -3842,7 +3851,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "0694f1e987a6";
+const GAME_BUILD = "f48cd5c89922";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
