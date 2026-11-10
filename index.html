@@ -839,7 +839,7 @@ body[data-view="school"] .sdmaphead b{font-family:Rye,Georgia,serif;font-weight:
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=da60ec6d64"></script>
+<script src="lessons.js?v=84132dd37a"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 // One map for math and grammar (Nathan, 2026-11-09): each dated grammar day happens in that school day's math town,
@@ -3747,7 +3747,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "e7f9edcf7ad5";
+const GAME_BUILD = "95319bb1f156";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
