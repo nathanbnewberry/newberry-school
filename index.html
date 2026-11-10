@@ -3723,7 +3723,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "23da7401d11f";
+const GAME_BUILD = "f0d448146d52";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4506,6 +4506,26 @@ function sciView() {
 /* ---------- Penalty Kick Spelling: copy it, flash it, then spell it from memory ---------- */
 // A new week's list goes first in this array. Each word's sentence is read aloud but never shown.
 const SPELLING_LISTS = [
+  // Finley's week of 2026-11-09 (Nathan's photo, sent 2026-11-10). Words 15-17 are the book's sight words.
+  { id: "finn-list-12", kid: "finn", title: "Spelling List 12", startsOn: "2026-11-09", words: [
+    { w: "whistle", s: "The ref blew the whistle to start the game." },
+    { w: "whole", s: "The whole team ran onto the field." },
+    { w: "sketch", s: "The coach drew a sketch of the next play." },
+    { w: "appear", s: "The players appear when the gate opens." },
+    { w: "wear", s: "You wear shin guards to every game." },
+    { w: "early", s: "Get to practice early to warm up." },
+    { w: "goldfish", s: "We ate goldfish crackers at halftime." },
+    { w: "crumbs", s: "There were crumbs all over the bench." },
+    { w: "newspaper", s: "Our win was in the newspaper." },
+    { w: "whisper", s: "The goalie heard a whisper from the crowd." },
+    { w: "eardrum", s: "The loud horn hurt my eardrum." },
+    { w: "learning", s: "He is learning a new trick shot." },
+    { w: "folder", s: "Keep the team list in your folder." },
+    { w: "jewel", s: "The trophy had a red jewel on top." },
+    { w: "buy", s: "Dad will buy new cleats for the season." },
+    { w: "the", s: "Kick the ball into the net." },
+    { w: "whose", s: "Whose ball is this?" },
+  ] },
   { id: "finn-list-11", kid: "finn", title: "Spelling List 11", words: [
     { w: "wallet", s: "Keep your coins in your wallet." },
     { w: "amaze", s: "A great goal will amaze the fans." },
