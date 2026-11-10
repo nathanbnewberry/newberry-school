@@ -1967,7 +1967,16 @@ function testShowsOn(l, key) {
   const d = S.days?.[key]; if (d?.testStart?.[l.id] !== undefined) return d.testStart[l.id] < testParts(l).total;
   return key >= dateKey() && testParts(l).done < testParts(l).total;
 }
-const todaysItems = (d = schoolNow()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay())), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
+// A math or grammar card whose newest lesson was already finished on an earlier day has nothing to do, so it
+// stays off the list until new pages come (Nathan, 2026-11-10: Finley's grammar showed done and paid from last week).
+function lessonFinishedBefore(x, d) {
+  if (x.kind !== "grammar" && x.kind !== "math") return false;
+  const l = withSubject(x.kind, () => LESSONS[currentIdx()]); if (!l) return false;
+  if (!l.rides.filter((r) => !optionalRide(r)).every((r) => rideDone(l, r))) return false;
+  const key = dateKey(d);
+  return !Object.values(LP(l.id).problems || {}).some((p) => p.doneAt && dateKey(new Date(p.doneAt)) === key);
+}
+const todaysItems = (d = schoolNow()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()) && !lessonFinishedBefore(x, d)), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
 const TIMERS = {
   reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
   history: { secs: "histSecs", from: "histFrom", title: "History", running: "Enjoy your history lesson", waiting: "minutes of history", doneLine: () => `Great history lesson today, ${KID.name}! That's checked off.`, intro: "Start your history lesson on YouTube, tap start, and watch until the timer is done. You can leave this screen and it keeps counting.", again: "Keep watching" },
@@ -3738,7 +3747,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "2d63431a28d1";
+const GAME_BUILD = "e7f9edcf7ad5";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
