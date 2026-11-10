@@ -1289,6 +1289,8 @@ function playVoice(t, voice = "david", done = () => {}, onWord = null) {
     voiceEl.onended = next;
     voiceEl.onerror = () => { if (run === voiceRun) { voiceEl.onerror = voiceEl.onended = null; next(); } };
     voiceEl.src = `voice/${q.clip}.mp3`;
+    // Silver talks a little quicker in lessons, same pitch (Nathan, 2026-11-10: speed the explainer up a little).
+    try { voiceEl.preservesPitch = true; voiceEl.playbackRate = typeof U !== "undefined" && U.view === "ride" ? 1.12 : 1; } catch (e) {}
     voiceEl.play().catch(() => { if (run === voiceRun) next(); });
     if (onWord) voiceTick = setInterval(() => { const dur = voiceEl.duration; if (dur > 0) onWord(Math.floor((before + (voiceEl.currentTime / dur) * q.words) * shown / spoken)); }, 90);
     const after = queue[n]?.clip;
@@ -1885,7 +1887,14 @@ const SCHOOL_DEFAULT = [
   { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
   { id: "pirates", name: "Cannon Math Pirates", icon: "pirates", kind: "game", game: "pirates", on: false, days: WEEKDAYS, minutes: 10 },
 ];
+// Elliot's 30 minutes of "reading" on 2026-11-10 ran during piano, so they don't count (Nathan: "Elliot hasn't read yet").
+// The base only ever goes up when saves merge, so no device can bring those minutes back.
+function readingFix() {
+  if (KID.id !== "elliot") return; const d = S.days?.["2026-11-10"]; if (!d) return;
+  d.timerBase = d.timerBase || {}; d.timerBase.reading = Math.max(d.timerBase.reading || 0, 1800);
+}
 function schoolPlan() {
+  try { readingFix(); } catch (e) {}
   if (!S.schoolPlan) {
     S.schoolPlan = JSON.parse(JSON.stringify(SCHOOL_DEFAULT));
     const start = KID_PLANS[KID.id];
@@ -1985,9 +1994,11 @@ function lessonFinishedBefore(x, d) {
   const key = dateKey(d);
   return !Object.values(LP(l.id).problems || {}).some((p) => p.doneAt && dateKey(new Date(p.doneAt)) === key);
 }
-const todaysItems = (d = schoolNow()) => [...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()) && !lessonFinishedBefore(x, d)), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))];
+// The 60-minute History timer is always the last thing of the day, after any test card too (Nathan, 2026-11-10).
+const lastOfDay = (list) => [...list.filter((x) => x.id !== "history"), ...list.filter((x) => x.id === "history")];
+const todaysItems = (d = schoolNow()) => lastOfDay([...schoolPlan().filter((x) => x.on && x.days.includes(d.getDay()) && !lessonFinishedBefore(x, d)), ...withSubject("math", () => LESSONS.filter((l) => l.test && testShowsOn(l, dateKey(d))).map((l) => ({ id: `test:${l.id}`, name: "Math test", icon: "math", kind: "test", lesson: l.id, on: true, days: [d.getDay()] })))]);
 const TIMERS = {
-  reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. You can leave this screen and it keeps counting.", again: "Keep reading" },
+  reading: { secs: "readSecs", from: "readFrom", title: "Reading Time", running: "Happy reading", waiting: "minutes to read", doneLine: () => `Great reading today, ${KID.name}! That's checked off.`, intro: "Grab your book, tap start, and read until the timer is done. Stay on this screen: leaving it pauses the timer.", again: "Keep reading" },
   history: { secs: "histSecs", from: "histFrom", title: "History", running: "Enjoy your history lesson", waiting: "minutes of history", doneLine: () => `Great history lesson today, ${KID.name}! That's checked off.`, intro: "Start your history lesson on YouTube, tap start, and watch until the timer is done. You can leave this screen and it keeps counting.", again: "Keep watching" },
   piano: { secs: "pianoSecs", from: "pianoFrom", title: "Piano Practice", running: "Keep playing", waiting: "minutes to play", doneLine: () => `Great playing today, ${KID.name}! That's checked off.`, intro: "Sit down at the piano, tap start, and play until the timer is done. You can leave this screen and it keeps counting.", again: "Keep playing" },
 };
@@ -2017,8 +2028,8 @@ setInterval(() => {
 }, 1000);
 // What to do next: a running timer, then anything started and not finished, then the next on the list.
 function nextUp(items = todaysItems(), day = schoolDay()) {
-  const open = items.filter((x) => !itemStatus(x, day).done);
-  return open.find((x) => TIMERS[x.id] && day[TIMERS[x.id].from]) || open.find((x) => day.times?.[x.id]?.start) || open[0] || null;
+  const all = items.filter((x) => !itemStatus(x, day).done), rest = all.filter((x) => x.id !== "history"), open = rest.length ? rest : all;
+  return all.find((x) => TIMERS[x.id] && day[TIMERS[x.id].from]) || open.find((x) => day.times?.[x.id]?.start) || open[0] || null;
 }
 const PILL_WORK = ["ride", "rideEnd", "town", "typing", "piano", "spelling", "states", "reading", "lessonReview", "reward"], PILL_AWAY = ["home", "trophies"];
 function runPill() {
@@ -3789,14 +3800,22 @@ function schoolView() {
   const mathOn = items.some((x) => x.kind === "math");
   const ahead = mathOn ? LESSONS[currentIdx()] : null, tl = mathOn ? (day.mathLesson && LESSONS.find((l) => l.id === day.mathLesson)) || ahead : null;
   if (tl) U.lesson = tl.id;
-  const todayMap = tl ? `<div class="sdmap">${townMapSvg(tl, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(tl.id)}">Open ${esc(tl.town)} &#9654;</button>${ahead && ahead !== tl ? `<button class="sdopen sdahead" data-act="town" data-id="${esc(ahead.id)}">Work ahead: ${esc(ahead.town)} &#9654;</button>` : ""}</div>` : "";
+  // No math on the plan (Finley): his map is a trail of today's subjects instead, each stop opening that subject
+  // and showing done when it's finished (Nathan, 2026-11-10: "Finley's school should have a map", without math).
+  const trail = !tl && items.length > 1 ? (() => {
+    const its = items.slice(0, 10), icons = ["school", "hotel", "sheriff", "stable", "goal", "tower", "bank", "store", "saloon", "mine"];
+    const dl = { id: `daytrail-${KID.id}`, town: `${KID.name}'s Trail`, rides: its.map((x, i) => ({ id: x.id, name: x.name, icon: icons[i] })) };
+    const lp = LP(dl.id); lp.rides = {}; its.forEach((x) => { if (itemStatus(x, day).done) lp.rides[x.id] = true; });
+    return `<div class="sdmap">${townMapSvg(dl, sdMapH()).replace(/data-act="ride" data-id="/g, 'data-act="schoolGo" data-id="')}</div>`;
+  })() : "";
+  const todayMap = !tl ? trail : `<div class="sdmap">${townMapSvg(tl, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(tl.id)}">Open ${esc(tl.town)} &#9654;</button>${ahead && ahead !== tl ? `<button class="sdopen sdahead" data-act="town" data-id="${esc(ahead.id)}">Work ahead: ${esc(ahead.town)} &#9654;</button>` : ""}</div>`;
   // Silver still says the line; it just doesn't take a row of the screen (Nathan, 2026-11-09: condense the top).
   speak(line); U.lastBubble = line;
   return `<div class="sdtop"><div class="sddate">${dayNavHead(schoolNow(), 0).replace("</span>", `${focus ? ` &#183; ${esc(focus)}` : ""}</span>`)}</div><div class="sdstrip"><div class="daytrail"><i style="width:${pct}%"></i><span class="dayhorse" style="left:${pct}%"><svg viewBox="-32 -56 64 74" aria-hidden="true">${riderToken().replace('id="token"', "")}</svg></span><b>${done} of ${items.length}</b></div></div>${navRight()}</div>${familyLinked() ? "" : `<button class="savewarn" data-act="familySignInAgain">This device isn't signed in, so work here won't show on your other devices. Tap to sign in.</button>`}${navigator.onLine === false ? `<div class="offlinepill">No internet right now. Your work is saving on this device and will catch up later.</div>` : ""}<div class="sdmain ${todayMap ? "" : "nomap"}"><div class="daycards">${gtKid() && gtSchoolDone(day) ? `<button class="gamego" data-act="view" data-v="gametime">&#127918; Game time: ${gtLeft(day) > 0 ? `${Math.ceil(gtLeft(day) / 60)} min left` : "done for today"} &#9654;</button>` : ""}${ordered.map(card).join("")}</div><div class="sdside">${todayMap}${all && keepGoingRow(items) ? `<div class="sdinfo">${keepGoingRow(items)}</div>` : ""}</div></div>`;
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "22a2786114b7";
+const GAME_BUILD = "af86266cb304";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5272,7 +5291,7 @@ function readLock() {
   const on = SUBJECT === "grammar" && U.view === "ride";
   if (!on) { U.lockKey = ""; return; }
   const said = U.lastBubble || "";
-  if (said !== U.lockKey) { U.lockKey = said; U.lockUntil = Date.now() + Math.min(9000, Math.max(1500, said.length * 60)); }
+  if (said !== U.lockKey) { U.lockKey = said; U.lockUntil = Date.now() + Math.min(6000, Math.max(1000, said.length * 40)); }
   const left = (U.lockUntil || 0) - Date.now();
   if (left <= 0) return;
   document.querySelectorAll('#app .choices button:not([disabled]), #app [data-act="next"], #app [data-act="tapWord"], #app [data-act="finalPick"], #app [data-act="stepPick"]').forEach((b) => { b.disabled = true; b.classList.add("waitread"); });
@@ -5712,8 +5731,9 @@ function narrateWorked() {
   const id = narrateId, log = U.stepLog || [], items = [...document.querySelectorAll(".recap li")], p = PP(LP(U.lesson), q.id);
   const lines = [{ t: `So the answer is ${p.ans}.`, unlock: !WHY[q.skill] }];
   if (WHY[q.skill]) lines.push({ t: WHY[q.skill], el: document.querySelector(".whybox"), unlock: true });
-  lines.push({ t: "Here's how you worked it out." });
-  q.coach.steps.forEach((st, i) => { if (st.label === "Answer") return; const ask = String(st.ask || "").replace(/\s*=\s*\?$/, ""); lines.push({ t: `${st.say ? `${st.say} ` : ""}${ask}${/=\s*\?$/.test(String(st.ask)) ? " is" : ""} ${log[i] || ""}.`, el: items[i] }); });
+    // The recap stays on screen but isn't read step by step any more: the answer, why, and the check are enough
+  // (Nathan, 2026-11-10: "the explainer takes a little too long").
+  void log; void items;
   const chk = document.querySelector(".checkit"); if (chk) lines.push({ t: chk.textContent.replace(/^Check it\s*/, "To check it: "), el: chk });
   let n = 0;
   const next = () => {
@@ -8188,6 +8208,9 @@ addEventListener("focus", () => setTimeout(spellFocus, 0));
 let lastRenderedView = "";
 function render() {
   setTimeout(spellFocus, 0);
+  // Leaving the reading screen pauses the reading timer, so it can't run while he does something else
+  // (Nathan, 2026-11-10: it ran during piano and counted as reading).
+  if (U.view !== "reading" || U.timerId !== "reading") { const day = S.days?.[dateKey()], t = TIMERS.reading; if (day?.[t.from] && timerSecs("reading", day) < timerNeed("reading")) { day[t.secs] = timerBase("reading", day) + timerSecs("reading", day); day[t.from] = 0; day.timerAt = { ...(day.timerAt || {}), reading: Date.now() }; save(); } }
   if (U.pnAutoTimer && U.view !== "piano") {
     U.pnAutoTimer = false; const day = schoolDay(), t = TIMERS.piano;
     if (day[t.from] && timerSecs("piano", day) < timerNeed("piano")) { day[t.secs] = timerBase("piano", day) + timerSecs("piano", day); day[t.from] = 0; save(); }
