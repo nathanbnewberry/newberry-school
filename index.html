@@ -3815,7 +3815,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "af86266cb304";
+const GAME_BUILD = "40e32f3602d5";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5257,7 +5257,8 @@ function schoolRoom(l) {
 // Every town has a chapel for Bible history and, on a math lesson's day, a schoolhouse for that day's grammar
 // (Nathan, 2026-11-09). They go in the open ground farthest from the trail stops.
 function townExtras(l, pts) {
-  if (l.test) return "";
+  // A subject trail (Finley) already has its own Bible history stop, so no separate chapel (Nathan, 2026-11-10).
+  if (l.test || String(l.id).startsWith("daytrail-")) return "";
   const bible = schoolPlan().find((x) => x.kind === "bible" && x.on);
   const gram = !l.hostId && (l.subject || "math") === "math" ? ALL_LESSONS.find((x) => x.hostId === l.id && (x.kid || "elliot") === KID.id) : null;
   const want = [bible && "chapel", gram && "school"].filter(Boolean); if (!want.length) return "";
