@@ -3738,7 +3738,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "7d175d40c30a";
+const GAME_BUILD = "2d63431a28d1";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4940,7 +4940,10 @@ function verseTap(d) {
     if (!vs.missHere) vs.firstTry++;
     // Words right on the first tap build a combo, with a cheer at 5, 10, 15 and 20 (Nathan, 2026-11-09: more fun).
     vs.combo = vs.missHere ? 0 : (vs.combo || 0) + 1; vs.popAt = vs.pos;
-    try { if (!S.muted && S.voice !== false) { stopVoice(); playVoice(w.replace(/[^A-Za-z']/g, ""), "david"); } } catch (e) {}
+    // Practice reads the verse from the start through the new word, so it builds and flows each time and he hears
+    // the whole line over and over (Nathan, 2026-11-10). A test stays plain: just the word.
+    const said = vs.mode === "practice" ? vs.words.slice(0, vs.pos + 1).join(" ") : w.replace(/[^A-Za-z']/g, "");
+    try { if (!S.muted && S.voice !== false) { stopVoice(); playVoice(said, "david"); } } catch (e) {}
     if ([5, 10, 15, 20].includes(vs.combo)) { confetti(24); banner(`\u{1F525} ${vs.combo} words in a row!`); if (vs.mode === "practice") { earn(1); coinPop(1); } }
     else if (/[,.;:!?]$/.test(w)) confetti(10);
     vs.pos++; beep(BLIP); if (vs.mode === "practice") earn(vs.missHere ? 0 : 1);
