@@ -3309,14 +3309,15 @@ function tyArm(t) {
     try { rock._fly?.cancel(); rock._fly = rock.animate([{ transform: "translate(0px,-40px) scale(.85)" }, { transform: `translate(${f * .35}px,30px) scale(.95)` }, { transform: `translate(${f * .7}px,-20px) scale(1.05)` }, { transform: `translate(${f}px,0px) scale(1.15)` }], { duration: ms, easing: "linear", fill: "forwards" }); } catch (e) {} }
   // The asteroid slides down with a transform, which the iPad draws smoothly (moving "top" made it lag, 2026-11-09).
 
-  tyDropTimer = setTimeout(() => {
+  t.crashFn = () => {
     if (U.ty !== t || U.view !== "typing" || t.phase !== "play") return;
     t.queue.push(t.cur); t.streak = 0; t.misses++; if (t.stage === "words") t.wordMisses++;
     const scene = document.getElementById("tyScene"), old = document.getElementById("tyRock");
     if (old) { old.classList.add("crash"); try { old._fly?.pause(); old.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, fill: "forwards" }); } catch (e) {} }
     if (scene) { scene.classList.remove("hitship"); void scene.offsetWidth; scene.classList.add("hitship"); tyExplode(scene); }
     t.crashNote = true; beep(BANG); tyNext();
-  }, ms);
+  };
+  t.flyMs = ms; tyDropTimer = setTimeout(t.crashFn, ms);
 }
 // A blast at any spot in the scene (Nathan, 2026-11-10: every key he types should make it explode more).
 function tyBlast(scene, x, y, size = 1) {
@@ -3332,6 +3333,13 @@ function tyExplode(scene) {
   const ring = document.createElement("i"); ring.className = "tyboomring"; ring.style.cssText = `left:${x}px;top:${y}px`; scene.appendChild(ring); setTimeout(() => ring.remove(), 700);
   for (let n = 0; n < 22; n++) { const bit = document.createElement("i"), a = Math.random() * 6.283, d = 60 + Math.random() * 140; bit.className = "tybit tydebris"; bit.style.cssText = `left:${x}px;top:${y}px;background:${["#ffd23f", "#ff7a3c", "#e8303c", "#fff3b0", "#8a8f9a"][n % 5]};--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d - 30}px`; scene.appendChild(bit); setTimeout(() => bit.remove(), 700); }
   ship.classList.remove("hurt"); void ship.offsetWidth; ship.classList.add("hurt");
+}
+// Each right letter knocks the asteroid back a little, which also gives him a little more time (Nathan, 2026-11-10).
+function tyPush(t) {
+  const rock = document.getElementById("tyRock"), fly = rock?._fly; if (!fly || !t.flyMs || !t.crashFn) return;
+  const now = Number(fly.currentTime) || 0, back = Math.min(now, t.flyMs * .05), to = now - back;
+  try { fly.currentTime = to; } catch (e) { return; }
+  clearTimeout(tyDropTimer); tyDropTimer = setTimeout(t.crashFn, Math.max(300, t.flyMs - to));
 }
 // Where the finger goes (Nathan, 2026-11-09): from its home key up, down or over to the key, then back home.
 const tyHomeOf = (f) => [..."asdfjkl;"].find((c) => TY_FINGER[c] === f) || "";
@@ -3400,7 +3408,7 @@ function tyKey(raw) {
       scene.classList.remove("tyjolt"); void scene.offsetWidth; scene.classList.add("tyjolt");
     }
   }
-  if (t.pos < t.cur.length) return tyPaint();
+  if (t.pos < t.cur.length) { tyPush(t); return tyPaint(); }
   // The whole word is typed, so the asteroid goes.
   const rock = document.getElementById("tyRock");
   if (rock) {
@@ -3788,7 +3796,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "2c33754115a8";
+const GAME_BUILD = "22a2786114b7";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
