@@ -621,7 +621,7 @@ body[data-view="game-run"] #world{height:calc(var(--appH,100dvh) - 128px);width:
 body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="trophies"] #world{display:none}
 .storehero{padding:8px;position:relative}.ranchopen{display:block;width:100%;padding:0;background:none;position:relative;cursor:pointer;border-radius:10px;overflow:hidden}.ranchopen .ranch{display:block;width:100%}.ranchpill{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:#7b2d1c;color:#ffe7a8;font-weight:800;padding:6px 16px;border-radius:999px;white-space:nowrap;animation:pillpulse 1.2s ease-in-out infinite alternate}@keyframes pillpulse{to{transform:translateX(-50%) scale(1.05)}}.norasay2{margin:0;text-align:center;font-weight:700;color:#1c1712;font-size:1.05rem;padding-top:6px}
 @media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}.storewrap .shop{grid-template-columns:1fr 1fr}.storewrap .itemtext .sub{display:none}.storewrap .itemtext{flex:1 1 70px}}
-.ranchfull{position:fixed;inset:0;z-index:20;background:#1a2438;display:grid;place-items:center;overflow:hidden}.ranchfull .ranch{width:100%;height:100%;max-height:100%}.ranchback{position:absolute;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:3}.ranchfull .norasay{top:14px;left:170px;right:14px;z-index:3;font-size:clamp(1rem,3vh,1.35rem)}.ranchhint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;background:rgba(20,15,10,.75);color:#fff;font-weight:700;padding:5px 14px;border-radius:999px;pointer-events:none}
+.b3wrap{position:fixed;inset:0;z-index:20;background:#1a2438;overflow:hidden;font-family:var(--body)}.b3host{position:absolute;inset:0}.b3canvas{display:block;width:100%;height:100%;touch-action:none}.b3load{position:absolute;inset:0;display:grid;place-items:center;color:#ffe7a8;font-weight:800;font-size:1.3rem;margin:0}.b3top{position:absolute;left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));display:flex;gap:10px;align-items:center;pointer-events:none}.b3top>*{pointer-events:auto}.b3say{flex:1;margin:0;background:rgba(255,248,230,.92);color:#2a1c10;font-weight:800;border-radius:14px;padding:8px 14px;font-size:clamp(.95rem,2.4vh,1.2rem);box-shadow:0 3px 10px rgba(0,0,0,.25)}.b3panel{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;background:rgba(20,15,10,.78);color:#fff;font-weight:700;padding:7px 12px;border-radius:999px;white-space:nowrap;max-width:96vw;overflow-x:auto}.b3panel b{color:#ffd23f;margin-right:4px}.b3panel:not(.sel){pointer-events:none;opacity:.85}.b3tray{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;overflow-x:auto;padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));background:linear-gradient(transparent,rgba(20,15,10,.85) 30%);-webkit-overflow-scrolling:touch}.b3item{flex:0 0 auto;width:104px;display:grid;justify-items:center;gap:1px;background:#fbf3df;border:3px solid #c9a66b;border-radius:12px;padding:4px 4px 5px;color:#2a1c10;font:inherit;cursor:pointer}.b3item .itempic{width:72px;height:50px}.b3item span{font-size:.74rem;font-weight:800;line-height:1.1;text-align:center;min-height:2.2em;display:grid;place-items:center}.b3item em{font-style:normal;font-weight:800;font-size:.78rem;color:#7b2d1c}.b3item.own{opacity:.62;border-color:#5fae6f}.b3item.own em{color:#2f7f4f}.b3item.away{border-color:#ffd23f;animation:pillpulse 1s ease-in-out infinite alternate}.b3item.buy{border-color:#e0b73f}.b3item.buy em{background:#2f7f4f;color:#fff;border-radius:999px;padding:1px 10px}.b3item.poor{opacity:.55}.b3item.locked{opacity:.4}.ranchfull{position:fixed;inset:0;z-index:20;background:#1a2438;display:grid;place-items:center;overflow:hidden}.ranchfull .ranch{width:100%;height:100%;max-height:100%}.ranchback{position:absolute;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:3}.ranchfull .norasay{top:14px;left:170px;right:14px;z-index:3;font-size:clamp(1rem,3vh,1.35rem)}.ranchhint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;background:rgba(20,15,10,.75);color:#fff;font-weight:700;padding:5px 14px;border-radius:999px;pointer-events:none}
 .tcase{background:linear-gradient(#5a3517,#3f2612);border:6px solid #2c1a0e;border-radius:12px;padding:10px;display:grid;gap:8px}.tshelf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding-bottom:10px;border-bottom:10px solid #8a5a30;box-shadow:0 8px 0 -2px rgba(0,0,0,.25)}.trophy{display:grid;justify-items:center;gap:2px;color:#fff;text-align:center;font-weight:700;font-size:.85rem}.trophy svg{width:100%;height:clamp(78px,17vh,130px)}.trophy:not(.won) svg{filter:brightness(0) opacity(.45)}.trophy:not(.won) span{opacity:.6}.trophy.won svg{filter:drop-shadow(0 0 9px rgba(255,220,120,.75))}.trophyhint{color:#f2f3ff;font-weight:600;margin:4px 0}
 .vis.notenough{display:grid;grid-template-columns:76px repeat(var(--n),minmax(0,30px));justify-content:center;align-items:center;gap:6px 4px;padding:8px 12px;font-size:.95rem}.nespot{display:grid;place-items:center;min-height:30px}.nespot svg{width:24px;height:30px}.nespot .dcoin{width:22px;height:22px}.neempty{width:22px;height:22px;border-radius:50%;border:2px dashed #b9ad96}
 .trailbar .ptrail{padding-left:26px}
@@ -1018,6 +1018,7 @@ function mergeSaves(mine, theirs, joining = false) {
   if (joining) out.nuggets = Math.max(mine.nuggets || 0, theirs.nuggets || 0);
   mergeDayTimes(out, mine, theirs);
   mergeTyState(out, mine, theirs);
+  mergeLayout(out, mine, theirs);
   return out;
 }
 // Brings in what other devices saved. Skips it mid-activity so nothing shifts under a child's fingers.
@@ -1030,7 +1031,7 @@ async function cloudPull() {
   if (remote) {
     // Timestamps can match while the work differs, so compare the work itself.
     const stamp = Math.max(remote.updatedAt || 0, S.updatedAt || 0), joined = mergeSaves(S, remote, moved);
-    const changed = moved || (remote.updatedAt || 0) !== (S.updatedAt || 0) || MERGE_KEYS.some((k) => JSON.stringify(joined[k]) !== JSON.stringify(S[k]));
+    const changed = moved || (remote.updatedAt || 0) !== (S.updatedAt || 0) || [...MERGE_KEYS, "ranchLayout"].some((k) => JSON.stringify(joined[k]) !== JSON.stringify(S[k]));
     if (!changed) return;
     S = joined; S.updatedAt = stamp;
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
@@ -3730,7 +3731,7 @@ function lessonReviewView() {
   }).join("");
   return `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>${l.subject === "grammar" ? `Grammar: ${esc(l.town)}` : `${esc(l.town)}${l.place ? `, ${esc(l.place.state)}` : ""} &#183; ${lessonLabel(l)}`}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>
   ${bubble(`Here's everything you did in ${l.town}. Tap any problem to see it again.`, "", true)}
-  <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="ranch">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
+  <div class="revwrap"><div class="revranch"><button class="ranchopen" data-act="view" data-v="build">${ranchSvg()}</button><p class="revstats">${sections} of ${must.length} sections &#183; ${doneQ} of ${allQ.length} problems &#183; ${built} ranch ${built === 1 ? "piece" : "pieces"} &#183; ${trophies} ${trophies === 1 ? "trophy" : "trophies"}</p><div class="revbtns"><button class="btn dark" data-act="view" data-v="ranch">Visit the ranch</button><button class="btn dark" data-act="view" data-v="store">${esc(l.town)} Store</button></div>${lessonFinished(l) && !lp.completed ? `<button class="btn go wide" data-act="reward">Claim your badge! +$100</button>` : ""}<button class="btn dark wide" data-act="reviewTown">See the town map</button></div><div class="revwork">${rows}</div></div>`;
 }
 // This week's lessons show first; earlier ones fold behind one button so the row doesn't keep growing (Nathan, 2026-11-09).
 function weekKeys() { const d = new Date(); d.setHours(12, 0, 0, 0); const wd = d.getDay(); d.setDate(d.getDate() + (wd === 0 ? 1 : wd === 6 ? 2 : 1 - wd)); const f = new Date(d); f.setDate(d.getDate() + 6); return [dateKey(d), dateKey(f)]; }
@@ -3851,7 +3852,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "f48cd5c89922";
+const GAME_BUILD = "60c329b55bf8";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6486,6 +6487,372 @@ function trophiesView() {
   const total = shelves.reduce((n, l) => n + cityPrizes(l.id).length, 0);
   return `<div class="hud storehud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>All Trophies</h2><span class="chip">${total} won</span></div><div class="tcase tall">${shelves.map((l) => { const won = cityPrizes(l.id); return `<div class="tcity"><h3>${esc(l.town)} ${l.bookLesson ? `<small>${lessonLabel(l)}</small>` : ""}</h3><div class="tshelf">${won.length ? won.map((p) => art(p, true)).join("") : `<p class="tempty">No trophies here yet. Go win some!</p>`}</div></div>`; }).join("")}</div>`;
 }
+// ===== Build the ranch in 3D (Nathan, 2026-11-12: "like the castle and pirate game, where they can place things ... a
+// little more 3d and realistic ... move things around ... place the house and things around the farm"). Every piece the
+// child owns stands on a 40 by 40 plot; drag one to move it, Turn spins it a quarter turn, Put away takes it off the land.
+// Spots save per town in S.ranchLayout[lessonId][piece] = "x,z,turn,time" (or "away,time"), and the newest spot wins
+// when saves merge (mergeLayout), since the general merge would keep the larger number. three.js loads only here.
+const B3_PARTS = { fence: 3, hands: 2, guards: 2, towers: 4 };
+const B3_SIZE = { cabin: [6, 5], barn: [8, 6], well: [2, 2], windmill: [3, 3], garden: [4, 3], corral: [7, 5], doghouse: [3, 2], appletree: [3, 3], coop: [3, 2], pond: [6, 4], porch: [3, 2], fence: [8, 1], hands: [1, 1], guards: [1, 1], towers: [3, 3] };
+const B3_HOME = { cabin: [-8, -5], barn: [8, -7], well: [0, -3], windmill: [15, -14], garden: [-9, 3], corral: [9, 4], doghouse: [-15, 2], appletree: [-15, -9], coop: [2, -12], pond: [0, 7], porch: [-3, -1], fence0: [-9, 17], fence1: [0, 17], fence2: [9, 17], hands0: [-4, 2], hands1: [5, -1], guards0: [-3, 15], guards1: [3, 15], towers0: [-18, -18], towers1: [18, -18], towers2: [-18, 18], towers3: [18, 18] };
+const B3_HALF = 20;
+const b3Keys = () => ownedHere().flatMap((id) => (B3_SIZE[id] ? (B3_PARTS[id] ? Array.from({ length: B3_PARTS[id] }, (_, n) => id + n) : [id]) : []));
+const b3Id = (key) => key.replace(/\d+$/, "");
+function b3Layout() { S.ranchLayout = S.ranchLayout || {}; const id = ranchLesson().id; return (S.ranchLayout[id] = S.ranchLayout[id] || {}); }
+function b3Spot(key) { const v = b3Layout()[key]; if (!v) return null; const p = v.split(","); return p[0] === "away" ? { away: true } : { x: +p[0], z: +p[1], r: +p[2] || 0 }; }
+function b3Keep(key, s) { b3Layout()[key] = s.away ? `away,${Date.now()}` : `${s.x},${s.z},${s.r || 0},${Date.now()}`; save(); }
+function mergeLayout(out, mine, theirs) {
+  const a = mine.ranchLayout || {}, b = theirs.ranchLayout || {}, t = (v) => +String(v || "").split(",").pop() || 0;
+  if (!mine.ranchLayout && !theirs.ranchLayout) return;
+  out.ranchLayout = {};
+  new Set([...Object.keys(a), ...Object.keys(b)]).forEach((town) => { const x = a[town] || {}, y = b[town] || {}, o = (out.ranchLayout[town] = {}); new Set([...Object.keys(x), ...Object.keys(y)]).forEach((k) => { o[k] = t(x[k]) >= t(y[k]) ? x[k] : y[k]; }); });
+}
+const b3Box = (key, s) => { const [w, d] = B3_SIZE[b3Id(key)], odd = (s.r || 0) % 2; const hw = (odd ? d : w) / 2, hd = (odd ? w : d) / 2; return { x0: s.x - hw, x1: s.x + hw, z0: s.z - hd, z1: s.z + hd }; };
+function b3Fits(key, s, placed) {
+  const b = b3Box(key, s); if (b.x0 < -B3_HALF || b.x1 > B3_HALF || b.z0 < -B3_HALF || b.z1 > B3_HALF) return false;
+  return !Object.entries(placed).some(([k, o]) => { if (k === key || !o || o.away) return false; const c = b3Box(k, o); return b.x0 < c.x1 - .01 && b.x1 > c.x0 + .01 && b.z0 < c.z1 - .01 && b.z1 > c.z0 + .01; });
+}
+// Where a piece goes the first time: its usual spot, or the nearest free one.
+function b3FreeSpot(key, placed, from, r = 0) {
+  const [hx, hz] = from || B3_HOME[key] || [0, 0];
+  for (let ring = 0; ring < 40; ring++) for (let dx = -ring; dx <= ring; dx++) for (let dz = -ring; dz <= ring; dz++) {
+    if (Math.max(Math.abs(dx), Math.abs(dz)) !== ring) continue;
+    const s = { x: hx + dx, z: hz + dz, r }; if (b3Fits(key, s, placed)) return s;
+  }
+  return { x: hx, z: hz, r };
+}
+function b3Placed() {
+  const placed = {};
+  b3Keys().forEach((k) => { const s = b3Spot(k); if (s) placed[k] = s; });
+  b3Keys().forEach((k) => { if (!placed[k]) { placed[k] = b3FreeSpot(k, placed); b3Keep(k, placed[k]); } });
+  return placed;
+}
+let b3Loading = null;
+const b3Three = () => (window.THREE ? Promise.resolve() : (b3Loading = b3Loading || new Promise((ok, no) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"; s.onload = ok; s.onerror = () => { b3Loading = null; no(); }; document.head.appendChild(s); })));
+
+// ---------- the pieces, built from simple shapes ----------
+const B3M = {};
+function b3Mat(c, o = {}) { const k = c + JSON.stringify(o); return B3M[k] || (B3M[k] = new THREE.MeshLambertMaterial({ color: c, ...o })); }
+function b3Add(g, geo, c, x, y, z, o = {}) { const m = new THREE.Mesh(geo, b3Mat(c, o.mat)); m.position.set(x, y, z); if (o.rx) m.rotation.x = o.rx; if (o.ry) m.rotation.y = o.ry; if (o.rz) m.rotation.z = o.rz; m.castShadow = o.shadow !== false; m.receiveShadow = true; g.add(m); return m; }
+const bx = (g, w, h, d, x, y, z, c, o) => b3Add(g, new THREE.BoxGeometry(w, h, d), c, x, y, z, o);
+const cy = (g, r1, r2, h, x, y, z, c, o = {}) => b3Add(g, new THREE.CylinderGeometry(r1, r2, h, o.seg || 10), c, x, y, z, o);
+const sp = (g, r, x, y, z, c, o = {}) => b3Add(g, new THREE.SphereGeometry(r, o.seg || 10, 8), c, x, y, z, o);
+const cn = (g, r, h, x, y, z, c, o = {}) => b3Add(g, new THREE.ConeGeometry(r, h, o.seg || 10), c, x, y, z, o);
+// A gable roof: two sloped boards meeting at a ridge, running along x.
+function b3Roof(g, w, d, y, rise, c, over = .35, wall = "#7a4d27") {
+  const half = d / 2 + over, len = Math.hypot(half, rise), a = Math.atan2(rise, half);
+  [-1, 1].forEach((s) => bx(g, w + over * 2, .22, len, 0, y + rise / 2, s * half / 2, c, { rx: s * a }));
+  const tri = new THREE.Shape(); tri.moveTo(-d / 2, 0); tri.lineTo(d / 2, 0); tri.lineTo(0, rise); tri.lineTo(-d / 2, 0);
+  [-1, 1].forEach((s) => { const m = b3Add(g, new THREE.ShapeGeometry(tri), wall, s * w / 2, y, 0, { ry: Math.PI / 2, mat: { side: THREE.DoubleSide } }); });
+}
+function b3Person(g, x, z, shirt, o = {}) {
+  const p = new THREE.Group(); p.position.set(x, 0, z); g.add(p);
+  bx(p, .22, .7, .22, -.13, .35, 0, o.pants || "#3b4a6b"); bx(p, .22, .7, .22, .13, .35, 0, o.pants || "#3b4a6b");
+  bx(p, .55, .7, .32, 0, 1.05, 0, shirt);
+  const armL = new THREE.Group(); armL.position.set(-.36, 1.35, 0); p.add(armL); bx(armL, .16, .62, .16, 0, -.3, 0, shirt);
+  const armR = new THREE.Group(); armR.position.set(.36, 1.35, 0); p.add(armR); bx(armR, .16, .62, .16, 0, -.3, 0, shirt);
+  sp(p, .24, 0, 1.65, 0, o.skin || "#e0ac7e");
+  if (o.dress) cn(p, .45, .9, 0, .85, 0, shirt);
+  if (o.hair) sp(p, .26, 0, 1.72, -.05, o.hair);
+  if (o.hat !== false) { cy(p, .42, .42, .05, 0, 1.84, 0, o.hat || "#8a5a2e"); cy(p, .2, .24, .26, 0, 1.97, 0, o.hat || "#8a5a2e"); }
+  p.userData.armL = armL; p.userData.armR = armR;
+  return p;
+}
+function b3Horse(g, x, z, c, mane = "#3a2412") {
+  const h = new THREE.Group(); h.position.set(x, 0, z); g.add(h);
+  bx(h, 1.6, .7, .6, 0, 1.15, 0, c); [[-.6, -.2], [.6, -.2], [-.6, .2], [.6, .2]].forEach(([lx, lz]) => bx(h, .16, .85, .16, lx, .42, lz, c));
+  const head = new THREE.Group(); head.position.set(.85, 1.45, 0); h.add(head); bx(head, .34, .7, .34, 0, .15, 0, c, { rz: -.5 }); bx(head, .55, .3, .3, .3, .45, 0, c); bx(head, .12, .5, .1, -.1, .3, 0, mane, { rz: -.5 });
+  bx(h, .12, .7, .12, -.85, 1.1, 0, mane, { rz: .4 });
+  h.userData.head = head; return h;
+}
+const B3_BUILD = {
+  cabin(g, look) {
+    const logs = look.home === "lodge" ? "#6b4a30" : "#9c6a3c", dark = "#5a3a1e", roof = look.home === "lodge" ? "#3f6f8f" : "#5a3a2a";
+    bx(g, 5.4, .3, 4.4, 0, .15, 0, "#7d6b55");
+    for (let i = 0; i < 6; i++) { cy(g, .24, .24, 5.2, 0, .55 + i * .46, 2, logs, { rz: Math.PI / 2, seg: 8 }); cy(g, .24, .24, 5.2, 0, .55 + i * .46, -2, logs, { rz: Math.PI / 2, seg: 8 }); cy(g, .24, .24, 4.2, 2.55, .55 + i * .46, 0, logs, { rx: Math.PI / 2, seg: 8 }); cy(g, .24, .24, 4.2, -2.55, .55 + i * .46, 0, logs, { rx: Math.PI / 2, seg: 8 }); }
+    bx(g, 5, 2.7, 3.9, 0, 1.6, 0, logs);
+    b3Roof(g, 5.0, 3.9, 2.95, 1.7, roof, .45, logs);
+    bx(g, .9, 1.6, .1, 0, 1.1, 2.26, dark); sp(g, .06, .3, 1.1, 2.33, "#e0b73f");
+    [-1.6, 1.6].forEach((x) => { bx(g, .9, .8, .08, x, 1.8, 2.25, "#ffe7a0", { mat: { emissive: "#6b5320" } }); bx(g, 1.05, .1, .14, x, 1.4, 2.3, dark); bx(g, .08, .8, .12, x, 1.8, 2.3, dark); });
+    bx(g, .8, 2.4, .8, 1.8, 4, -.8, "#8d8476"); bx(g, .95, .15, .95, 1.8, 5.2, -.8, "#6e6a64");
+    bx(g, 5.4, .14, 1.4, 0, .32, 2.9, "#7d5530"); [-2.5, 2.5].forEach((x) => cy(g, .08, .08, 2.6, x, 1.5, 3.5, dark)); bx(g, 5.6, .14, 1.6, 0, 2.85, 3.0, roof, { rx: -.25 });
+    g.userData.smoke = new THREE.Vector3(1.8, 5.4, -.8);
+  },
+  barn(g, look) {
+    const red = look.home === "lodge" ? "#3f6f8f" : "#a8342c", trim = "#f4efe6", roof = "#4d3b33";
+    bx(g, 7, 4, 5, 0, 2, 0, red);
+    const half = 2.5, mid = 1.2;
+    [[-1, 1]].forEach(() => {});
+    [-1, 1].forEach((s) => { bx(g, 7.4, .22, 1.8, 0, 4.6, s * 1.75, roof, { rx: s * 1.0 }); bx(g, 7.4, .22, 1.9, 0, 5.7, s * .7, roof, { rx: s * .35 }); });
+    const sh = new THREE.Shape(); sh.moveTo(-half, 0); sh.lineTo(half, 0); sh.lineTo(half - .7, mid); sh.lineTo(.0, mid + 1.0); sh.lineTo(-half + .7, mid); sh.lineTo(-half, 0);
+    [-1, 1].forEach((s) => b3Add(g, new THREE.ShapeGeometry(sh), red, s * 3.5, 4, 0, { ry: Math.PI / 2, mat: { side: THREE.DoubleSide } }));
+    bx(g, .1, 2.8, 2.6, 3.52, 1.4, 0, "#7c241e"); bx(g, .12, .16, 3.4, 3.56, 1.4, 0, trim, { rx: .82 }); bx(g, .12, .16, 3.4, 3.56, 1.4, 0, trim, { rx: -.82 }); bx(g, .12, 2.8, .16, 3.56, 1.4, 1.3, trim); bx(g, .12, 2.8, .16, 3.56, 1.4, -1.3, trim); bx(g, .12, .16, 2.7, 3.56, 2.8, 0, trim);
+    bx(g, .1, 1, 1, 3.52, 4.6, 0, "#3a2412"); bx(g, .14, 1.2, .14, 3.56, 4.6, .55, trim); bx(g, .14, 1.2, .14, 3.56, 4.6, -.55, trim);
+    [-2, 0, 2].forEach((x) => bx(g, 1, .8, .08, x, 2.6, 2.53, "#3a2412")); bx(g, .3, .3, .3, 3.8, .15, 1.8, "#e3cf7f"); bx(g, 1, .7, .7, 4.3, .35, -1.6, "#e3cf7f"); bx(g, .8, .6, .6, 4.2, 1.0, -1.6, "#d9c070");
+  },
+  well(g) {
+    cy(g, .9, 1, .9, 0, .45, 0, "#8d8476", { seg: 12 }); cy(g, .72, .72, .92, 0, .48, 0, "#2c5a7a", { seg: 12, shadow: false });
+    [-.8, .8].forEach((x) => bx(g, .14, 2, .14, x, 1.4, 0, "#5a3a1e")); cy(g, .08, .08, 1.7, 0, 2, 0, "#6b4a2b", { rz: Math.PI / 2 });
+    const r = cn(g, 1.3, .9, 0, 2.8, 0, "#7c241e", { seg: 4 }); r.rotation.y = Math.PI / 4; cy(g, .2, .16, .3, .3, 1.3, 0, "#7d5530");
+  },
+  windmill(g) {
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => { const l = cy(g, .07, .09, 7.2, x * .6, 3.5, z * .6, "#8a8f9a", { seg: 6 }); l.rotation.z = -x * .1; l.rotation.x = z * .1; });
+    [1.5, 3, 4.5, 6].forEach((y) => bx(g, 1.5 - y * .12, .06, 1.5 - y * .12, 0, y, 0, "#8a8f9a"));
+    bx(g, .5, .5, .9, 0, 7.2, 0, "#6e6a64"); const hub = new THREE.Group(); hub.position.set(0, 7.2, .55); g.add(hub);
+    for (let i = 0; i < 12; i++) { const b = bx(hub, .26, 1.5, .04, 0, .95, 0, i % 2 ? "#e8e4dc" : "#c8202c"); const pv = new THREE.Group(); pv.rotation.z = (i / 12) * Math.PI * 2; pv.add(b); hub.add(pv); }
+    cy(hub, .2, .2, .12, 0, 0, 0, "#3a3a3a", { rx: Math.PI / 2 }); bx(g, .06, .7, 1.4, 0, 7.2, -1.1, "#e8e4dc");
+    cy(g, 1, 1, .7, 1.6, .35, 1.2, "#8a8f9a", { seg: 14 }); cy(g, .9, .9, .72, 1.6, .37, 1.2, "#4f8fc0", { seg: 14, shadow: false });
+    g.userData.spin = hub;
+  },
+  garden(g, look, id) {
+    bx(g, 3.6, .25, 2.6, 0, .12, 0, "#6b4a2b"); const cols = ["#ff6fa3", "#ffd23f", "#c86bff", "#ff8a3c", "#ffffff", "#e8303c"];
+    for (let i = 0; i < 24; i++) { const x = -1.5 + (i % 6) * .6, z = -1 + Math.floor(i / 6) * .66; cy(g, .03, .03, .5, x, .5, z, "#3f7f2f", { seg: 4, shadow: false }); sp(g, .14, x, .78, z, cols[i % cols.length], { seg: 6 }); }
+    for (let i = 0; i <= 8; i++) { bx(g, .1, .55, .06, -1.9 + i * .475, .3, 1.45, "#f4efe6"); bx(g, .1, .55, .06, -1.9 + i * .475, .3, -1.45, "#f4efe6"); }
+    bx(g, 3.9, .06, .06, 0, .4, 1.45, "#f4efe6"); bx(g, 3.9, .06, .06, 0, .4, -1.45, "#f4efe6");
+  },
+  corral(g, look) {
+    const w = 3.3, d = 2.3;
+    for (let x = -w; x <= w + .01; x += 1.1) [-d, d].forEach((z) => bx(g, .16, 1.3, .16, x, .65, z, "#5a3a1e"));
+    for (let z = -d; z <= d + .01; z += 1.15) [-w, w].forEach((x) => bx(g, .16, 1.3, .16, x, .65, z, "#5a3a1e"));
+    [.5, 1.05].forEach((y) => { [-d, d].forEach((z) => bx(g, w * 2, .1, .08, 0, y, z, "#7d5530")); [-w, w].forEach((x) => bx(g, .08, .1, d * 2, x, y, 0, "#7d5530")); });
+    bx(g, w * 2 - .2, .02, d * 2 - .2, 0, .02, 0, "#b89566", { shadow: false });
+    bx(g, 1.6, .4, .5, -2, .3, -1.6, "#7d5530"); bx(g, 1.4, .05, .3, -2, .5, -1.6, "#4f8fc0");
+    g.userData.horse = b3Horse(g, .6, .3, lk("horse"), MANE[lk("horse")] || "#3a2412");
+  },
+  doghouse(g) {
+    bx(g, 1.4, 1, 1.2, -.5, .5, 0, "#a8342c"); const r = cn(g, 1.15, .8, -.5, 1.4, 0, "#4d3b33", { seg: 4 }); r.rotation.y = Math.PI / 4; bx(g, .5, .6, .05, -.5, .35, .62, "#2a1a10");
+    const dog = new THREE.Group(); dog.position.set(.8, 0, .2); g.add(dog);
+    bx(dog, .8, .4, .35, 0, .5, 0, "#b8864b"); [[-.3, -.12], [.3, -.12], [-.3, .12], [.3, .12]].forEach(([x, z]) => bx(dog, .1, .35, .1, x, .18, z, "#b8864b")); bx(dog, .38, .34, .32, .48, .8, 0, "#b8864b"); bx(dog, .2, .14, .2, .7, .74, 0, "#8a5a2e"); bx(dog, .08, .2, .1, .4, 1.0, .12, "#6b4423"); bx(dog, .08, .2, .1, .4, 1.0, -.12, "#6b4423");
+    const tail = new THREE.Group(); tail.position.set(-.42, .62, 0); dog.add(tail); bx(tail, .06, .35, .06, 0, .15, 0, "#b8864b"); g.userData.tail = tail;
+  },
+  appletree(g) {
+    cy(g, .28, .38, 2.4, 0, 1.2, 0, "#6b4423"); [[0, 3, 0, 1.4], [.8, 2.7, .4, 1.0], [-.8, 2.8, -.3, 1.05], [.2, 3.6, -.5, .9]].forEach(([x, y, z, r]) => sp(g, r, x, y, z, "#4f8a2f", { seg: 9 }));
+    for (let i = 0; i < 16; i++) { const a = i * 2.4, y = 2.4 + (i % 4) * .4, r = 1.1 + (i % 3) * .15; sp(g, .13, Math.cos(a) * r, y, Math.sin(a) * r, "#d42a2a", { seg: 6 }); }
+    for (let i = 0; i < 3; i++) sp(g, .12, .8 - i * .5, .12, 1 - i * .3, "#d42a2a", { seg: 6 });
+  },
+  coop(g) {
+    [[-1, -.6], [1, -.6], [-1, .6], [1, .6]].forEach(([x, z]) => bx(g, .1, .6, .1, x, .3, z, "#5a3a1e"));
+    bx(g, 2.2, 1.1, 1.4, 0, 1.15, 0, "#e9d6a6"); b3Roof(g, 2.2, 1.4, 1.7, .6, "#7c241e", .2, "#e9d6a6"); bx(g, .4, .5, .05, .5, 1.1, .72, "#3a2412"); bx(g, .35, .05, 1.0, .5, .4, 1.15, "#7d5530", { rx: .5 });
+    g.userData.hens = [[-.6, 1.2], [.2, 1.5], [1.0, 1.25]].map(([x, z]) => { const h = new THREE.Group(); h.position.set(x, 0, z); g.add(h); bx(h, .3, .24, .22, 0, .2, 0, "#ffffff"); bx(h, .14, .16, .14, .16, .38, 0, "#ffffff"); bx(h, .06, .06, .06, .26, .38, 0, "#e8a317"); bx(h, .06, .08, .04, .16, .5, 0, "#c8202c"); return h; });
+  },
+  pond(g) {
+    const water = cy(g, 2.6, 2.6, .1, 0, .05, 0, "#3f8fc8", { seg: 24, shadow: false, mat: { emissive: "#0c2a40" } }); water.scale.z = .62;
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; sp(g, .22 + (i % 3) * .06, Math.cos(a) * 2.7, .08, Math.sin(a) * 1.75, "#8d8476", { seg: 6 }); }
+    [[-1, .3], [.8, -.4], [.2, .5]].forEach(([x, z]) => { const p = cy(g, .3, .3, .03, x, .12, z, "#4f9a3f", { seg: 10, shadow: false }); }); sp(g, .08, .8, .18, -.4, "#ff9ad0", { seg: 6 });
+    for (let i = 0; i < 7; i++) cy(g, .03, .03, .9 + (i % 3) * .2, -2.1 + (i % 4) * .15, .5, .9 + (i % 2) * .2, "#557a2f", { seg: 4 });
+    g.userData.water = water;
+  },
+  porch(g) {
+    [-1.3, 1.3].forEach((x) => { bx(g, .14, 2.4, .14, x, 1.2, -.5, "#5a3a1e", { rx: .2 }); bx(g, .14, 2.4, .14, x, 1.2, .5, "#5a3a1e", { rx: -.2 }); }); bx(g, 2.9, .16, .16, 0, 2.35, 0, "#5a3a1e");
+    const sw = new THREE.Group(); sw.position.set(0, 2.3, 0); g.add(sw); [-.8, .8].forEach((x) => bx(sw, .03, 1.5, .03, x, -.75, 0, "#c9b27f", { shadow: false })); bx(sw, 1.9, .1, .6, 0, -1.55, 0, "#9c6a3c"); bx(sw, 1.9, .55, .08, 0, -1.3, -.28, "#9c6a3c"); bx(sw, 1.6, .14, .4, 0, -1.45, 0, "#c8202c");
+    g.userData.swing = sw;
+  },
+  fence(g) {
+    for (let i = 0; i <= 4; i++) bx(g, .2, 1.3, .2, -4 + i * 2, .65, 0, "#5a3a1e");
+    [.45, .95].forEach((y) => bx(g, 8.1, .14, .1, 0, y, .05, "#7d5530"));
+  },
+  hands(g, look, id, n) {
+    const p = b3Person(g, 0, 0, n ? "#6b8fb0" : "#b04a3a", { hat: "#c9a66b" }); const tool = new THREE.Group(); p.userData.armR.add(tool);
+    if (n) { cy(tool, .04, .04, .55, 0, -.65, .15, "#6b4423", { rx: 1.2, seg: 5 }); bx(tool, .3, .12, .12, 0, -.58, .42, "#55595f"); bx(p, .5, .3, .5, .7, .15, 0, "#8a6a3a"); }
+    else { cy(tool, .04, .04, 1.6, 0, -.6, 0, "#7d5530", { seg: 5 }); bx(tool, .3, .05, .05, 0, -1.4, 0, "#8a8f9a"); bx(p, .8, .5, .6, .8, .25, .2, "#e3cf7f"); }
+    g.userData.worker = p; g.userData.workerKind = n ? "hammer" : "fork";
+  },
+  guards(g, look, id, n) {
+    const p = b3Person(g, 0, 0, "#3f4a3a", { hat: "#23222a", pants: "#2f2a26" }); cy(p, .05, .05, 1.3, .38, 1.3, .25, "#3a2a1e", { rx: .25, seg: 5 }); bx(p, .08, .3, .16, .38, .8, .5, "#5a3a1e");
+    p.rotation.y = n ? -.4 : .4; g.userData.guard = p;
+  },
+  towers(g, look, id, n) {
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => bx(g, .2, 4.2, .2, x, 2.1, z, "#5a3a1e"));
+    bx(g, 2.6, .2, 2.6, 0, 4.2, 0, "#7d5530"); [-1.2, 1.2].forEach((s) => { bx(g, 2.6, .5, .08, 0, 4.55, s, "#7d5530"); bx(g, .08, .5, 2.6, s, 4.55, 0, "#7d5530"); });
+    [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => bx(g, .14, 1.4, .14, x * 1.2, 5.1, z * 1.2, "#5a3a1e"));
+    const r = cn(g, 2.3, 1.1, 0, 6.3, 0, "#4d3b33", { seg: 4 }); r.rotation.y = Math.PI / 4;
+    for (let y = .4; y < 4.2; y += .45) bx(g, .7, .07, .07, 0, y, 1.15, "#8a6a3a"); [-.3, .3].forEach((x) => bx(g, .07, 4.2, .07, x, 2.1, 1.15, "#5a3a1e"));
+    const p = b3Person(g, 0, 0, "#3f4a3a", { hat: "#23222a" }); p.position.y = 4.3; p.scale.setScalar(.85); cy(p, .05, .05, 1.3, .38, 1.3, .25, "#3a2a1e", { rx: .25, seg: 5 }); g.userData.guard = p;
+  },
+};
+
+// ---------- the scene ----------
+const B3 = { on: false };
+function b3Scene(host) {
+  if (B3.renderer && B3.lesson === ranchLesson().id && B3.kidId === KID.id) { host.appendChild(B3.renderer.domElement); return; }
+  if (B3.renderer) { B3.renderer.dispose(); B3.renderer.domElement.remove(); }
+  const look = ranchLook(), renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.domElement.className = "b3canvas"; host.appendChild(renderer.domElement);
+  const scene = new THREE.Scene(), sky = new THREE.Color(look.sky[0]);
+  scene.background = sky; scene.fog = new THREE.Fog(look.sky[1], 110, 230);
+  const camera = new THREE.PerspectiveCamera(42, 1, .5, 400);
+  scene.add(new THREE.HemisphereLight("#dff1ff", look.land[2], .62));
+  const sun = new THREE.DirectionalLight("#fff3d6", .85); sun.position.set(-22, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 100 }); sun.shadow.bias = -.0008; scene.add(sun);
+  // Sky dome with a soft fade to the horizon color.
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(180, 24, 12), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { top: { value: new THREE.Color(look.sky[0]) }, bot: { value: new THREE.Color(look.sky[1]) } }, vertexShader: "varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}", fragmentShader: "uniform vec3 top;uniform vec3 bot;varying float h;void main(){gl_FragColor=vec4(mix(bot,top,clamp(h*2.2,0.,1.)),1.);}" }));
+  scene.add(dome);
+  // The land: the plot, the open range around it, a creek, hills and mountains.
+  const world = new THREE.Group(); scene.add(world);
+  const range = new THREE.Mesh(new THREE.CircleGeometry(150, 48), b3Mat(look.land[2])); range.rotation.x = -Math.PI / 2; range.position.y = -.05; range.receiveShadow = true; world.add(range);
+  const plot = new THREE.Mesh(new THREE.PlaneGeometry(B3_HALF * 2 + 2, B3_HALF * 2 + 2), b3Mat(look.land[1])); plot.rotation.x = -Math.PI / 2; plot.receiveShadow = true; world.add(plot);
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(3, 30), b3Mat("#c9a66b")); path.rotation.x = -Math.PI / 2; path.position.set(0, .01, 33); path.receiveShadow = true; world.add(path);
+  for (let i = 0; i < 260; i++) { const a = i * 2.39996, r = 4 + (i * 7.3) % 60; const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(x) < B3_HALF && Math.abs(z) < B3_HALF) continue; cn(world, .18, .5, x, .25, z, look.tuft, { seg: 4, shadow: false }); }
+  for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2 + .1, r = 34 + (i % 4) * 5, x = Math.cos(a) * r, z = Math.sin(a) * r; if (z > 26 && Math.abs(x) < 6) continue; const s = .8 + (i % 3) * .3; cy(world, .25 * s, .35 * s, 1.6 * s, x, .8 * s, z, "#5a3a1e", { seg: 6 }); cn(world, 1.6 * s, 3.6 * s, x, 3.2 * s, z, look.pine, { seg: 8 }); cn(world, 1.2 * s, 2.6 * s, x, 4.6 * s, z, look.pine, { seg: 8 }); }
+  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, r = 110 + (i % 3) * 12, h = 22 + (i * 13) % 20; const m = cn(world, 30 + (i % 4) * 6, h, Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r, look.far, { seg: 7, shadow: false }); m.material = new THREE.MeshLambertMaterial({ color: look.far }); if (h > 30) cn(world, 9, 8, Math.cos(a) * r, h - 5.5, Math.sin(a) * r, "#f4f1ee", { seg: 7, shadow: false }); }
+  for (let i = 0; i < 9; i++) { const x = -60 + i * 18, z = -55 - (i % 3) * 10; cn(world, 18, 12, x, 4, z, look.near, { seg: 7, shadow: false }); }
+  const clouds = new THREE.Group(); scene.add(clouds);
+  for (let i = 0; i < 8; i++) { const c = new THREE.Group(); c.position.set(-80 + i * 22, 34 + (i % 3) * 5, -40 + (i % 4) * 22); [[0, 0, 3], [2.6, .4, 2.3], [-2.4, .2, 2.1], [1, 1.4, 2]].forEach(([x, y, r]) => sp(c, r, x, y, 0, "#ffffff", { shadow: false, seg: 8 })); clouds.add(c); }
+  // Build-mode grid and the footprint under the piece being moved.
+  const grid = new THREE.GridHelper(B3_HALF * 2, B3_HALF * 2, "#ffffff", "#ffffff"); grid.material.opacity = .22; grid.material.transparent = true; grid.position.y = .03; grid.visible = false; scene.add(grid);
+  const foot = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: "#3fdc6f", transparent: true, opacity: .45, depthWrite: false })); foot.rotation.x = -Math.PI / 2; foot.position.y = .05; foot.visible = false; scene.add(foot);
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.92, 1, 40), new THREE.MeshBasicMaterial({ color: "#ffd23f", transparent: true, opacity: .9, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .06; ring.visible = false; scene.add(ring);
+  const kid = b3Person(world, -3, 4, lk("shirt"), { hat: lk("hat"), skin: lk("skin") }); kid.rotation.y = .4;
+  const nora = NO_NORA() ? null : b3Person(world, -1.8, 4.3, "#2f7f96", { hat: false, dress: true, hair: "#6b3f1d", skin: "#f4cda8" }); if (nora) nora.rotation.y = -.4;
+  Object.assign(B3, { renderer, scene, camera, sun, world, grid, foot, ring, clouds, kid, nora, look, pieces: {}, sel: null, lesson: ranchLesson().id, kidId: KID.id, yaw: .55, pitch: .78, dist: 52, target: new THREE.Vector3(0, 0, 0), ray: new THREE.Raycaster(), smoke: [] });
+}
+function b3Piece(key, s) {
+  const id = b3Id(key), n = key === id ? 0 : +key.slice(id.length), g = new THREE.Group();
+  B3_BUILD[id](g, B3.look, id, n);
+  const [w, d] = B3_SIZE[id], shadow = new THREE.Mesh(new THREE.PlaneGeometry(w + .6, d + .6), new THREE.MeshBasicMaterial({ color: "#1d2a10", transparent: true, opacity: .14, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .02; g.add(shadow);
+  g.traverse((m) => { m.userData.key = key; });
+  g.position.set(s.x, 0, s.z); g.rotation.y = -(s.r || 0) * Math.PI / 2; g.userData.key = key; g.userData.s = { ...s };
+  B3.world.add(g); B3.pieces[key] = g; return g;
+}
+function b3Sync() {
+  const placed = b3Placed();
+  Object.keys(B3.pieces).forEach((k) => { if (!placed[k] || placed[k].away) { B3.world.remove(B3.pieces[k]); delete B3.pieces[k]; } });
+  Object.entries(placed).forEach(([k, s]) => { if (s.away) return; const g = B3.pieces[k]; if (!g) { const p = b3Piece(k, s); if (B3.fresh?.includes(b3Id(k))) b3Drop(p); } else if (g.userData.s.x !== s.x || g.userData.s.z !== s.z || g.userData.s.r !== s.r) { g.position.set(s.x, 0, s.z); g.rotation.y = -(s.r || 0) * Math.PI / 2; g.userData.s = { ...s }; } });
+  const first = B3.fresh && Object.keys(B3.pieces).find((k) => B3.fresh.includes(b3Id(k))); B3.fresh = null; if (first) setTimeout(() => b3Select(first), 900);
+  return placed;
+}
+// A new piece drops from the sky with a thud and a puff of dust.
+function b3Drop(g) { g.userData.drop = 1; g.position.y = 14; }
+function b3Size() {
+  const c = B3.renderer?.domElement, host = c?.parentElement; if (!host) return;
+  const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
+  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); }
+}
+function b3Cam() {
+  const { yaw, pitch, dist, target } = B3;
+  B3.camera.position.set(target.x + Math.sin(yaw) * Math.cos(pitch) * dist, target.y + Math.sin(pitch) * dist, target.z + Math.cos(yaw) * Math.cos(pitch) * dist); B3.camera.lookAt(target);
+}
+function b3Ground(e) {
+  const c = B3.renderer.domElement, r = c.getBoundingClientRect(), v = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  B3.ray.setFromCamera(v, B3.camera); const hit = new THREE.Vector3(); return B3.ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), hit) ? hit : null;
+}
+function b3Pick(e) {
+  const c = B3.renderer.domElement, r = c.getBoundingClientRect(), v = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  B3.ray.setFromCamera(v, B3.camera); const hit = B3.ray.intersectObjects(Object.values(B3.pieces), true)[0]; return hit ? hit.object.userData.key : null;
+}
+function b3Select(key) {
+  B3.sel = key; const g = B3.pieces[key]; B3.ring.visible = !!g;
+  if (g) { const [w, d] = B3_SIZE[b3Id(key)], r = Math.hypot(w, d) / 2 + .4; B3.ring.scale.set(r, r, 1); B3.ring.position.x = g.position.x; B3.ring.position.z = g.position.z; g.userData.hop = 1; beep(BLIP); }
+  b3Panel();
+}
+function b3Panel() {
+  const box = document.getElementById("b3panel"); if (!box) return;
+  const key = B3.sel, g = key && RANCH.find((x) => x.id === b3Id(key));
+  box.innerHTML = g ? `<b>${esc(ranchName(g))}</b><button class="btn small go" data-b3="turn">&#10227; Turn</button>${ROOMS[g.id] ? `<button class="btn small" data-b3="inside">${esc(ROOMS[g.id].btn || "Go inside")}</button>` : ""}<button class="btn small dark" data-b3="away">Put away</button><button class="btn small dark" data-b3="done">Done</button>` : `<span>Drag anything to move it. Tap it to turn it or go inside.</span>`;
+  box.classList.toggle("sel", !!g);
+}
+function b3Tray() {
+  const box = document.getElementById("b3tray"); if (!box) return;
+  const placed = b3Placed(), open = ranchUnlocked();
+  box.innerHTML = RANCH.map((g, n) => {
+    const own = ownedHere().includes(g.id), keys = own ? b3Keys().filter((k) => b3Id(k) === g.id) : [], away = keys.filter((k) => placed[k]?.away);
+    const locked = !own && n >= open.n, poor = !own && S.nuggets < g.cost;
+    return `<button class="b3item ${own ? (away.length ? "away" : "own") : locked ? "locked" : poor ? "poor" : "buy"}" data-b3="${own ? (away.length ? "place" : "find") : locked ? "locked" : "buy"}" data-id="${g.id}">${ranchPic(g.id)}<span>${esc(ranchName(g))}</span><em>${own ? (away.length ? "Tap to place" : "&#10003; On the land") : locked ? "Locked" : `$${g.cost}`}</em></button>`;
+  }).join("");
+}
+function b3Loop(prev, now) {
+  if (!B3.on || !B3.renderer?.domElement.isConnected) { B3.on = false; return; }
+  const dt = Math.min(.05, (now - prev) / 1000), t = now / 1000;
+  b3Size();
+  if (!B3.drag && !B3.orbit) { B3.yaw += dt * .02; }
+  b3Cam();
+  Object.values(B3.pieces).forEach((g) => {
+    const u = g.userData;
+    if (u.drop) { u.drop = Math.max(0, u.drop - dt * 1.6); const k = 1 - u.drop; g.position.y = 14 * (1 - k * k); if (!u.drop) { g.position.y = 0; b3Dust(g.position); if (!playSfx("hammer", .6)) beep(CHIME); } }
+    if (u.hop) { u.hop = Math.max(0, u.hop - dt * 3); g.position.y = (u.drop ? g.position.y : 0) + Math.sin((1 - u.hop) * Math.PI) * .6; }
+    if (u.spin) u.spin.rotation.z += dt * 2.2;
+    if (u.swing) u.swing.rotation.x = Math.sin(t * 1.4) * .25;
+    if (u.tail) u.tail.rotation.x = Math.sin(t * 14) * .6;
+    if (u.water) u.water.material.emissive.setHSL(.57, .6, .08 + Math.sin(t * 2) * .03);
+    if (u.horse) { u.horse.position.x = .6 + Math.sin(t * .4) * 1.4; u.horse.rotation.y = Math.cos(t * .4) > 0 ? 0 : Math.PI; u.horse.userData.head.rotation.z = Math.sin(t * 1.3) * .15; }
+    if (u.hens) u.hens.forEach((h, i) => { h.rotation.z = Math.max(0, Math.sin(t * 3 + i * 2)) * .5; });
+    if (u.worker) { const a = u.worker.userData.armR; a.rotation.x = u.workerKind === "hammer" ? -1.2 + Math.abs(Math.sin(t * 5)) * 1.2 : -.6 + Math.sin(t * 2.5) * .6; }
+    if (u.guard) u.guard.rotation.y += Math.sin(t * .5 + g.position.x) * dt * .3;
+    if (u.smoke && Math.random() < dt * 2.5) b3Puff(g.localToWorld(u.smoke.clone()));
+  });
+  B3.smoke = B3.smoke.filter((p) => { p.life -= dt; p.m.position.y += dt * 1.2; p.m.position.x += dt * .4; p.m.scale.setScalar(1 + (2.4 - p.life) * .5); p.m.material.opacity = Math.max(0, p.life / 2.4) * .6; if (p.life <= 0) { B3.scene.remove(p.m); p.m.geometry.dispose(); p.m.material.dispose(); return false; } return true; });
+  B3.clouds.children.forEach((c, i) => { c.position.x += dt * (.6 + i * .05); if (c.position.x > 90) c.position.x = -90; });
+  if (B3.kid) B3.kid.userData.armR.rotation.z = Math.max(0, Math.sin(t * 2)) * 2.4;
+  if (B3.sel && B3.pieces[B3.sel]) { const g = B3.pieces[B3.sel]; B3.ring.position.x = g.position.x; B3.ring.position.z = g.position.z; B3.ring.material.opacity = .6 + Math.sin(t * 6) * .3; } else B3.ring.visible = false;
+  B3.renderer.render(B3.scene, B3.camera);
+  requestAnimationFrame((n) => b3Loop(now, n));
+}
+function b3Puff(at, c = "#e8e6e0", life = 2.4) { const m = new THREE.Mesh(new THREE.SphereGeometry(.35, 8, 6), new THREE.MeshLambertMaterial({ color: c, transparent: true, opacity: .6, depthWrite: false })); m.position.copy(at); B3.scene.add(m); B3.smoke.push({ m, life }); }
+function b3Dust(at) { for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; b3Puff(new THREE.Vector3(at.x + Math.cos(a) * 2, .3, at.z + Math.sin(a) * 2), "#d9c7a0", 1.2); } }
+function b3Touch() {
+  const c = B3.renderer.domElement, pts = new Map(); let pinch = 0, moved = 0, downKey = null, grab = null, start = null;
+  c.onpointerdown = (e) => {
+    c.setPointerCapture?.(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]); moved = 0; start = [e.clientX, e.clientY];
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = Math.hypot(a[0] - b[0], a[1] - b[1]); B3.drag = null; B3.grid.visible = B3.foot.visible = false; return; }
+    downKey = b3Pick(e);
+    if (downKey) { const g = B3.pieces[downKey], hit = b3Ground(e); grab = hit ? [g.position.x - hit.x, g.position.z - hit.z] : [0, 0]; }
+  };
+  c.onpointermove = (e) => {
+    if (!pts.has(e.pointerId)) return; const was = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
+    moved = Math.max(moved, Math.hypot(e.clientX - start[0], e.clientY - start[1]));
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) B3.dist = Math.max(22, Math.min(90, B3.dist * pinch / d)); pinch = d; return; }
+    if (downKey && moved > 8) {
+      if (!B3.drag) { B3.drag = downKey; if (B3.sel !== downKey) b3Select(downKey); B3.grid.visible = true; B3.foot.visible = true; }
+      const hit = b3Ground(e); if (!hit) return; const g = B3.pieces[downKey], s = g.userData.s;
+      const want = { x: Math.round((hit.x + grab[0]) * 2) / 2, z: Math.round((hit.z + grab[1]) * 2) / 2, r: s.r || 0 };
+      g.position.x = want.x; g.position.z = want.z; g.position.y = .5;
+      const placed = {}; Object.entries(B3.pieces).forEach(([k, p]) => { placed[k] = p.userData.s; }); const ok = b3Fits(downKey, want, placed), b = b3Box(downKey, want);
+      B3.foot.position.set(want.x, .05, want.z); B3.foot.scale.set(b.x1 - b.x0, b.z1 - b.z0, 1); B3.foot.material.color.set(ok ? "#3fdc6f" : "#e8303c");
+      g.userData.want = ok ? want : null; return;
+    }
+    if (!downKey) { B3.orbit = true; B3.yaw -= (e.clientX - was[0]) * .006; B3.pitch = Math.max(.35, Math.min(1.35, B3.pitch + (e.clientY - was[1]) * .004)); }
+  };
+  const up = (e) => {
+    pts.delete(e.pointerId); if (pts.size) return; pinch = 0; B3.orbit = false;
+    if (B3.drag) {
+      const key = B3.drag, g = B3.pieces[key], want = g.userData.want; B3.drag = null; B3.grid.visible = B3.foot.visible = false;
+      if (want) { g.userData.s = want; b3Keep(key, want); playSfx("hammer", .35) || beep(BLIP); b3Dust(g.position); } else { beep(BLIP); g.position.x = g.userData.s.x; g.position.z = g.userData.s.z; }
+      g.position.y = 0; g.userData.want = null;
+    } else if (moved < 8) b3Select(downKey || null);
+    downKey = null;
+  };
+  c.onpointerup = up; c.onpointercancel = up;
+  c.onwheel = (e) => { e.preventDefault(); B3.dist = Math.max(22, Math.min(90, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
+}
+function b3Act(e) {
+  const t = e.target.closest("[data-b3]"); if (!t) return; const what = t.dataset.b3, key = B3.sel;
+  if (what === "turn" && key) { const g = B3.pieces[key], s = g.userData.s, placed = {}; Object.entries(B3.pieces).forEach(([k, p]) => { placed[k] = p.userData.s; }); let next = { ...s, r: ((s.r || 0) + 1) % 4 }; if (!b3Fits(key, next, placed)) next = b3FreeSpot(key, placed, [s.x, s.z], next.r); if (!b3Fits(key, next, placed)) next = s; g.userData.s = next; b3Keep(key, next); g.position.x = next.x; g.position.z = next.z; g.rotation.y = -next.r * Math.PI / 2; g.userData.hop = 1; beep(BLIP); }
+  if (what === "away" && key) { b3Keep(key, { away: true }); B3.world.remove(B3.pieces[key]); delete B3.pieces[key]; B3.sel = null; beep(BLIP); b3Panel(); b3Tray(); }
+  if (what === "done") { B3.sel = null; b3Panel(); }
+  if (what === "inside" && key) { beep(BLIP); openRoom(b3Id(key)); }
+  if (what === "place" || what === "find") {
+    const id = t.dataset.id, keys = b3Keys().filter((k) => b3Id(k) === id);
+    if (what === "place") { const k = keys.find((x) => b3Spot(x)?.away), placed = {}; Object.entries(B3.pieces).forEach(([kk, p]) => { placed[kk] = p.userData.s; }); const s = b3FreeSpot(k, placed, [Math.round(B3.target.x), Math.round(B3.target.z)]); b3Keep(k, s); const g = b3Piece(k, s); b3Drop(g); b3Select(k); b3Tray(); }
+    else if (keys[0] && B3.pieces[keys[0]]) b3Select(keys[0]);
+  }
+  if (what === "buy") { const id = t.dataset.id; B3.fresh = [id]; acts.buy({ id }); }
+  if (what === "locked") { const say = document.getElementById("noraSay"); if (say) say.textContent = "Finish more of today's lesson to unlock that one!"; }
+}
+function buildView() {
+  return `<div class="b3wrap"><div id="b3host" class="b3host"><p class="b3load">Loading the ranch&#8230;</p></div><div class="b3top"><button class="btn mapbig" data-act="view" data-v="store">&#9664; Back</button><p class="b3say" id="noraSay">${esc(U.noraLine || `Build your ${ranchLesson().town} ${ranchLook().home}, ${KID.name}! Drag things to move them.`)}</p><span class="chip nug"><i></i>$${S.nuggets}</span></div><div id="b3panel" class="b3panel"></div><div id="b3tray" class="b3tray"></div></div>`;
+}
+function startBuild3d() {
+  const host = document.getElementById("b3host"); if (!host) return;
+  b3Tray(); b3Panel();
+  host.onclick = null; document.querySelector(".b3wrap").onclick = b3Act;
+  b3Three().then(() => {
+    if (!host.isConnected) return; host.querySelector(".b3load")?.remove();
+    b3Scene(host); b3Sync(); b3Touch(); b3Size();
+    if (B3.sel && !B3.pieces[B3.sel]) B3.sel = null; b3Panel();
+    if (!B3.on) { B3.on = true; const t0 = performance.now(); requestAnimationFrame((t) => b3Loop(t0, t)); }
+  }).catch(() => { const l = host.querySelector(".b3load"); if (l) l.textContent = "The 3D ranch needs the internet the first time. Try again in a moment."; });
+}
 function ranchView() {
   return `<div class="ranchfull"><button class="btn mapbig ranchback" data-act="view" data-v="store">&#9664; Store</button><p class="norasay" id="noraSay">${esc(U.noraLine || `Tap anywhere to ride around our ranch, ${KID.name}!`)}</p>${ranchDeepSvg()}<p class="ranchhint">Drag to look around. Tap to ride. Tap a building to go inside.</p></div>`;
 }
@@ -6497,7 +6864,7 @@ function storeView() {
     return `<div class="item ${own ? "owned" : ""} ${locked ? "lockeditem" : ""}">${ranchPic(g.id)}<div class="itemtext"><b>${esc(ranchName(g))}</b><span class="sub">${esc(locked ? `Finish ${left} more section${left === 1 ? "" : "s"} to unlock` : g.note)}</span></div>${own ? (!ROOMS[g.id] ? `<span class="builtmark">&#10003; ${g.crew || "Built"}</span>` : `<button class="btn small dark" data-act="roomOpen" data-id="${g.id}">${ROOMS[g.id].btn || "Go inside"}</button>`) : locked ? `<span class="lockmark" aria-label="Locked">&#128274;</span>` : `<button class="btn small" data-act="buy" data-id="${g.id}" ${S.nuggets < g.cost ? "disabled" : ""}>$${g.cost}</button>`}</div>`;
   }).join("");
   const trophies = (S.prizes || []).length;
-  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="ranch" aria-label="Open the whole ranch">${ranchSvg('preserveAspectRatio="xMidYMid meet"')}<span class="ranchpill">Tap to explore the ranch</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${S.noraHorse || NO_HORSE() ? "" : `<div class="item noraitem"><svg class="itempic" viewBox="-36 -48 72 66" aria-hidden="true">${noraOnHorse().replace('transform="translate(-30 3) scale(.92)"', 'transform="scale(1.2)"')}</svg><div class="itemtext"><b>A horse for Nora</b><span class="sub">${S.nuggets < noraHorseCost() ? `Save $${noraHorseCost() - S.nuggets} more. Work hard and you'll get there!` : "Then you two can ride together everywhere"}</span></div><button class="btn small go" data-act="buyNoraHorse" ${S.nuggets < noraHorseCost() ? "disabled" : ""}>$${noraHorseCost()}</button></div>`}${items}</div></div>`;
+  return `<div class="hud storehud">${bigMapBtn()}<h2>${esc(ranchLesson().town)} Store</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div><div class="storewrap"><div class="storehero"><button class="ranchopen" data-act="view" data-v="build" aria-label="Build the ranch in 3D">${ranchSvg('preserveAspectRatio="xMidYMid meet"')}<span class="ranchpill">Tap to build your ranch in 3D</span></button>${U.noraLine ? `<p class="norasay2" id="noraSay">${esc(U.noraLine)}</p>` : `<p class="norasay2" id="noraSay">${esc(ranchLesson().town)} ${esc(ranchLook().home)}: ${ownedHere().length} of ${RANCH.length} built. Let's build it, ${KID.name}!</p>`}</div><div class="shop">${S.noraHorse || NO_HORSE() ? "" : `<div class="item noraitem"><svg class="itempic" viewBox="-36 -48 72 66" aria-hidden="true">${noraOnHorse().replace('transform="translate(-30 3) scale(.92)"', 'transform="scale(1.2)"')}</svg><div class="itemtext"><b>A horse for Nora</b><span class="sub">${S.nuggets < noraHorseCost() ? `Save $${noraHorseCost() - S.nuggets} more. Work hard and you'll get there!` : "Then you two can ride together everywhere"}</span></div><button class="btn small go" data-act="buyNoraHorse" ${S.nuggets < noraHorseCost() ? "disabled" : ""}>$${noraHorseCost()}</button></div>`}${items}</div></div>`;
 }
 
 /* ---------- parents ---------- */
@@ -8267,8 +8634,8 @@ function render() {
   // The US map isn't a place to go any more (Nathan, 2026-11-09); it only lives in the States and Capitals game.
   if (U.view === "home") U.view = "school";
   W.title = U.view === "title";
-  canvas.hidden = ["gametime", "empire", "me", "arcade", "bible", "science", "presidents", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
-  const views = { piano: pianoView, typing: typingView, verse: verseView, bible: bibleView, science: sciView, presidents: presView, who: whoView, me: meView, empire: empireView, gametime: gameTimeView, school: schoolView, reading: readingView, ranch: ranchView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
+  canvas.hidden = ["build", "gametime", "empire", "me", "arcade", "bible", "science", "presidents", "who", "parent", "familyLink", "piano", "typing", "verse", "spelling", "lessonReview", "states", "home", "town", "move", "reward", "school", "reading"].includes(U.view) || (U.view === "game" && U.game?.kind !== "run");
+  const views = { piano: pianoView, typing: typingView, verse: verseView, bible: bibleView, science: sciView, presidents: presView, who: whoView, me: meView, empire: empireView, gametime: gameTimeView, school: schoolView, reading: readingView, ranch: ranchView, build: buildView, trophies: trophiesView, title: titleView, home: homeView, familyLink: familyLinkView, spelling: spellingView, lessonReview: lessonReviewView, states: statesView, town: townView, ride: rideView, rideEnd: rideEndView, game: gameView, gameEnd: gameEndView, reward: rewardView, store: storeView, parent: parentView, arcade: arcadeView, move: moveView };
   refundRetiredGear();
   schoolTick();
   try { app.innerHTML = (U.preview ? `<div class="previewbar"><b>Parent preview.</b> Nothing here is saved. <button class="btn dark small" data-act="previewEnd">End preview</button></div>` : "") + views[U.view]() + runPill() + (U.view === "game" ? `<button class="btn dark small gameback" data-act="leaveGame">&#9664; Back</button>` : ""); }
@@ -8277,6 +8644,7 @@ function render() {
   arrange();
   fitProblemCells();
   startRanchCam();
+  if (U.view === "build") startBuild3d();
   drawMatchArrows();
   initScratch();
   markWord();
