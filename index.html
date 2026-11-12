@@ -621,7 +621,7 @@ body[data-view="game-run"] #world{height:calc(var(--appH,100dvh) - 128px);width:
 body[data-view="store"] #world,body[data-view="ranch"] #world,body[data-view="trophies"] #world{display:none}
 .storehero{padding:8px;position:relative}.ranchopen{display:block;width:100%;padding:0;background:none;position:relative;cursor:pointer;border-radius:10px;overflow:hidden}.ranchopen .ranch{display:block;width:100%}.ranchpill{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:#7b2d1c;color:#ffe7a8;font-weight:800;padding:6px 16px;border-radius:999px;white-space:nowrap;animation:pillpulse 1.2s ease-in-out infinite alternate}@keyframes pillpulse{to{transform:translateX(-50%) scale(1.05)}}.norasay2{margin:0;text-align:center;font-weight:700;color:#1c1712;font-size:1.05rem;padding-top:6px}
 @media (orientation:landscape) and (min-width:800px){.storewrap{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}.storewrap .shop{grid-template-columns:1fr 1fr}.storewrap .itemtext .sub{display:none}.storewrap .itemtext{flex:1 1 70px}}
-.b3wrap{position:fixed;inset:0;z-index:20;background:#1a2438;overflow:hidden;font-family:var(--body)}.b3host{position:absolute;inset:0}.b3canvas{display:block;width:100%;height:100%;touch-action:none}.b3load{position:absolute;inset:0;display:grid;place-items:center;color:#ffe7a8;font-weight:800;font-size:1.3rem;margin:0}.b3top{position:absolute;left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));display:flex;gap:10px;align-items:center;pointer-events:none}.b3top>*{pointer-events:auto}.b3say{flex:1;margin:0;background:rgba(255,248,230,.92);color:#2a1c10;font-weight:800;border-radius:14px;padding:8px 14px;font-size:clamp(.95rem,2.4vh,1.2rem);box-shadow:0 3px 10px rgba(0,0,0,.25)}.b3panel{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;background:rgba(20,15,10,.78);color:#fff;font-weight:700;padding:7px 12px;border-radius:999px;white-space:nowrap;max-width:96vw;overflow-x:auto}.b3panel b{color:#ffd23f;margin-right:4px}.b3panel:not(.sel){pointer-events:none;opacity:.85}.b3tray{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;overflow-x:auto;padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));background:linear-gradient(transparent,rgba(20,15,10,.85) 30%);-webkit-overflow-scrolling:touch}.b3item{flex:0 0 auto;width:104px;display:grid;justify-items:center;gap:1px;background:#fbf3df;border:3px solid #c9a66b;border-radius:12px;padding:4px 4px 5px;color:#2a1c10;font:inherit;cursor:pointer}.b3item .itempic{width:72px;height:50px}.b3item span{font-size:.74rem;font-weight:800;line-height:1.1;text-align:center;min-height:2.2em;display:grid;place-items:center}.b3item em{font-style:normal;font-weight:800;font-size:.78rem;color:#7b2d1c}.b3item.own{opacity:.62;border-color:#5fae6f}.b3item.own em{color:#2f7f4f}.b3item.away{border-color:#ffd23f;animation:pillpulse 1s ease-in-out infinite alternate}.b3item.buy{border-color:#e0b73f}.b3item.buy em{background:#2f7f4f;color:#fff;border-radius:999px;padding:1px 10px}.b3item.poor{opacity:.55}.b3item.locked{opacity:.4}.cupsvis{display:flex;justify-content:center;padding:6px}.cupquart,.cuppint{border:3px solid #2c3a4d;border-radius:12px;padding:4px 8px 6px;text-align:center;background:#fff}.cupquart>div{display:flex;gap:8px}.cuppint{border-color:#7f97b8;border-width:2px}.cupquart b,.cuppint b{display:block;font-size:.9rem;color:#2c3a4d}.notoday{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 12px 8px;padding:10px 14px;border-radius:14px;background:#ffe27a;color:#3a2410;border:3px solid #c98a0c;font-size:1.05rem}.notoday b{font-size:1.2rem}.notoday span{flex:1;min-width:160px}.choices button{overflow-wrap:anywhere}.ranchfull{position:fixed;inset:0;z-index:20;background:#1a2438;display:grid;place-items:center;overflow:hidden}.ranchfull .ranch{width:100%;height:100%;max-height:100%}.ranchback{position:absolute;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:3}.ranchfull .norasay{top:14px;left:170px;right:14px;z-index:3;font-size:clamp(1rem,3vh,1.35rem)}.ranchhint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;background:rgba(20,15,10,.75);color:#fff;font-weight:700;padding:5px 14px;border-radius:999px;pointer-events:none}
+.b3wrap{position:fixed;inset:0;z-index:20;background:#1a2438;overflow:hidden;font-family:var(--body)}.b3host{position:absolute;inset:0}.b3canvas{display:block;width:100%;height:100%;touch-action:none}.b3load{position:absolute;inset:0;display:grid;place-items:center;color:#ffe7a8;font-weight:800;font-size:1.3rem;margin:0}.b3top{position:absolute;left:calc(10px + env(safe-area-inset-left));right:calc(10px + env(safe-area-inset-right));top:calc(10px + env(safe-area-inset-top));display:flex;gap:10px;align-items:center;pointer-events:none}.b3top>*{pointer-events:auto}.b3say{flex:1;margin:0;background:rgba(255,248,230,.92);color:#2a1c10;font-weight:800;border-radius:14px;padding:8px 14px;font-size:clamp(.95rem,2.4vh,1.2rem);box-shadow:0 3px 10px rgba(0,0,0,.25)}.b3panel{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(132px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;background:rgba(20,15,10,.78);color:#fff;font-weight:700;padding:7px 12px;border-radius:999px;white-space:nowrap;max-width:96vw;overflow-x:auto}.b3panel b{color:#ffd23f;margin-right:4px}.b3panel:not(.sel){pointer-events:none;opacity:.85}.b3tray{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;overflow-x:auto;padding:8px calc(10px + env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));background:linear-gradient(transparent,rgba(20,15,10,.85) 30%);-webkit-overflow-scrolling:touch}.b3item{flex:0 0 auto;width:104px;display:grid;justify-items:center;gap:1px;background:#fbf3df;border:3px solid #c9a66b;border-radius:12px;padding:4px 4px 5px;color:#2a1c10;font:inherit;cursor:pointer}.b3item .itempic{width:72px;height:50px}.b3item span{font-size:.74rem;font-weight:800;line-height:1.1;text-align:center;min-height:2.2em;display:grid;place-items:center}.b3item em{font-style:normal;font-weight:800;font-size:.78rem;color:#7b2d1c}.b3item.own{opacity:.62;border-color:#5fae6f}.b3item.own em{color:#2f7f4f}.b3item.away{border-color:#ffd23f;animation:pillpulse 1s ease-in-out infinite alternate}.b3item.buy{border-color:#e0b73f}.b3item.buy em{background:#2f7f4f;color:#fff;border-radius:999px;padding:1px 10px}.b3item.poor{opacity:.55}.b3item.locked{opacity:.4}.cupsvis{display:flex;justify-content:center;padding:6px}.cupquart,.cuppint{border:3px solid #2c3a4d;border-radius:12px;padding:4px 8px 6px;text-align:center;background:#fff}.cupquart>div{display:flex;gap:8px}.cuppint{border-color:#7f97b8;border-width:2px}.cupquart b,.cuppint b{display:block;font-size:.9rem;color:#2c3a4d}.notoday{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 12px 8px;padding:10px 14px;border-radius:14px;background:#ffe27a;color:#3a2410;border:3px solid #c98a0c;font-size:1.05rem}.notoday b{font-size:1.2rem}.notoday span{flex:1;min-width:160px}.choices button{overflow-wrap:anywhere}.dayparty{position:fixed;inset:0;z-index:90;display:grid;place-items:center;background:rgba(10,12,30,.55)}.dayparty canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.daypartycard{position:relative;background:#fff8e6;border:5px solid #e0b73f;border-radius:24px;padding:28px 34px;text-align:center;display:grid;gap:14px;max-width:min(560px,90vw);box-shadow:0 10px 40px rgba(0,0,0,.5)}.dpbig{font-family:Rye,Georgia,serif;font-size:clamp(2rem,6vw,3.2rem);color:#7b2d1c}.dpmin{font-size:clamp(1.3rem,3.6vw,1.9rem);font-weight:800;color:#2a1c10}.dpmin b{color:#2f7f4f}.ranchfull{position:fixed;inset:0;z-index:20;background:#1a2438;display:grid;place-items:center;overflow:hidden}.ranchfull .ranch{width:100%;height:100%;max-height:100%}.ranchback{position:absolute;left:calc(12px + env(safe-area-inset-left));top:calc(12px + env(safe-area-inset-top));z-index:3}.ranchfull .norasay{top:14px;left:170px;right:14px;z-index:3;font-size:clamp(1rem,3vh,1.35rem)}.ranchhint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);margin:0;background:rgba(20,15,10,.75);color:#fff;font-weight:700;padding:5px 14px;border-radius:999px;pointer-events:none}
 .tcase{background:linear-gradient(#5a3517,#3f2612);border:6px solid #2c1a0e;border-radius:12px;padding:10px;display:grid;gap:8px}.tshelf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;padding-bottom:10px;border-bottom:10px solid #8a5a30;box-shadow:0 8px 0 -2px rgba(0,0,0,.25)}.trophy{display:grid;justify-items:center;gap:2px;color:#fff;text-align:center;font-weight:700;font-size:.85rem}.trophy svg{width:100%;height:clamp(78px,17vh,130px)}.trophy:not(.won) svg{filter:brightness(0) opacity(.45)}.trophy:not(.won) span{opacity:.6}.trophy.won svg{filter:drop-shadow(0 0 9px rgba(255,220,120,.75))}.trophyhint{color:#f2f3ff;font-weight:600;margin:4px 0}
 .vis.notenough{display:grid;grid-template-columns:76px repeat(var(--n),minmax(0,30px));justify-content:center;align-items:center;gap:6px 4px;padding:8px 12px;font-size:.95rem}.nespot{display:grid;place-items:center;min-height:30px}.nespot svg{width:24px;height:30px}.nespot .dcoin{width:22px;height:22px}.neempty{width:22px;height:22px;border-radius:50%;border:2px dashed #b9ad96}
 .trailbar .ptrail{padding-left:26px}
@@ -991,7 +991,7 @@ function cloudSend(keepalive = false) {
   return sent.then(() => { cloud = "synced"; cloudAt = Date.now(); mark(); }).catch(() => { cloud = "device"; mark(); });
 }
 const cloudSoon = () => { clearTimeout(cloudTimer); cloudTimer = setTimeout(cloudSend, 2500); };
-const MERGE_KEYS = ["town", "orchard", "biz", "gear", "sci", "pres", "bible", "mySongs", "piano", "typing", "spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
+const MERGE_KEYS = ["ranchMore", "town", "orchard", "biz", "gear", "sci", "pres", "bible", "mySongs", "piano", "typing", "spelling", "statesGame", "lessons", "capitals", "cityPrizes", "days", "ranches", "owned", "saved", "wins", "brave", "runBest", "schoolDays", "galleryBest", "xp", "goals"];
 function mergeDeep(a, b) {
   if (a === undefined || a === null) return b;
   if (b === undefined || b === null) return a;
@@ -3432,6 +3432,28 @@ function tyBoom(size = 1) {
     o.connect(og); og.connect(ac.destination); o.start(t); o.stop(t + len);
   } catch (e) {}
 }
+// The whole day done: fireworks and confetti across the whole screen and the iPad time earned (Nathan, 2026-11-12).
+function dayCelebrate(min) {
+  const old = document.getElementById("dayParty"); if (old) old.parentNode.removeChild(old);
+  const box = document.createElement("div"); box.id = "dayParty"; box.className = "dayparty";
+  box.innerHTML = `<canvas></canvas><div class="daypartycard"><div class="dpbig">School's out, ${esc(KID.name)}!</div>${min ? `<div class="dpmin">You've earned <b>${min} minutes</b> of iPad time!</div>` : `<div class="dpmin">You finished everything today!</div>`}<button class="btn go wide">Yeehaw!</button></div>`;
+  document.body.appendChild(box);
+  const cv = box.querySelector("canvas"), c = cv.getContext("2d"), dpr = Math.min(devicePixelRatio || 1, 1.5), cols = ["#ffd23f", "#ff5a5f", "#3fdc6f", "#4fa8ff", "#c86bff", "#ff8a3c", "#ffffff"], parts = [];
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  const burst = (x, y) => { const col = cols[Math.floor(Math.random() * cols.length)]; for (let i = 0; i < 70; i++) { const a = Math.random() * 6.283, v = 2 + Math.random() * 6; parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col, r: 2 + Math.random() * 2.5 }); } try { tyBoom(.9); } catch (e) {} };
+  for (let i = 0; i < 160; i++) parts.push({ x: Math.random() * cv.width, y: -Math.random() * cv.height, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, life: 3, col: cols[i % cols.length], r: 3 + Math.random() * 3, paper: true, spin: Math.random() * 6 });
+  const t0 = performance.now(); let last = t0, next = 0;
+  const frame = (now) => {
+    if (!box.isConnected) return; const dt = Math.min(50, now - last) / 16.7; last = now;
+    if (now - t0 < 6500 && now > next) { next = now + 280 + Math.random() * 380; burst(Math.random() * cv.width, cv.height * (.15 + Math.random() * .45)); }
+    c.clearRect(0, 0, cv.width, cv.height);
+    for (let i = parts.length - 1; i >= 0; i--) { const q = parts[i]; q.x += q.vx * dt * dpr; q.y += q.vy * dt * dpr; if (q.paper) { q.spin += .1 * dt; q.life -= .004 * dt; } else { q.vy += .08 * dt; q.vx *= .985; q.vy *= .985; q.life -= .012 * dt; } if (q.life <= 0 || q.y > cv.height + 20) { parts.splice(i, 1); continue; } c.globalAlpha = Math.min(1, q.life); c.fillStyle = q.col; if (q.paper) { c.save(); c.translate(q.x, q.y); c.rotate(q.spin); c.fillRect(-q.r, -q.r * .5, q.r * 2, q.r); c.restore(); } else { c.beginPath(); c.arc(q.x, q.y, q.r * dpr, 0, 6.283); c.fill(); } }
+    c.globalAlpha = 1; if (parts.length || now - t0 < 6500) requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  box.querySelector("button").onclick = () => { if (box.parentNode) box.parentNode.removeChild(box); };
+  lastSaid = ""; speak(min ? `School's out, ${KID.name}! You've earned ${min} minutes of iPad time!` : `School's out, ${KID.name}! You finished everything today!`);
+}
 function tyExplode(scene) {
   const sb = scene.getBoundingClientRect(), ship = scene.querySelector(".tyship"), pb = ship?.getBoundingClientRect(); if (!pb) return;
   const x = pb.left - sb.left + pb.width / 2, y = pb.top - sb.top + pb.height * .35;
@@ -3781,7 +3803,7 @@ function schoolTick() {
     if (open && !day.gameTime?.[x.id]) { day.gameTime = day.gameTime || {}; const had = gameMinutes(items, day); day.gameTime[x.id] = true; const got = gameMinutes(items, day) - had; if (got) extra = ` and ${got} game minutes`; save(); }
     if (!day.paid[x.id]) { const r = dayTimes(x.id, day); if (!r.end) r.end = Date.now(); U.justDone = x.name; day.paid[x.id] = true; earn(5); banner(`Checked off: ${x.name}! +$5${extra}`); beep(CHIME); }
   });
-  if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); const bi = bizIncome(); if (bi && !day.bizPaid) { day.bizPaid = bi; earn(bi); } confetti(60); beep(FANFARE); banner(`School's out! +$25${bi ? ` and your businesses paid $${bi}` : ""}${gtKid() ? `. ${GAME_DAY_MIN} minutes of game time unlocked!` : ""}`); }
+  if (items.length && !day.allPaid && items.every((x) => itemStatus(x, day).done)) { day.allPaid = true; S.schoolDays = (S.schoolDays || 0) + 1; earn(25); const bi = bizIncome(); if (bi && !day.bizPaid) { day.bizPaid = bi; earn(bi); } confetti(60); beep(FANFARE); banner(`School's out! +$25${bi ? ` and your businesses paid $${bi}` : ""}${gtKid() ? `. ${GAME_DAY_MIN} minutes of game time unlocked!` : ""}`); setTimeout(() => dayCelebrate(gtKid() ? GAME_DAY_MIN : 0), 300); }
 }
 function lessonReviewView() {
   const l = curLesson(), lp = LP(l.id), must = l.rides.filter((r) => !optionalRide(r)), sections = must.filter((r) => rideDone(l, r)).length, built = ownedHere().length;
@@ -3917,7 +3939,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "dbc0b984c253";
+const GAME_BUILD = "8f7d6b36423f";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6570,9 +6592,19 @@ function trophiesView() {
 const B3_PARTS = { fence: 3, hands: 2, guards: 2, towers: 4 };
 const B3_SIZE = { cabin: [6, 5], barn: [8, 6], well: [2, 2], windmill: [3, 3], garden: [4, 3], corral: [7, 5], doghouse: [3, 2], appletree: [3, 3], coop: [3, 2], pond: [6, 4], porch: [3, 2], fence: [8, 1], hands: [1, 1], guards: [1, 1], towers: [3, 3] };
 const B3_HOME = { cabin: [-8, -5], barn: [8, -7], well: [0, -3], windmill: [15, -14], garden: [-9, 3], corral: [9, 4], doghouse: [-15, 2], appletree: [-15, -9], coop: [2, -12], pond: [0, 7], porch: [-3, -1], fence0: [-9, 17], fence1: [0, 17], fence2: [9, 17], hands0: [-4, 2], hands1: [5, -1], guards0: [-3, 15], guards1: [3, 15], towers0: [-18, -18], towers1: [18, -18], towers2: [-18, 18], towers3: [18, 18] };
-const B3_HALF = 20;
-const b3Keys = () => ownedHere().flatMap((id) => (B3_SIZE[id] ? (B3_PARTS[id] ? Array.from({ length: B3_PARTS[id] }, (_, n) => id + n) : [id]) : []));
-const b3Id = (key) => key.replace(/\d+$/, "");
+// More of the same (Nathan, 2026-11-12: "an unlimited amount of gardens and fences ... windmills ... apple groves ...
+// keep accessing different pieces of land ... add cattle"). Extra copies, cattle, hay and land are counted per town in
+// S.ranchMore[lessonId] (counts only grow, so the save merge keeps the larger number). Each extra piece is "<id>x<n>".
+const B3_MORE = ["fence", "garden", "windmill", "appletree"];
+const B3_NEW = [{ id: "cattle", name: "Cattle", cost: 60, note: "A steer to graze the range" }, { id: "hay", name: "Hay bales", cost: 20, note: "Feed for the herd" }];
+B3_NEW.forEach((g) => { g.cost *= PRICE_SCALE; });
+Object.assign(B3_SIZE, { cattle: [3, 2], hay: [2, 2] });
+const LAND_COST = () => 300 * PRICE_SCALE;
+function b3More() { S.ranchMore = S.ranchMore || {}; const id = ranchLesson().id; return (S.ranchMore[id] = S.ranchMore[id] || {}); }
+const b3Half = () => 20 + 8 * (b3More().land || 0);
+const b3Keys = () => [...ownedHere().flatMap((id) => (B3_SIZE[id] ? (B3_PARTS[id] ? Array.from({ length: B3_PARTS[id] }, (_, n) => id + n) : [id]) : [])),
+  ...[...B3_MORE.filter((id) => ownedHere().includes(id)), ...B3_NEW.map((g) => g.id)].flatMap((id) => Array.from({ length: b3More()[id] || 0 }, (_, n) => `${id}x${n + 1}`))];
+const b3Id = (key) => key.replace(/(x\d+|\d+)$/, "");
 function b3Layout() { S.ranchLayout = S.ranchLayout || {}; const id = ranchLesson().id; return (S.ranchLayout[id] = S.ranchLayout[id] || {}); }
 function b3Spot(key) { const v = b3Layout()[key]; if (!v) return null; const p = v.split(","); return p[0] === "away" ? { away: true } : { x: +p[0], z: +p[1], r: +p[2] || 0 }; }
 function b3Keep(key, s) { b3Layout()[key] = s.away ? `away,${Date.now()}` : `${s.x},${s.z},${s.r || 0},${Date.now()}`; save(); }
@@ -6584,12 +6616,12 @@ function mergeLayout(out, mine, theirs) {
 }
 const b3Box = (key, s) => { const [w, d] = B3_SIZE[b3Id(key)], odd = (s.r || 0) % 2; const hw = (odd ? d : w) / 2, hd = (odd ? w : d) / 2; return { x0: s.x - hw, x1: s.x + hw, z0: s.z - hd, z1: s.z + hd }; };
 function b3Fits(key, s, placed) {
-  const b = b3Box(key, s); if (b.x0 < -B3_HALF || b.x1 > B3_HALF || b.z0 < -B3_HALF || b.z1 > B3_HALF) return false;
+  const H = b3Half(), b = b3Box(key, s); if (b.x0 < -H || b.x1 > H || b.z0 < -H || b.z1 > H) return false;
   return !Object.entries(placed).some(([k, o]) => { if (k === key || !o || o.away) return false; const c = b3Box(k, o); return b.x0 < c.x1 - .01 && b.x1 > c.x0 + .01 && b.z0 < c.z1 - .01 && b.z1 > c.z0 + .01; });
 }
 // Where a piece goes the first time: its usual spot, or the nearest free one.
 function b3FreeSpot(key, placed, from, r = 0) {
-  const [hx, hz] = from || B3_HOME[key] || [0, 0];
+  const [hx, hz] = from || B3_HOME[key] || B3_HOME[b3Id(key)] || B3_HOME[b3Id(key) + "0"] || [0, 0];
   for (let ring = 0; ring < 40; ring++) for (let dx = -ring; dx <= ring; dx++) for (let dz = -ring; dz <= ring; dz++) {
     if (Math.max(Math.abs(dx), Math.abs(dz)) !== ring) continue;
     const s = { x: hx + dx, z: hz + dz, r }; if (b3Fits(key, s, placed)) return s;
@@ -6736,6 +6768,15 @@ const B3_BUILD = {
     const p = b3Person(g, 0, 0, "#3f4a3a", { hat: "#23222a", pants: "#2f2a26" }); cy(p, .05, .05, 1.3, .38, 1.3, .25, "#3a2a1e", { rx: .25, seg: 5 }); bx(p, .08, .3, .16, .38, .8, .5, "#5a3a1e");
     p.rotation.y = n ? -.4 : .4; g.userData.guard = p;
   },
+  cattle(g, look, id, n) {
+    const hide = ["#6b3f1d", "#2b2622", "#8a5a2b", "#f4f1ea"][n % 4], c = new THREE.Group(); g.add(c);
+    bx(c, 2.1, 1.0, 1.0, 0, 1.25, 0, hide); [[-.75, -.35], [.75, -.35], [-.75, .35], [.75, .35]].forEach(([x, z]) => bx(c, .22, .85, .22, x, .42, z, hide));
+    if (n % 4 === 3) [[-.3, .51], [.4, -.51]].forEach(([x, z]) => bx(c, .7, .5, .05, x, 1.3, z, "#2b2622"));
+    const head = new THREE.Group(); head.position.set(1.15, 1.45, 0); c.add(head); bx(head, .6, .55, .6, .2, 0, 0, hide); bx(head, .25, .3, .5, .5, -.12, 0, "#e8b8a0");
+    [-1, 1].forEach((s) => { const h = cy(head, .05, .07, .7, .1, .38, s * .42, "#f4ecd6", { seg: 5 }); h.rotation.x = s * 1.1; });
+    bx(c, .08, .7, .08, -1.1, 1.2, 0, hide, { rz: .3 }); g.userData.cow = head;
+  },
+  hay(g) { [[-.45, 0, 0], [.45, 0, 0], [0, 0, .0]].forEach(([x], i) => bx(g, 1, .7, 1.6, i < 2 ? x : 0, i < 2 ? .35 : 1.05, 0, "#e3c46a")); [[-.45, .35], [.45, .35], [0, 1.05]].forEach(([x, y]) => [-.45, .45].forEach((z) => bx(g, 1.02, .72, .05, x, y, z, "#b8963a"))); },
   towers(g, look, id, n) {
     [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([x, z]) => bx(g, .2, 4.2, .2, x, 2.1, z, "#5a3a1e"));
     bx(g, 2.6, .2, 2.6, 0, 4.2, 0, "#7d5530"); [-1.2, 1.2].forEach((s) => { bx(g, 2.6, .5, .08, 0, 4.55, s, "#7d5530"); bx(g, .08, .5, 2.6, s, 4.55, 0, "#7d5530"); });
@@ -6749,7 +6790,8 @@ const B3_BUILD = {
 // ---------- the scene ----------
 const B3 = { on: false };
 function b3Scene(host) {
-  if (B3.renderer && B3.lesson === ranchLesson().id && B3.kidId === KID.id) { host.appendChild(B3.renderer.domElement); return; }
+  if (B3.renderer && B3.lesson === ranchLesson().id && B3.kidId === KID.id && B3.half === b3Half()) { host.appendChild(B3.renderer.domElement); return; }
+  const B3_HALF = b3Half();
   if (B3.renderer) { B3.renderer.dispose(); B3.renderer.domElement.remove(); }
   const look = ranchLook(), renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -6759,17 +6801,17 @@ function b3Scene(host) {
   const camera = new THREE.PerspectiveCamera(42, 1, .5, 400);
   scene.add(new THREE.HemisphereLight("#dff1ff", look.land[2], .62));
   const sun = new THREE.DirectionalLight("#fff3d6", .85); sun.position.set(-22, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 100 }); sun.shadow.bias = -.0008; scene.add(sun);
+  const SH = b3Half() + 10; Object.assign(sun.shadow.camera, { left: -SH, right: SH, top: SH, bottom: -SH, near: 1, far: 100 + SH }); sun.shadow.bias = -.0008; scene.add(sun);
   // Sky dome with a soft fade to the horizon color.
   const dome = new THREE.Mesh(new THREE.SphereGeometry(180, 24, 12), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { top: { value: new THREE.Color(look.sky[0]) }, bot: { value: new THREE.Color(look.sky[1]) } }, vertexShader: "varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}", fragmentShader: "uniform vec3 top;uniform vec3 bot;varying float h;void main(){gl_FragColor=vec4(mix(bot,top,clamp(h*2.2,0.,1.)),1.);}" }));
   scene.add(dome);
   // The land: the plot, the open range around it, a creek, hills and mountains.
   const world = new THREE.Group(); scene.add(world);
   const range = new THREE.Mesh(new THREE.CircleGeometry(150, 48), b3Mat(look.land[2])); range.rotation.x = -Math.PI / 2; range.position.y = -.05; range.receiveShadow = true; world.add(range);
-  const plot = new THREE.Mesh(new THREE.PlaneGeometry(B3_HALF * 2 + 2, B3_HALF * 2 + 2), b3Mat(look.land[1])); plot.rotation.x = -Math.PI / 2; plot.receiveShadow = true; world.add(plot);
-  const path = new THREE.Mesh(new THREE.PlaneGeometry(3, 30), b3Mat("#c9a66b")); path.rotation.x = -Math.PI / 2; path.position.set(0, .01, 33); path.receiveShadow = true; world.add(path);
-  for (let i = 0; i < 260; i++) { const a = i * 2.39996, r = 4 + (i * 7.3) % 60; const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(x) < B3_HALF && Math.abs(z) < B3_HALF) continue; cn(world, .18, .5, x, .25, z, look.tuft, { seg: 4, shadow: false }); }
-  for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2 + .1, r = 34 + (i % 4) * 5, x = Math.cos(a) * r, z = Math.sin(a) * r; if (z > 26 && Math.abs(x) < 6) continue; const s = .8 + (i % 3) * .3; cy(world, .25 * s, .35 * s, 1.6 * s, x, .8 * s, z, "#5a3a1e", { seg: 6 }); cn(world, 1.6 * s, 3.6 * s, x, 3.2 * s, z, look.pine, { seg: 8 }); cn(world, 1.2 * s, 2.6 * s, x, 4.6 * s, z, look.pine, { seg: 8 }); }
+  const plot = new THREE.Mesh(new THREE.PlaneGeometry(B3_HALF * 2 + 2, B3_HALF * 2 + 2), b3Mat(look.land[1])); for (let k = 1; k <= (b3More().land || 0); k++) { const h = 20 + 8 * k; [[0, -h], [0, h], [-h, 0], [h, 0]].forEach(([x, z]) => { const post = cy(world, .15, .15, 1, x, .5, z, "#7d5530", { seg: 5 }); }); } plot.rotation.x = -Math.PI / 2; plot.receiveShadow = true; world.add(plot);
+  const path = new THREE.Mesh(new THREE.PlaneGeometry(3, 30), b3Mat("#c9a66b")); path.rotation.x = -Math.PI / 2; path.position.set(0, .01, B3_HALF + 13); path.receiveShadow = true; world.add(path);
+  for (let i = 0; i < 260; i++) { const a = i * 2.39996, r = 4 + (i * 7.3) % (B3_HALF * 3); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(x) < B3_HALF && Math.abs(z) < B3_HALF) continue; cn(world, .18, .5, x, .25, z, look.tuft, { seg: 4, shadow: false }); }
+  for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2 + .1, r = B3_HALF * 1.7 + (i % 4) * 5, x = Math.cos(a) * r, z = Math.sin(a) * r; if (z > B3_HALF && Math.abs(x) < 6) continue; const s = .8 + (i % 3) * .3; cy(world, .25 * s, .35 * s, 1.6 * s, x, .8 * s, z, "#5a3a1e", { seg: 6 }); cn(world, 1.6 * s, 3.6 * s, x, 3.2 * s, z, look.pine, { seg: 8 }); cn(world, 1.2 * s, 2.6 * s, x, 4.6 * s, z, look.pine, { seg: 8 }); }
   for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, r = 110 + (i % 3) * 12, h = 22 + (i * 13) % 20; const m = cn(world, 30 + (i % 4) * 6, h, Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r, look.far, { seg: 7, shadow: false }); m.material = new THREE.MeshLambertMaterial({ color: look.far }); if (h > 30) cn(world, 9, 8, Math.cos(a) * r, h - 5.5, Math.sin(a) * r, "#f4f1ee", { seg: 7, shadow: false }); }
   for (let i = 0; i < 9; i++) { const x = -60 + i * 18, z = -55 - (i % 3) * 10; cn(world, 18, 12, x, 4, z, look.near, { seg: 7, shadow: false }); }
   const clouds = new THREE.Group(); scene.add(clouds);
@@ -6780,10 +6822,10 @@ function b3Scene(host) {
   const ring = new THREE.Mesh(new THREE.RingGeometry(.92, 1, 40), new THREE.MeshBasicMaterial({ color: "#ffd23f", transparent: true, opacity: .9, depthWrite: false, side: THREE.DoubleSide })); ring.rotation.x = -Math.PI / 2; ring.position.y = .06; ring.visible = false; scene.add(ring);
   const kid = b3Person(world, -3, 4, lk("shirt"), { hat: lk("hat"), skin: lk("skin") }); kid.rotation.y = .4;
   const nora = NO_NORA() ? null : b3Person(world, -1.8, 4.3, "#2f7f96", { hat: false, dress: true, hair: "#6b3f1d", skin: "#f4cda8" }); if (nora) nora.rotation.y = -.4;
-  Object.assign(B3, { renderer, scene, camera, sun, world, grid, foot, ring, clouds, kid, nora, look, pieces: {}, sel: null, lesson: ranchLesson().id, kidId: KID.id, yaw: .55, pitch: .78, dist: 52, target: new THREE.Vector3(0, 0, 0), ray: new THREE.Raycaster(), smoke: [] });
+  Object.assign(B3, { renderer, scene, camera, sun, world, grid, foot, ring, clouds, kid, nora, look, pieces: {}, sel: null, lesson: ranchLesson().id, kidId: KID.id, half: B3_HALF, yaw: .55, pitch: .78, dist: 52, target: new THREE.Vector3(0, 0, 0), ray: new THREE.Raycaster(), smoke: [] });
 }
 function b3Piece(key, s) {
-  const id = b3Id(key), n = key === id ? 0 : +key.slice(id.length), g = new THREE.Group();
+  const id = b3Id(key), n = key === id ? 0 : +(key.slice(id.length).replace("x", "")) || 0, g = new THREE.Group();
   B3_BUILD[id](g, B3.look, id, n);
   const [w, d] = B3_SIZE[id], shadow = new THREE.Mesh(new THREE.PlaneGeometry(w + .6, d + .6), new THREE.MeshBasicMaterial({ color: "#1d2a10", transparent: true, opacity: .14, depthWrite: false })); shadow.rotation.x = -Math.PI / 2; shadow.position.y = .02; g.add(shadow);
   g.traverse((m) => { m.userData.key = key; });
@@ -6802,7 +6844,7 @@ function b3Drop(g) { g.userData.drop = 1; g.position.y = 14; }
 function b3Size() {
   const c = B3.renderer?.domElement, host = c?.parentElement; if (!host) return;
   const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
-  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); if (!B3.zoomed) B3.dist = w < h ? 80 : 52; }
+  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); if (!B3.zoomed) B3.dist = (w < h ? 80 : 52) * (b3Half() / 20); }
 }
 function b3Cam() {
   const { yaw, pitch, dist, target } = B3;
@@ -6833,8 +6875,10 @@ function b3Tray() {
   box.innerHTML = RANCH.map((g, n) => {
     const own = ownedHere().includes(g.id), keys = own ? b3Keys().filter((k) => b3Id(k) === g.id) : [], away = keys.filter((k) => placed[k]?.away);
     const locked = !own && n >= open.n, poor = !own && S.nuggets < g.cost;
-    return `<button class="b3item ${own ? (away.length ? "away" : "own") : locked ? "locked" : poor ? "poor" : "buy"}" data-b3="${own ? (away.length ? "place" : "find") : locked ? "locked" : "buy"}" data-id="${g.id}">${ranchPic(g.id)}<span>${esc(ranchName(g))}</span><em>${own ? (away.length ? "Tap to place" : "&#10003; On the land") : locked ? "Locked" : `$${g.cost}`}</em></button>`;
-  }).join("");
+    const more = own && !away.length && B3_MORE.includes(g.id);
+    return `<button class="b3item ${own ? (away.length ? "away" : more ? (S.nuggets < g.cost ? "poor" : "buy") : "own") : locked ? "locked" : poor ? "poor" : "buy"}" data-b3="${own ? (away.length ? "place" : more ? "more" : "find") : locked ? "locked" : "buy"}" data-id="${g.id}">${ranchPic(g.id)}<span>${esc(ranchName(g))}${more && keys.length > 1 ? ` &#215;${keys.length}` : ""}</span><em>${own ? (away.length ? "Tap to place" : more ? `Add one $${g.cost}` : "&#10003; On the land") : locked ? "Locked" : `$${g.cost}`}</em></button>`;
+  }).join("") + B3_NEW.map((g) => { const n = b3More()[g.id] || 0, away = b3Keys().filter((k) => b3Id(k) === g.id && placed[k]?.away); return `<button class="b3item ${away.length ? "away" : S.nuggets < g.cost ? "poor" : "buy"}" data-b3="${away.length ? "place" : "more"}" data-id="${g.id}"><svg class="itempic" viewBox="-30 -24 60 40" aria-hidden="true">${g.id === "cattle" ? '<rect x="-18" y="-8" width="28" height="14" rx="4" fill="#6b3f1d"/><rect x="8" y="-14" width="12" height="11" rx="3" fill="#6b3f1d"/><rect x="16" y="-9" width="6" height="6" rx="2" fill="#e8b8a0"/><path d="M8-14l-4-5M20-14l4-5" stroke="#f4ecd6" stroke-width="2.5"/><path d="M-14 6v9M-6 6v9M2 6v9M8 6v9" stroke="#6b3f1d" stroke-width="3"/>' : '<rect x="-20" y="-4" width="18" height="12" fill="#e3c46a" stroke="#b8963a"/><rect x="2" y="-4" width="18" height="12" fill="#e3c46a" stroke="#b8963a"/><rect x="-9" y="-16" width="18" height="12" fill="#e3c46a" stroke="#b8963a"/>'}</svg><span>${esc(g.name)}${n ? ` &#215;${n}` : ""}</span><em>${away.length ? "Tap to place" : `Add one $${g.cost}`}</em></button>`; }).join("")
+  + `<button class="b3item ${S.nuggets < LAND_COST() ? "poor" : "buy"}" data-b3="land"><svg class="itempic" viewBox="-30 -24 60 40" aria-hidden="true"><rect x="-26" y="-14" width="52" height="28" fill="#8fae50" stroke="#5f8033" stroke-width="2"/><path d="M-26 0H26M0-14V14" stroke="#5f8033" stroke-dasharray="3 3"/><path d="M-6-4h12M0-10v12" stroke="#fff" stroke-width="3"/></svg><span>More land</span><em>$${LAND_COST()}</em></button>`;
 }
 function b3Loop(prev, now) {
   if (!B3.on || !B3.renderer?.domElement.isConnected) { B3.on = false; return; }
@@ -6849,6 +6893,7 @@ function b3Loop(prev, now) {
     if (u.spin) u.spin.rotation.z += dt * 2.2;
     if (u.swing) u.swing.rotation.x = Math.sin(t * 1.4) * .25;
     if (u.tail) u.tail.rotation.x = Math.sin(t * 14) * .6;
+    if (u.cow) u.cow.rotation.z = -.35 - Math.max(0, Math.sin(t * .7 + g.position.x)) * .5;
     if (u.water) u.water.material.emissive.setHSL(.57, .6, .08 + Math.sin(t * 2) * .03);
     if (u.horse) { u.horse.position.x = .6 + Math.sin(t * .4) * 1.4; u.horse.rotation.y = Math.cos(t * .4) > 0 ? 0 : Math.PI; u.horse.userData.head.rotation.z = Math.sin(t * 1.3) * .15; }
     if (u.hens) u.hens.forEach((h, i) => { h.rotation.z = Math.max(0, Math.sin(t * 3 + i * 2)) * .5; });
@@ -6876,7 +6921,7 @@ function b3Touch() {
   c.onpointermove = (e) => {
     if (!pts.has(e.pointerId)) return; const was = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
     moved = Math.max(moved, Math.hypot(e.clientX - start[0], e.clientY - start[1]));
-    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) { B3.dist = Math.max(22, Math.min(110, B3.dist * pinch / d)); B3.zoomed = true; } pinch = d; return; }
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) { B3.dist = Math.max(22, Math.min(110 * b3Half() / 20, B3.dist * pinch / d)); B3.zoomed = true; } pinch = d; return; }
     if (downKey && moved > 8) {
       if (!B3.drag) { B3.drag = downKey; if (B3.sel !== downKey) b3Select(downKey); B3.grid.visible = true; B3.foot.visible = true; }
       const hit = b3Ground(e); if (!hit) return; const g = B3.pieces[downKey], s = g.userData.s;
@@ -6898,7 +6943,7 @@ function b3Touch() {
     downKey = null;
   };
   c.onpointerup = up; c.onpointercancel = up;
-  c.onwheel = (e) => { e.preventDefault(); B3.zoomed = true; B3.dist = Math.max(22, Math.min(110, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
+  c.onwheel = (e) => { e.preventDefault(); B3.zoomed = true; B3.dist = Math.max(22, Math.min(110 * b3Half() / 20, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
 }
 function b3Act(e) {
   const t = e.target.closest("[data-b3]"); if (!t) return; const what = t.dataset.b3, key = B3.sel;
@@ -6912,6 +6957,19 @@ function b3Act(e) {
     else if (keys[0] && B3.pieces[keys[0]]) b3Select(keys[0]);
   }
   if (what === "buy") { const id = t.dataset.id; B3.fresh = [id]; acts.buy({ id }); }
+  if (what === "more") {
+    const id = t.dataset.id, g = RANCH.find((x) => x.id === id) || B3_NEW.find((x) => x.id === id); if (!g) return;
+    if (S.nuggets < g.cost) { const say = document.getElementById("noraSay"); if (say) say.textContent = `Save up $${g.cost - S.nuggets} more for that one!`; beep(BLIP); return; }
+    S.nuggets -= g.cost; const m = b3More(); m[id] = (m[id] || 0) + 1; const key = `${id}x${m[id]}`, placed = {};
+    Object.entries(B3.pieces).forEach(([k, p]) => { placed[k] = p.userData.s; }); const at = b3FreeSpot(key, placed, [Math.round(B3.target.x), Math.round(B3.target.z)]); b3Keep(key, at);
+    if (!playSfx("hammer", .8)) beep(CHIME); save(); const pc = b3Piece(key, at); b3Drop(pc); b3Select(key); b3Tray();
+    const chip = document.querySelector(".b3top .nug"); if (chip) chip.innerHTML = `<i></i>$${S.nuggets}`;
+    const say = document.getElementById("noraSay"); if (say) say.textContent = `Another ${g.name.toLowerCase()}! Drag it where you want it.`;
+  }
+  if (what === "land") {
+    if (S.nuggets < LAND_COST()) { const say = document.getElementById("noraSay"); if (say) say.textContent = `Save up $${LAND_COST() - S.nuggets} more for more land!`; beep(BLIP); return; }
+    S.nuggets -= LAND_COST(); b3More().land = (b3More().land || 0) + 1; save(); confetti(40); beep(FANFARE); U.noraLine = "More land! Now there's room for a whole lot more."; render();
+  }
   if (what === "locked") { const say = document.getElementById("noraSay"); if (say) say.textContent = "Finish more of today's lesson to unlock that one!"; }
 }
 function buildView() {
