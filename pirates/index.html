@@ -136,6 +136,8 @@
       <div id="timer-w"><div id="timer" class="px">15</div><div id="timer-bar"><div id="timer-fill"></div></div></div>
       <div id="island-btns" hidden>
         <button class="hbtn gold" id="btn-build">BUILD</button>
+        <button class="hbtn" id="btn-move" style="background:#7a4d9a">MOVE</button>
+        <button class="hbtn" id="btn-isles" style="background:#1f7a6a">ISLANDS</button>
         <button class="hbtn red" id="btn-sail">SAIL &amp; FIGHT</button>
         <button class="hbtn" id="btn-raid">RAID</button>
         <button class="hbtn" id="btn-dive" style="background:#0e4f7a">DIVE</button>
@@ -203,6 +205,15 @@
       <p class="small">Gold and wood come from sinking ships. More guys let you build more. Every 3 buildings the island grows.</p>
       <div class="builds" id="build-list"></div>
       <div class="row"><button class="hbtn" id="btn-build-close">CLOSE</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="ov-isles" hidden>
+    <div class="card">
+      <h2>YOUR ISLANDS</h2>
+      <p class="small">Claim a new island with gold and wood, then sail there and build. Buildings on every island help you win loot.</p>
+      <div class="builds" id="isle-list"></div>
+      <div class="row"><button class="hbtn" id="btn-isles-close">CLOSE</button></div>
     </div>
   </div>
 
@@ -649,23 +660,58 @@
     mine: { name: 'GOLD MINE', gold: 90, wood: 60, eff: 'Your guys dig gold: +25 gold every time you sink a ship.' }
   };
   const SLOTS = [[3, -2], [-2, 4], [-5, -1], [1, -7], [6, -6], [-8, 5], [-3, 9], [7, 3], [-11, -4], [2, 12], [-9, 10], [10, -10], [-13, 2], [12, 8], [-6, -12], [5, 15]];
+  // More islands to sail to and build on (Nathan, 2026-11-12: "allow the pirate game to have different islands that you
+  // can go to and build on"). Each keeps its own buildings, spots and builder; every island's buildings count for loot.
+  const ISLES = [
+    { name: 'HOME ISLAND', sand: 0xe9d8a6, grass: 0x4f9a3c, feature: 'volcano', gold: 0, wood: 0, dsc: 'Your first island, with its smoking volcano.' },
+    { name: 'PALM KEY', sand: 0xf6e7bd, grass: 0x6cc24a, feature: 'lighthouse', gold: 120, wood: 60, dsc: 'White sand, tall palms and an old lighthouse.' },
+    { name: 'TURTLE BAY', sand: 0xe2d2a2, grass: 0x3f9a62, feature: 'falls', gold: 180, wood: 100, dsc: 'A jungle hill with a waterfall and a lagoon.' },
+    { name: 'SKULL ROCK', sand: 0xd2c6a6, grass: 0x6a8a3c, feature: 'skull', gold: 260, wood: 150, dsc: 'A giant skull-shaped rock guards the treasure caves.' }
+  ];
+  function isles() { const P = G.P; if (!P.isles) P.isles = [{ b: P.buildings, spots: P.spots || {}, pending: P.pending || null }]; if (P.at == null) P.at = 0; return P.isles; }
+  function allB() { const P = G.P; if (!P) return []; const L = isles(); return L.reduce((a, x, i) => a.concat(i === P.at ? P.buildings : x.b), []); }
+  function sailTo(k) {
+    const P = G.P, L = isles(); if (k === P.at || !L[k]) return;
+    L[P.at] = { b: P.buildings, spots: P.spots || {}, pending: P.pending || null };
+    P.at = k; P.buildings = L[k].b; P.spots = L[k].spots || {}; P.pending = L[k].pending || null; saveP();
+    banner('SAILING TO ' + ISLES[k].name, 'white'); SFX.creak(); goIsland(); toast('Welcome to ' + ISLES[k].name + '!');
+  }
+  function openIsles() {
+    const P = G.P, L = isles(), list = $('#isle-list'); list.innerHTML = '';
+    ISLES.forEach((I, k) => {
+      const have = !!L[k], here = k === P.at, next = k === L.length, ok = next && P.gold >= I.gold && P.wood >= I.wood;
+      const b = document.createElement('button'); b.className = 'bcard'; b.disabled = here || (!have && !ok);
+      b.innerHTML = `<div class="nm">${I.name}${here ? ' (YOU ARE HERE)' : ''}</div><div class="eff">${I.dsc}</div><div class="cost">${have ? ((here ? P.buildings : L[k].b).filter(x => x !== 'dock').length + ' buildings') : next ? `Claim it: ${I.gold} gold · ${I.wood} wood` : 'Claim the island before it first'}</div>${!have && next && !ok ? '<div class="eff">Not enough loot yet.</div>' : ''}`;
+      b.addEventListener('click', () => { if (here) return; if (!have) { if (!ok) return; P.gold -= I.gold; P.wood -= I.wood; L.push({ b: ['dock'], spots: {}, pending: null }); SFX.coin(); purse(); } show('ov-isles', false); sailTo(k); });
+      list.appendChild(b);
+    });
+    show('ov-isles', true);
+  }
   const ISL = { land: null, builds: [], villagers: [], ships: [], fires: [], volcano: null, builder: null, scaffold: null, dockShip: null, sling: null, radius: 14, torches: [] };
   const islandRadius = () => 14 + 3 * Math.floor((G.P ? G.P.buildings.length : 3) / 3);
   function buildLand() {
     if (ISL.land) IW.remove(ISL.land); const g = new THREE.Group(); ISL.land = g; IW.add(g);
     const R = islandRadius(); ISL.radius = R; ISL.torches = [];
-    const sand = cyl(g, R, R + 2.5, 0.9, 0, 0.45, 0, 0xe9d8a6, { map: T.sand }, 24); sand.material.map.repeat.set(8, 8);
-    const grass = cyl(g, R - 2.2, R - 1.5, 0.6, 0, 1.2, 0, 0x4f9a3c, { map: T.grass }, 24); grass.material.map.repeat.set(8, 8);
+    const LOOK = ISLES[G.P ? (G.P.at || 0) : 0];
+    const sand = cyl(g, R, R + 2.5, 0.9, 0, 0.45, 0, LOOK.sand, { map: T.sand }, 24); sand.material.map.repeat.set(8, 8);
+    const grass = cyl(g, R - 2.2, R - 1.5, 0.6, 0, 1.2, 0, LOOK.grass, { map: T.grass }, 24); grass.material.map.repeat.set(8, 8);
     // palms around the beach
     for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + hash(i, 3) * 0.4; const r = R - 1.2; const x = Math.cos(a) * r, z = Math.sin(a) * r; if (x > 6 && z > 0 && z < 8) continue; palm(g, x, z, 1.3, 0.8 + hash(i, 9) * 0.5); }
     for (let i = 0; i < 10; i++) { const a = hash(i, 17) * Math.PI * 2, r = 3 + hash(i, 5) * (R - 6); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.hypot(x + 7, z + 7) < 7) continue; if (SLOTS.some(([sx, sz]) => Math.hypot(sx - x, sz - z) < 2.6)) continue; if (hash(i, 2) < 0.5) rock(g, 0.5 + hash(i, 1) * 0.5, x, 1.6, z, 0x8a8a8a); else { const b = sph(g, 0.6, x, 1.9, z, pick([0x3f8f3a, 0x5aa846])); b.scale.y = 0.7; } }
     // dock: planks out over the water to the east
     for (let i = 0; i < 9; i++) { box(g, 1.2, 0.14, 3, R - 2 + i * 1.2, 1.35, 4, 0xa67c52, { map: T.plank }); if (i % 2 === 0) { cyl(g, 0.14, 0.16, 2.2, R - 2 + i * 1.2, 0.5, 2.6, 0x5b3a1a, null, 6); cyl(g, 0.14, 0.16, 2.2, R - 2 + i * 1.2, 0.5, 5.4, 0x5b3a1a, null, 6); } }
     [[R + 3, 2.4], [R + 6, 5.6]].forEach(([x, z]) => { box(g, 0.9, 0.9, 0.9, x, 1.9, z, 0x8a5a2b); }); // crates on the dock
-    // volcano to the north-west, crater glowing
-    const V = new THREE.Group(); V.position.set(-R * 0.5, 1.4, -R * 0.5); g.add(V); ISL.volcano = V;
+    // each island's big feature stands in the north-west corner: the volcano at home, then a lighthouse, a waterfall hill, a skull rock
+    ISL.volcano = null; ISL.lava = null; ISL.beam = null;
+    if (LOOK.feature !== 'volcano') {
+      const F = new THREE.Group(); F.position.set(-R * 0.5, 1.4, -R * 0.5); g.add(F);
+      if (LOOK.feature === 'lighthouse') { cyl(F, 2.2, 2.8, 1.2, 0, 0.6, 0, 0x8a8a8a, null, 10); for (let k = 0; k < 5; k++) cyl(F, 1.5 - k * 0.12, 1.6 - k * 0.12, 1.6, 0, 1.9 + k * 1.6, 0, k % 2 ? 0xffffff : 0xd62828, null, 12); cyl(F, 1.2, 1.2, 1.2, 0, 10.4, 0, 0xfff3c4, { emissive: 0xffd24a, ei: 1.1 }, 10); cone(F, 1.5, 1.4, 0, 11.7, 0, 0x2b2b2b, null, 10); glow(F, 0, 10.4, 0, 0xffe08a, 6, 0.6); const bm = box(F, 0.5, 0.5, 14, 0, 10.4, 7, 0xfff3c4, { emissive: 0xfff3c4, ei: 1, noShadow: true }); bm.material.transparent = true; bm.material.opacity = 0.25; const pivot = new THREE.Group(); pivot.position.set(0, 0, 0); F.add(pivot); F.remove(bm); pivot.add(bm); ISL.beam = pivot; }
+      if (LOOK.feature === 'falls') { const hill = cone(F, 6, 7, 0, 3.5, 0, 0x3f7a3a, null, 9); hill.scale.z = 0.9; const wf = box(F, 1.4, 6, 0.3, 0, 3, 3.6, 0x8fd0f5, { emissive: 0x4fa8e0, ei: 0.5, map: T.lava }); wf.rotation.x = -0.45; ISL.falls = wf; cyl(F, 2.6, 2.6, 0.2, 0, 0.1, 5.4, 0x3f8fc8, null, 14); for (let k = 0; k < 6; k++) palm(F, Math.cos(k) * 4.5, Math.sin(k) * 4.5, 0.4, 0.9); }
+      if (LOOK.feature === 'skull') { const sk = sph(F, 4, 0, 4, 0, 0xd9d2c0); sk.scale.set(1, 1.05, 0.95); [-1.5, 1.5].forEach(dx => sph(F, 1.1, dx, 4.6, 3.3, 0x1a1a1a)); box(F, 0.7, 1, 0.5, 0, 3.2, 3.7, 0x1a1a1a); for (let k = 0; k < 5; k++) box(F, 0.45, 0.8, 0.4, -1.2 + k * 0.6, 1.4, 3.3, 0xece6d4); glow(F, -1.5, 4.6, 3.6, 0xff5a2a, 2.2, 0.7); glow(F, 1.5, 4.6, 3.6, 0xff5a2a, 2.2, 0.7); }
+    }
+    const V = new THREE.Group(); V.position.set(-R * 0.5, 1.4, -R * 0.5); if (LOOK.feature === 'volcano') { g.add(V); ISL.volcano = V; }
     cone(V, 5.5, 8, 0, 4, 0, 0x4a3f3a, null, 10); cyl(V, 2.1, 2.6, 0.6, 0, 7.8, 0, 0x2a2420, null, 10);
-    const lava = cyl(V, 1.6, 1.6, 0.2, 0, 8.05, 0, 0xff7a1a, { emissive: 0xff5a00, ei: 1.2, map: T.lava }, 10); ISL.lava = lava; ISL.lavaGlow = glow(V, 0, 8.6, 0, 0xff7a1a, 7, 0.55);
+    const lava = cyl(V, 1.6, 1.6, 0.2, 0, 8.05, 0, 0xff7a1a, { emissive: 0xff5a00, ei: 1.2, map: T.lava }, 10); if (ISL.volcano) ISL.lava = lava; ISL.lavaGlow = glow(V, 0, 8.6, 0, 0xff7a1a, 7, 0.55);
     const vl = new THREE.PointLight(0xff7a1a, 1.4, 22); vl.position.set(0, 9, 0); V.add(vl); ISL.vlight = vl;
     [[1.2, 0.6], [-1.4, -0.4], [0.3, -1.5]].forEach(([dx, dz]) => { const s = box(V, 0.6, 0.3, 4, dx * 2, 3.2, dz * 2, 0xff7a1a, { emissive: 0xff5a00, ei: 0.9, map: T.lava }); s.lookAt(0, 8, 0); s.rotation.x += Math.PI / 2; });
     // torches on the path
@@ -686,9 +732,22 @@
     placeScaffold();
   }
   function palm(g, x, z, y, s) { const tr = cyl(g, 0.16 * s, 0.24 * s, 3.4 * s, x, y + 1.7 * s, z, 0x8a5a2b, null, 6); tr.rotation.z = (hash(x, z) - 0.5) * 0.3; for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; const leaf = box(g, 0.5 * s, 0.08, 2.2 * s, x + Math.cos(a) * 0.9 * s, y + 3.4 * s, z + Math.sin(a) * 0.9 * s, pick([0x2f8f3a, 0x46a041])); leaf.rotation.y = -a + Math.PI / 2; leaf.rotation.x = -0.5; } sph(g, 0.22 * s, x, y + 3.3 * s, z, 0x5b3a1a); }
-  function slotFor(i) { let s = SLOTS[Math.min(i, SLOTS.length - 1)]; return { x: s[0], z: s[1] }; }
+  function slotFor(i) {
+    const sp = G.P && G.P.spots && G.P.spots[i]; if (sp) return { x: sp[0], z: sp[1] };
+    // the usual spot, or the next free one if a moved building sits there
+    const taken = ISL.builds.filter(b => b.i !== i).map(b => b.g.position);
+    for (let k = Math.min(i, SLOTS.length - 1); k < SLOTS.length + i; k++) { const s = SLOTS[k % SLOTS.length]; if (!taken.some(q => Math.hypot(q.x - s[0], q.z - s[1]) < 3.4)) return { x: s[0], z: s[1] }; }
+    const s = SLOTS[Math.min(i, SLOTS.length - 1)]; return { x: s[0], z: s[1] };
+  }
+  // A building can stand where it's on the grass, clear of the big feature, the dock, the slingshot and other buildings.
+  function spotOk(B, x, z) {
+    const R = ISL.radius; if (Math.hypot(x, z) > R - 3.4) return false; if (Math.hypot(x + R * 0.5, z + R * 0.5) < 7) return false;
+    if (x > R - 5 && Math.abs(z - 4) < 3) return false; if (Math.hypot(x - 4, z - (R - 3.5)) < 3) return false;
+    if (ISL.scaffold && Math.hypot(ISL.scaffold.position.x - x, ISL.scaffold.position.z - z) < 3.6) return false;
+    return !ISL.builds.some(o => o !== B && Math.hypot(o.g.position.x - x, o.g.position.z - z) < 3.6);
+  }
   function placeBuilding(type, i) {
-    const { x, z } = slotFor(i); const g = new THREE.Group(); g.position.set(x, 1.5, z); g.rotation.y = hash(i, 7) * 0.6 - 0.3; ISL.land.add(g); g.userData.type = type; const B = { g, type, i, hp: 1 };
+    const { x, z } = slotFor(i); const g = new THREE.Group(); g.position.set(x, 1.5, z); g.rotation.y = hash(i, 7) * 0.6 - 0.3; ISL.land.add(g); g.userData.type = type; g.userData.i = i; const B = { g, type, i, hp: 1 };
     if (type === 'house') { box(g, 3, 2.2, 3, 0, 1.1, 0, pick([0xe0c9a6, 0xd9b48f, 0xc9ad7f])); const r = cone(g, 2.6, 1.6, 0, 3.0, 0, pick([0xb3161c, 0x8a3b1c, 0x6b4423]), null, 4); r.rotation.y = Math.PI / 4; box(g, 0.7, 1.2, 0.1, 0, 0.6, 1.53, 0x3a2412); box(g, 0.6, 0.6, 0.1, -1, 1.3, 1.53, 0xffe08a, { emissive: 0xffa726, ei: 0.35 }); box(g, 0.6, 0.6, 0.1, 1.53, 1.3, 0, 0xffe08a, { emissive: 0xffa726, ei: 0.35 }).rotation.y = Math.PI / 2; cyl(g, 0.2, 0.2, 1.2, 0.9, 3.2, -0.7, 0x777777, null, 6); B.chimney = new THREE.Vector3(0.9, 3.9, -0.7); g.userData.enter = true; }
     else if (type === 'tavern') { box(g, 4, 2.6, 3.4, 0, 1.3, 0, 0x8a5a2b); box(g, 4.1, 0.2, 3.5, 0, 1.3, 0, 0x3a2412); const r = cone(g, 3.3, 1.8, 0, 3.5, 0, 0x3a2412, null, 4); r.rotation.y = Math.PI / 4; box(g, 0.9, 1.4, 0.1, 0, 0.7, 1.73, 0x2b1a0c); [-1.3, 1.3].forEach(dx => box(g, 0.7, 0.7, 0.1, dx, 1.7, 1.73, 0xffe08a, { emissive: 0xffa726, ei: 0.4 })); box(g, 1.6, 0.6, 0.1, 0, 2.3, 1.78, 0xf5b301); cyl(g, 0.4, 0.4, 0.8, 2.4, 0.4, 1, 0x6b4423, null, 8); cyl(g, 0.2, 0.2, 1.4, -1.2, 3.6, -0.8, 0x777777, null, 6); B.chimney = new THREE.Vector3(-1.2, 4.4, -0.8); g.userData.enter = true; }
     else if (type === 'market') { [[-1.4, -1], [1.4, -1], [-1.4, 1], [1.4, 1]].forEach(([dx, dz]) => cyl(g, 0.1, 0.1, 2.4, dx, 1.2, dz, 0x6b4423, null, 6)); for (let s = 0; s < 6; s++) box(g, 0.55, 0.1, 2.6, -1.4 + s * 0.55 + 0.27, 2.45, 0, s % 2 ? 0xffffff : 0xb3161c); box(g, 3, 0.8, 1, 0, 0.4, 0.6, 0x8a5a2b); [[-0.9, 0xf5b301], [0, 0xd62828], [0.9, 0x2a9d4a]].forEach(([dx, c]) => sph(g, 0.3, dx, 1.0, 0.6, c)); box(g, 0.8, 0.8, 0.8, -1.9, 0.4, -0.8, 0x8a5a2b); box(g, 0.7, 0.7, 0.7, 1.9, 0.35, -0.9, 0x8a5a2b); }
@@ -715,19 +774,21 @@
     const n = Math.min(16, 2 + houses * 2 + Math.floor((G.P ? G.P.crew : 6) / 4));
     for (let i = 0; i < n; i++) { const v = pirate({}); const p = randomLandPoint(); v.g.position.set(p.x, 1.5, p.z); v.target = randomLandPoint(); v.speed = 1.2 + Math.random() * 0.8; v.pause = Math.random() * 3; ISL.land.add(v.g); ISL.villagers.push(v); }
   }
-  function randomLandPoint() { for (let k = 0; k < 20; k++) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * (ISL.radius - 5); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.hypot(x + ISL.radius * 0.5, z + ISL.radius * 0.5) < 6.5) continue; if (SLOTS.slice(0, (G.P ? G.P.buildings.length : 3) + 1).some(([sx, sz]) => Math.hypot(sx - x, sz - z) < 2.4)) continue; return new THREE.Vector3(x, 1.5, z); } return new THREE.Vector3(0, 1.5, 6); }
+  function randomLandPoint() { for (let k = 0; k < 20; k++) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * (ISL.radius - 5); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.hypot(x + ISL.radius * 0.5, z + ISL.radius * 0.5) < 6.5) continue; if (ISL.builds.map(b => [b.g.position.x, b.g.position.z]).some(([sx, sz]) => Math.hypot(sx - x, sz - z) < 2.4)) continue; return new THREE.Vector3(x, 1.5, z); } return new THREE.Vector3(0, 1.5, 6); }
   function refreshSailors() {
     ISL.ships.forEach(s => IW.remove(s.S.g)); ISL.ships = [];
-    for (let i = 0; i < 3; i++) { const S = buildShip({ len: 9, wid: 3, crew: 3, holes: 6, cannons: 1, flag: pick(['pirate', 'red', 'british']), british: i === 2, hull: pick([0x5b3a1a, 0x3a3a3a, 0x1c2f6b]), sail: pick([0xf3e7c9, 0xd8cfb8]), figurehead: false, masts: [[-1.5, 5.5], [1.6, 6.5]] }); S.g.userData.baseY = 0; IW.add(S.g); ISL.ships.push({ S, a: i / 3 * Math.PI * 2, r: 36 + i * 9, sp: (0.05 + i * 0.012) * (i % 2 ? 1 : -1) }); }
+    for (let i = 0; i < 3; i++) { const S = buildShip({ len: 9, wid: 3, crew: 3, holes: 6, cannons: 1, flag: pick(['pirate', 'red', 'british']), british: i === 2, hull: pick([0x5b3a1a, 0x3a3a3a, 0x1c2f6b]), sail: pick([0xf3e7c9, 0xd8cfb8]), figurehead: false, masts: [[-1.5, 5.5], [1.6, 6.5]] }); S.g.userData.baseY = 0; IW.add(S.g); ISL.ships.push({ S, a: i / 3 * Math.PI * 2, off: 24 + i * 8, r: 38 + i * 8, sp: (0.05 + i * 0.012) * (i % 2 ? 1 : -1) }); }
   }
   function stepIsland(t, dt) {
     ISL.torches.forEach(o => { const f = 0.85 + Math.sin(t * 9 + o.s) * 0.2; o.fl.scale.set(f, 0.8 + f * 0.3, f); o.gl.material.opacity = 0.45 + f * 0.25; });
+    if (ISL.beam) ISL.beam.rotation.y = t * 0.8;
+    if (ISL.falls) ISL.falls.material.map.offset.y = -t * 0.6;
     if (ISL.lava) { ISL.lava.material.map.offset.x = t * 0.03; const k = 0.9 + Math.sin(t * 2) * 0.15; ISL.lavaGlow.material.opacity = 0.45 * k; ISL.vlight.intensity = 1.4 * k; if (Math.random() < dt * 1.5) { const p = ISL.volcano.localToWorld(new THREE.Vector3(rnd(-1, 1), 8.6, rnd(-1, 1))); smoke(p, 1, true); } }
     ISL.builds.forEach(b => { if (b.chimney && Math.random() < dt * 0.8) smoke(b.g.localToWorld(b.chimney.clone()), 1, false); if (b.guard) idlePirate(b.guard, t, dt); if (b.burning && Math.random() < dt * 6) { const p = b.g.localToWorld(new THREE.Vector3(rnd(-1, 1), 2.2, rnd(-1, 1))); smoke(p, 1, true); puff(p, new THREE.Vector3(0, 1.6, 0), 0.6, 0.5, 0xff7a1a, 0.8, 1, 1.3); } });
     if (ISL.builder) { idlePirate(ISL.builder, t, dt); const pend = G.P.pending; if (pend && G.world === 'island') { pend.left -= dt; const k = 1 - Math.max(0, pend.left) / pend.total; ISL.scaffoldWall.scale.y = 0.2 + k * 9; ISL.scaffoldWall.position.y = 0.4 + k * 0.9; if (pend.left <= 0) finishBuild(); } }
     const run = ISL.panicUntil && t < ISL.panicUntil;
     ISL.villagers.forEach(v => { idlePirate(v, t, dt); if (v.pause > 0 && !run) { v.pause -= dt; v.walk = false; return; } const d = v.target.clone().sub(v.g.position); d.y = 0; const len = d.length(); if (len < 0.3) { v.target = randomLandPoint(); v.pause = run ? 0 : 1 + Math.random() * 4; v.walk = false; return; } v.walk = true; d.normalize(); const sp = v.speed * (run ? 2.6 : 1); v.g.position.addScaledVector(d, Math.min(len, sp * dt)); v.g.rotation.y = Math.atan2(-d.z, d.x); });
-    ISL.ships.forEach(s => { s.a += s.sp * dt; s.S.g.position.set(Math.cos(s.a) * s.r, s.S.g.position.y, Math.sin(s.a) * s.r); s.S.g.rotation.y = -s.a + (s.sp > 0 ? Math.PI : 0); floatOn(s.S.g, t, 0.5, s.a); stepShip(s.S, t, dt); });
+    ISL.ships.forEach(s => { s.r = ISL.radius + s.off; s.a += s.sp * dt; s.S.g.position.set(Math.cos(s.a) * s.r, s.S.g.position.y, Math.sin(s.a) * s.r); s.S.g.rotation.y = -s.a + (s.sp > 0 ? Math.PI : 0); floatOn(s.S.g, t, 0.5, s.a); stepShip(s.S, t, dt); });
     if (ISL.dockShip) { floatOn(ISL.dockShip.g, t, 0.35, 2); stepShip(ISL.dockShip, t, dt); }
     if (BRIT.S) { floatOn(BRIT.S.g, t, 0.5, 5); stepShip(BRIT.S, t, dt); }
     if (ISL.erupting) stepEruption(t, dt);
@@ -740,7 +801,7 @@
   function rebuildIsland() { buildLand(); refreshVillagers(); }
   /* ---------- volcano eruption: rumble, lava bombs, ash, everyone runs ---------- */
   function erupt() {
-    if (ISL.erupting) return; ISL.erupting = { until: G.t + 9, next: 0 }; ISL.panicUntil = G.t + 10; SFX.rumble(); setTimeout(() => SFX.erupt(), 900); banner('THE VOLCANO!', 'red'); shakeCam(0.5);
+    if (ISL.erupting || !ISL.volcano) return; ISL.erupting = { until: G.t + 9, next: 0 }; ISL.panicUntil = G.t + 10; SFX.rumble(); setTimeout(() => SFX.erupt(), 900); banner('THE VOLCANO!', 'red'); shakeCam(0.5);
     setTimeout(() => { banner(''); }, 2500);
   }
   function stepEruption(t, dt) {
@@ -753,7 +814,7 @@
   /* ---------- inside a house: table, two guys, fire, hammock ---------- */
   const HOUSE = { folk: [] };
   (function buildInterior() {
-    const g = HW; box(g, 9, 0.2, 9, 0, 0, 0, 0xa67c52, { map: T.plank }); box(g, 9, 4, 0.3, 0, 2, -4.5, 0xd9b48f); box(g, 0.3, 4, 9, -4.5, 2, 0, 0xd9b48f); box(g, 0.3, 4, 9, 4.5, 2, 0, 0xd9b48f); box(g, 9, 0.3, 9, 0, 4.2, 0, 0x6b4423);
+    const g = new THREE.Group(); HW.add(g); HOUSE.g0 = g; box(g, 9, 0.2, 9, 0, 0, 0, 0xa67c52, { map: T.plank }); box(g, 9, 4, 0.3, 0, 2, -4.5, 0xd9b48f); box(g, 0.3, 4, 9, -4.5, 2, 0, 0xd9b48f); box(g, 0.3, 4, 9, 4.5, 2, 0, 0xd9b48f); box(g, 9, 0.3, 9, 0, 4.2, 0, 0x6b4423);
     [-3, 0, 3].forEach(z => box(g, 8.6, 0.25, 0.25, 0, 4.0, z, 0x5b3a1a));
     // fireplace on the back wall
     box(g, 2.6, 2.4, 0.7, -2.4, 1.2, -4.2, 0x7a7a7a); box(g, 1.6, 1.4, 0.4, -2.4, 0.8, -4.05, 0x111111); const fl = cone(g, 0.5, 1.0, -2.4, 0.7, -4.0, 0xffa726, { emissive: 0xff7a00, ei: 1.6, noShadow: true }); HOUSE.fire = fl; HOUSE.glow = glow(g, -2.4, 0.9, -3.8, 0xff8a2a, 5, 0.6); const l = new THREE.PointLight(0xff9a3a, 1.6, 12); l.position.set(-2.4, 1.2, -3.4); g.add(l); HOUSE.light = l;
@@ -771,7 +832,83 @@
     box(g, 1.6, 2.2, 0.15, 0, 1.1, 4.45, 0x3a2412); // door behind the camera
     const hl = new THREE.HemisphereLight(0xfff0d0, 0x6b4423, 0.5); g.add(hl);
   })();
-  function stepHouse(t, dt) { const f = 0.85 + Math.sin(t * 9) * 0.2 + Math.sin(t * 23) * 0.1; HOUSE.fire.scale.set(f, 0.8 + f * 0.3, f); HOUSE.light.intensity = 1.6 * f; HOUSE.glow.material.opacity = 0.45 + f * 0.25; HOUSE.hammock.rotation.x = Math.sin(t * 0.8) * 0.06; HOUSE.folk.forEach((p, i) => { idlePirate(p, t, dt); if (i === 0) p.armR.rotation.x = -0.9 + Math.sin(t * 1.5) * 0.5; }); if (Math.random() < dt * 3) smoke(new THREE.Vector3(-2.4, 81.6, -4.0), 1, false); }
+  // Every building opens to its own room (Nathan, 2026-11-12: "in the house there needs to be different things inside").
+  const ROOMS = {}, ROOM_NAMES = { house0: 'HOUSE', house1: 'HOUSE', tavern: 'TAVERN', market: 'MARKET', fort: 'FORT', tower: 'WATCHTOWER', mine: 'GOLD MINE', shipyard: 'SHIPYARD' };
+  function roomShell(g, wall, floor, roof) {
+    box(g, 9, 0.2, 9, 0, 0, 0, floor || 0xa67c52, floor ? null : { map: T.plank }); box(g, 9, 4, 0.3, 0, 2, -4.5, wall); box(g, 0.3, 4, 9, -4.5, 2, 0, wall); box(g, 0.3, 4, 9, 4.5, 2, 0, wall); box(g, 9, 0.3, 9, 0, 4.2, 0, roof || 0x6b4423);
+    box(g, 1.6, 2.2, 0.15, 0, 1.1, 4.45, 0x3a2412); g.add(new THREE.HemisphereLight(0xfff0d0, 0x6b4423, 0.55));
+    const l = new THREE.PointLight(0xffd8a0, 1.2, 14); l.position.set(0, 3.4, 0); g.add(l);
+  }
+  function lantern(g, x, y, z) { box(g, 0.3, 0.4, 0.3, x, y, z, 0x2b2b2b); const f = sph(g, 0.12, x, y, z, 0xffd24a, { emissive: 0xffb02a, ei: 1.5, noShadow: true }); glow(g, x, y, z, 0xffc04a, 2.4, 0.6); return f; }
+  function roomFolk(g, list, x, z, ry, mode) { const p = pirate({}); p.g.position.set(x, mode === 'sit' ? 0.6 : 0.1, z); p.g.rotation.y = ry; p.mode = mode || null; g.add(p.g); list.push(p); return p; }
+  function buildRoom(kind) {
+    const g = new THREE.Group(); HW.add(g); const R = { g, folk: [] }; ROOMS[kind] = R;
+    if (kind === 'house1') {
+      roomShell(g, 0xc9ad7f);
+      [[-3.3, -2.6], [-3.3, 1.2]].forEach(([x, z]) => { [0.5, 2.0].forEach(y => { box(g, 1.4, 0.2, 2.6, x, y, z, 0x6b4423); box(g, 1.2, 0.18, 2.3, x, y + 0.18, z, pick([0x1d4ed8, 0xb3161c, 0x2a9d4a])); box(g, 1.1, 0.2, 0.5, x, y + 0.3, z - 0.9, 0xf3e7c9); }); [-1.25, 1.25].forEach(dz => cyl(g, 0.08, 0.08, 2.6, x - 0.65, 1.3, z + dz, 0x5b3a1a, null, 6)); });
+      box(g, 1.6, 1.0, 1.0, 2.6, 0.5, -3.7, 0x2b2b2b); cyl(g, 0.4, 0.35, 0.5, 2.6, 1.25, -3.7, 0x555555, null, 10); R.steam = new THREE.Vector3(2.6, 81.6, -3.7); glow(g, 2.6, 0.5, -3.2, 0xff7a1a, 2.4, 0.6);
+      box(g, 2.6, 0.12, 0.5, 2.6, 2.6, -4.2, 0x5b3a1a); [[1.8, 0xf5b301], [2.5, 0xd62828], [3.2, 0x2a9d4a]].forEach(([x, c]) => cyl(g, 0.16, 0.16, 0.4, x, 2.86, -4.2, c, null, 8));
+      cyl(g, 1.5, 1.5, 0.04, 0.6, 0.12, 0.6, 0xb3161c, null, 16); cyl(g, 0.05, 0.05, 1.4, 3.3, 0.7, 2.4, 0x5b3a1a, null, 6); box(g, 0.7, 0.06, 0.06, 3.3, 1.4, 2.4, 0x5b3a1a); const parrot = sph(g, 0.22, 3.3, 1.65, 2.4, 0x2a9d4a); sph(g, 0.14, 3.42, 1.85, 2.4, 0xd62828); R.parrot = parrot;
+      roomFolk(g, R.folk, 2.0, -2.6, Math.PI, 'hammer'); lantern(g, 0, 3.6, 0);
+    } else if (kind === 'tavern') {
+      roomShell(g, 0x8a5a2b);
+      box(g, 6, 1.1, 0.8, 0, 0.55, -2.6, 0x5b3a1a); box(g, 6.2, 0.12, 1.0, 0, 1.15, -2.6, 0x3a2412);
+      for (let k = 0; k < 4; k++) { const b = cyl(g, 0.5, 0.5, 1.0, -2.4 + k * 1.6, 2.4, -4.0, 0x6b4423, null, 10); b.rotation.z = Math.PI / 2; cyl(g, 0.06, 0.06, 0.3, -2.4 + k * 1.6, 2.1, -3.5, 0xf5b301, null, 6); }
+      box(g, 6.4, 0.15, 0.6, 0, 1.85, -4.1, 0x3a2412);
+      for (let k = 0; k < 4; k++) { cyl(g, 0.3, 0.25, 0.7, -2.2 + k * 1.5, 0.35, -1.6, 0x6b4423, null, 8); cyl(g, 0.12, 0.1, 0.25, -2.2 + k * 1.5, 1.33, -2.4, 0xd9b48f, null, 8); }
+      cyl(g, 1.0, 1.0, 0.12, 2.8, 0.95, 0.2, 0x8a5a2b, null, 12); cyl(g, 0.15, 0.2, 0.9, 2.8, 0.45, 0.2, 0x5b3a1a, null, 6); [[2.8, 1.3, 0], [2.8, -0.9, Math.PI]].forEach(([x, z, ry]) => roomFolk(g, R.folk, x, z, ry, 'sit'));
+      roomFolk(g, R.folk, 0.5, -3.4, 0); const dart = cyl(g, 0.6, 0.6, 0.08, 4.35, 2.3, 1.2, 0x2b1a0c, null, 16); dart.rotation.z = Math.PI / 2; cyl(g, 0.3, 0.3, 0.1, 4.33, 2.3, 1.2, 0xd62828, null, 16).rotation.z = Math.PI / 2;
+      lantern(g, -2, 3.6, 0); lantern(g, 2, 3.6, 0);
+    } else if (kind === 'market') {
+      roomShell(g, 0xe9d8a6);
+      [[-2.6, -2.8, 0xd62828], [0, -2.8, 0x1d4ed8], [2.6, -2.8, 0x2a9d4a]].forEach(([x, z, c]) => { box(g, 2.2, 0.9, 1.1, x, 0.45, z, 0x8a5a2b); for (let s2 = 0; s2 < 4; s2++) box(g, 0.55, 0.08, 1.4, x - 0.82 + s2 * 0.55, 2.7, z, s2 % 2 ? 0xffffff : c); [-1, 1].forEach(dx => cyl(g, 0.06, 0.06, 2.7, x + dx, 1.35, z + 0.6, 0x5b3a1a, null, 6)); });
+      for (let k = 0; k < 9; k++) sph(g, 0.18, -3.2 + (k % 3) * 0.35, 1.05, -2.9 + Math.floor(k / 3) * 0.3, 0xd62828);
+      for (let k = 0; k < 6; k++) { const bn = cyl(g, 0.07, 0.07, 0.6, -0.4 + k * 0.16, 1.0, -2.8, 0xf5d000, null, 6); bn.rotation.z = 1.2; }
+      for (let k = 0; k < 3; k++) { const f = sph(g, 0.22, 2.0 + k * 0.6, 1.0, -2.8, 0x8fa6b8); f.scale.set(2.2, 0.6, 0.8); }
+      [[-3.4, 2.4], [-2.6, 3.0], [3.3, 2.6]].forEach(([x, z]) => { const sk = sph(g, 0.6, x, 0.55, z, 0xd9c48a); sk.scale.y = 1.2; });
+      roomFolk(g, R.folk, 0, -3.8, 0); roomFolk(g, R.folk, 2.2, -0.6, Math.PI * 0.8); lantern(g, 0, 3.6, 0);
+    } else if (kind === 'fort') {
+      roomShell(g, 0x8a8a8a, 0x7a7a7a, 0x5a5a5a);
+      [-2.2, 2.2].forEach(x => { box(g, 1.2, 0.8, 0.2, x, 2.0, -4.32, 0x111111); cannon(g, x, 0.1, -3.2, Math.PI, 1.1); });
+      [[-3.4, 2.6], [3.4, 2.6]].forEach(([x, z]) => { for (let k = 0; k < 6; k++) sph(g, 0.22, x + (k % 3) * 0.44 - 0.44, 0.32 + Math.floor(k / 3) * 0.36, z, 0x2a2a2e); });
+      [[-3.5, 0.6], [-3.0, 1.2]].forEach(([x, z]) => { cyl(g, 0.45, 0.45, 0.9, x, 0.5, z, 0x3a2a1a, null, 8); box(g, 0.5, 0.05, 0.05, x, 0.6, z + 0.46, 0xd9d9d9); });
+      box(g, 0.05, 1.2, 1.8, 4.3, 2.6, 0, 0x111111); roomFolk(g, R.folk, 0, -1.2, Math.PI); lantern(g, 0, 3.6, 1);
+    } else if (kind === 'tower') {
+      roomShell(g, 0x9a9a9a, 0x8a8a8a, 0x5a5a5a);
+      box(g, 2.6, 0.15, 1.6, 0, 1.1, -0.8, 0x8a5a2b); [[-1.1, -1.5], [1.1, -1.5], [-1.1, -0.1], [1.1, -0.1]].forEach(([x, z]) => box(g, 0.15, 1.05, 0.15, x, 0.55, z, 0x5b3a1a)); box(g, 2.0, 0.03, 1.2, 0, 1.2, -0.8, 0xf2dfb6); box(g, 0.25, 0.04, 0.25, 0.4, 1.23, -0.6, 0xd62828);
+      const tp = new THREE.Group(); tp.position.set(2.6, 0, -3.2); g.add(tp); [[-0.3, 0.2], [0.3, 0.2], [0, -0.3]].forEach(([dx, dz]) => { const l = cyl(tp, 0.04, 0.04, 1.7, dx, 0.8, dz, 0x5b3a1a, null, 5); l.rotation.z = dx * 0.4; }); const scope = cyl(tp, 0.12, 0.18, 1.3, 0, 1.75, 0.2, 0xb8860b, { metal: 0.7 }, 10); scope.rotation.x = 1.2;
+      box(g, 1.6, 1.2, 0.1, -2.4, 2.5, -4.36, 0x8fd0f5, { emissive: 0x8fd0f5, ei: 0.6 }); const bell = cyl(g, 0.2, 0.45, 0.6, -3.4, 3.4, 2.8, 0xf5b301, { metal: 0.8 }, 10); R.bell = bell;
+      for (let k = 0; k < 6; k++) box(g, 1.4, 0.15, 0.5, 3.4, 0.3 + k * 0.6, 3.6 - k * 0.5, 0x6b4423);
+      roomFolk(g, R.folk, 2.4, -2.4, Math.PI * 0.75, 'aim'); lantern(g, 0, 3.6, 0);
+    } else if (kind === 'mine') {
+      roomShell(g, 0x4a3f3a, 0x3a302a, 0x2a2420);
+      for (let k = 0; k < 8; k++) rock(g, 0.5 + (k % 3) * 0.2, -4 + (k % 4) * 0.4, 0.4 + (k % 2) * 0.5, -4 + Math.floor(k / 4) * 0.5, 0x5a5048);
+      [-0.6, 0.6].forEach(dx => box(g, 0.1, 0.08, 8.6, dx, 0.14, 0, 0x5a5a5a)); for (let k = 0; k < 9; k++) box(g, 1.6, 0.06, 0.25, 0, 0.1, -4 + k, 0x5b3a1a);
+      const cart = new THREE.Group(); cart.position.set(0, 0.2, 0.6); g.add(cart); box(cart, 1.3, 0.7, 1.6, 0, 0.55, 0, 0x4a4a4a); for (let k = 0; k < 7; k++) sph(cart, 0.25, -0.35 + (k % 3) * 0.35, 1.0, -0.5 + Math.floor(k / 3) * 0.45, 0xf5b301, { emissive: 0xf5b301, ei: 0.3 }); R.cart = cart;
+      [[-3, 2.6], [3, -2.4]].forEach(([x, z]) => { for (let k = 0; k < 6; k++) sph(g, 0.3, x + (k % 3) * 0.4 - 0.4, 0.3 + Math.floor(k / 3) * 0.3, z, 0xf5b301, { emissive: 0xf5b301, ei: 0.35 }); glow(g, x, 0.8, z, 0xffd24a, 2.6, 0.5); });
+      roomFolk(g, R.folk, -2.0, -1.4, 0.6, 'hammer'); lantern(g, -3, 2.6, -3.8); lantern(g, 3, 2.6, -3.8);
+    } else if (kind === 'shipyard') {
+      roomShell(g, 0xb08a5a);
+      const sm = new THREE.Group(); sm.position.set(0, 1.2, -2.6); g.add(sm); box(g, 2.6, 1.1, 0.8, 0, 0.55, -2.6, 0x5b3a1a); const hull = sph(sm, 0.6, 0, 0.3, 0, 0x6b4423); hull.scale.set(0.8, 0.5, 2.2); cyl(sm, 0.04, 0.04, 1.6, 0, 1.1, 0, 0x3a2412, null, 6); box(sm, 0.05, 0.9, 0.7, 0, 1.2, 0, 0xf3e7c9);
+      [[-3, 1], [-1.5, 1]].forEach(([x, z]) => { box(g, 0.2, 0.7, 1.2, x, 0.35, z, 0x6b4423); }); for (let k = 0; k < 4; k++) box(g, 2.2, 0.1, 0.4, -2.25, 0.75 + k * 0.1, 1, 0xd9b48f);
+      box(g, 3, 1.6, 0.1, 2.6, 2.2, -4.36, 0x6b4423); [[1.6, 0x555555], [2.2, 0x8a5a2b], [2.8, 0x555555], [3.4, 0x8a5a2b]].forEach(([x, c]) => box(g, 0.12, 0.9, 0.12, x, 2.2, -4.25, c));
+      [[3.3, 2.6], [2.6, 3.2]].forEach(([x, z]) => { const coil = cyl(g, 0.45, 0.45, 0.25, x, 0.15, z, 0xc9a66b, null, 12); });
+      roomFolk(g, R.folk, -1.2, 0.3, 0, 'hammer'); lantern(g, 0, 3.6, 0);
+    }
+    g.visible = false; return R;
+  }
+  let roomNow = null;
+  function showRoom(type, i) {
+    const kind = type === 'house' ? (i % 2 ? 'house1' : 'house0') : ROOM_NAMES[type] ? type : 'house0';
+    HOUSE.g0.visible = kind === 'house0'; Object.values(ROOMS).forEach(r => r.g.visible = false);
+    roomNow = kind === 'house0' ? null : (ROOMS[kind] || buildRoom(kind)); if (roomNow) roomNow.g.visible = true;
+    return ROOM_NAMES[kind] || 'HOUSE';
+  }
+  function stepHouse(t, dt) {
+    if (roomNow) { roomNow.folk.forEach(p => idlePirate(p, t, dt)); if (roomNow.parrot) roomNow.parrot.position.y = 1.65 + Math.abs(Math.sin(t * 3)) * 0.06; if (roomNow.bell) roomNow.bell.rotation.z = Math.sin(t * 1.4) * 0.12; if (roomNow.cart) roomNow.cart.position.z = -0.8 + Math.sin(t * 0.5) * 1.8; if (roomNow.steam && Math.random() < dt * 3) smoke(roomNow.steam.clone(), 1, false); return; }
+    stepHouse0(t, dt);
+  }
+  function stepHouse0(t, dt) { const f = 0.85 + Math.sin(t * 9) * 0.2 + Math.sin(t * 23) * 0.1; HOUSE.fire.scale.set(f, 0.8 + f * 0.3, f); HOUSE.light.intensity = 1.6 * f; HOUSE.glow.material.opacity = 0.45 + f * 0.25; HOUSE.hammock.rotation.x = Math.sin(t * 0.8) * 0.06; HOUSE.folk.forEach((p, i) => { idlePirate(p, t, dt); if (i === 0) p.armR.rotation.x = -0.9 + Math.sin(t * 1.5) * 0.5; }); if (Math.random() < dt * 3) smoke(new THREE.Vector3(-2.4, 81.6, -4.0), 1, false); }
 
   /* ---------- the British attack ---------- */
   const BRIT = { S: null, townHP: 5, lives: 5, active: false };
@@ -848,6 +985,7 @@
         else if (!S.biting) { S.biting = true; SFX.crack(); const at = S.target.clone(); at.y += 0.4; blood(at); blood(at); splash(at); seq([[0.18, k => { S.jaw.rotation.x = k * 0.9; S.g.position.y = S.depth + k * 0.8; }], [0.15, k => { S.jaw.rotation.x = 0.9 * (1 - k); }], [0.5, k => { S.g.position.y = S.depth + 0.8 * (1 - k); }]], () => { S.biting = false; S.target = null; S.a = Math.atan2(S.g.position.x - S.cx, S.g.position.z - S.cz); }); }
         return;
       }
+      if (S.off) S.r = ISL.radius + S.off;
       S.a += S.sp * dt; S.g.position.set(S.cx + Math.sin(S.a) * S.r, S.depth + Math.sin(t * 1.3 + S.ph) * 0.25, S.cz + Math.cos(S.a) * S.r); S.g.rotation.y = S.a + (S.sp >= 0 ? Math.PI / 2 : -Math.PI / 2);
       if (Math.random() < dt * 0.6) puff(new THREE.Vector3(S.g.position.x, SEA_Y + 0.05, S.g.position.z - 1), new THREE.Vector3(0, 0, 0), 0.3, 0.8, 0xdff2ff, 0.7 * S.s, 1, 1.5);
     });
@@ -856,7 +994,8 @@
   onSplash = sharkFeed;
   // battle sharks circle between the two ships; island sharks patrol the reef
   [[0, -14, 21, 0.3, 1.2], [4, -12, 15, -0.42, 1.0]].forEach(([cx, cz, r, sp, s]) => { const S = shark(BW, s); S.cx = cx; S.cz = cz; S.r = r; S.sp = sp; });
-  [[0, 0, 30, 0.22, 1.4], [0, 0, 24, -0.3, 1.0]].forEach(([cx, cz, r, sp, s]) => { const S = shark(IW, s); S.cx = cx; S.cz = cz; S.r = r; S.sp = sp; });
+  // island sharks swim a ring outside the beach and the dock, sized to the island each frame (they used to swim over the land)
+  [[0, 0, 18, 0.22, 1.4], [0, 0, 15, -0.3, 1.0]].forEach(([cx, cz, off, sp, s]) => { const S = shark(IW, s); S.cx = cx; S.cz = cz; S.off = off; S.r = 14 + off; S.sp = sp; });
 
   /* ---------- the Cursed Deep: sea floor, wrecks, a drowned city and its mine, skeleton crew ---------- */
   const UW = new THREE.Group(); UW.position.set(0, -90, 0); scene.add(UW); UW.visible = false;
@@ -1038,6 +1177,7 @@
     G.world = w; timerOn = false; answering = false; banner(''); BW.visible = w === 'battle'; IW.visible = w === 'island' || w === 'defend' || w === 'plank'; HW.visible = w === 'house'; UW.visible = w === 'deep'; SW.visible = w === 'ship';
     sea.visible = w !== 'house' && w !== 'deep' && w !== 'ship'; scene.fog.near = w === 'house' ? 300 : w === 'deep' ? 6 : 40; scene.fog.far = w === 'deep' ? 70 : (w === 'house' || w === 'ship') ? 1000 : 120; scene.fog.near = (w === 'house' || w === 'ship') ? 300 : scene.fog.near; scene.fog.color.setHex(w === 'deep' ? 0x0a3a55 : 0xa7d8f7);
     const sk = w === 'deep' ? [0x03141f, 0x0a3a55, 0x0f5a80] : [0x2f7fd1, 0x8fd0f5, 0xe8f3fb]; skyMat.uniforms.top.value.setHex(sk[0]); skyMat.uniforms.mid.value.setHex(sk[1]); skyMat.uniforms.bottom.value.setHex(sk[2]); sunDisc.visible = w !== 'deep'; hemi.intensity = w === 'deep' ? 0.35 : 0.7; sun.intensity = w === 'deep' ? 0.6 : 1.35;
+    if (w !== 'island' && G.moving) { G.moving = false; const mb = $('#btn-move'); if (mb) mb.textContent = 'MOVE'; }
     ui.islandBtns.hidden = w !== 'island'; ui.leave.hidden = w !== 'house'; $('#deck-w').hidden = w !== 'ship'; $('#btn-inside').hidden = w !== 'battle'; $('#hint').hidden = !(w === 'battle' || w === 'island'); ui.qpanel.hidden = true; ui.timerW.hidden = !(w === 'battle' || w === 'defend'); ui.enemyLives.hidden = !(w === 'battle' || w === 'defend'); ui.ourLives.hidden = !(w === 'battle' || w === 'defend'); ui.enemyName.textContent = '';
     if (w === 'island') { playSong('island'); islandCam(); G.islandTime = 0; }
     if (w === 'house') { playSong('island'); setCam(new THREE.Vector3(0.4, 83.2, 5.6), new THREE.Vector3(0, 81.4, -0.5), true); }
@@ -1083,7 +1223,7 @@
   function ourShot() {
     const c = OUR.cannons[0]; const side = 1; const target = ENEMY.g.localToWorld(new THREE.Vector3(ENEMY.W / 2 - 0.4, rnd(1.2, 2.3), rnd(-4, 4)));
     if (OUR.gunner) { OUR.gunner.armR.rotation.x = -1.6; }
-    const extra = G.P.buildings.includes('shipyard') && G.streak % 3 === 0;
+    const extra = allB().includes('shipyard') && G.streak % 3 === 0;
     wait(0.35, () => {
       if (!ENEMY || !OUR || G.world !== 'battle') return;
       fireCannon(OUR, c, target, (t) => enemyHit(t, extra ? 1 : 0), { arc: 3 });
@@ -1121,7 +1261,7 @@
     ui.qpanel.hidden = true; ui.timerW.hidden = true; banner('SHE\'S GOING DOWN!'); SFX.win(); OUR.crew.forEach(p => { if (p.alive) p.mode = 'cheer'; });
     sinkShip(ENEMY, () => {
       const P = G.P; const lv = G.qLevel; const raid = G.raidIdx >= 0 ? RIVALS[G.raidIdx] : null;
-      const markets = P.buildings.filter(b => b === 'market').length, taverns = P.buildings.filter(b => b === 'tavern').length, mines = P.buildings.filter(b => b === 'mine').length;
+      const markets = allB().filter(b => b === 'market').length, taverns = allB().filter(b => b === 'tavern').length, mines = allB().filter(b => b === 'mine').length;
       const gold = 40 + lv * 15 + markets * 15 + mines * 25 + (raid ? 60 : 0), wood = 25 + lv * 10 + (raid ? 30 : 0), crew = 2 + taverns * 2;
       P.gold += gold; P.wood += wood; P.crew += crew; P.sunk++; P.wins++; if (raid) P.raids[G.raidIdx] = (P.raids[G.raidIdx] || 0) + 1; saveP(); purse();
       $('#win-text').textContent = raid ? `You sank ${raid.capt}'s ship and raided ${raid.name}. They lost a building and you took their treasure.` : `${G.enemy.name} is at the bottom of the sea. Your crew hauled the treasure aboard. ${crew} new guys joined you.`;
@@ -1160,26 +1300,26 @@
     show('ov-raid', true);
   }
   function openMenu() {
-    const P = G.P; $('#menu-stats').innerHTML = `<b>CAPTAIN</b><span>${P.name}</span><b>MATH</b><span>${$('[data-mode="' + P.mode + '"]').textContent}</span><b>LEVEL</b><span>${level()}</span><b>SHIPS SUNK</b><span>${P.sunk}</span><b>RAIDS WON</b><span>${Object.values(P.raids).reduce((a, b) => a + b, 0)}</span><b>ISLAND DEFENDED</b><span>${P.defended}</span><b>BUILDINGS</b><span>${P.buildings.length}</span>`;
+    const P = G.P; $('#menu-stats').innerHTML = `<b>CAPTAIN</b><span>${P.name}</span><b>MATH</b><span>${$('[data-mode="' + P.mode + '"]').textContent}</span><b>LEVEL</b><span>${level()}</span><b>SHIPS SUNK</b><span>${P.sunk}</span><b>RAIDS WON</b><span>${Object.values(P.raids).reduce((a, b) => a + b, 0)}</span><b>ISLAND DEFENDED</b><span>${P.defended}</span><b>BUILDINGS</b><span>${allB().filter(b => b !== 'dock').length}</span><b>ISLANDS</b><span>${isles().length}</span>`;
     const top = topMissed(8); $('#menu-missed').innerHTML = top.length ? top.map(k => `<span>${k}</span>`).join('') : '<span>None yet!</span>'; show('ov-menu', true);
   }
   let shipFrom = 'island';
   function enterShip() { if (G.world !== 'island' && G.world !== 'battle') return; shipFrom = G.world; SFX.creak(); if (G.world === 'battle') { G.pausedQ = !ui.qpanel.hidden && answering; } enterWorld('ship'); }
   function leaveShip() { if (shipFrom === 'battle') { enterWorld('battle'); CAM.snap = true; ui.timerW.hidden = false; ui.enemyLives.hidden = false; ui.ourLives.hidden = false; ui.enemyName.textContent = G.enemy.name + "'S SHIP"; if (G.pausedQ) { ui.qpanel.hidden = false; answering = true; G.timeLeft = G.timerMax; timerOn = true; } else if (ENEMY && ENEMY.alive && OUR && OUR.alive && G.enemyLives > 0 && G.ourLives > 0) wait(0.8, () => { if (G.world === 'battle' && !answering) askQ(); }); } else { enterWorld('island'); CAM.snap = true; } }
-  function enterHouse() { SFX.creak(); enterWorld('house'); }
+  function enterHouse(type, i) { SFX.creak(); const nm = showRoom(type || 'house', i || 0); enterWorld('house'); toast('INSIDE THE ' + nm + (type && BUILDS[type] ? ': ' + BUILDS[type].eff : '')); }
   function leaveHouse() { enterWorld('island'); CAM.snap = true; }
 
   /* ---------- the British attack: defend the island with the giant slingshot ---------- */
   function startDefense() {
     if (G.world !== 'island') return; G.britishDue = 0; clearTweens(); show('ov-build', false); show('ov-raid', false); show('ov-menu', false);
-    BRIT.townHP = 5 + (G.P.buildings.includes('fort') ? 1 : 0); BRIT.lives = 5; G.enemyLives = 5; G.ourLives = BRIT.townHP; G.missed = []; G.streak = 0; G.qLevel = level(); G.timerMax = Math.max(6, 16 - G.qLevel * 2);
+    BRIT.townHP = 5 + (allB().includes('fort') ? 1 : 0); BRIT.lives = 5; G.enemyLives = 5; G.ourLives = BRIT.townHP; G.missed = []; G.streak = 0; G.qLevel = level(); G.timerMax = Math.max(6, 16 - G.qLevel * 2);
     spawnBritish(); enterWorld('defend'); SFX.bell(); banner('THE BRITISH ARE COMING!', 'red');
     const R = ISL.radius; setCam(new THREE.Vector3(4, 9.5, R - 9), new THREE.Vector3(4, 2.5, R + 26), false);
     lives(ui.ourLives, G.ourLives, BRIT.townHP); ui.ourLives.querySelector('.lbl').textContent = 'TOWN'; lives(ui.enemyLives, 5, 5); ui.enemyName.textContent = 'THE BRITISH NAVY';
     ISL.villagers.forEach(v => { v.target = new THREE.Vector3(rnd(-6, 8), 1.5, R - 6); v.pause = 0; });
     tween(4, k => { BRIT.S.g.position.z = R + 60 - (34 * k); }, easeOut, () => {
       ui.qprompt.textContent = 'MAN THE SLINGSHOT! ANSWER TO FIRE!';
-      if (G.P.buildings.includes('tower')) { toast('The watchtower saw them first. Free shot!'); slingFire(BRIT.S.g.localToWorld(new THREE.Vector3(0, 1.3, 0)), britHit); } else askQ();
+      if (allB().includes('tower')) { toast('The watchtower saw them first. Free shot!'); slingFire(BRIT.S.g.localToWorld(new THREE.Vector3(0, 1.3, 0)), britHit); } else askQ();
     });
   }
   function slingShot() { if (!BRIT.S) return; const target = BRIT.S.g.localToWorld(new THREE.Vector3(rnd(-1.2, 1.2), 1.3, rnd(-3, 3))); wait(0.3, () => { if (BRIT.S && G.world === 'defend') slingFire(target, britHit); }); }
@@ -1233,13 +1373,19 @@
 
   /* ---------- input: drag to look around the island, tap a house to go in ---------- */
   const ray = new THREE.Raycaster(); const ptr = { down: false, x: 0, y: 0, moved: 0 };
-  canvas.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; });
-  canvas.addEventListener('pointermove', e => { if (!ptr.down) return; const dx = e.clientX - ptr.x; ptr.moved += Math.abs(dx) + Math.abs(e.clientY - ptr.y); ptr.x = e.clientX; ptr.y = e.clientY; if (G.world === 'island') { G.camYaw += dx * 0.006; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + dx * 0.006, -1.5, 1.5); battleCam(); } });
+  const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.5);
+  function ptrRay(e) { const r = canvas.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera); }
+  function hitBuilding(e) { ptrRay(e); const hits = ray.intersectObjects(ISL.builds.map(b => b.g), true); if (!hits.length) return null; let o = hits[0].object; while (o && o.userData.i == null) o = o.parent; return o ? ISL.builds.find(b => b.g === o) : null; }
+  canvas.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; G.drag = G.moving && G.world === 'island' ? hitBuilding(e) : null; if (G.drag) { G.drag.from = G.drag.g.position.clone(); G.drag.g.position.y = 2.2; } });
+  canvas.addEventListener('pointermove', e => {
+    if (G.drag) { ptrRay(e); const q = new THREE.Vector3(); if (ray.ray.intersectPlane(groundPlane, q)) { const x = Math.round(q.x * 2) / 2, z = Math.round(q.z * 2) / 2; if (spotOk(G.drag, x, z)) { G.drag.g.position.x = x; G.drag.g.position.z = z; } } ptr.moved += 1; return; }
+    if (!ptr.down) return; const dx = e.clientX - ptr.x; ptr.moved += Math.abs(dx) + Math.abs(e.clientY - ptr.y); ptr.x = e.clientX; ptr.y = e.clientY; if (G.world === 'island') { G.camYaw += dx * 0.006; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + dx * 0.006, -1.5, 1.5); battleCam(); } });
   window.addEventListener('pointerup', e => {
+    if (G.drag) { const B = G.drag; G.drag = null; ptr.down = false; B.g.position.y = 1.5; if (B.g.position.distanceTo(B.from) > 0.6) { G.P.spots = G.P.spots || {}; G.P.spots[B.i] = [B.g.position.x, B.g.position.z]; saveP(); SFX.hammer(); puff(B.g.position.clone(), new THREE.Vector3(0, 1, 0), 0.8, 0.8, 0xe9d8a6, 1, 6, 1); } refreshVillagers(); return; }
     if (!ptr.down) return; ptr.down = false; if (ptr.moved > 8 || G.world !== 'island') return;
     const r = canvas.getBoundingClientRect(); const m = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(m, camera); if (ISL.dockShip && ray.intersectObject(ISL.dockShip.g, true).length) return enterShip(); const hits = ray.intersectObjects(ISL.builds.map(b => b.g), true); if (!hits.length) return;
-    let o = hits[0].object; while (o && !o.userData.type) o = o.parent; if (o && o.userData.enter) enterHouse(); else if (o) toast(BUILDS[o.userData.type].name + ': ' + BUILDS[o.userData.type].eff);
+    let o = hits[0].object; while (o && !o.userData.type) o = o.parent; if (o && G.moving) toast('Drag it to a new spot.'); else if (o) enterHouse(o.userData.type, o.userData.i);
   });
   canvas.addEventListener('wheel', e => { if (G.world === 'island') { G.camYaw += e.deltaY * 0.002; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + e.deltaY * 0.002, -1.5, 1.5); battleCam(); } }, { passive: true });
 
@@ -1256,6 +1402,8 @@
   $('#btn-lose-island').addEventListener('click', goIsland);
   $('#btn-retry').addEventListener('click', () => { show('ov-lose', false); startBattle(G.enemy, G.raidIdx); });
   $('#btn-build').addEventListener('click', openBuild); $('#btn-build-close').addEventListener('click', () => show('ov-build', false));
+  $('#btn-isles').addEventListener('click', openIsles); $('#btn-isles-close').addEventListener('click', () => show('ov-isles', false));
+  $('#btn-move').addEventListener('click', () => { G.moving = !G.moving; $('#btn-move').textContent = G.moving ? 'DONE MOVING' : 'MOVE'; toast(G.moving ? 'Drag any building to a new spot.' : 'All set!'); });
   $('#btn-raid').addEventListener('click', openRaid); $('#btn-raid-close').addEventListener('click', () => show('ov-raid', false));
   $('#btn-menu').addEventListener('click', openMenu); $('#btn-menu-close').addEventListener('click', () => show('ov-menu', false));
   $('#btn-british').addEventListener('click', () => { show('ov-menu', false); startDefense(); });
@@ -1270,7 +1418,7 @@
   window.addEventListener('keydown', e => { if (ui.qpanel.hidden || !answering) return; const i = ['1', '2', '3'].indexOf(e.key); if (i >= 0 && ui.choices.children[i]) ui.choices.children[i].click(); });
   $('#name-in').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btn-start').click(); });
   refreshSaves();
-  window.__dbg = { enterShip, leaveShip, startDive, DEEP, fireball, puff, smoke, erupt, startDefense, enterHouse, leaveHouse, openBuild, goIsland, ISL, BRIT, scene, camera, get OUR() { return OUR; }, get ENEMY() { return ENEMY; } };
+  window.__dbg = { G, sailTo, openIsles, SHARKS, spotOk, rebuildIsland, refreshSailors, enterShip, leaveShip, startDive, DEEP, fireball, puff, smoke, erupt, startDefense, enterHouse, leaveHouse, openBuild, goIsland, ISL, BRIT, scene, camera, get OUR() { return OUR; }, get ENEMY() { return ENEMY; } };
 
   /* ---------- main loop ---------- */
   function resize() { const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
