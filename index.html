@@ -3404,6 +3404,25 @@ function tyBlast(scene, x, y, size = 1) {
   const n0 = Math.round(10 + 14 * size);
   for (let n = 0; n < n0; n++) { const bit = document.createElement("i"), a = Math.random() * 6.283, d = (40 + Math.random() * 120) * size; bit.className = "tybit tydebris"; bit.style.cssText = `left:${x}px;top:${y}px;background:${["#ffd23f", "#ff7a3c", "#e8303c", "#fff3b0", "#8a8f9a", "#6b5a4a"][n % 6]};--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d}px`; scene.appendChild(bit); setTimeout(() => bit.remove(), 720); }
 }
+// An explosion made in code (Nathan, 2026-11-12: "when they shoot make an explosion sound"): a burst of noise that
+// rumbles down through a closing filter, over a low thump. Small for each letter, big for the whole word.
+let tyNoise = null;
+function tyBoom(size = 1) {
+  if (S.muted) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume();
+    const t = ac.currentTime, len = .25 + .45 * size;
+    if (!tyNoise) { tyNoise = ac.createBuffer(1, ac.sampleRate * 1.2, ac.sampleRate); const d = tyNoise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const n = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    n.buffer = tyNoise; f.type = "lowpass"; f.frequency.setValueAtTime(2400 + 1600 * size, t); f.frequency.exponentialRampToValueAtTime(120, t + len);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.24 + .18 * size, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + len);
+    n.connect(f); f.connect(g); g.connect(ac.destination); n.start(t); n.stop(t + len + .05);
+    const o = ac.createOscillator(), og = ac.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(110 + 30 * size, t); o.frequency.exponentialRampToValueAtTime(38, t + len * .8);
+    og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.32 + .22 * size, t + .01); og.gain.exponentialRampToValueAtTime(.0001, t + len * .9);
+    o.connect(og); og.connect(ac.destination); o.start(t); o.stop(t + len);
+  } catch (e) {}
+}
 function tyExplode(scene) {
   const sb = scene.getBoundingClientRect(), ship = scene.querySelector(".tyship"), pb = ship?.getBoundingClientRect(); if (!pb) return;
   const x = pb.left - sb.left + pb.width / 2, y = pb.top - sb.top + pb.height * .35;
@@ -3481,7 +3500,7 @@ function tyKey(raw) {
     if (rb) {
       const hx = rb.right - sb.left - 14, hy = rb.top - sb.top + rb.height / 2;
       const sp = document.createElement("i"); sp.className = "tyspark big"; sp.style.cssText = `left:${hx}px;top:${hy}px`; scene.appendChild(sp); setTimeout(() => sp.remove(), 420);
-      tyBlast(scene, hx, hy, .45 + .1 * Math.min(4, t.pos));
+      tyBlast(scene, hx, hy, .45 + .1 * Math.min(4, t.pos)); tyBoom(.35 + .08 * Math.min(4, t.pos));
       try { rk.animate([{ filter: "brightness(2.6) saturate(1.6)" }, { filter: "brightness(1)" }], { duration: 220 }); } catch (e) {}
       scene.classList.remove("tyjolt"); void scene.offsetWidth; scene.classList.add("tyjolt");
     }
@@ -3492,7 +3511,7 @@ function tyKey(raw) {
   if (rock) {
     rock.classList.add("boom"); try { rock._fly?.pause(); rock.animate([{ opacity: 1, filter: "brightness(1)" }, { opacity: 0, filter: "brightness(3)" }], { duration: 160, fill: "forwards" }); } catch (e) {}
     const sc = document.getElementById("tyScene"), sb = sc?.getBoundingClientRect(), rb = rock.getBoundingClientRect();
-    if (sc) { tyBlast(sc, rb.left - sb.left + rb.width / 2, rb.top - sb.top + rb.height / 2, t.isBoss ? 2.2 : 1.4); sc.classList.remove("tyjolt"); void sc.offsetWidth; sc.classList.add("tyjolt"); playSfx("pop", .7); }
+    if (sc) { tyBlast(sc, rb.left - sb.left + rb.width / 2, rb.top - sb.top + rb.height / 2, t.isBoss ? 2.2 : 1.4); tyBoom(t.isBoss ? 1.6 : 1.1); sc.classList.remove("tyjolt"); void sc.offsetWidth; sc.classList.add("tyjolt"); playSfx("pop", .7); }
   }
   clearTimeout(tyDropTimer);
   const kind = tyKind(t), pay = kind === "boss" ? 15 : kind === "gold" ? 3 : 0;
@@ -3889,7 +3908,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "998c850b63d4";
+const GAME_BUILD = "dd86071d5db2";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
