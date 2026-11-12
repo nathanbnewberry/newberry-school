@@ -3869,10 +3869,12 @@ function schoolView() {
   if (tl) U.lesson = tl.id;
   // No math on the plan (Finley): his map is a trail of today's subjects instead, each stop opening that subject
   // and showing done when it's finished (Nathan, 2026-11-10: "Finley's school should have a map", without math).
+  U.trailLesson = null;
   const trail = !tl && items.length > 1 ? (() => {
     const its = items.slice(0, 10), icons = ["school", "hotel", "sheriff", "stable", "goal", "tower", "bank", "store", "saloon", "mine"];
     const dl = { id: `daytrail-${KID.id}`, town: `${KID.name}'s Trail`, rides: its.map((x, i) => ({ id: x.id, name: x.name, icon: icons[i] })) };
     const lp = LP(dl.id); lp.rides = {}; its.forEach((x) => { if (itemStatus(x, day).done) lp.rides[x.id] = true; });
+    U.trailLesson = dl;
     return `<div class="sdmap">${townMapSvg(dl, sdMapH()).replace(/data-act="ride" data-id="/g, 'data-act="schoolGo" data-id="')}</div>`;
   })() : "";
   const todayMap = !tl ? trail : `<div class="sdmap">${townMapSvg(tl, sdMapH())}<button class="sdopen" data-act="town" data-id="${esc(tl.id)}">Open ${esc(tl.town)} &#9654;</button>${ahead && ahead !== tl ? `<button class="sdopen sdahead" data-act="town" data-id="${esc(ahead.id)}">Work ahead: ${esc(ahead.town)} &#9654;</button>` : ""}</div>`;
@@ -3882,7 +3884,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "ce84aed9cfbe";
+const GAME_BUILD = "4c4a3a5a1b35";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5217,6 +5219,12 @@ const TOWN_PTS = [[95, 545], [235, 480], [370, 545], [520, 480], [610, 370], [49
 // The same stops stretched downward on a taller map (School Day draws it 900 tall): the top row stays under the
 // railroad and the lowest stop moves near the bottom, so the trail fills the space.
 function townPtsAt(l, H = 640) {
+  // A child's subject trail fills the whole map in rows that wind back and forth (Nathan, 2026-11-12: Finley's map was
+  // "scrunched to the bottom and not centered").
+  if (String(l.id).startsWith("daytrail-")) {
+    const n = l.rides.length, cols = n > 6 ? 3 : 2, rows = Math.ceil(n / cols), pad = Math.max(0, (H - 640) / 2), top = 250 - pad * .55, low = 640 + pad - 115;
+    return l.rides.map((_, i) => { const r = Math.floor(i / cols), c = i % cols, cc = r % 2 ? cols - 1 - c : c, y = rows > 1 ? low - (r * (low - top)) / (rows - 1) : (top + low) / 2; return [190 + (cc * (cols === 2 ? 560 : 660)) / (cols - 1) + (cols === 2 ? 50 : 0), y]; });
+  }
   const pts = townPts(l), pad = Math.max(0, (H - 640) / 2); if (!pad) return pts;
   const top = Math.min(...pts.map((q) => q[1])), low = Math.max(...pts.map((q) => q[1])), goal = 640 + pad - 90, k = low > top ? (goal - top) / (low - top) : 1;
   return pts.map(([x, y]) => [x, top + (y - top) * k]);
@@ -8689,7 +8697,7 @@ function render() {
   if (canvas.clientWidth && Math.abs(canvas.width / Math.min(devicePixelRatio || 1, 2) - canvas.clientWidth) > 2) worldSize(W.H);
   if (U.view === "home" && !U.trotting && document.getElementById("token")) { if (LESSONS.length) placeToken("world", worldSpot(), worldPts()); else if (KNIGHT) placeToken("world", 0, [questPoint(questNext())]); else document.getElementById("token").remove(); }
   if (U.view === "town" && !U.trotting && document.getElementById("token")) { const l = curLesson(); placeToken(`town:${l.id}`, townSpot(l), townPts(l)); }
-  if (U.view === "school" && document.querySelector(".sdmap #token")) { const l = curLesson(); if (l) placeToken(`town:${l.id}:tall${sdMapH()}`, townSpot(l), townPtsAt(l, sdMapH())); }
+  if (U.view === "school" && document.querySelector(".sdmap #token")) { const l = U.trailLesson || curLesson(); if (l) placeToken(`town:${l.id}:tall${sdMapH()}`, townSpot(l), townPtsAt(l, sdMapH())); }
 }
 // The screen's real visible height, so nothing sits under Safari's bars or the home bar.
 function setAppHeight() { if (document.activeElement?.matches?.("input:not(#spellSink),textarea")) return; document.documentElement.style.setProperty("--appH", `${Math.round(window.visualViewport?.height || innerHeight)}px`); }
