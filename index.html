@@ -826,6 +826,19 @@ body[data-view="school"] .sdmap .map{flex:1 1 auto;width:100%;height:auto;min-he
 body[data-view="school"] .sdmaphead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;border:0;border-radius:12px;background:#7b2d1c;color:#ffe7a8;font:inherit;cursor:pointer}
 body[data-view="school"] .sdmaphead b{font-family:Rye,Georgia,serif;font-weight:400;font-size:1.15rem}
 @media (max-width:900px),(orientation:portrait){body[data-view="school"] .sdmain{grid-template-columns:1fr}body[data-view="school"] .sdstrip{grid-template-columns:1fr}}
+
+/* iPad held upright (Nathan, 2026-11-12: "if it's sideways or long ways that it fits both directions"): the race
+   strip shrinks, the keypad keys get shorter, and big maps and pictures leave room for the answer buttons. */
+@media (orientation:portrait){
+  body[data-view="ride"] #world{height:84px;object-fit:cover}
+  body[data-view="ride"] .biscuit .mascot{height:72px;width:auto}
+  body[data-view="ride"] .pad button{min-height:46px}
+  body[data-view="ride"] .bookpage .prompt,body[data-view="ride"] .bookpage .qtext{font-size:1.25rem}
+  .statesmapwrap{max-height:38vh}
+  .statesmapwrap svg.map{max-height:38vh}
+  .sciscene{height:min(30vh,340px)}
+}
+@media (orientation:portrait) and (max-height:1100px){body[data-view="ride"] #world{display:none}}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -3865,7 +3878,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "60e5c3aa1fe6";
+const GAME_BUILD = "f58adf6fa23a";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6741,7 +6754,7 @@ function b3Drop(g) { g.userData.drop = 1; g.position.y = 14; }
 function b3Size() {
   const c = B3.renderer?.domElement, host = c?.parentElement; if (!host) return;
   const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
-  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); }
+  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); if (!B3.zoomed) B3.dist = w < h ? 80 : 52; }
 }
 function b3Cam() {
   const { yaw, pitch, dist, target } = B3;
@@ -6815,7 +6828,7 @@ function b3Touch() {
   c.onpointermove = (e) => {
     if (!pts.has(e.pointerId)) return; const was = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
     moved = Math.max(moved, Math.hypot(e.clientX - start[0], e.clientY - start[1]));
-    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) B3.dist = Math.max(22, Math.min(90, B3.dist * pinch / d)); pinch = d; return; }
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) { B3.dist = Math.max(22, Math.min(110, B3.dist * pinch / d)); B3.zoomed = true; } pinch = d; return; }
     if (downKey && moved > 8) {
       if (!B3.drag) { B3.drag = downKey; if (B3.sel !== downKey) b3Select(downKey); B3.grid.visible = true; B3.foot.visible = true; }
       const hit = b3Ground(e); if (!hit) return; const g = B3.pieces[downKey], s = g.userData.s;
@@ -6837,7 +6850,7 @@ function b3Touch() {
     downKey = null;
   };
   c.onpointerup = up; c.onpointercancel = up;
-  c.onwheel = (e) => { e.preventDefault(); B3.dist = Math.max(22, Math.min(90, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
+  c.onwheel = (e) => { e.preventDefault(); B3.zoomed = true; B3.dist = Math.max(22, Math.min(110, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
 }
 function b3Act(e) {
   const t = e.target.closest("[data-b3]"); if (!t) return; const what = t.dataset.b3, key = B3.sel;
