@@ -3311,7 +3311,9 @@ function tyOpen() {
   U.ty = { phase: "hands" };
   U.view = "typing";
   // Pick up today's set where it was left, so coming back doesn't start again at 0.
-  { const day = schoolDay(); if (S.typing.learned && day.tyState && !day.typeDone) { try { const t = JSON.parse(day.tyState); if (t.stage === "drill" || t.total !== tyGoal()) throw 0; if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
+  { const day = schoolDay(); if (S.typing.learned && day.tyState && !day.typeDone) { try { const t = JSON.parse(day.tyState); if (t.stage === "drill" || (t.total !== tyGoal() && (t.inVerse || t.count >= tyGoal() + 5))) throw 0;
+      // A set saved before the verse came off (2026-11-12) keeps its spelling words done: Finley had 16 of 17.
+      if (t.total !== tyGoal()) { t.total = tyGoal(); t.verseQ = TY_VERSE ? t.verseQ : []; } if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
   if (S.typing.learned) return tyStartDrill();
   render(); window.scrollTo(0, 0);
 }
@@ -3910,7 +3912,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1d7697be3f71";
+const GAME_BUILD = "943742aa2e19";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
