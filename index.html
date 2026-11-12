@@ -3852,7 +3852,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "60c329b55bf8";
+const GAME_BUILD = "ebf1e81ebb2c";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5128,7 +5128,7 @@ function spellingView() {
   const sp = U.sp || (spellOpen(), U.sp), day = schoolDay(), list = spellList(), active = spellActive(), mastered = spellMastered();
   const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>${esc(list.title)}</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
   const beeBtn = `<button class="btn go wide" data-act="spellBee">Take the Spelling Test</button>`, preBtn = `<button class="btn go wide" data-act="spellPretest">Take the practice test</button>`;
-  if (sp.screen === "today") return `${top}${bubble("That's all your words for today. Nice work.")}<div class="center statesdone"><div class="big">${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"} today!</div><p>${mastered} of ${active.length} words known from memory.</p>${spellBeeDay() && !day.spellBee ? beeBtn : spellPracticeDay() && !day.spellPretest ? `<p>Tomorrow is the spelling test. Try a practice test now. It doesn't count.</p>${preBtn}` : !spellBeeDay() && mastered === active.length ? preBtn : ""}<button class="btn go wide" data-act="view" data-v="school">Back</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
+  if (sp.screen === "today") return `${top}${bubble(spellPracticeDay() && !day.spellPretest ? "Great practice! One more step today: the practice test." : "That's all your words for today. Nice work.")}<div class="center statesdone"><div class="big">${day.spellGoals || 0} ${day.spellGoals === 1 ? "goal" : "goals"} today!</div><p>${mastered} of ${active.length} words known from memory.</p>${spellBeeDay() && !day.spellBee ? beeBtn : spellPracticeDay() && !day.spellPretest ? `<p>Tomorrow is the spelling test. Take the practice test now to finish spelling today. It doesn't count.</p>${preBtn}` : !spellBeeDay() && mastered === active.length ? preBtn : ""}<button class="btn ${spellPracticeDay() && !day.spellPretest ? "dark" : "go"} wide" data-act="view" data-v="school">Back</button><button class="btn dark wide" data-act="spellMore">Keep kicking</button></div>`;
   if (sp.screen === "ready") return `${top}${bubble("Warm-up done. You know these words. Time to show it.")}<div class="center statesdone"><div class="big">Ready for your test!</div><p>${mastered} of ${active.length} words known from memory.</p>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back</button></div>`;
   if (sp.screen === "allDone") return `${top}${bubble("You know every word from memory. Time for the test.")}<div class="center statesdone"><div class="big">All ${active.length} words!</div>${beeBtn}<button class="btn dark wide" data-act="view" data-v="school">Back</button></div>`;
   if (sp.screen === "beeDone" && sp.mode === "pretest") { const pr = day.spellPretest || { right: sp.right.length, total: sp.right.length + sp.missed.length }; return `${top}${bubble(sp.missed.length ? "Good practice. Let's fix the ones you missed, so tomorrow is easy." : "Every word right. You're ready for tomorrow!")}<div class="center statesdone"><div class="big">${pr.right} of ${pr.total} on the practice test</div>${sp.missed.length ? `<p>Let's practice: ${sp.missed.map((x) => esc(x.w)).join(", ")}.</p><button class="btn go wide" data-act="spellFix">Practice those words</button>` : ""}<button class="btn ${sp.missed.length ? "dark" : "go"} wide" data-act="view" data-v="school">Back</button></div>`; }
@@ -8194,7 +8194,7 @@ const acts = {
       const f = LP(l.id).facts; stampStart(x.id, day); setSubject("math"); U.lesson = l.id; if (!(f?.sevens && !f.done)) LP(l.id).facts = sevensHerd(); startRide(l, ride); return;
     }
     if (x.kind === "spelling" && !spellList()) return;
-    if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? (spellShaky().length ? "warmup" : "bee") : "practice"); return; }
+    if (x.kind === "spelling") { stampStart(x.id, day); spellOpen(spellBeeDay() && !day.spellBee ? (spellShaky().length ? "warmup" : "bee") : spellPracticeDay() && !day.spellPretest && (day.spellWords || 0) >= spellActive().length ? "pretest" : "practice"); return; }
     if (x.kind === "game") { stampStart(x.id, day); save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id];
     if (!day.done[x.id]) { delete dayTimes(x.id, day).end; day.paid[x.id] = false; }
