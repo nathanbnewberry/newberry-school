@@ -3296,7 +3296,9 @@ document.addEventListener("pointerdown", (e) => {
 // Today's asteroids are just his spelling words, each once, then the week's Bible verse word by word
 // (Nathan, 2026-11-10: no warm-up keys or giant asteroid on top, "just his spelling words" plus the verse).
 const tySpellWords = () => [...new Set((spellList() ? spellActive().map((x) => x.w) : []).filter((w) => /^[a-z]+$/i.test(w)).map((w) => w.toLowerCase()))];
-const tyDrillN = () => (KID.id === "elliot" ? 16 : 12), tyWordsN = () => tySpellWords().length || 14, tyGoal = () => tyWordsN() + verseTypingWords().length;
+const tyDrillN = () => (KID.id === "elliot" ? 16 : 12), tyWordsN = () => tySpellWords().length || 14, tyGoal = () => tyWordsN() + (TY_VERSE ? verseTypingWords().length : 0);
+// Space Typing is the spelling words only for both boys for now (Nathan, 2026-11-12); true brings the verse back after them.
+const TY_VERSE = false;
 const TY_RANKS = [[0, "Space Cadet"], [8, "Co-Pilot"], [15, "Pilot"], [25, "Captain"], [40, "Star Ace"]];
 const tyRank = (wpm) => TY_RANKS.filter(([n]) => wpm >= n).pop()[1];
 const TY_LEVELS = [{ name: "the home row", keys: "asdfjkl" }, { name: "the home row and top row", keys: "asdfjkleiru" }, { name: "the top and home rows", keys: "asdfghjkleiruotywq" }, { name: "every row", keys: "abcdefghijklmnopqrstuvwxyz" }];
@@ -3325,7 +3327,7 @@ function tyStartWords() {
   t.stage = "words"; t.queue = words.length ? words : ["trail", "horse", "ranch", "rope", "gold", "saddle", "rider", "boots", "cattle", "canyon", "lasso", "spurs", "wagon", "desert"];
   t.boss = null; t.bossDone = true;
   // This week's Bible verse comes after the spelling words, one word at a time, in order (Nathan, 2026-11-09).
-  t.verseQ = verseTypingWords();
+  t.verseQ = TY_VERSE ? verseTypingWords() : [];
   t.startAt = 0; t.chars = 0; t.wordMisses = 0;
   tyNext();
 }
@@ -3908,7 +3910,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "dd86071d5db2";
+const GAME_BUILD = "1d7697be3f71";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
