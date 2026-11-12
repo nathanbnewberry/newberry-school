@@ -1918,6 +1918,8 @@ function readingFix() {
   // Finley read with a different timer and finished his piano time on 2026-11-12 (Nathan saw both): reading and piano
   // are marked done, the same merge-safe way (seconds only go up, and the day's Piano School lesson counts as done).
   if (KID.id === "finn") { const f = S.days?.["2026-11-12"]; if (f) { f.timerBase = f.timerBase || {}; f.readSecs = Math.max(f.readSecs || 0, (f.timerBase.reading || 0) + timerNeed("reading")); f.pianoLes = f.pianoLes || "parent"; } }
+  // Elliot read away from the game on 2026-11-12 too (Nathan): 30 counted minutes.
+  if (KID.id === "elliot") { const e = S.days?.["2026-11-12"]; if (e) { e.timerBase = e.timerBase || {}; e.readSecs = Math.max(e.readSecs || 0, (e.timerBase.reading || 0) + timerNeed("reading")); } }
   if (KID.id !== "elliot") return; const d = S.days?.["2026-11-10"]; if (!d) return;
   d.timerBase = d.timerBase || {}; d.timerBase.reading = Math.max(d.timerBase.reading || 0, 1800);
   // Later that day Elliot said he'd read, so Nathan had it marked done: 30 counted minutes on top of the base.
@@ -3880,7 +3882,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "4b25ac07311e";
+const GAME_BUILD = "cfc2d2210cd5";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
