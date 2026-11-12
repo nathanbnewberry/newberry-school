@@ -1909,6 +1909,7 @@ const SCHOOL_DEFAULT = [
   { id: "bible", name: "Bible history", icon: "history", kind: "bible", on: false, days: WEEKDAYS },
   { id: "presidents", name: "Presidents", icon: "history", kind: "presidents", on: false, days: WEEKDAYS },
   { id: "review", name: "Friday review", icon: "task", kind: "review", on: false, days: [5] },
+  { id: "mommath", name: "Math with Mom", icon: "math", kind: "check", on: false, days: WEEKDAYS, tapLabel: "Tap when you finish math with Mom" },
   { id: "castle", name: "The Learning Castle", icon: "castle", kind: "game", game: "castle", on: false, days: WEEKDAYS, minutes: 10 },
   { id: "pirates", name: "Cannon Math Pirates", icon: "pirates", kind: "game", game: "pirates", on: false, days: WEEKDAYS, minutes: 10 },
 ];
@@ -1996,6 +1997,10 @@ function schoolPlan() {
     S.schoolPlan.forEach((x) => { if (lead.includes(x.id)) x.on = true; });
   }
   // Presidents is a daily School Day game for both boys, right after Bible history (Nathan, 2026-11-10). Set once so a parent's later changes stick.
+  if (KID.id === "finn" && !S.momMath) {
+    S.momMath = 1; if (!S.schoolPlan.some((x) => x.id === "mommath")) S.schoolPlan.push(SCHOOL_DEFAULT.find((x) => x.id === "mommath"));
+    const p = S.schoolPlan.find((x) => x.id === "mommath"); p.on = true; S.schoolPlan = S.schoolPlan.filter((x) => x !== p); const at = S.schoolPlan.findIndex((x) => x.id === "sevens"); S.schoolPlan.splice(at >= 0 ? at + 1 : 0, 0, p);
+  }
   if ((KID.id === "elliot" || KID.id === "finn") && !S.presSet) {
     S.presSet = 1; const p = S.schoolPlan.find((x) => x.id === "presidents");
     if (p) { p.on = true; S.schoolPlan = S.schoolPlan.filter((x) => x !== p); const at = S.schoolPlan.findIndex((x) => x.id === "bible"); S.schoolPlan.splice(at + 1, 0, p); }
@@ -3654,7 +3659,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "bible") { const n = bibleToday(day); return { done: n >= BIBLE_DAILY, label: `${n} of ${BIBLE_DAILY} questions`, pct: n / BIBLE_DAILY }; }
   if (x.kind === "capitals") { const t = stateToday(day), n = t.states + t.capitals; return { done: n >= STATE_DAILY * 2, label: `${t.states} of ${STATE_DAILY} states, ${t.capitals} of ${STATE_DAILY} capitals`, pct: n / (STATE_DAILY * 2) }; }
   if (x.kind === "game") { const secs = day.gameSecs?.[x.game] || 0, need = x.minutes * 60; return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes played` : `${Math.floor(secs / 60)} of ${x.minutes} minutes`, pct: Math.min(1, secs / need) }; }
-  return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.soon ? "Do it in your book, then tap here" : x.minutes ? `Play ${x.minutes} minutes, then tap here` : "Tap when you finish", pct: day.done[x.id] ? 1 : 0 };
+  return { done: !!day.done[x.id], label: day.done[x.id] ? "Done" : x.tapLabel || (x.soon ? "Do it in your book, then tap here" : x.minutes ? `Play ${x.minutes} minutes, then tap here` : "Tap when you finish"), pct: day.done[x.id] ? 1 : 0 };
 }
 // Video game time rewards getting the work done, not sitting for hours: finish early and you are free.
 // Each subject finished before the cutoff earns 10 minutes, so finishing more earns more.
@@ -3884,7 +3889,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "4c4a3a5a1b35";
+const GAME_BUILD = "998c850b63d4";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4935,17 +4940,20 @@ function spellOpen(mode = "practice", extra = false, only = null) {
   const words = shuffled(only ? spellActive().filter((x) => only.includes(x.w)) : mode === "warmup" ? spellShaky() : spellActive()), today = schoolDay().spellToday || [];
   const queue = spellTesting({ mode }) || mode === "warmup" || only ? words : [...words].sort((a, b) => spellRec(a.w).level - spellRec(b.w).level).filter((x) => extra || !today.includes(x.w));
   U.sp = { mode, extra, queue, goals: 0, right: [], missed: [], retried: [] };
+  const kept = spellTesting({ mode }) && !only && schoolDay().spTest?.mode === mode ? schoolDay().spTest : null;
+  if (kept) { const by = (w) => words.find((x) => x.w === w); U.sp.right = (kept.right || []).map(by).filter(Boolean); U.sp.missed = (kept.missed || []).map(by).filter((x) => x && !U.sp.right.includes(x)); U.sp.queue = queue.filter((x) => !U.sp.right.includes(x) && !U.sp.missed.includes(x)); }
   U.view = "spelling"; spellNext(); render(); window.scrollTo(0, 0);
 }
 function spellNext() {
   const sp = U.sp, day = schoolDay();
   clearTimeout(sp.timer); sp.typed = ""; sp.misses = 0; sp.hint = false; sp.scored = false; sp.shake = false; sp.locked = false;
   if (!sp.queue.length) {
-    if (spellTesting(sp)) { sp.item = null; sp.screen = "beeDone"; spellFinishBee(); return; }
+    if (spellTesting(sp)) { sp.item = null; sp.screen = "beeDone"; delete day.spTest; spellFinishBee(); return; }
     if (sp.mode === "warmup") { sp.item = null; sp.screen = "ready"; stopVoice(); return; }
     if (!sp.extra) { sp.item = null; sp.screen = "today"; stopVoice(); return; }
     sp.queue = shuffled(spellActive());
   }
+  if (spellTesting(sp) && !U.preview) { day.spTest = { mode: sp.mode, right: sp.right.map((x) => x.w), missed: sp.missed.map((x) => x.w) }; save(); }
   sp.screen = null; sp.item = sp.queue.shift(); sp.level = spellRec(sp.item.w).level; sp.hidden = spellTesting(sp) || sp.level >= 2;
   if (!spellTesting(sp) && sp.level === 1) sp.timer = setTimeout(() => { if (U.sp === sp && U.view === "spelling") { sp.hidden = true; render(); } }, 3500);
   spellSay();
@@ -8240,6 +8248,8 @@ const acts = {
     if (x.kind === "game") { stampStart(x.id, day); save(); location.href = `${x.game}/`; return; }
     day.done[x.id] = !day.done[x.id];
     if (!day.done[x.id]) { delete dayTimes(x.id, day).end; day.paid[x.id] = false; }
+    // Checking one off gets a cheer (Nathan, 2026-11-12: "celebrate it when he's done").
+    if (day.done[x.id]) { stampStart(x.id, day); dayTimes(x.id, day).end = Date.now(); confetti(60); beep(FANFARE); lastSaid = ""; speak(`${x.name} is done! Great work, ${KID.name}!`); }
     save(); render();
   },
   async readToggle() {
