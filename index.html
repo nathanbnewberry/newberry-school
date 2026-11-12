@@ -3313,7 +3313,9 @@ function tyOpen() {
   // Pick up today's set where it was left, so coming back doesn't start again at 0.
   { const day = schoolDay(); if (S.typing.learned && day.tyState && !day.typeDone) { try { const t = JSON.parse(day.tyState); if (t.stage === "drill" || (t.total !== tyGoal() && (t.inVerse || t.count >= tyGoal() + 5))) throw 0;
       // A set saved before the verse came off (2026-11-12) keeps its spelling words done: Finley had 16 of 17.
-      if (t.total !== tyGoal()) { t.total = tyGoal(); t.verseQ = TY_VERSE ? t.verseQ : []; } if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
+      if (t.total !== tyGoal()) { t.total = tyGoal(); t.verseQ = TY_VERSE ? t.verseQ : []; }
+      // Behind the day's count (another device or an older copy got further): skip ahead to match it.
+      { const behind = Math.min((day.typeN || 0) - (t.count || 0), (t.queue?.length || 0) + (t.cur ? 1 : 0) - 1); if (behind > 0 && !t.inVerse) { if (t.cur) { t.queue.unshift(t.cur); t.cur = ""; } t.queue = t.queue.slice(behind); t.count = (t.count || 0) + behind; } } if (t.cur) t.queue.unshift(t.cur); t.cur = ""; t.pos = 0; t.phase = "play"; U.ty = t; return tyNext(); } catch (e) {} } }
   if (S.typing.learned) return tyStartDrill();
   render(); window.scrollTo(0, 0);
 }
@@ -3331,6 +3333,9 @@ function tyStartWords() {
   // This week's Bible verse comes after the spelling words, one word at a time, in order (Nathan, 2026-11-09).
   t.verseQ = TY_VERSE ? verseTypingWords() : [];
   t.startAt = 0; t.chars = 0; t.wordMisses = 0;
+  // Words already blasted today count, even if this device lost its place (Finley went back to 0 of 17 on 2026-11-12
+  // after the verse came off). day.typeN keeps the most any device reached, so the set starts that far along.
+  { const day = schoolDay(), had = day.typeDone ? 0 : Math.min(day.typeN || 0, t.queue.length - 1); if (had > 0) { t.count = Math.max(t.count || 0, had); t.queue = t.queue.slice(had); } }
   tyNext();
 }
 function tyNext() {
@@ -3912,7 +3917,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "943742aa2e19";
+const GAME_BUILD = "dbc0b984c253";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
