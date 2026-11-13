@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "fbdb609dae33";
+const GAME_BUILD = "015feb08fbdd";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5872,11 +5872,18 @@ function narrateWorked() {
   const q = curQ(); if (!q || U.mode !== "worked") return;
   stopNarration();
   const id = narrateId, log = U.stepLog || [], items = [...document.querySelectorAll(".recap li")], p = PP(LP(U.lesson), q.id);
-  const lines = [{ t: `So the answer is ${p.ans}.`, unlock: !WHY[q.skill] }];
+  const end = (x) => (/[.!?]["')]?$/.test(x) ? x : `${x}.`);
+  const lines = [{ t: end(`So the answer is ${p.ans}`), unlock: !WHY[q.skill] }];
   if (WHY[q.skill]) lines.push({ t: WHY[q.skill], el: document.querySelector(".whybox"), unlock: true });
-    // The recap stays on screen but isn't read step by step any more: the answer, why, and the check are enough
-  // (Nathan, 2026-11-10: "the explainer takes a little too long").
-  void log; void items;
+  // Every step is read aloud again (Nathan, 2026-11-13: "make sure explain reads every step out loud"),
+  // each as the step's own lines plus his answer, so it plays from clips already recorded.
+  lines.push({ t: "Here's how you worked it out." });
+  q.coach.steps.forEach((st, i) => {
+    if (st.label === "Answer") return;
+    const ask = String(st.ask || ""), eq = /=\s*\?$/.test(ask), said = log[i] ? String(log[i]) : "";
+    const t = eq ? end(`${st.say ? `${st.say} ` : ""}${ask.replace(/\s*=\s*\?$/, "")} is ${said}`) : `${st.say ? `${st.say} ` : ""}${ask}${said ? ` ${end(said)}` : ""}`;
+    lines.push({ t, el: items[i] });
+  });
   const chk = document.querySelector(".checkit"); if (chk) lines.push({ t: chk.textContent.replace(/^Check it\s*/, "To check it: "), el: chk });
   let n = 0;
   const next = () => {
