@@ -1285,7 +1285,8 @@ function voicePlan(sentence, voice) {
 function noteVoiceMiss(sentence) {
   if (!voiceLines?.size) return;
   S.voiceMiss = S.voiceMiss || [];
-  if (S.voiceMiss.length < 300 && !S.voiceMiss.includes(sentence)) S.voiceMiss.push(sentence);
+  // Keeps the newest 300, so it never stops listing new ones once full (2026-11-13).
+  if (!S.voiceMiss.includes(sentence)) { S.voiceMiss.push(sentence); if (S.voiceMiss.length > 300) S.voiceMiss.splice(0, S.voiceMiss.length - 300); }
 }
 // Plays t in that character's voice. onWord(i) follows along, and done runs at the end.
 function playVoice(t, voice = "david", done = () => {}, onWord = null) {
@@ -1306,9 +1307,12 @@ function playVoice(t, voice = "david", done = () => {}, onWord = null) {
     if (!q.clip || !voiceEl) { if (onWord) onWord(Math.floor(wordsBefore * shown / spoken)); return next(); }
     voiceEl.onended = next;
     voiceEl.onerror = () => { if (run === voiceRun) { voiceEl.onerror = voiceEl.onended = null; next(); } };
-    voiceEl.src = `voice/${q.clip}.mp3`;
     // Silver talks a little quicker in lessons, same pitch (Nathan, 2026-11-10: speed the explainer up a little).
-    try { voiceEl.preservesPitch = true; voiceEl.playbackRate = typeof U !== "undefined" && U.view === "ride" ? 1.12 : 1; } catch (e) {}
+    // The default rate is set before the new clip loads, since Safari resets playbackRate on a new src (2026-11-13).
+    const rate = typeof U !== "undefined" && U.view === "ride" ? 1.12 : 1;
+    try { voiceEl.preservesPitch = true; voiceEl.defaultPlaybackRate = rate; } catch (e) {}
+    voiceEl.src = `voice/${q.clip}.mp3`;
+    try { voiceEl.playbackRate = rate; } catch (e) {}
     voiceEl.play().catch(() => { if (run === voiceRun) next(); });
     if (onWord) voiceTick = setInterval(() => { const dur = voiceEl.duration; if (dur > 0) onWord(Math.floor((before + (voiceEl.currentTime / dur) * q.words) * shown / spoken)); }, 90);
     const after = queue[n]?.clip;
@@ -3941,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "aa6c69bbab54";
+const GAME_BUILD = "fbdb609dae33";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7626,14 +7630,6 @@ function winPrize(name, id) {
 }
 const curQ = () => (U.qid ? qOf(curLesson(), U.qid) : null);
 const curItem = () => U.items[U.i];
-function skillLink(q) {
-  const at = LESSONS.findIndex((l) => l.id === U.lesson);
-  for (const l of LESSONS.slice(0, Math.max(0, at)).reverse()) {
-    const ps = l.problems.filter((x) => x.skill === q.skill).map((x) => PP(LP(l.id), x.id)).filter((p) => p.done && !p.given);
-    if (ps.length) return `${ps.every(soloDone) ? `You got this kind on your own in ${l.town}.` : `You worked through this kind in ${l.town}.`}`;
-  }
-  return "";
-}
 // The division board: he fills in the work himself, with the four steps lit beside it. Help fades as he gets it.
 // Stage 1: steps lit up and spots drawn. Stage 2: spots only. Stage 3: the plain answer box.
 const isDivBoard = (q) => !!q?.coach?.boards?.length && q.keys !== "letters" && q.coach.steps.some((s) => s.label === "Divide");
@@ -7669,7 +7665,8 @@ function startCoach() {
   if (!q.coach) return;
   if (isDivBoard(q) && !p.done) divTally(false);
   U.boardMode = false; U.fills = {};
-  U.coachIntro = skillLink(q);
+  // No "you did this kind in <town>" opener (Nathan, 2026-11-13: it doesn't help him); Explain starts on the problem itself.
+  U.coachIntro = "";
   if (!p.done) p.coached = true; U.mode = "coach"; U.step = 0; U.stepWrong = 0; U.helped = false; U.helpN = 0; U.off = []; U.draft = ""; U.msg = null; U.wrongNow = 0; U.stepLog = []; save(); render();
 }
 const unseal = (key, code) => (code.match(/.{4}/g) || []).map((h, i) => String.fromCharCode(parseInt(h, 16) ^ key.charCodeAt(i % key.length))).join("");
