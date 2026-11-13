@@ -1274,8 +1274,10 @@ function stopVoice() {
 }
 let voiceTick = 0;
 function voicePlan(sentence, voice) {
-  const whole = [voice, "david"].map((v) => voiceClip(v, sentence)).find((c) => voiceLines?.has(c));
+  // One voice per question (Nathan, 2026-11-13): the presidential narrator never falls back to Silver mid-question.
+  const whole = (voice === "pres" ? ["pres"] : [voice, "david"]).map((v) => voiceClip(v, sentence)).find((c) => voiceLines?.has(c));
   if (whole) return [whole];
+  if (voice === "pres") return null;
   const clips = voicePieces(sentence).map((p) => voiceClip("david", p));
   return clips.length && clips.every((c) => voiceLines?.has(c)) ? clips : null;
 }
@@ -3939,7 +3941,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "579056d5cb38";
+const GAME_BUILD = "5ca0d25f3d8e";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
