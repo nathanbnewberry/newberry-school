@@ -1,5 +1,6 @@
 // Lets the games run with no internet. Built into site/sw.js by tools/build-site.mjs.
-const BUILD = "2f3dbba4faec", APP = `app-${BUILD}`, MEDIA = "media-v1";
+// media-v2 (2026-11-13): clips were re-recorded under the same names, so the old saved copies are dropped once.
+const BUILD = "aa6c69bbab54", APP = `app-${BUILD}`, MEDIA = "media-v2";
 const SHELL = ["./","lessons.js?v=a0daf510af","manifest.webmanifest","voice/lines.json","castle/","pirates/","sfx/bell.mp3","sfx/blip.mp3","sfx/bump.mp3","sfx/cheer.mp3","sfx/coin.mp3","sfx/dash.mp3","sfx/ding.mp3","sfx/fanfare.mp3","sfx/gallop.mp3","sfx/gunshot.mp3","sfx/hammer.mp3","sfx/jump.mp3","sfx/key.mp3","sfx/moo.mp3","sfx/pop.mp3","sfx/ricochet.mp3","sfx/rope.mp3","sfx/soft.mp3","sfx/sting.mp3","sfx/thud.mp3","sfx/trail.mp3","sfx/whinny.mp3"];
 
 self.addEventListener("install", (e) => {
@@ -8,7 +9,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(APP).then((c) => Promise.all(SHELL.map((u) => c.add(new Request(u, { cache: "reload" })).catch(() => {})))));
 });
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith("app-") && k !== APP).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((k) => (k.startsWith("app-") && k !== APP) || (k.startsWith("media-") && k !== MEDIA)).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 const refreshed = new Set();
@@ -16,7 +17,7 @@ async function mediaFile(url) {
   const cache = await caches.open(MEDIA), hit = await cache.match(url);
   if (hit) {
     // Quietly pick up a re-recorded clip, once per clip each time the worker starts.
-    if (!refreshed.has(url)) { refreshed.add(url); fetch(url).then((r) => { if (r.ok) cache.put(url, r); }).catch(() => {}); }
+    if (!refreshed.has(url)) { refreshed.add(url); fetch(url, { cache: "no-cache" }).then((r) => { if (r.ok) cache.put(url, r); }).catch(() => {}); }
     return hit.clone();
   }
   const res = await fetch(url);

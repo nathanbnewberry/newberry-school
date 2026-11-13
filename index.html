@@ -3941,21 +3941,22 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "2f3dbba4faec";
+const GAME_BUILD = "aa6c69bbab54";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
     v = v.trim();
     if (!v || v === GAME_BUILD || (!any && !["school", "who", "home", "parent", "title"].includes(U.view))) return;
     // Try up to three times per version, since an iPad can hand back its old copy the first time.
-    const tries = +(sessionStorage.getItem(`reloaded-${v}`) || 0); if (tries >= 3) return;
-    sessionStorage.setItem(`reloaded-${v}`, tries + 1);
+    // Once per version, never more (Nathan, 2026-11-13: it kept reloading and going to a black screen).
+    try { if (localStorage.getItem("reloaded-for") === v) return; localStorage.setItem("reloaded-for", v); } catch (e) { return; }
     save();
     location.reload();
   }).catch(() => {});
 }
-document.addEventListener("visibilitychange", () => { if (!document.hidden) checkForUpdate(); });
-setInterval(checkForUpdate, 300000);
+// Only when the game opens or comes back after 10 minutes away, never while he sits on a screen.
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => { if (document.hidden) hiddenAt = Date.now(); else if (hiddenAt && Date.now() - hiddenAt > 600000) checkForUpdate(); });
 setTimeout(checkForUpdate, 3000);
 let readTimer = 0, wakeLock = null;
 // When the reading timer reaches its time it rings like a real timer and Silver says so, on any screen,
@@ -6883,7 +6884,12 @@ function b3Tray() {
   + `<button class="b3item ${S.nuggets < LAND_COST() ? "poor" : "buy"}" data-b3="land"><svg class="itempic" viewBox="-30 -24 60 40" aria-hidden="true"><rect x="-26" y="-14" width="52" height="28" fill="#8fae50" stroke="#5f8033" stroke-width="2"/><path d="M-26 0H26M0-14V14" stroke="#5f8033" stroke-dasharray="3 3"/><path d="M-6-4h12M0-10v12" stroke="#fff" stroke-width="3"/></svg><span>More land</span><em>$${LAND_COST()}</em></button>`;
 }
 function b3Loop(prev, now) {
-  if (!B3.on || !B3.renderer?.domElement.isConnected) { B3.on = false; return; }
+  if (!B3.on || !B3.renderer?.domElement.isConnected) {
+    B3.on = false;
+    // Give the 3D memory back when he leaves the ranch; iPads reload or go black when it piles up (2026-11-13).
+    if (B3.renderer && !B3.renderer.domElement.isConnected) { try { B3.renderer.dispose(); B3.renderer.forceContextLoss(); } catch (e) {} B3.renderer = null; }
+    return;
+  }
   const dt = Math.min(.05, (now - prev) / 1000), t = now / 1000;
   b3Size();
   if (!B3.drag && !B3.orbit) { B3.yaw += dt * .02; }
