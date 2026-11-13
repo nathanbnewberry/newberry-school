@@ -3939,7 +3939,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8f7d6b36423f";
+const GAME_BUILD = "579056d5cb38";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4464,7 +4464,7 @@ const BIBLE_QS = [
 {"id": "david-lyre", "story": "David", "q": "David played music for King Saul. What did he play?", "a": "A lyre, a small harp", "w": ["Drums", "A trumpet"], "place": "canaan", "fact": "David played the lyre, a small harp, and it helped Saul feel better.", "ref": "1 Samuel 16:23"},
 {"id": "elah", "story": "David and Goliath", "q": "Where did David fight Goliath?", "a": "The Valley of Elah", "w": ["Beside the Red Sea", "On Mount Sinai"], "place": "elah", "fact": "The armies faced each other across the Valley of Elah.", "ref": "1 Samuel 17:2-3"},
 {"id": "stones", "story": "David and Goliath", "q": "How many smooth stones did David pick up from the stream?", "a": "Five", "w": ["One", "Ten"], "place": "elah", "fact": "David picked up five smooth stones, but he only needed one.", "ref": "1 Samuel 17:40"},
-{"id": "goliath-win", "story": "David and Goliath", "q": "Goliath had a sword and a spear. What did David use to beat him?", "a": "A sling and a stone", "w": ["A bigger sword", "A bow and arrow"], "place": "elah", "fact": "David beat Goliath with a sling and a stone, trusting the Lord to win the battle.", "ref": "1 Samuel 17:45-50"},
+{"id": "goliath-win", "story": "David and Goliath", "q": "Goliath had a sword and a spear. What did David use to beat him?", "a": "A sling and a stone", "w": ["A bigger sword", "A bow and arrow"], "place": "elah", "fact": "David beat Goliath with a sling and a stone. He trusted the Lord to win the battle.", "ref": "1 Samuel 17:45-50"},
 {"id": "david-capital", "story": "King David", "q": "Which city did King David make his capital?", "a": "Jerusalem", "w": ["Jericho", "Babylon"], "place": "jerusalem", "fact": "David made Jerusalem his capital. It was called the city of David.", "ref": "2 Samuel 5:6-9"},
 {"id": "solomon-wisdom", "story": "Solomon", "q": "God told King Solomon to ask for anything. What did Solomon ask for?", "a": "Wisdom", "w": ["Gold", "A big army"], "place": "gibeon", "fact": "Solomon asked for wisdom to lead the people well, and God gave it to him.", "ref": "1 Kings 3:5-12"},
 {"id": "solomon-temple", "story": "Solomon", "q": "Solomon built a great temple for God in which city?", "a": "Jerusalem", "w": ["Nazareth", "Nineveh"], "place": "jerusalem", "fact": "Solomon built the temple in Jerusalem.", "ref": "1 Kings 6"},
