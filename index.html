@@ -1142,7 +1142,7 @@ function rankHud() {
 // VOICE-TEXT-START
 // Shared with tools/voice-lines.mjs, so a line is named the same when recorded and when played.
 const voiceSpoken = (t) => String(t).replace(/×/g, " times ").replace(/÷/g, " divided by ").replace(/−/g, " minus ").replace(/√/g, " the square root of ").replace(/(\d)½/g, "$1 and a half").replace(/½/g, "one half").replace(/(\d)R(\d)/g, "$1 remainder $2").replace(/\s+/g, " ").trim();
-function voiceSentences(t) { return voiceSpoken(t).split(/(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it|For example):)\s+/).map((x) => x.trim()).filter(Boolean); }
+function voiceSentences(t) { return voiceSpoken(t).split(/(?<!\bSt\.)(?<=[.!?]["')]?)\s+(?=["'(]?[A-Z0-9])|(?<=\b(?:Here's why|Here's what the problem wants|How|Why|To check it|For example):)\s+/).map((x) => x.trim()).filter(Boolean); }
 function voiceClip(voice, sentence) { let h = 2166136261; const text = `${voice}|${sentence}`; for (let i = 0; i < text.length; i++) { h ^= text.charCodeAt(i); h = Math.imul(h, 16777619); } return `${voice[0]}${(h >>> 0).toString(36)}`; }
 const VOICE_ONES = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
 const VOICE_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
@@ -3941,7 +3941,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "5ca0d25f3d8e";
+const GAME_BUILD = "2f3dbba4faec";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
