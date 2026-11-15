@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "015feb08fbdd";
+const GAME_BUILD = "78e3fe124f39";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5093,10 +5093,13 @@ function spellKey(d) {
   render();
 }
 // Bible verse memory (Nathan, 2026-11-09): one verse a week, practiced Monday to Thursday with less help each day,
-// a practice test on Thursday and a graded memory test on Friday. The text is the CSB, the family's Bible.
+// a practice test on Thursday and a graded memory test on Friday. The text is the CSB, the family's Bible, unless a
+// verse names its own version and `credit` (Proverbs 10:19 is NKJV, Nathan 2026-11-15).
 // CSB allows quoting a small number of verses with this notice, so it shows on the verse screen.
 const VERSE_CREDIT = "Scripture quotations marked CSB have been taken from the Christian Standard Bible\u00ae, Copyright \u00a9 2017 by Holman Bible Publishers. Used by permission.";
 const VERSES = [
+  // NKJV this week at Nathan's request (2026-11-15), with its own notice.
+  { id: "v-2026-11-16", from: "2026-11-16", ref: "Proverbs 10:19", decoys: ["Proverbs 10:17", "Proverbs 11:19"], text: "In the multitude of words sin is not lacking, But he who restrains his lips is wise.", kids: ["elliot", "finn"], credit: "Scripture taken from the New King James Version\u00ae. Copyright \u00a9 1982 by Thomas Nelson. Used by permission. All rights reserved." },
   { id: "v-2026-11-09", from: "2026-11-09", ref: "Ephesians 2:10", decoys: ["Ephesians 2:8", "Ephesians 3:10"], text: "For we are his workmanship, created in Christ Jesus for good works, which God prepared ahead of time for us to do.", kids: ["elliot", "finn"] },
 ];
 function verseNow() { const today = dateKey(); return VERSES.filter((v) => v.kids.includes(KID.id) && v.from <= today).sort((a, b) => (a.from < b.from ? 1 : -1))[0] || null; }
@@ -5195,7 +5198,7 @@ function verseStepDone() {
 function verseView() {
   const vs = U.vs || (verseOpen(), U.vs), v = verseNow(), day = schoolDay();
   const top = `<div class="hud"><button class="btn mapbig" data-act="view" data-v="school">&#9664; Back</button><h2>Bible Verse</h2><span class="chip nug"><i></i>$${S.nuggets}</span></div>`;
-  const credit = `<p class="vscredit">${esc(VERSE_CREDIT)}</p>`;
+  const credit = `<p class="vscredit">${esc(v?.credit || VERSE_CREDIT)}</p>`;
   if (!v) return `${top}${bubble("No verse yet this week.")}`;
   const ref = `<p class="vsref">${esc(v.ref)}</p>`;
   const next = vs.plan[0], nextName = next === "test" ? "Start the memory test" : next === "pretest" ? "Take the practice test" : next === "warm" ? "Warm up" : "Go";
