@@ -2121,6 +2121,12 @@ const PN_SONGS = [
   { id: "deck", flats: true, title: "Deck the Halls", by: "Christmas carol", bpm: 100, any: true, xmas: true, parts: ["C5:1.5 Bb:.5 A G F G A F", "G:.5 A:.5 Bb:.5 G:.5 A:1.5 G:.5 F E F:2"], all: "C5:1.5 Bb:.5 A G F G A F G:.5 A:.5 Bb:.5 G:.5 A:1.5 G:.5 F E F:2 C5:1.5 Bb:.5 A G F G A F G:.5 A:.5 Bb:.5 G:.5 A:1.5 G:.5 F E F:2", pay: 25 },
   { id: "grace", meter: 3, pickup: 1, title: "Amazing Grace", by: "John Newton, hymn", bpm: 80, any: true, worship: true, parts: ["C F:2 A:.5 F:.5 A:2 G F:2 D C:2", "C F:2 A:.5 F:.5 A:2 G C5:3", "A C5:1.5 A:.5 C5:.5 A:.5 F:2 C D:1.5 F:.5 F:.5 D:.5 C:2", "C F:2 A:.5 F:.5 A:2 G F:3"], pay: 25 },
   { id: "jesus", title: "Jesus Loves Me", by: "William Bradbury, hymn", bpm: 92, any: true, worship: true, parts: ["G E E D E G G:2 A A C5 A A G G:2", "G E E D E G G:2 A A G C E D C:2", "G:2 E G A C5:4 G:2 E C E D:4", "G:2 E G A C5:4 A G C E D C:4"], pay: 25 },
+  // Fun songs (Nathan, 2026-11-16: "more fun ... more modern"). Pop songs can't go on the public site, so these are
+  // public-domain tunes kids know from games, movies and parties, each kept inside Middle C to the C above.
+  { id: "korob", fun: true, flats: true, title: "Korobeiniki", by: "Russian folk song, the block game tune", bpm: 104, any: true, parts: ["G D:.5 Eb:.5 F Eb:.5 D:.5 C C:.5 Eb:.5 G F:.5 Eb:.5 D:1.5 Eb:.5 F G Eb C C:2", "F:1.5 Ab:.5 C5 Bb:.5 Ab:.5 G:1.5 Eb:.5 G F:.5 Eb:.5 D D:.5 Eb:.5 F G Eb C C:2"], all: "G D:.5 Eb:.5 F Eb:.5 D:.5 C C:.5 Eb:.5 G F:.5 Eb:.5 D:1.5 Eb:.5 F G Eb C C:2 F:1.5 Ab:.5 C5 Bb:.5 Ab:.5 G:1.5 Eb:.5 G F:.5 Eb:.5 D D:.5 Eb:.5 F G Eb C C:2 G D:.5 Eb:.5 F Eb:.5 D:.5 C C:.5 Eb:.5 G F:.5 Eb:.5 D:1.5 Eb:.5 F G Eb C C:2", pay: 25 },
+  { id: "mtnking", fun: true, flats: true, title: "In the Hall of the Mountain King", by: "Edvard Grieg", bpm: 100, any: true, parts: ["C:.5 D:.5 Eb:.5 F:.5 G:.5 Eb:.5 G Gb:.5 D:.5 Gb F:.5 Db:.5 F", "C:.5 D:.5 Eb:.5 F:.5 G:.5 Eb:.5 G:.5 C5:.5 Bb:.5 G:.5 Eb:.5 G:.5 Bb:2"], pay: 25 },
+  { id: "bday", fun: true, flats: true, meter: 3, pickup: 1, title: "Happy Birthday", by: "Mildred and Patty Hill", bpm: 88, any: true, parts: ["C:.75 C:.25 D C F E:2 C:.75 C:.25 D C G F:2", "C:.75 C:.25 C5 A F E D:2 Bb:.75 Bb:.25 A F G F:3"], pay: 25 },
+  { id: "yankee", fun: true, flats: true, title: "Yankee Doodle", by: "American Revolution song", bpm: 104, any: true, parts: ["F F G A F A G C F F G A F:2 E:2", "F F G A Bb A G F E C D E F:2 F:2"], pay: 25 },
   { id: "row", title: "Lightly Row", by: "German folk song", bpm: 88, parts: ["G E E:2 F D D:2 C D E F G G G:2", "G E E:2 F D D:2 C E G G E:4", "D D D D D E F:2 E E E E E F G:2", "G E E:2 F D D:2 C E G G C:4"], pay: 25 },
 ];
 PN_SONGS.forEach((g) => { g.all = g.all || g.parts.join(" "); });
@@ -2161,8 +2167,8 @@ const pnSongs = () => pnLittle() ? [...(pnXmas() ? PN_LITTLE : PN_LITTLE.filter(
 // Songs that only use C to G in one hand are ready after Right hand home. Songs with any other key (A, B, high C
 // or a black key) are ready after Crossing over, which teaches the thumb-under to reach all eight keys.
 const pnNeedsLesson = (g) => { try { return pnNotesOf(g, g.all).some((n) => ![60, 62, 64, 65, 67].includes(n.m)) ? "cross" : "rh"; } catch (e) { return "cross"; } };
-const PN_SHELVES = [["all", "All songs"], ["xmas", "&#127876; Christmas"], ["worship", "&#10013;&#65039; Worship"], ["classic", "Classics"], ["mine", "My songs"]];
-const pnInShelf = (g, f) => f === "all" || (f === "xmas" ? g.xmas || g.id === "bells" : f === "worship" ? g.worship : f === "mine" ? g.mine : !g.xmas && g.id !== "bells" && !g.mine && !g.worship);
+const PN_SHELVES = [["all", "All songs"], ["xmas", "&#127876; Christmas"], ["worship", "&#10013;&#65039; Worship"], ["fun", "&#127918; Fun"], ["classic", "Classics"], ["mine", "My songs"]];
+const pnInShelf = (g, f) => f === "all" || (f === "xmas" ? g.xmas || g.id === "bells" : f === "worship" ? g.worship : f === "mine" ? g.mine : f === "fun" ? g.fun : !g.xmas && g.id !== "bells" && !g.mine && !g.worship);
 // Pop songs kids love, as ideas for Add a song. Only the names live here: their notes come from the family.
 const PN_POP_IDEAS = ["Back in Black (AC/DC)", "Thunderstruck (AC/DC)", "We Will Rock You", "Eye of the Tiger", "Seven Nation Army", "Smoke on the Water", "What a Beautiful Name (Hillsong)", "Way Maker", "Goodness of God", "10,000 Reasons", "Oceans (Hillsong)", "Build My Life", "Golden", "Soda Pop", "How Far I'll Go", "Let It Go", "Remember Me", "We Don't Talk About Bruno", "Can't Stop the Feeling!", "Count on Me", "A Million Dreams", "Happy", "Good Day (Forrest Frank)", "Your Way's Better (Forrest Frank)"];
 const pnFirstPick = () => { if (pnLittle()) return null; const c = S.piano?.course || {}; return !S.piano?.cur && !Object.keys(c).length ? "school" : null; };
@@ -2272,6 +2278,10 @@ function pnArt(id) {
   art.deck = `${g("#7a1020", "#3a0810")}<path d="M24 52q18-24 36 0 18-24 36 0-18 10-36 4-18 6-36-4z" fill="#2f9a4a" stroke="#0c3a1e" stroke-width="2"/><circle cx="56" cy="50" r="6" fill="#e8303c"/><circle cx="66" cy="48" r="6" fill="#e8303c"/><circle cx="61" cy="40" r="6" fill="#e8303c"/><path d="M30 70h22v26q0 8-8 8H34q-8 0-8-8" fill="#fff" stroke="#c8202c" stroke-width="3"/><path d="M68 70h22v26q0 8-8 8H72q-8 0-8-8" fill="#fff" stroke="#c8202c" stroke-width="3"/><rect x="28" y="66" width="26" height="8" fill="#e8303c"/><rect x="66" y="66" width="26" height="8" fill="#e8303c"/>`;
   art.hcb = `${g("#ffb36b", "#ffe2b0")}${[[38, 60], [60, 52], [82, 60], [49, 78], [71, 78]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="15" fill="#d9a35a" stroke="#8a5a2b" stroke-width="2"/><path d="M${x - 8} ${y}h16M${x} ${y - 8}v16" stroke="#fff3d9" stroke-width="3"/>`).join("")}`;
   art.rain = `${g("#7fa6c9", "#c9dcec")}<ellipse cx="60" cy="40" rx="34" ry="16" fill="#fff"/><ellipse cx="44" cy="44" rx="18" ry="12" fill="#fff"/>${[[40, 70], [56, 82], [72, 70], [86, 86], [48, 98]].map(([x, y]) => `<path d="M${x} ${y}q-5 8 0 10q5-2 0-10z" fill="#3a8fd0"/>`).join("")}<path d="M60 86v24M44 92q16-16 32 0" stroke="#e8303c" stroke-width="5" fill="none"/>`;
+  art.korob = `${g("#1a1640", "#0a0820")}${[[18, 86, "#e8303c"], [38, 86, "#e8303c"], [38, 66, "#e8303c"], [58, 86, "#ffc42e"], [78, 86, "#ffc42e"], [78, 66, "#ffc42e"], [98, 86, "#2fb7e8"], [98, 66, "#2fb7e8"], [58, 26, "#7ad04a"], [58, 6, "#7ad04a"], [78, 26, "#7ad04a"], [38, 26, "#c06ae8"]].map(([x, y, c]) => `<rect x="${x - 9}" y="${y + 8}" width="18" height="18" fill="${c}" stroke="#fff" stroke-opacity=".5" stroke-width="2"/>`).join("")}`;
+  art.mtnking = `${g("#2a1040", "#08040f")}<path d="M0 120L38 44 60 78 84 30 120 120Z" fill="#3a3550"/><path d="M84 30l-10 20 10-6 9 8Z" fill="#fff" opacity=".8"/><path d="M48 120V94a12 12 0 0 1 24 0v26Z" fill="#ff8a1a"/><circle cx="56" cy="102" r="2" fill="#2a1040"/><circle cx="64" cy="102" r="2" fill="#2a1040"/>`;
+  art.bday = `${g("#ff9ad0", "#ffd9ec")}<rect x="26" y="66" width="68" height="34" rx="6" fill="#fff" stroke="#c0407a" stroke-width="3"/><path d="M26 78q8 8 17 0t17 0 17 0 17 0" fill="none" stroke="#ff5fa2" stroke-width="5"/>${[42, 60, 78].map((x) => `<rect x="${x - 3}" y="44" width="6" height="22" fill="#5fb7ff"/><path d="M${x} 30q6 8 0 12q-6-4 0-12z" fill="#ffc42e"/>`).join("")}`;
+  art.yankee = `${g("#f4efe2", "#d9cfb6")}${[0, 1, 2, 3, 4, 5, 6].map((i) => `<rect y="${20 + i * 12}" width="120" height="6" fill="#b0222e"/>`).join("")}<rect x="0" y="20" width="54" height="42" fill="#1f3a7a"/>${[[12, 30], [27, 30], [42, 30], [19, 44], [34, 44], [12, 56], [27, 56], [42, 56]].map(([x, y]) => `<circle cx="${x}" cy="${y - 4}" r="2.5" fill="#fff"/>`).join("")}<path d="M60 108l20-30 20 30Z" fill="#1c1712"/><path d="M76 72q4-12 14-16" stroke="#fff" stroke-width="3" fill="none"/>`;
   art.lamb = art.mary;
   art.jingle = art.bells; art.ljoy = art.joy; art.lwish = art.wish; art.ldeck = art.deck;
   art.twinkle = `${g("#1d2a6a", "#0b1236")}${[[20, 24], [96, 30], [30, 92], [100, 96], [70, 16]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#fff"/>`).join("")}<path d="M60 26L69 50 94 50 74 65 82 90 60 75 38 90 46 65 26 50 51 50Z" fill="#ffd23f" stroke="#fff3b0" stroke-width="3"/><circle cx="53" cy="58" r="3" fill="#1c1712"/><circle cx="67" cy="58" r="3" fill="#1c1712"/><path d="M53 67q7 6 14 0" stroke="#1c1712" stroke-width="2.5" fill="none"/>`;
@@ -3068,6 +3078,8 @@ const PN_WORDS = {
   bells: { parts: ["Jin- gle bells, jin- gle bells, / jin- gle all the way!", "Oh what fun it is to ride / in a one- horse o- pen sleigh, hey!", "Jin- gle bells, jin- gle bells, / jin- gle all the way!", "Oh what fun it is to ride / in a one- horse o- pen sleigh!"] },
   saints: { parts: ["Oh when the saints / go march- ing in, / oh when the saints go march- ing in,", "Oh, I want to be in that num- ber, / when the saints go march- ing in!"] },
   joy: { parts: ["Joy to the world! The Lord is come;", "Let earth re- ceive her King;", "Let ev- 'ry heart pre- pare Him room, / and heav- en and na- ture ~ sing,", "and heav- en and na- ture sing, / and heav- en and na- ture ~ sing ~ ~", "and heav- en, and heav- en, / and na- ture sing!"] },
+  bday: { parts: ["Hap- py birth- day to you, / hap- py birth- day to you,", "Hap- py birth- day dear bud- dy, / hap- py birth- day to you!"] },
+  yankee: { parts: ["Yan- kee Doo- dle went to town, a- / ri- ding on a po- ny,", "Stuck a fea- ther in his cap / and called it mac- a- ro- ni!"] },
   wish: { parts: ["We wish you a mer- ry Christ- mas,", "We wish you a mer- ry Christ- mas,", "We wish you a mer- ry Christ- mas,", "and a hap- py New Year!"] },
   deck: { parts: ["Deck the halls with boughs of hol- ly,", "Fa la la la la, la la la la!"], all: "Deck the halls with boughs of hol- ly, / Fa la la la la, la la la la! / 'Tis the sea- son to be jol- ly, / Fa la la la la, la la la la!" },
   grace: { parts: ["A- maz- ing ~ grace, how sweet the sound", "That saved a ~ wretch like me!", "I once ~ was ~ lost, but now ~ am ~ found,", "Was blind, but ~ now I see."] },
@@ -3960,7 +3972,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "a93396862270";
+const GAME_BUILD = "f5374bb4ed12";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
