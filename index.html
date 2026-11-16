@@ -851,7 +851,7 @@ body[data-view="school"] .sdmaphead b{font-family:Rye,Georgia,serif;font-weight:
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=a0daf510af"></script>
+<script src="lessons.js?v=9744004cdb"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 // One map for math and grammar (Nathan, 2026-11-09): each dated grammar day happens in that school day's math town,
@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "405935bcbba9";
+const GAME_BUILD = "16fa95f45cab";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5766,6 +5766,32 @@ function divisionCheck(q, ans) {
   return `<p class="remember checkit"><b>Check it</b> ${whole} × ${d[0]} = ${whole * d[0]}${rem ? `, plus ${rem} left over makes ${whole * d[0] + rem}` : ""}. That's the number you started with!</p>`;
 }
 const WHY = {
+  // Lesson 80 (2026-11-16).
+  "Larger minus smaller": "It worked because faster means less time, so the slower rider's time is the faster time plus the difference.",
+  "Percent of equal parts": "It worked because the whole is 100 percent, so sharing 100 equally among the parts gives each part its percent.",
+  "Liters and milliliters": "It worked because 1000 milliliters fill one liter, so every liter adds another 1000.",
+  // Lesson 84 (2026-11-16).
+  "Thousandths as decimals": "It worked because 1000 has 3 zeros, so the decimal needs 3 places after the dot, and 0s held any empty places.",
+  "Decimals as thousandths": "It worked because 3 places after the dot means thousandths, so the digits after the dot went on top of 1000.",
+  "Naming thousandths": "It worked because you read the digits after the dot like a whole number, then said the last place's name, and the dot is read as and.",
+  "Larger, smaller, difference": "It worked because John did Paloma's chin-ups plus 7 more, so taking the 7 extra away from his left hers.",
+  "Making change with tax": "It worked because the tax is part of what she pays, so you added it to the price first, then took that total from the $20.00.",
+  "Tally marks": "It worked because every 5th tally slashes across the 4 before it, so a bundle is 5 and each stick after it adds 1.",
+  "Squares and square roots": "It worked because you turned the square and the square root into plain numbers first, then subtracted.",
+  "Two transformations": "It worked because the long side now pointed a new way, so the figure turned, and it sat in a new spot, so it slid too.",
+  "Estimating angles": "It worked because 45° is half of a square corner, so the narrow, pointy corner was the one about 45°.",
+  // Lessons 81 and 82 (2026-11-16).
+  "Angle measures": "It worked because you held the angle up to angles you know, 45, 90, 135 and 180 degrees, then added or took away a little for the difference.",
+  "Pay tables": "It worked because every hour pays the same $10, so the pay grows by 10 for each hour you count.",
+  "Percent scores": "It worked because each of the 20 questions is worth 5 percent, so you multiplied or divided by 5 to go between right answers and the score.",
+  "Coordinates": "It worked because the first number always tells how far across and the second tells how far up.",
+  "Reasonable capacity": "It worked because a milliliter is just a few drops and a liter fills a big water bottle, so you pictured what a pail really holds.",
+  "Parentheses first": "It worked because parentheses tell you which part happens first, so you found the product before taking it away.",
+  "Tessellations": "It worked because a shape tessellates only when its copies, slid or turned, fit edge to edge and fill every spot with no gaps or overlaps.",
+  "Fraction of the rest": "It worked because all three thirds make one whole, so taking away the third that voted no leaves the members who did not.",
+  "Line graphs": "It worked because each dot sits straight above its age, and going straight across to the side tells Juan's weight.",
+  "Gain on a line graph": "It worked because the gain is the gap between two weights, so you read both dots and took the smaller from the larger.",
+  "Percent of the rest": "It worked because all the lanterns together make 100 percent, so taking away the part that's on leaves the part that's off.",
   // Lesson 83 (2026-11-16).
   "Sales tax": "It worked because the tax is extra money on top of the price, so you found the price first and then added the tax to get the total cost.",
   "Change back": "It worked because the clerk keeps the total cost, tax and all, so taking that away from what was paid shows what comes back.",
