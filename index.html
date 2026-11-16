@@ -2015,6 +2015,13 @@ function schoolPlan() {
   }
   // Finley's order (Nathan, 2026-11-16): Bible, Presidents, 7s, Math with Mom, States and Capitals, spelling, grammar,
   // piano, Space Typing second to last, reading last. Set once so a parent's later changes stick.
+  // Elliot's day in the same shape (Nathan, 2026-11-16): Bible, Presidents (back on), math, States and Capitals,
+  // spelling, grammar, piano, Space Typing, reading, then History last. Set once so a parent's later changes stick.
+  if (KID.id === "elliot" && !S.elliotOrder1) {
+    S.elliotOrder1 = 1; const order = ["verse", "bible", "presidents", "math", "review", "capitals", "spelling", "grammar", "piano", "typing", "reading", "history"];
+    const p = S.schoolPlan.find((x) => x.id === "presidents"); if (p) p.on = true;
+    S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
+  }
   if (KID.id === "finn" && !S.finnOrder3) {
     S.finnOrder3 = 1; const order = KID_PLANS.finn.on;
     S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
@@ -3953,7 +3960,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "9183d77b9a73";
+const GAME_BUILD = "a93396862270";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
