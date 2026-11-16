@@ -851,7 +851,7 @@ body[data-view="school"] .sdmaphead b{font-family:Rye,Georgia,serif;font-weight:
   <div id="app"></div>
 </div>
 <div class="fx" id="fx"></div>
-<script src="lessons.js?v=677fd2df5c"></script>
+<script src="lessons.js?v=31902c60b0"></script>
 <script>
 const ALL_LESSONS = window.LESSONS || [];
 // One map for math and grammar (Nathan, 2026-11-09): each dated grammar day happens in that school day's math town,
@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "3d731d76d251";
+const GAME_BUILD = "5c3c4da9e8e2";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5819,6 +5819,22 @@ const WHY = {
   "Line graphs": "It worked because each dot sits straight above its age, and going straight across to the side tells Juan's weight.",
   "Gain on a line graph": "It worked because the gain is the gap between two weights, so you read both dots and took the smaller from the larger.",
   "Percent of the rest": "It worked because all the lanterns together make 100 percent, so taking away the part that's on leaves the part that's off.",
+  // Grammar Days 58-61 (2026-11-16).
+  "Commas and colons": "It worked because commas went around the words that broke in, a colon came before the list, and commas split the list.",
+  "Independent and dependent clauses": "It worked because you checked whether the clause was a complete thought that could stand alone.",
+  "Comparing adverbs": "It worked because only two were compared, and two take the er form, not the est form.",
+  "Capitalizing poems": "It worked because every line of a poem starts with a capital, and the word I is always a capital.",
+  "Possessive in an address": "It worked because apostrophe s showed the sister belongs to one person, and commas split the street, city and state.",
+  "Word roots": "It worked because port means carry and trans means across, so transport means to carry from one place to another.",
+  "Compound subjects": "It worked because you skipped the phrase, asked what was ordered, and found two things joined by and.",
+  "Verb phrases": "It worked because the helping verbs have and been go with the main verb ordered to make one verb phrase.",
+  "Names written last name first": "It worked because Mrs. gets a period, apostrophe s shows the name is hers, and a comma splits a last name written first.",
+  "Envelopes": "It worked because the sender's address goes in the top left corner and the receiver's goes in the middle.",
+  "Doesn't and don't": "It worked because he is one person, and does not goes with he, she and it.",
+  "Punctuating a friendly letter": "It worked because commas go between the city and state, between the day and year, and after the greeting and closing.",
+  "Parts of a friendly letter": "It worked because the greeting says hello at the start, and the closing says goodbye right before the name.",
+  "Alphabetical order": "It worked because when the first letters matched, you looked at the next letter until they were different.",
+  "Simple sentences": "It worked because it has a subject and a verb and makes one complete thought.",
   // Grammar Day 57 (2026-11-16).
   "Punctuating an address": "It worked because the apostrophe after the s showed many girls own it, short words get a period, and commas split the street, city and state.",
   "Sentence types": "It worked because you asked what the sentence does: tells, asks, commands, or shows strong feeling, and each job has its own name.",
