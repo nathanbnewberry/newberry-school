@@ -1897,7 +1897,7 @@ const WEEKDAYS = [1, 2, 3, 4, 5];
 const FAMILY_GAMES = [{ id: "castle", name: "The Learning Castle", path: "castle/" }, { id: "pirates", name: "Cannon Math Pirates", path: "pirates/" }];
 // Finn works on plus and minus, Myla on colors and shapes, so each sees only the games at that level.
 const KID_PLANS = {
-  finn: { on: ["verse", "bible", "presidents", "sevens", "spelling", "typing", "grammar", "capitals", "piano", "reading"], reading: 30, games: [], focus: "" },
+  finn: { on: ["verse", "bible", "presidents", "sevens", "mommath", "capitals", "spelling", "grammar", "piano", "typing", "reading"], reading: 30, games: [], focus: "" },
   myla: { on: ["reading", "castle", "piano"], reading: 15, piano: 10, games: ["castle"], focus: "Colors and shapes" },
 };
 const SCHOOL_DEFAULT = [
@@ -1925,6 +1925,8 @@ function readingFix() {
   // Finley read with a different timer and finished his piano time on 2026-11-12 (Nathan saw both): reading and piano
   // are marked done, the same merge-safe way (seconds only go up, and the day's Piano School lesson counts as done).
   if (KID.id === "finn") { const f = S.days?.["2026-11-12"]; if (f) { f.timerBase = f.timerBase || {}; f.readSecs = Math.max(f.readSecs || 0, (f.timerBase.reading || 0) + timerNeed("reading")); f.pianoLes = f.pianoLes || "parent"; } }
+  // Finley did his spelling on 2026-11-16 though the game logged only 4 words (Nathan): counted as every word practiced.
+  if (KID.id === "finn") { const f = S.days?.["2026-11-16"]; if (f) { try { f.spellWords = Math.max(f.spellWords || 0, spellActive().length); } catch (e) {} } }
   // Elliot read away from the game on 2026-11-12 too (Nathan): 30 counted minutes.
   if (KID.id === "elliot") { const e = S.days?.["2026-11-12"]; if (e) { e.timerBase = e.timerBase || {}; e.readSecs = Math.max(e.readSecs || 0, (e.timerBase.reading || 0) + timerNeed("reading")); } }
   if (KID.id !== "elliot") return; const d = S.days?.["2026-11-10"]; if (!d) return;
@@ -2010,6 +2012,12 @@ function schoolPlan() {
   if ((KID.id === "elliot" || KID.id === "finn") && !S.presSet) {
     S.presSet = 1; const p = S.schoolPlan.find((x) => x.id === "presidents");
     if (p) { p.on = true; S.schoolPlan = S.schoolPlan.filter((x) => x !== p); const at = S.schoolPlan.findIndex((x) => x.id === "bible"); S.schoolPlan.splice(at + 1, 0, p); }
+  }
+  // Finley's order (Nathan, 2026-11-16): Bible, Presidents, 7s, Math with Mom, States and Capitals, spelling, grammar,
+  // piano, Space Typing second to last, reading last. Set once so a parent's later changes stick.
+  if (KID.id === "finn" && !S.finnOrder3) {
+    S.finnOrder3 = 1; const order = KID_PLANS.finn.on;
+    S.schoolPlan.sort((a, b) => (order.indexOf(a.id) + 1 || 99) - (order.indexOf(b.id) + 1 || 99));
   }
   return S.schoolPlan;
 }
@@ -3708,7 +3716,7 @@ function itemStatus(x, day = schoolDay()) {
   if (x.kind === "spelling" && !spellList()) return { done: !!day.done[x.id], label: "Waiting for a word list", pct: 0 };
   if (x.kind === "spelling") { const total = spellActive().length, n = Math.min(day.spellWords || 0, total), d = new Date(`${Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()}T12:00`), bee = spellBeeDay(d), pre = spellPracticeDay(d), g = day.spellGrade; if (bee) return { done: !!day.spellBee, label: day.spellBee ? (g ? `Spelling test: ${g.letter} (${g.right} of ${g.total})` : "Spelling test done") : "Spelling test day", pct: day.spellBee ? 1 : 0 }; if (pre) return { done: (n >= total || !!day.spellBee) && !!day.spellPretest, label: day.spellPretest ? `Practice test: ${day.spellPretest.right} of ${day.spellPretest.total}` : n >= total ? `All ${total} words practiced. Last step: practice test` : `${n} of ${total} words today`, pct: (Math.min(n, total) / total) * .8 + (day.spellPretest ? .2 : 0) }; return { done: n >= total || !!day.spellBee, label: `${n} of ${total} words today`, pct: n / total }; }
   if (x.kind === "timer" && TIMERS[x.id]) { const secs = timerSecs(x.id, day), need = timerNeed(x.id); return { done: secs >= need, label: secs >= need ? `${x.minutes} minutes done` : day[TIMERS[x.id].from] ? `Watching now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer, last thing today`, pct: secs / need }; }
-  if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"), les = !pnDailyKid() || !!day.pianoLes || (Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()) <= "2026-11-09", lesL = pnDailyKid() ? `${les ? "Lesson done, now songs" : `Lesson ${pnTodayLesson() + 1}, then songs`}. ` : ""; return { done: secs >= need && les, label: lesL + (secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`), pct: les ? secs / need : Math.min(.5, secs / need) }; }
+  if (x.id === "piano") { const secs = timerSecs("piano", day), need = timerNeed("piano"), les = !pnDailyKid() || !!day.pianoLes || (Object.keys(S.days || {}).find((k) => S.days[k] === day) || dateKey()) <= "2026-11-09", lesL = pnDailyKid() ? `${les ? "Lesson done, now songs" : `Lesson ${pnTodayLesson() + 1}, then songs`}. ` : ""; return { done: secs >= need, label: (secs >= need ? "" : lesL) + (secs >= need ? `${x.minutes} minutes played` : day.pianoFrom ? `Playing now: ${mmss(need - secs)} left` : secs > 0 ? `${mmss(need - secs)} left` : `${x.minutes} minute timer`), pct: secs / need }; }
   if (x.kind === "sevens") { const n = Math.min(20, day.sevensRoped || 0), done = (day.sevensDone || 0) >= 1; return { done, label: done ? "7s done for today!" : `${n} of 20 sevens roped`, pct: done ? 1 : n / 20 }; }
   if (x.kind === "presidents") { const n = presToday(day); return { done: n >= PRES_DAILY, label: `${n} of ${PRES_DAILY} questions`, pct: n / PRES_DAILY }; }
   if (x.kind === "science") { const n = sciToday(day); return { done: n >= SCI_DAILY, label: `${n} of ${SCI_DAILY} experiments`, pct: n / SCI_DAILY }; }
@@ -3945,7 +3953,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "9b34e81e6354";
+const GAME_BUILD = "9183d77b9a73";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
