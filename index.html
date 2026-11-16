@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "8d6fdce47e43";
+const GAME_BUILD = "405935bcbba9";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5766,6 +5766,10 @@ function divisionCheck(q, ans) {
   return `<p class="remember checkit"><b>Check it</b> ${whole} × ${d[0]} = ${whole * d[0]}${rem ? `, plus ${rem} left over makes ${whole * d[0] + rem}` : ""}. That's the number you started with!</p>`;
 }
 const WHY = {
+  // Lesson 83 (2026-11-16).
+  "Sales tax": "It worked because the tax is extra money on top of the price, so you found the price first and then added the tax to get the total cost.",
+  "Change back": "It worked because the clerk keeps the total cost, tax and all, so taking that away from what was paid shows what comes back.",
+  "Rounding to thousands": "It worked because you found the halfway mark between the two thousands, and a number below halfway rounds down while one at or past it rounds up.",
   "Mixed numbers on a number line": "It worked because the whole number tells which number the arrow has passed, and the fraction tells how far it has gone toward the next one.",
   "Helping and main verbs": "It worked because a helping verb always has another verb after it, and a main verb can stand alone.",
   "Adverbs": "It worked because the word told how something was done, and that's the job of an adverb.",
