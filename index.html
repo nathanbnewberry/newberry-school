@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "16fa95f45cab";
+const GAME_BUILD = "f311a0090dc2";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -4904,6 +4904,33 @@ const SPELLING_LISTS = [
     { w: "every", s: "Try every shot you can." },
     { w: "very", s: "That was a very good kick." },
     { w: "many", s: "How many goals did you score?" },
+  ] },
+  // Elliot's week of 2026-11-16 (Nathan's photo): silent letters wr, kn, gn. Words 21-23 are the vocabulary words;
+  // their sentences give the meaning first.
+  { id: "list-12", title: "Spelling List 12", startsOn: "2026-11-16", words: [
+    { w: "wrist", s: "He wore a leather band on his wrist." },
+    { w: "wrapper", s: "Throw the candy wrapper in the trash." },
+    { w: "wrinkle", s: "There was a wrinkle in his new shirt." },
+    { w: "wrench", s: "Dad used a wrench to tighten the bolt." },
+    { w: "wrong", s: "He took a wrong turn on the trail." },
+    { w: "written", s: "Her name was written on the gate." },
+    { w: "knotted", s: "The rope was knotted around the post." },
+    { w: "kneel", s: "Kneel down to tie your boot." },
+    { w: "knit", s: "Grandma likes to knit warm hats." },
+    { w: "knight", s: "The knight rode a white horse." },
+    { w: "knead", s: "Knead the dough before you bake the bread." },
+    { w: "knew", s: "He knew the way back to the ranch." },
+    { w: "knuckle", s: "He scraped his knuckle on the fence." },
+    { w: "gnaw", s: "The dog likes to gnaw on a bone." },
+    { w: "gnash", s: "The angry bear began to gnash its teeth." },
+    { w: "gnu", s: "A gnu is a large animal from Africa." },
+    { w: "waterfall", s: "We heard the waterfall before we saw it." },
+    { w: "grandparents", s: "My grandparents live on a farm." },
+    { w: "zookeeper", s: "The zookeeper fed the hungry lions." },
+    { w: "wildlife", s: "We saw lots of wildlife on our ride." },
+    { w: "scamper", s: "Scamper means to run quickly. The squirrels scamper up the tree." },
+    { w: "wrath", s: "Wrath means anger. The bull showed its wrath." },
+    { w: "knack", s: "Knack means a talent. She has a knack for roping." },
   ] },
   // Elliot's week of 2026-11-10 (Nathan's photo). Starts Tuesday so Monday is List 10's make-up test.
   // Words 18-20 are the book's vocabulary words; their sentences use the meaning. Months keep their capitals.
