@@ -3945,7 +3945,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "78e3fe124f39";
+const GAME_BUILD = "8d6fdce47e43";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -5335,6 +5335,10 @@ const STATE_LOOKS = {
   "South Dakota": { ground: "rgba(160,150,110,.13)", river: "Missouri River", big: (x, y) => (x < 150 ? SP_.rushmore(x + 40, y) : SP_.badlands(x, y)), small: SP_.yucca, tall: null, extra: () => `${SP_.bison(300 * K, 236)}${SP_.bison(690 * K, 480)}`, animals: "bison", star: [.49, .46] },
   California: { ground: "rgba(232,180,70,.15)", river: "Sacramento River", big: (x, y, s) => SP_.snowpeak(x, y, s), small: SP_.poppy, tall: SP_.redwood, extra: () => `${SP_.bridge(300 * K, 236)}${SP_.poppy(690 * K, 480)}`, animals: "cow", star: [.28, .36] },
   "North Dakota": { ground: "rgba(120,160,90,.13)", river: "Missouri River", big: (x, y, s) => SP_.badlands(x, y, s), small: SP_.sunflower, tall: SP_.sunflower, extra: () => `${SP_.turbine(300 * K, 236)}${SP_.bison(690 * K, 480)}`, animals: "bison", star: [.44, .71] },
+  // Week of 2026-11-16: Helena, Boise and Salt Lake City. Stars from each capital's spot in its state's box.
+  Montana: { ground: "rgba(90,140,90,.13)", river: "Missouri River", big: (x, y, s) => SP_.snowpeak(x, y, s * 1.2), small: SP_.aspen, tall: SP_.aspen, extra: () => `${SP_.bison(300 * K, 236)}${SP_.bison(330 * K, 246)}${SP_.snowpeak(690 * K, 480, .9)}`, animals: "bison", star: [.33, .52] },
+  Idaho: { ground: "rgba(120,150,80,.13)", river: "Boise River", big: (x, y, s) => SP_.snowpeak(x, y, s), small: SP_.sunflower, tall: SP_.aspen, extra: () => `${SP_.windmill(300 * K, 236)}${SP_.aspen(690 * K, 480)}`, animals: "cow", star: [.17, .77] },
+  Utah: { ground: "rgba(205,110,60,.16)", river: "Jordan River", big: (x, y, s) => SP_.mesa(x, y + 4, s), small: SP_.yucca, tall: (x, y) => cactus(x, y + 6), extra: () => `${SP_.mesa(300 * K, 240, .8)}${SP_.snowpeak(690 * K, 480, .9)}`, animals: "cow", star: [.43, .25] },
 };
 // Fits the state's shape into its box after the screen draws, and stars the capital.
 function fitStateShapes() {
