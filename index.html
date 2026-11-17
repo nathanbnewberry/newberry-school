@@ -1534,6 +1534,7 @@ const STEP_MS = 1000 / 40;
 let worldLast = 0, worldLeft = 0;
 function worldFrame(now) {
   requestAnimationFrame(worldFrame);
+  if (canvas.hidden && !W.run) { worldLast = now; worldLeft = 0; return; }
   worldLeft += Math.min(250, now - (worldLast || now)); worldLast = now;
   while (worldLeft >= STEP_MS) { worldStep(); worldLeft -= STEP_MS; }
   if (canvas.hidden) return;
@@ -2431,7 +2432,7 @@ function pnListen() {
   const rms = Math.sqrt(sum / mic.buf.length), lvl = document.getElementById("pnLvl"); if (lvl) lvl.style.width = `${Math.min(100, rms * 1500).toFixed(0)}%`;
   mic.loudest = Math.max(mic.loudest || 0, rms);
   mic.frames = (mic.frames || 0) + 1; if (rms >= .003) mic.loud = (mic.loud || 0) + 1;
-  if (mic.frames % 80 === 0) { pnDiag({ ctx: mic.ctx?.state, loudest: +mic.loudest.toFixed(5), loudFrames: mic.loud || 0, frames: mic.frames, pitched: mic.pitched || 0, strikes: mic.strikes || 0, notes: (mic.heard || []).join(" ") }); save(); }
+  if (mic.frames % 80 === 0) { pnDiag({ ctx: mic.ctx?.state, loudest: +mic.loudest.toFixed(5), loudFrames: mic.loud || 0, frames: mic.frames, pitched: mic.pitched || 0, strikes: mic.strikes || 0, notes: (mic.heard || []).join(" ") }); if (mic.frames % 1000 === 0) save(); }
   if (hear && mic.ctx && mic.ctx.state !== "running") hear.textContent = "Tap the screen to wake the microphone";
   else if (hear && mic.loudest < .0005 && Date.now() - mic.startedAt > 4000) hear.textContent = "No sound is coming in. Try Safari, or close and reopen Chrome.";
   const prev = mic.prev || 0, low = mic.low ?? rms, now = Date.now();
@@ -3972,7 +3973,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "1c3d7de506b9";
+const GAME_BUILD = "0c6ad600ae08";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6919,15 +6920,15 @@ const B3 = { on: false };
 function b3Scene(host) {
   if (B3.renderer && B3.lesson === ranchLesson().id && B3.kidId === KID.id && B3.half === b3Half()) { host.appendChild(B3.renderer.domElement); return; }
   const B3_HALF = b3Half();
-  if (B3.renderer) { B3.renderer.dispose(); B3.renderer.domElement.remove(); }
-  const look = ranchLook(), renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  if (B3.renderer) { B3.renderer.dispose(); try { B3.renderer.forceContextLoss(); } catch (e) {} B3.renderer.domElement.remove(); }
+  const look = ranchLook(), renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "default" }); // lighter on iPads (2026-11-17: tabs were reloading)
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.className = "b3canvas"; host.appendChild(renderer.domElement);
   const scene = new THREE.Scene(), sky = new THREE.Color(look.sky[0]);
   scene.background = sky; scene.fog = new THREE.Fog(look.sky[1], 110, 230);
   const camera = new THREE.PerspectiveCamera(42, 1, .5, 400);
   scene.add(new THREE.HemisphereLight("#dff1ff", look.land[2], .62));
-  const sun = new THREE.DirectionalLight("#fff3d6", .85); sun.position.set(-22, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+  const sun = new THREE.DirectionalLight("#fff3d6", .85); sun.position.set(-22, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
   const SH = b3Half() + 10; Object.assign(sun.shadow.camera, { left: -SH, right: SH, top: SH, bottom: -SH, near: 1, far: 100 + SH }); sun.shadow.bias = -.0008; scene.add(sun);
   // Sky dome with a soft fade to the horizon color.
   const dome = new THREE.Mesh(new THREE.SphereGeometry(180, 24, 12), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { top: { value: new THREE.Color(look.sky[0]) }, bot: { value: new THREE.Color(look.sky[1]) } }, vertexShader: "varying float h;void main(){h=normalize(position).y;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}", fragmentShader: "uniform vec3 top;uniform vec3 bot;varying float h;void main(){gl_FragColor=vec4(mix(bot,top,clamp(h*2.2,0.,1.)),1.);}" }));
