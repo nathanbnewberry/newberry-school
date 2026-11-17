@@ -3972,7 +3972,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "f25a2b79228c";
+const GAME_BUILD = "1c3d7de506b9";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -7349,7 +7349,7 @@ function parentView() {
   return `<div class="hud"><button class="btn dark small" data-act="leaveParent">Back</button><span class="sub">${cloud === "synced" ? "Saved online" : "Saved on this device, will retry online"}</span></div><h1>Parent page</h1><p class="pnparentlink"><a class="btn dark" href="?piano=parent">&#127929; Play Piano Hero yourself</a></p>
   ${schoolTop}
   ${top}
-  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>Saved progress and family code</summary><div class="panel"><p><strong>${familyLinked() ? "This device is signed in to your family." : "This device isn't signed in yet, so its progress stays separate."}</strong> ${familyLinked() ? "" : `<button class="btn small go" data-act="familySignInAgain">Sign in</button>`}</p><p>Offline: ${offlineReady.total ? `${offlineReady.have} of ${offlineReady.total} voice lines saved on this device.` : "getting ready."} Work done offline saves here and goes online when the internet is back.</p><p>Progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open saved progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
+  <details class="plog pfold" ${U.famData || U.famMsg ? "open" : ""}><summary>Saved progress and family code</summary><div class="panel"><p><strong>${familyLinked() ? "This device is signed in to your family." : "This device isn't signed in yet, so its progress stays separate."}</strong> ${familyLinked() ? "" : `<button class="btn small go" data-act="familySignInAgain">Sign in</button>`}</p><p>Offline: voice lines he plays are kept on this device, and a few hundred more are saved each time the game opens. Work done offline saves here and goes online when the internet is back.</p><p>Progress saves online automatically, with a lasting copy each day. This code is the only way to open it, so keep it somewhere safe.</p><p class="famcode">${esc(familyCode())}</p><p class="sub">${cloudAt ? `Last saved online ${esc(new Date(cloudAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }))}.` : ""}</p><h3>Open saved progress on this device</h3><div class="famrow"><input id="famIn" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Enter the family code"><button class="btn small" data-act="famCheck">Find it</button></div>${U.famMsg ? `<p>${esc(U.famMsg)}</p>` : ""}${U.famData ? `<p>Found a save with $${U.famData.nuggets || 0}. Use it on this device? This replaces what's here.</p><div class="hud"><button class="btn small" data-act="famYes">Yes, use it</button><button class="btn small dark" data-act="famNo">Cancel</button></div>` : ""}</div></details>
   <details class="plog pfold" ${U.copied ? "open" : ""}><summary>Adding a new lesson</summary><div class="panel"><ol><li>Send Claude photos of the lesson pages and the answer key.</li><li>Copy the progress below and paste it in too, so the help targets what was hard.</li></ol><textarea id="report" readonly>${esc(reportText())}</textarea><div><button class="btn small dark" data-act="copy">${U.copied ? "Copied" : "Copy progress"}</button></div></div></details>`;
 }
 
@@ -8936,18 +8936,37 @@ connect();
 cloudStart();
 if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});
 let offlineReady = { have: 0, total: 0, running: false };
+// Saves voice clips for offline use a few at a time (2026-11-17). It used to pull every clip (about 15,000,
+// 600 MB) into an old cache the offline worker never read and wiped on each new version, so every session
+// downloaded them all again, and the iPad ran out of memory and reloaded the page (black or white flash).
+// Now it uses the worker's own cache, walks the list from where it stopped last time, saves at most
+// OFFLINE_PER_SESSION new clips per session, one at a time, and pauses while the game is hidden.
+const OFFLINE_PER_SESSION = 300, MEDIA_CACHE = "media-v2";
 async function offlinePrepare() {
   if (offlineReady.running || !("caches" in window) || navigator.onLine === false || navigator.connection?.saveData) return;
   const reg = await navigator.serviceWorker?.ready.catch(() => null);
   if (!reg || !voiceLines?.size) return;
   offlineReady.running = true;
   try {
-    const cache = await caches.open("media-v1"), have = new Set((await cache.keys()).map((r) => r.url.split("/").pop().replace(".mp3", "")));
-    const missing = [...voiceLines].filter((c) => !have.has(c));
-    offlineReady.total = voiceLines.size; offlineReady.have = voiceLines.size - missing.length;
-    const worker = async () => { while (missing.length && navigator.onLine !== false) { const c = missing.pop(); const r = await fetch(`voice/${c}.mp3`).catch(() => null); if (r?.ok) { await cache.put(new URL(`voice/${c}.mp3`, location.href).href, r.clone()); offlineReady.have++; } } };
-    await Promise.all([worker(), worker()]);
-    SFX_FILES.forEach((n) => fetch(`sfx/${n}.mp3`).catch(() => {}));
+    caches.delete("media-v1").catch(() => {});
+    const cache = await caches.open(MEDIA_CACHE), list = [...voiceLines];
+    let at = 0; try { at = +localStorage.getItem("offline-at") || 0; } catch (e) {}
+    if (at >= list.length) at = 0;
+    offlineReady.total = list.length;
+    let got = 0, seen = 0;
+    while (got < OFFLINE_PER_SESSION && seen < list.length && navigator.onLine !== false) {
+      if (document.hidden) { await new Promise((r) => setTimeout(r, 5000)); continue; }
+      const url = new URL(`voice/${list[at]}.mp3`, location.href).href;
+      if (!(await cache.match(url))) {
+        // The offline worker saves the clip itself as it passes through.
+        const r = await fetch(url).catch(() => null);
+        if (r) { try { await r.arrayBuffer(); } catch (e) {} got++; }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+      at = (at + 1) % list.length; seen++;
+      if (seen % 25 === 0) { try { localStorage.setItem("offline-at", String(at)); } catch (e) {} }
+    }
+    try { localStorage.setItem("offline-at", String(at)); } catch (e) {}
   } finally { offlineReady.running = false; }
 }
 setTimeout(offlinePrepare, 30000);
