@@ -3973,7 +3973,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "99ab0e088fdc";
+const GAME_BUILD = "21c9e2bcf20d";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
@@ -6917,6 +6917,9 @@ const B3_BUILD = {
 
 // ---------- the scene ----------
 const B3 = { on: false };
+// How far the camera may pull back: it grows with bought land, but stops at 140 so the haze (scaled to match) never hides the ranch.
+// Finley bought 13 more land on 2026-11-19 and the camera sat 322 away, all haze (fog ended at 230).
+const b3MaxDist = () => Math.min(140, 110 * b3Half() / 20);
 function b3Scene(host) {
   if (B3.renderer && B3.lesson === ranchLesson().id && B3.kidId === KID.id && B3.half === b3Half()) { host.appendChild(B3.renderer.domElement); return; }
   const B3_HALF = b3Half();
@@ -6925,8 +6928,9 @@ function b3Scene(host) {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5)); renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.className = "b3canvas"; host.appendChild(renderer.domElement);
   const scene = new THREE.Scene(), sky = new THREE.Color(look.sky[0]);
-  scene.background = sky; scene.fog = new THREE.Fog(look.sky[1], 110, 230);
-  const camera = new THREE.PerspectiveCamera(42, 1, .5, 400);
+  const farOut = Math.max(110, B3_HALF + 40); // mountains sit past the edge of the land
+  scene.background = sky; scene.fog = new THREE.Fog(look.sky[1], Math.max(110, b3MaxDist() + 40), Math.max(230, farOut + b3MaxDist() + 60));
+  const camera = new THREE.PerspectiveCamera(42, 1, .5, Math.max(400, farOut + b3MaxDist() + 120));
   scene.add(new THREE.HemisphereLight("#dff1ff", look.land[2], .62));
   const sun = new THREE.DirectionalLight("#fff3d6", .85); sun.position.set(-22, 40, 18); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
   const SH = b3Half() + 10; Object.assign(sun.shadow.camera, { left: -SH, right: SH, top: SH, bottom: -SH, near: 1, far: 100 + SH }); sun.shadow.bias = -.0008; scene.add(sun);
@@ -6935,13 +6939,13 @@ function b3Scene(host) {
   scene.add(dome);
   // The land: the plot, the open range around it, a creek, hills and mountains.
   const world = new THREE.Group(); scene.add(world);
-  const range = new THREE.Mesh(new THREE.CircleGeometry(150, 48), b3Mat(look.land[2])); range.rotation.x = -Math.PI / 2; range.position.y = -.05; range.receiveShadow = true; world.add(range);
+  const range = new THREE.Mesh(new THREE.CircleGeometry(Math.max(150, farOut + 40), 48), b3Mat(look.land[2])); range.rotation.x = -Math.PI / 2; range.position.y = -.05; range.receiveShadow = true; world.add(range);
   const plot = new THREE.Mesh(new THREE.PlaneGeometry(B3_HALF * 2 + 2, B3_HALF * 2 + 2), b3Mat(look.land[1])); for (let k = 1; k <= (b3More().land || 0); k++) { const h = 20 + 8 * k; [[0, -h], [0, h], [-h, 0], [h, 0]].forEach(([x, z]) => { const post = cy(world, .15, .15, 1, x, .5, z, "#7d5530", { seg: 5 }); }); } plot.rotation.x = -Math.PI / 2; plot.receiveShadow = true; world.add(plot);
   const path = new THREE.Mesh(new THREE.PlaneGeometry(3, 30), b3Mat("#c9a66b")); path.rotation.x = -Math.PI / 2; path.position.set(0, .01, B3_HALF + 13); path.receiveShadow = true; world.add(path);
   for (let i = 0; i < 260; i++) { const a = i * 2.39996, r = 4 + (i * 7.3) % (B3_HALF * 3); const x = Math.cos(a) * r, z = Math.sin(a) * r; if (Math.abs(x) < B3_HALF && Math.abs(z) < B3_HALF) continue; cn(world, .18, .5, x, .25, z, look.tuft, { seg: 4, shadow: false }); }
   for (let i = 0; i < 26; i++) { const a = (i / 26) * Math.PI * 2 + .1, r = B3_HALF * 1.7 + (i % 4) * 5, x = Math.cos(a) * r, z = Math.sin(a) * r; if (z > B3_HALF && Math.abs(x) < 6) continue; const s = .8 + (i % 3) * .3; cy(world, .25 * s, .35 * s, 1.6 * s, x, .8 * s, z, "#5a3a1e", { seg: 6 }); cn(world, 1.6 * s, 3.6 * s, x, 3.2 * s, z, look.pine, { seg: 8 }); cn(world, 1.2 * s, 2.6 * s, x, 4.6 * s, z, look.pine, { seg: 8 }); }
-  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, r = 110 + (i % 3) * 12, h = 22 + (i * 13) % 20; const m = cn(world, 30 + (i % 4) * 6, h, Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r, look.far, { seg: 7, shadow: false }); m.material = new THREE.MeshLambertMaterial({ color: look.far }); if (h > 30) cn(world, 9, 8, Math.cos(a) * r, h - 5.5, Math.sin(a) * r, "#f4f1ee", { seg: 7, shadow: false }); }
-  for (let i = 0; i < 9; i++) { const x = -60 + i * 18, z = -55 - (i % 3) * 10; cn(world, 18, 12, x, 4, z, look.near, { seg: 7, shadow: false }); }
+  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, r = farOut + (i % 3) * 12, h = 22 + (i * 13) % 20; const m = cn(world, 30 + (i % 4) * 6, h, Math.cos(a) * r, h / 2 - 2, Math.sin(a) * r, look.far, { seg: 7, shadow: false }); m.material = new THREE.MeshLambertMaterial({ color: look.far }); if (h > 30) cn(world, 9, 8, Math.cos(a) * r, h - 5.5, Math.sin(a) * r, "#f4f1ee", { seg: 7, shadow: false }); }
+  for (let i = 0; i < 9; i++) { const x = -60 + i * 18, z = -Math.max(55, B3_HALF + 20) - (i % 3) * 10; cn(world, 18, 12, x, 4, z, look.near, { seg: 7, shadow: false }); }
   const clouds = new THREE.Group(); scene.add(clouds);
   for (let i = 0; i < 8; i++) { const c = new THREE.Group(); c.position.set(-80 + i * 22, 34 + (i % 3) * 5, -40 + (i % 4) * 22); [[0, 0, 3], [2.6, .4, 2.3], [-2.4, .2, 2.1], [1, 1.4, 2]].forEach(([x, y, r]) => sp(c, r, x, y, 0, "#ffffff", { shadow: false, seg: 8 })); clouds.add(c); }
   // Build-mode grid and the footprint under the piece being moved.
@@ -6972,7 +6976,7 @@ function b3Drop(g) { g.userData.drop = 1; g.position.y = 14; }
 function b3Size() {
   const c = B3.renderer?.domElement, host = c?.parentElement; if (!host) return;
   const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return;
-  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); if (!B3.zoomed) B3.dist = (w < h ? 80 : 52) * (b3Half() / 20); }
+  if (c.width !== Math.round(w * B3.renderer.getPixelRatio()) || c.height !== Math.round(h * B3.renderer.getPixelRatio())) { B3.renderer.setSize(w, h, false); B3.camera.aspect = w / h; B3.camera.updateProjectionMatrix(); if (!B3.zoomed) { const ext = Math.max(20, ...Object.values(B3.pieces || {}).filter((g) => g && g.visible !== false && g.position).map((g) => Math.max(Math.abs(g.position.x), Math.abs(g.position.z)) + 4)); B3.dist = Math.min(b3MaxDist(), (w < h ? 80 : 52) * (ext / 20)); } }
 }
 function b3Cam() {
   const { yaw, pitch, dist, target } = B3;
@@ -7054,7 +7058,7 @@ function b3Touch() {
   c.onpointermove = (e) => {
     if (!pts.has(e.pointerId)) return; const was = pts.get(e.pointerId); pts.set(e.pointerId, [e.clientX, e.clientY]);
     moved = Math.max(moved, Math.hypot(e.clientX - start[0], e.clientY - start[1]));
-    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) { B3.dist = Math.max(22, Math.min(110 * b3Half() / 20, B3.dist * pinch / d)); B3.zoomed = true; } pinch = d; return; }
+    if (pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) { B3.dist = Math.max(22, Math.min(b3MaxDist(), B3.dist * pinch / d)); B3.zoomed = true; } pinch = d; return; }
     if (downKey && moved > 8) {
       if (!B3.drag) { B3.drag = downKey; if (B3.sel !== downKey) b3Select(downKey); B3.grid.visible = true; B3.foot.visible = true; }
       const hit = b3Ground(e); if (!hit) return; const g = B3.pieces[downKey], s = g.userData.s;
@@ -7076,7 +7080,7 @@ function b3Touch() {
     downKey = null;
   };
   c.onpointerup = up; c.onpointercancel = up;
-  c.onwheel = (e) => { e.preventDefault(); B3.zoomed = true; B3.dist = Math.max(22, Math.min(110 * b3Half() / 20, B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
+  c.onwheel = (e) => { e.preventDefault(); B3.zoomed = true; B3.dist = Math.max(22, Math.min(b3MaxDist(), B3.dist * (1 + Math.sign(e.deltaY) * .08))); };
 }
 function b3Act(e) {
   const t = e.target.closest("[data-b3]"); if (!t) return; const what = t.dataset.b3, key = B3.sel;
