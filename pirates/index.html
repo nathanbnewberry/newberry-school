@@ -1178,7 +1178,7 @@
     sea.visible = w !== 'house' && w !== 'deep' && w !== 'ship'; scene.fog.near = w === 'house' ? 300 : w === 'deep' ? 6 : 40; scene.fog.far = w === 'deep' ? 70 : (w === 'house' || w === 'ship') ? 1000 : 120; scene.fog.near = (w === 'house' || w === 'ship') ? 300 : scene.fog.near; scene.fog.color.setHex(w === 'deep' ? 0x0a3a55 : 0xa7d8f7);
     const sk = w === 'deep' ? [0x03141f, 0x0a3a55, 0x0f5a80] : [0x2f7fd1, 0x8fd0f5, 0xe8f3fb]; skyMat.uniforms.top.value.setHex(sk[0]); skyMat.uniforms.mid.value.setHex(sk[1]); skyMat.uniforms.bottom.value.setHex(sk[2]); sunDisc.visible = w !== 'deep'; hemi.intensity = w === 'deep' ? 0.35 : 0.7; sun.intensity = w === 'deep' ? 0.6 : 1.35;
     if (w !== 'island' && G.moving) { G.moving = false; const mb = $('#btn-move'); if (mb) mb.textContent = 'MOVE'; }
-    ui.islandBtns.hidden = w !== 'island'; ui.leave.hidden = w !== 'house'; $('#deck-w').hidden = w !== 'ship'; $('#btn-inside').hidden = w !== 'battle'; $('#hint').hidden = !(w === 'battle' || w === 'island'); ui.qpanel.hidden = true; ui.timerW.hidden = !(w === 'battle' || w === 'defend'); ui.enemyLives.hidden = !(w === 'battle' || w === 'defend'); ui.ourLives.hidden = !(w === 'battle' || w === 'defend'); ui.enemyName.textContent = '';
+    ui.islandBtns.hidden = w !== 'island'; ui.leave.hidden = w !== 'house'; $('#deck-w').hidden = w !== 'ship'; $('#btn-inside').hidden = w !== 'battle'; $('#hint').hidden = !(w === 'battle' || w === 'island'); $('#hint').textContent = w === 'island' ? 'PUSH A BUILDING TO MOVE IT \u00b7 DRAG THE GROUND TO LOOK AROUND' : 'DRAG TO LOOK AROUND'; ui.qpanel.hidden = true; ui.timerW.hidden = !(w === 'battle' || w === 'defend'); ui.enemyLives.hidden = !(w === 'battle' || w === 'defend'); ui.ourLives.hidden = !(w === 'battle' || w === 'defend'); ui.enemyName.textContent = '';
     if (w === 'island') { playSong('island'); islandCam(); G.islandTime = 0; }
     if (w === 'house') { playSong('island'); setCam(new THREE.Vector3(0.4, 83.2, 5.6), new THREE.Vector3(0, 81.4, -0.5), true); }
     if (w === 'battle') { playSong('sea'); battleCam(); }
@@ -1376,12 +1376,18 @@
   const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.5);
   function ptrRay(e) { const r = canvas.getBoundingClientRect(); ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera); }
   function hitBuilding(e) { ptrRay(e); const hits = ray.intersectObjects(ISL.builds.map(b => b.g), true); if (!hits.length) return null; let o = hits[0].object; while (o && o.userData.i == null) o = o.parent; return o ? ISL.builds.find(b => b.g === o) : null; }
-  canvas.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.moved = 0; G.drag = G.moving && G.world === 'island' ? hitBuilding(e) : null; if (G.drag) { G.drag.from = G.drag.g.position.clone(); G.drag.g.position.y = 2.2; } });
+  // Press on a building and push it to move it, no MOVE button needed (Finley, 2026-11-19: "push where he wants the houses").
+  // A quick tap still opens the building; it starts moving once the finger travels a little.
+  function startDrag(B) { G.drag = B; B.from = B.g.position.clone(); B.g.position.y = 2.2; G.pushPick = null; }
+  canvas.addEventListener('pointerdown', e => { ptr.down = true; ptr.x = e.clientX; ptr.y = e.clientY; ptr.sx = e.clientX; ptr.sy = e.clientY; ptr.moved = 0; G.drag = null; G.pushPick = G.world === 'island' ? hitBuilding(e) : null; if (G.pushPick && G.moving) startDrag(G.pushPick); });
   canvas.addEventListener('pointermove', e => {
-    if (G.drag) { ptrRay(e); const q = new THREE.Vector3(); if (ray.ray.intersectPlane(groundPlane, q)) { const x = Math.round(q.x * 2) / 2, z = Math.round(q.z * 2) / 2; if (spotOk(G.drag, x, z)) { G.drag.g.position.x = x; G.drag.g.position.z = z; } } ptr.moved += 1; return; }
+    if (!G.drag && G.pushPick && ptr.down && Math.hypot(e.clientX - ptr.sx, e.clientY - ptr.sy) > 12) startDrag(G.pushPick);
+    if (G.drag) { ptrRay(e); const q = new THREE.Vector3(); if (ray.ray.intersectPlane(groundPlane, q)) { const R = ISL.radius - 3.4, d = Math.hypot(q.x, q.z), k = d > R ? R / d : 1; const x = Math.round(q.x * k * 2) / 2, z = Math.round(q.z * k * 2) / 2; G.drag.g.position.x = x; G.drag.g.position.z = z; G.drag.ok = spotOk(G.drag, x, z); } ptr.moved += 1; return; }
+    if (G.pushPick && ptr.down) return;
     if (!ptr.down) return; const dx = e.clientX - ptr.x; ptr.moved += Math.abs(dx) + Math.abs(e.clientY - ptr.y); ptr.x = e.clientX; ptr.y = e.clientY; if (G.world === 'island') { G.camYaw += dx * 0.006; islandCam(); } else if (G.world === 'battle') { G.battleYaw = clamp(G.battleYaw + dx * 0.006, -1.5, 1.5); battleCam(); } });
   window.addEventListener('pointerup', e => {
-    if (G.drag) { const B = G.drag; G.drag = null; ptr.down = false; B.g.position.y = 1.5; if (B.g.position.distanceTo(B.from) > 0.6) { G.P.spots = G.P.spots || {}; G.P.spots[B.i] = [B.g.position.x, B.g.position.z]; saveP(); SFX.hammer(); puff(B.g.position.clone(), new THREE.Vector3(0, 1, 0), 0.8, 0.8, 0xe9d8a6, 1, 6, 1); } refreshVillagers(); return; }
+    G.pushPick = null;
+    if (G.drag) { const B = G.drag; G.drag = null; ptr.down = false; B.g.position.y = 1.5; if (B.ok === false) { B.g.position.copy(B.from); B.g.position.y = 1.5; B.ok = true; toast('No room there. Try an open spot on the grass.'); refreshVillagers(); return; } if (B.g.position.distanceTo(B.from) > 0.6) { G.P.spots = G.P.spots || {}; G.P.spots[B.i] = [B.g.position.x, B.g.position.z]; saveP(); SFX.hammer(); puff(B.g.position.clone(), new THREE.Vector3(0, 1, 0), 0.8, 0.8, 0xe9d8a6, 1, 6, 1); } refreshVillagers(); return; }
     if (!ptr.down) return; ptr.down = false; if (ptr.moved > 8 || G.world !== 'island') return;
     const r = canvas.getBoundingClientRect(); const m = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(m, camera); if (ISL.dockShip && ray.intersectObject(ISL.dockShip.g, true).length) return enterShip(); const hits = ray.intersectObjects(ISL.builds.map(b => b.g), true); if (!hits.length) return;
@@ -1403,7 +1409,7 @@
   $('#btn-retry').addEventListener('click', () => { show('ov-lose', false); startBattle(G.enemy, G.raidIdx); });
   $('#btn-build').addEventListener('click', openBuild); $('#btn-build-close').addEventListener('click', () => show('ov-build', false));
   $('#btn-isles').addEventListener('click', openIsles); $('#btn-isles-close').addEventListener('click', () => show('ov-isles', false));
-  $('#btn-move').addEventListener('click', () => { G.moving = !G.moving; $('#btn-move').textContent = G.moving ? 'DONE MOVING' : 'MOVE'; toast(G.moving ? 'Drag any building to a new spot.' : 'All set!'); });
+  $('#btn-move').addEventListener('click', () => { G.moving = !G.moving; $('#btn-move').textContent = G.moving ? 'DONE MOVING' : 'MOVE'; toast(G.moving ? 'Drag any building to a new spot. You can also just push one anytime.' : 'All set!'); });
   $('#btn-raid').addEventListener('click', openRaid); $('#btn-raid-close').addEventListener('click', () => show('ov-raid', false));
   $('#btn-menu').addEventListener('click', openMenu); $('#btn-menu-close').addEventListener('click', () => show('ov-menu', false));
   $('#btn-british').addEventListener('click', () => { show('ov-menu', false); startDefense(); });
