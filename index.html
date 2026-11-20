@@ -1998,6 +1998,8 @@ function schoolPlan() {
   if ((KID.id === "elliot" || KID.id === "finn") && !S.typingSet) { S.typingSet = 1; const t = S.schoolPlan.find((x) => x.id === "typing"); if (t) t.on = true; }
   // Friday review is for children with lessons, set once so a parent's later changes stick.
   if (!S.reviewSet) { S.reviewSet = 1; const r = S.schoolPlan.find((x) => x.id === "review"); if (r) r.on = ALL_LESSONS.some((l) => (l.kid || "elliot") === KID.id && !l.skip); }
+  // Friday review is off (Nathan, 2026-11-20: Fridays are already full with the lesson and the tests). A parent can turn it back on.
+  if (!S.reviewOff1) { S.reviewOff1 = 1; const r = S.schoolPlan.find((x) => x.id === "review"); if (r) r.on = false; }
   // Bible verse and Bible history lead the day for both boys (Nathan, 2026-11-09), set once so a parent's later changes stick.
   if ((KID.id === "elliot" || KID.id === "finn") && !S.bibleFirst) {
     S.bibleFirst = 1;
@@ -3973,7 +3975,7 @@ function schoolView() {
 }
 // The live site is published from GitHub Actions (.github/workflows/publish.yml) on every push to main.
 // iPads can hold an old copy of the game, so a new version loads itself when he isn't mid-problem.
-const GAME_BUILD = "21c9e2bcf20d";
+const GAME_BUILD = "d9a2c29a7f49";
 function checkForUpdate(any) {
   if (GAME_BUILD.startsWith("__") || typeof fetch !== "function") return;
   fetch(`version.txt?t=${Date.now()}`, { cache: "no-store" }).then((r) => (r.ok ? r.text() : "")).then((v) => {
